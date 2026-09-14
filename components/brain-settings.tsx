@@ -536,23 +536,103 @@ type OperationData = {
     detail: string;
   }[];
   jobs: {
+    id: string;
     kind: string;
     status: string;
-    startedAt: string;
+    runDate: string;
+    workflowRunId: string | null;
+    startedAt: string | null;
     finishedAt: string | null;
     error: string | null;
+    result: {
+      report?: string;
+      writes?: number;
+      indexed?: number;
+      indexedPages?: number;
+      embeddedChunks?: number;
+      remaining?: number;
+      inputTokens?: number;
+      outputTokens?: number;
+      pages?: number;
+      links?: number;
+      budgetReached?: boolean;
+      commit?: string;
+      repository?: string;
+    } | null;
   }[];
 };
+
+function OperationResult({ job }: { job: OperationData["jobs"][number] }) {
+  const result = job.result;
+  if (!result) return null;
+  const counts: string[] = [];
+  for (const [value, label] of [
+    [result.writes, "successful writes"],
+    [result.indexedPages ?? result.indexed, "pages indexed"],
+    [result.embeddedChunks, "chunks embedded"],
+    [result.remaining, "pages awaiting indexing"],
+    [result.pages, "pages exported"],
+    [result.links, "links exported"],
+    [result.inputTokens, "input tokens"],
+    [result.outputTokens, "output tokens"],
+  ] as const) {
+    if (typeof value === "number" && Number.isFinite(value)) {
+      counts.push(`${value.toLocaleString()} ${label}`);
+    }
+  }
+  const commitUrl =
+    typeof result.repository === "string" &&
+    /^[A-Za-z0-9-]+\/[A-Za-z0-9_.-]+$/.test(result.repository) &&
+    typeof result.commit === "string" &&
+    /^[a-f0-9]{40,64}$/.test(result.commit)
+      ? `https://github.com/${result.repository}/commit/${result.commit}`
+      : null;
+  return (
+    <div className="mt-2 space-y-2 text-xs text-muted-foreground">
+      {counts.length > 0 && <p>{counts.join(" · ")}</p>}
+      {(job.status === "partial" || result.budgetReached) && (
+        <p>Run limit reached. Remaining work continues the next night.</p>
+      )}
+      {commitUrl && (
+        <a
+          href={commitUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-1 text-primary underline-offset-4 hover:underline"
+        >
+          View export commit {result.commit?.slice(0, 7)}
+          <ArrowUpRight size={12} />
+        </a>
+      )}
+      {typeof result.report === "string" && result.report && (
+        <details className="rounded-md border p-3">
+          <summary className="cursor-pointer font-medium text-foreground">
+            Consolidation report
+          </summary>
+          <p className="mt-3 max-h-80 overflow-auto whitespace-pre-wrap leading-relaxed">
+            {result.report}
+          </p>
+        </details>
+      )}
+    </div>
+  );
+}
+
 export function Operations() {
   const [data, setData] = useState<OperationData | null>(null);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [starting, setStarting] = useState(false);
   const [reload, setReload] = useState(0);
   useEffect(() => {
     const controller = new AbortController();
     request<OperationData>(`/api/operations?refresh=${reload}`, {
       signal: controller.signal,
     })
-      .then(setData)
+      .then((next) => {
+        setData(next);
+        setError("");
+      })
       .catch((cause) => {
         if (!controller.signal.aborted)
           setError(
@@ -563,6 +643,38 @@ export function Operations() {
       });
     return () => controller.abort();
   }, [reload]);
+  const active = data?.jobs.some((job) =>
+    ["queued", "running"].includes(job.status),
+  );
+  useEffect(() => {
+    if (!active) return;
+    const timer = setInterval(() => setReload((n) => n + 1), 5000);
+    return () => clearInterval(timer);
+  }, [active]);
+  async function runMaintenance() {
+    setStarting(true);
+    setError("");
+    setNotice("");
+    try {
+      const result = await request<{
+        runId?: string;
+        completed?: boolean;
+        status?: string;
+      }>("/api/operations", { method: "POST", body: "{}" });
+      setNotice(
+        result.completed || result.status === "completed"
+          ? "Today's maintenance has already run. Completed work will not repeat."
+          : "Maintenance is running on Vercel. You can leave this page; results appear below.",
+      );
+      setReload((n) => n + 1);
+    } catch (cause) {
+      setError(
+        cause instanceof Error ? cause.message : "Unable to start maintenance.",
+      );
+    } finally {
+      setStarting(false);
+    }
+  }
   return (
     <>
       <div className="page-heading flex items-center justify-between gap-5 mb-[35px] min-[1600px]:mb-[45px] max-[740px]:mb-7 max-[460px]:gap-[10px]">
@@ -575,24 +687,39 @@ export function Operations() {
           </h1>
           <p>Storage, safeguards, and the work that happens overnight.</p>
         </div>
-        <Button
-          type="button"
-          variant="outline"
-          className="button bg-transparent [border:1px_solid_#d8dbcf] rounded-[6px] p-[10px_15px] inline-flex items-center justify-center gap-2 leading-[1.3] font-medium [font-size:12px] min-h-[39px] [transition:background_.15s,_border-color_.15s,_transform_.15s] whitespace-nowrap"
-          onClick={() => setReload((n) => n + 1)}
-        >
-          Refresh status
-        </Button>
+        <div className="flex flex-wrap justify-end gap-2">
+          <Button
+            type="button"
+            disabled={starting || !data}
+            onClick={runMaintenance}
+          >
+            {starting && <LoaderCircle size={14} className="animate-spin" />}
+            Run maintenance
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setReload((n) => n + 1)}
+          >
+            Refresh status
+          </Button>
+        </div>
       </div>
-      {error ? (
+      {notice && (
+        <output className="mb-5 block text-sm text-primary">{notice}</output>
+      )}
+      {error && (
         <p
           className="message [border:1px_solid_#d9dece] [background:#edf0e5] p-[16px_18px] rounded-[6px] [font-size:13px] m-[18px_0] error"
           role="alert"
         >
           {error}
         </p>
-      ) : !data ? (
-        <Loading />
+      )}
+      {!data ? (
+        error ? null : (
+          <Loading />
+        )
       ) : (
         <>
           <div className="section-heading flex items-center justify-between gap-5 mb-5">
@@ -635,21 +762,24 @@ export function Operations() {
           <section className="settings-section mt-9">
             <div className="section-heading flex items-center justify-between gap-5 mb-5">
               <div>
-                <h2>Recent scheduled jobs</h2>
-                <p>Actual runs, recorded by your infrastructure.</p>
+                <h2>Recent maintenance</h2>
+                <p>
+                  Vercel starts each night at 02:00 UTC. Run maintenance starts
+                  today's work or retries failures; completed work is kept.
+                </p>
               </div>
             </div>
             {data.jobs.length ? (
               <div className="jobs-list">
-                {data.jobs.map((job, index) => (
+                {data.jobs.map((job) => (
                   <div
-                    className="job-row flex justify-between items-center gap-5 p-[19px_12px] [border-top:1px_solid_var(--line)]"
-                    key={`${job.kind}-${job.startedAt}-${index}`}
+                    className="job-row flex justify-between items-start gap-5 p-[19px_12px] [border-top:1px_solid_var(--line)]"
+                    key={job.id}
                   >
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <strong>{job.kind.replaceAll("_", " ")}</strong>
                       <p>
-                        {formatDate(job.startedAt)}
+                        {formatDate(job.runDate || job.startedAt)}
                         {job.finishedAt &&
                           ` · Finished ${new Date(job.finishedAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}`}
                       </p>
@@ -658,9 +788,10 @@ export function Operations() {
                           {job.error}
                         </p>
                       )}
+                      <OperationResult job={job} />
                     </div>
                     <span
-                      className={`check-status [font-size:9px] [text-transform:capitalize] rounded-[4px] [background:#edf1e4] [color:#8da277] p-[4px_8px] whitespace-nowrap status-${job.status === "completed" || job.status === "success" ? "ready" : job.status === "failed" ? "error" : "missing"}`}
+                      className={`check-status [font-size:9px] [text-transform:capitalize] rounded-[4px] [background:#edf1e4] [color:#8da277] p-[4px_8px] whitespace-nowrap status-${["completed", "success", "succeeded"].includes(job.status) ? "ready" : job.status === "failed" ? "error" : "missing"}`}
                     >
                       {job.status}
                     </span>
@@ -671,7 +802,7 @@ export function Operations() {
               <div className="quiet-empty flex items-center gap-[17px] p-[30px_25px] [border:1px_solid_var(--line)] rounded-[6px] [color:#92a27c]">
                 <ClockGlyph />
                 <p>
-                  No scheduled jobs have run yet.
+                  No maintenance has run yet.
                   <br />
                   <span>Completed runs and errors will appear here.</span>
                 </p>
@@ -688,7 +819,7 @@ export function Operations() {
               </p>
               <a
                 className="text-link h-auto justify-start inline-flex items-center gap-[7px] p-[0] text-primary bg-transparent [font-size:12px] font-semibold text-left"
-                href="https://github.com/TommyBez/agent-brain#operations"
+                href="https://github.com/TommyBez/agent-brain#nightly-maintenance-export-and-backup"
                 target="_blank"
                 rel="noreferrer"
               >

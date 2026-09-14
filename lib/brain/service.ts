@@ -130,15 +130,61 @@ async function recordRevision(
   action: "create" | "write" | "append",
   reason: string,
   source: string,
+  operationKey?: string,
 ) {
   await db.query(
-    "INSERT INTO brain_revisions (owner_id,page_id,version,snapshot,reason,source) VALUES ($1,$2,$3,$4::jsonb,$5,$6)",
-    [ownerId, page.id, page.version, JSON.stringify(page), reason, source],
+    "INSERT INTO brain_revisions (owner_id,page_id,version,snapshot,reason,source,operation_key) VALUES ($1,$2,$3,$4::jsonb,$5,$6,$7)",
+    [
+      ownerId,
+      page.id,
+      page.version,
+      JSON.stringify(page),
+      reason,
+      source,
+      operationKey ?? null,
+    ],
   );
   await db.query(
     "INSERT INTO brain_activity (owner_id,page_id,action,version,reason,source) VALUES ($1,$2,$3,$4,$5,$6)",
     [ownerId, page.id, action, page.version, reason, source],
   );
+}
+
+interface WriteOptions {
+  /** Internal durable-step identity. Never supplied through MCP tool input. */
+  operationKey?: string;
+}
+
+function validateOperationKey(operationKey: string | undefined) {
+  if (
+    operationKey !== undefined &&
+    (typeof operationKey !== "string" ||
+      operationKey.length > 256 ||
+      operationKey.trim().length === 0)
+  )
+    throw new BrainError(
+      "INVALID_OPERATION_KEY",
+      "An internal operation key must contain 1–256 characters and cannot be blank.",
+    );
+}
+
+async function replayOperation(
+  db: PoolClient,
+  ownerId: string,
+  operationKey: string | undefined,
+): Promise<BrainPage | null> {
+  if (operationKey === undefined) return null;
+  // Serialize retries before taking page locks. Hash collisions only serialize
+  // unrelated operations; the full owner and key still identify the receipt.
+  await db.query("SELECT pg_advisory_xact_lock(hashtext($1), hashtext($2))", [
+    ownerId,
+    operationKey,
+  ]);
+  const result = await db.query<{ snapshot: BrainPage }>(
+    "SELECT snapshot FROM brain_revisions WHERE owner_id=$1 AND operation_key=$2",
+    [ownerId, operationKey],
+  );
+  return result.rows[0]?.snapshot ?? null;
 }
 
 export async function read(
@@ -157,12 +203,16 @@ export async function read(
 export async function write(
   ownerId: string,
   input: unknown,
+  options: WriteOptions = {},
 ): Promise<BrainPage> {
   assertOwner(ownerId);
+  validateOperationKey(options.operationKey);
   const data = schemas.writeSchema.parse(input);
   assertEmbeddingModel(data.embeddingModel, Boolean(data.embedding));
   try {
     return await transaction(async (db) => {
+      const replay = await replayOperation(db, ownerId, options.operationKey);
+      if (replay) return replay;
       const existing = data.id
         ? await rowForRef(db, ownerId, data.id, true)
         : null;
@@ -235,6 +285,7 @@ export async function write(
         existing ? "write" : "create",
         data.reason,
         data.source,
+        options.operationKey,
       );
       return page;
     });
@@ -257,10 +308,14 @@ export async function write(
 export async function append(
   ownerId: string,
   input: unknown,
+  options: WriteOptions = {},
 ): Promise<BrainPage> {
   assertOwner(ownerId);
+  validateOperationKey(options.operationKey);
   const data = schemas.appendSchema.parse(input);
   return transaction(async (db) => {
+    const replay = await replayOperation(db, ownerId, options.operationKey);
+    if (replay) return replay;
     const current = await rowForRef(db, ownerId, data.ref, true);
     assertVersion(current.version, data.expectedVersion);
     const markdown = `${current.markdown.trimEnd()}\n\n${data.markdown}\n`;
@@ -275,7 +330,15 @@ export async function append(
       [ownerId, current.id, markdown],
     );
     const page = await pageFromRow(db, ownerId, result.rows[0]);
-    await recordRevision(db, ownerId, page, "append", data.reason, data.source);
+    await recordRevision(
+      db,
+      ownerId,
+      page,
+      "append",
+      data.reason,
+      data.source,
+      options.operationKey,
+    );
     return page;
   });
 }

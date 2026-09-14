@@ -1,6 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
+import { getRun } from "workflow/api";
 import { queryEmbeddingsConfigured } from "@/lib/brain/embeddings";
-import { BrainError } from "@/lib/brain/types";
 import { assertOwner, embeddingModel } from "@/lib/brain/utils";
 import { getPool, transaction } from "@/lib/db";
 
@@ -14,106 +14,42 @@ export function isCronRequest(request: Request) {
   );
 }
 
-export async function enqueueNightly(ownerId: string) {
-  assertOwner(ownerId);
-  const { rows } = await getPool().query(
-    `INSERT INTO brain_jobs (owner_id, kind)
-     VALUES ($1, 'consolidation'), ($1, 'export')
-     ON CONFLICT (owner_id, kind, run_date) DO NOTHING RETURNING id, kind`,
-    [ownerId],
-  );
-  return rows;
-}
-
-export async function claimJob(
-  ownerId: string,
-  kind: "consolidation" | "export",
-) {
-  assertOwner(ownerId);
-  return transaction(async (client) => {
-    await client.query(
-      `UPDATE brain_jobs SET status='failed',finished_at=now(),lease_until=NULL,
-        error='Retry budget exhausted after the final worker lease expired.'
-       WHERE owner_id=$1 AND kind=$2 AND status='running' AND lease_until<now() AND attempts>=4`,
-      [ownerId, kind],
-    );
-    const { rows } = await client.query(
-      `WITH candidate AS (
-        SELECT id FROM brain_jobs WHERE owner_id = $1 AND kind = $2 AND attempts < 4
-        AND (status IN ('queued','failed') OR (status = 'running' AND lease_until < now()))
-        ORDER BY created_at FOR UPDATE SKIP LOCKED LIMIT 1
-      ) UPDATE brain_jobs j SET status = 'running', attempts = attempts + 1,
-        lease_id = gen_random_uuid(), lease_until = now() + interval '25 minutes',
-        started_at = now(), finished_at = NULL, error = NULL
-      FROM candidate c WHERE j.id = c.id
-      RETURNING j.id, j.kind, j.lease_id AS "leaseId", j.run_date::text AS "runDate"`,
-      [ownerId, kind],
-    );
-    return rows[0] ?? null;
-  });
-}
-
-export async function finishJob(
-  ownerId: string,
-  input: {
-    id: string;
-    leaseId: string;
-    status: "succeeded" | "failed";
-    result?: Record<string, unknown>;
-    error?: string;
-  },
-) {
-  assertOwner(ownerId);
-  return transaction(async (client) => {
-    const { rows } = await client.query(
-      `SELECT kind FROM brain_jobs WHERE owner_id=$1 AND id=$2 AND lease_id=$3
-        AND status='running' AND lease_until>now() FOR UPDATE`,
-      [ownerId, input.id, input.leaseId],
-    );
-    if (!rows[0])
-      throw new BrainError(
-        "LEASE_EXPIRED",
-        "This job lease is expired or already completed.",
-        409,
-      );
-    if (
-      rows[0].kind === "export" &&
-      input.status === "succeeded" &&
-      (input.result?.pushed !== true ||
-        typeof input.result?.commit !== "string" ||
-        !/^[a-f0-9]{40,64}$/.test(input.result.commit))
-    ) {
-      throw new BrainError(
-        "EXPORT_NOT_PERSISTED",
-        "A Git export can succeed only after its commit has been pushed and read back from the remote.",
-        400,
-      );
-    }
-    await client.query(
-      `UPDATE brain_jobs SET status = $4, result = $5::jsonb, error = $6,
-      finished_at = now(), lease_until = NULL
-     WHERE owner_id = $1 AND id = $2 AND lease_id = $3 AND status = 'running' AND lease_until > now()`,
-      [
-        ownerId,
-        input.id,
-        input.leaseId,
-        input.status,
-        JSON.stringify(input.result ?? {}),
-        input.error?.slice(0, 2000) ?? null,
-      ],
-    );
-    return { ok: true };
-  });
-}
-
 export async function operationsStatus(ownerId: string) {
   assertOwner(ownerId);
   const { rows: jobs } = await getPool().query(
     `SELECT id, kind, status, started_at AS "startedAt", finished_at AS "finishedAt", error,
-      run_date::text AS "runDate", attempts, result FROM brain_jobs WHERE owner_id = $1
+      run_date::text AS "runDate", executor, workflow_run_id AS "workflowRunId", attempts, result FROM brain_jobs WHERE owner_id = $1
      ORDER BY created_at DESC LIMIT 20`,
     [ownerId],
   );
+  const runIds = [
+    ...new Set<string>(
+      jobs.filter((job) => job.workflowRunId).map((job) => job.workflowRunId),
+    ),
+  ];
+  const runs = await Promise.all(
+    runIds.map(async (runId) => {
+      try {
+        return { runId, status: await getRun(runId).status };
+      } catch {
+        return { runId, status: "unavailable" };
+      }
+    }),
+  );
+  for (const job of jobs) {
+    const run = runs.find((run) => run.runId === job.workflowRunId);
+    if (run) job.workflowStatus = run.status;
+    // A cancelled/crashed engine may never reach the DB completion step. Present
+    // its actual terminal state so the owner can retry instead of polling forever.
+    if (
+      job.status === "running" &&
+      run &&
+      ["failed", "cancelled", "completed"].includes(run.status)
+    ) {
+      job.status = "failed";
+      job.error ||= `Workflow ${run.status} before this stage recorded completion. Run maintenance to retry.`;
+    }
+  }
   const checks = [
     {
       name: "Postgres",
@@ -131,18 +67,23 @@ export async function operationsStatus(ownerId: string) {
     {
       name: "Nightly schedule",
       status: process.env.CRON_SECRET ? "ready" : "missing",
-      detail: "Vercel Cron queues nightly work at 02:00 UTC.",
+      detail: "Vercel Cron starts durable maintenance at 02:00 UTC.",
     },
     {
-      name: "Agent runner",
-      status: process.env.BRAIN_RUNNER_REPOSITORY ? "ready" : "missing",
-      detail: process.env.BRAIN_RUNNER_REPOSITORY
-        ? `Runner: ${process.env.BRAIN_RUNNER_REPOSITORY}. Recent job results appear below.`
-        : "Configure the separate runner for consolidation and page embeddings.",
+      name: "Vercel Workflow",
+      status: process.env.AI_GATEWAY_API_KEY ? "ready" : "missing",
+      detail: process.env.AI_GATEWAY_API_KEY
+        ? "Durable consolidation and embedding steps. Completed steps survive interruptions; failed stages can be retried from Operations."
+        : "Configure AI_GATEWAY_API_KEY for nightly consolidation and page embeddings.",
+    },
+    {
+      name: "Git export",
+      status: process.env.BRAIN_EXPORT_GITHUB_TOKEN ? "ready" : "missing",
+      detail: `Daily commits to ${process.env.BRAIN_EXPORT_REPOSITORY || "TommyBez/agent-brain-memory"} through GitHub's API. No GitHub Actions runner or AI request is involved in exporting.`,
     },
     {
       name: "Consolidation model",
-      status: "ready",
+      status: process.env.AI_GATEWAY_API_KEY ? "ready" : "missing",
       detail: process.env.CONSOLIDATION_MODEL || "deepseek/deepseek-v4.1-flash",
     },
     {
@@ -159,6 +100,7 @@ export async function operationsStatus(ownerId: string) {
     configured: checks.every((check) => check.status === "ready"),
     checks,
     jobs,
+    runs,
   };
 }
 

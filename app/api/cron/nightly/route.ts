@@ -1,5 +1,6 @@
 import { getPool } from "@/lib/db";
-import { enqueueNightly, isCronRequest } from "@/lib/operations";
+import { startNightlyMaintenance } from "@/lib/maintenance/start";
+import { isCronRequest } from "@/lib/operations";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -16,6 +17,9 @@ export async function GET(request: Request) {
       { error: "Owner account has not been bootstrapped." },
       { status: 503 },
     );
-  const queued = await enqueueNightly(rows[0].id);
-  return Response.json({ queued, modelCalls: 0 });
+  const run = await startNightlyMaintenance(rows[0].id);
+  return Response.json(run, {
+    status: run.completed ? 200 : 202,
+    headers: { "Cache-Control": "no-store" },
+  });
 }

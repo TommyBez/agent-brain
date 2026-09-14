@@ -43,3 +43,4 @@ next-env.d.ts
 
 # Local package cache
 .pnpm-store/
+/.swc
