@@ -20,6 +20,14 @@ export function KnowledgeGraph({ onOpen }: { onOpen: (id: string) => void }) {
   const [filter, setFilter] = useState("");
   const [error, setError] = useState("");
   const [reload, setReload] = useState(0);
+  const [compact, setCompact] = useState(false);
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 740px)");
+    const update = () => setCompact(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
   useEffect(() => {
     const controller = new AbortController();
     request<{ nodes: PageSummary[]; links: BrainLink[] }>(
@@ -49,17 +57,25 @@ export function KnowledgeGraph({ onOpen }: { onOpen: (id: string) => void }) {
         filtered.length === 1
           ? 0
           : filtered.length <= 8
-            ? 180
+            ? compact
+              ? 130
+              : 180
             : index % 2 === 0
-              ? 225
-              : 130;
+              ? compact
+                ? 150
+                : 225
+              : compact
+                ? 85
+                : 130;
       return {
         ...node,
-        x: 460 + Math.cos(angle) * radius * 1.42,
-        y: 315 + Math.sin(angle) * radius,
+        x:
+          (compact ? 230 : 460) +
+          Math.cos(angle) * radius * (compact ? 1 : 1.42),
+        y: (compact ? 260 : 315) + Math.sin(angle) * radius,
       };
     });
-  }, [graph, filter]);
+  }, [graph, filter, compact]);
   const selectedPage = nodes.find((node) => node.id === selected);
   const selectedLinks =
     graph?.links.filter(
@@ -137,7 +153,7 @@ export function KnowledgeGraph({ onOpen }: { onOpen: (id: string) => void }) {
           </div>
           <div className="graph-canvas relative [border:1px_solid_var(--line)] rounded-[7px] overflow-hidden [background:#f7f9f0]">
             <svg
-              viewBox="0 0 920 630"
+              viewBox={compact ? "0 0 460 560" : "0 0 920 630"}
               role="img"
               aria-label="Interactive knowledge graph. Select a page to inspect its connections."
             >
@@ -220,15 +236,16 @@ export function KnowledgeGraph({ onOpen }: { onOpen: (id: string) => void }) {
                     stroke="none"
                   />
                   <text x={node.x} y={node.y + 33} textAnchor="middle">
-                    {node.title.length > 27
-                      ? `${node.title.slice(0, 25)}…`
+                    {node.title.length > (compact ? 19 : 27)
+                      ? `${node.title.slice(0, compact ? 17 : 25)}…`
                       : node.title}
                   </text>
                 </g>
               ))}
             </svg>
             <div className="graph-caption absolute bottom-[20px] left-[22px] flex items-center gap-2 [color:#a0ae91] [font-size:9px] max-[460px]:[font-size:7px] max-[460px]:bottom-[12px] max-[460px]:left-[13px]">
-              <Network size={14} /> Select a page to explore its neighborhood.
+              <Network size={14} className="shrink-0" /> Select a page to
+              explore its neighborhood.
             </div>
           </div>
           {selectedPage && (

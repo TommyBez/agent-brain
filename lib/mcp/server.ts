@@ -244,7 +244,7 @@ export function createBrainServer(principal: Principal) {
     [
       "nightly_consolidation",
       "Review organization and consolidate knowledge",
-      "Call gap_analysis and examine the supplied job's changed pages. Resolve possible duplicates, check referenced sources, and improve summaries, aliases and links through version-controlled writes. Never merge based only on similar names. Preserve decision rationale and contradictory evidence. Index changed pages with externally generated vectors, then record an accurate report with remaining uncertainties.",
+      "Call gap_analysis and examine the supplied job's changed pages. Resolve possible duplicates, check referenced sources, and improve summaries, aliases and links through version-controlled writes. The related and context tools already follow backlinks; do not add reciprocal relates_to links merely to enable reverse navigation. Never merge based only on similar names. Preserve decision rationale and contradictory evidence. Index changed pages with externally generated vectors, then record an accurate report with remaining uncertainties.",
     ],
   ]) {
     server.registerPrompt(

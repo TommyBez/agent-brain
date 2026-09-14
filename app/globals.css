@@ -1222,7 +1222,7 @@ label {
   background: #e8f0dd;
 }
 
-.graph-canvas svg {
+.graph-canvas > svg {
   display: block;
   width: 100%;
   height: auto;
@@ -1416,7 +1416,7 @@ label {
   .editor-heading h1 {
     font-size: 36px;
   }
-  .graph-canvas svg {
+  .graph-canvas > svg {
     min-height: 360px;
   }
   .graph-toolbar > span {
@@ -1583,7 +1583,7 @@ label {
     font-size: 9px;
   }
   .graph-node text {
-    font-size: 13px;
+    font-size: 16px;
   }
 
   .activity-row time {
