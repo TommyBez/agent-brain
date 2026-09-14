@@ -14,6 +14,7 @@ import {
 } from "../app/api/agent-tokens/route";
 import { POST as mcpPOST } from "../app/mcp/route";
 import { getAuth } from "../lib/auth";
+import * as brain from "../lib/brain/service";
 import { getPool } from "../lib/db";
 
 test(
@@ -83,6 +84,9 @@ test(
           'DELETE FROM "oauthClient" WHERE "clientId" = $1',
           [clientId],
         );
+      await getPool().query("DELETE FROM brain_pages WHERE owner_id = $1", [
+        ownerId,
+      ]);
       await getPool().query('DELETE FROM "user" WHERE id = $1', [ownerId]);
       await getPool().query(
         'DELETE FROM "oauthResource" WHERE identifier = $1',
@@ -226,6 +230,8 @@ test(
           "resolve",
           "related",
           "context",
+          "pending_embeddings",
+          "index_chunks",
         ])
           assert.ok(listed.tools.some((tool) => tool.name === name));
         await assert.rejects(
@@ -240,6 +246,11 @@ test(
           }),
           /scope/i,
         );
+        for (const name of ["pending_embeddings", "index_chunks"])
+          await assert.rejects(
+            client.callTool({ name, arguments: {} }),
+            /scope/i,
+          );
         const prompts = await client.listPrompts();
         assert.ok(
           prompts.prompts.some(
@@ -247,6 +258,182 @@ test(
           ),
         );
         await client.close();
+      },
+    );
+
+    await t.test(
+      "MCP chunk indexing covers long pages in bounded batches and enforces versions",
+      async (subtest) => {
+        const originalFetch = globalThis.fetch;
+        let externalCalls = 0;
+        subtest.mock.method(
+          globalThis,
+          "fetch",
+          async (...args: Parameters<typeof fetch>) => {
+            const [input, init] = args;
+            const url = input instanceof Request ? input.url : String(input);
+            if (new URL(url).origin !== origin) {
+              externalCalls++;
+              throw new Error(
+                "Chunk indexing must use worker-supplied vectors",
+              );
+            }
+            return originalFetch(input, init);
+          },
+        );
+        const issued = await fetch(
+          `${origin}/api/agent-tokens`,
+          json(
+            {
+              name: "Chunk worker integration test",
+              scopes: ["brain:maintain"],
+              expiresInDays: 1,
+            },
+            cookie,
+          ),
+        );
+        assert.equal(issued.status, 201, await issued.clone().text());
+        const workerToken = (await issued.json()).token;
+        const suffix = `Long page suffix ${randomUUID()}`;
+        const markdown = `${Array.from(
+          { length: 180 },
+          (_, index) =>
+            `Section ${index}: The project records distinct decisions, their supporting evidence, and the people accountable for subsequent work.\n\n`,
+        ).join("")}# Final decision\n\n${suffix}`;
+        assert.ok(Buffer.byteLength(markdown, "utf8") > 7_500);
+        const page = await brain.write(ownerId, {
+          expectedVersion: 0,
+          title: `Chunk transport test ${randomUUID()}`,
+          type: "project",
+          markdown,
+        });
+        const client = new Client(
+          { name: "chunk-worker-contract-test", version: "1.0.0" },
+          { versionNegotiation: { mode: { pin: "2026-07-28" } } },
+        );
+        type PendingPage = {
+          id: string;
+          version: number;
+          embeddingModel: string;
+          chunkerVersion: string;
+          markdown?: string;
+          totalChunks: number;
+          pendingChunks: number;
+          chunks: {
+            content: string;
+            contentHash: string;
+            needsEmbedding: boolean;
+          }[];
+        };
+        try {
+          await client.connect(
+            new StreamableHTTPClientTransport(new URL(`${origin}/mcp`), {
+              requestInit: {
+                headers: { authorization: `Bearer ${workerToken}` },
+              },
+            }),
+          );
+          const listed = await client.listTools();
+          assert.equal(
+            listed.tools.find((tool) => tool.name === "index_chunks")
+              ?.annotations?.readOnlyHint,
+            false,
+          );
+          const pending = await client.callTool({
+            name: "pending_embeddings",
+            arguments: { limit: 1 },
+          });
+          assert.equal(pending.isError, undefined);
+          const data = pending.structuredContent as { data: PendingPage[] };
+          const manifest = data.data.find((entry) => entry.id === page.id);
+          assert.ok(manifest);
+          assert.ok(manifest.chunks.length > 1);
+          assert.ok(
+            manifest.chunks.some((chunk) => chunk.content.includes(suffix)),
+            "The final section must be exposed to the embedding worker",
+          );
+          const text = pending.content[0];
+          assert.equal(text.type, "text");
+          assert.deepEqual(
+            JSON.parse(text.type === "text" ? text.text : "null"),
+            data.data,
+            "Existing clients retain the JSON array payload",
+          );
+          const embedding = Array.from({ length: 1536 }, () => 0.01);
+          let completed = false;
+          let batches = 0;
+          while (!completed && batches <= manifest.chunks.length) {
+            const response = await client.callTool({
+              name: "pending_embeddings",
+              arguments: { limit: 1, chunkLimit: 1 },
+            });
+            const [batch] = (
+              response.structuredContent as { data: PendingPage[] }
+            ).data;
+            assert.ok(batch);
+            assert.equal(batch.id, page.id);
+            assert.equal(batch.markdown, undefined);
+            assert.ok(batch.chunks.length <= 1);
+            assert.ok(batch.pendingChunks > 0);
+            assert.equal(batch.totalChunks, manifest.chunks.length);
+            const indexed = await client.callTool({
+              name: "index_chunks",
+              arguments: {
+                ref: page.id,
+                expectedVersion: page.version,
+                embeddingModel: batch.embeddingModel,
+                chunkerVersion: batch.chunkerVersion,
+                embeddings: batch.chunks
+                  .filter((chunk) => chunk.needsEmbedding)
+                  .map(({ contentHash }) => ({ contentHash, embedding })),
+              },
+            });
+            assert.equal(indexed.isError, undefined);
+            const status = (
+              indexed.structuredContent as {
+                data: { indexed: boolean; totalChunks: number };
+              }
+            ).data;
+            assert.equal(status.totalChunks, manifest.chunks.length);
+            completed = status.indexed;
+            batches++;
+            if (batches === 1)
+              assert.equal(completed, false, "One chunk is not a full page");
+          }
+          assert.equal(completed, true);
+          const finished = await client.callTool({
+            name: "pending_embeddings",
+            arguments: { limit: 1, chunkLimit: 1 },
+          });
+          assert.deepEqual(finished.structuredContent, { data: [] });
+          await brain.append(ownerId, {
+            ref: page.id,
+            expectedVersion: page.version,
+            markdown: "A later revision changes the current page.",
+          });
+          const stale = await client.callTool({
+            name: "index_chunks",
+            arguments: {
+              ref: page.id,
+              expectedVersion: page.version,
+              embeddingModel: manifest.embeddingModel,
+              chunkerVersion: manifest.chunkerVersion,
+              embeddings: [],
+            },
+          });
+          assert.equal(stale.isError, true);
+          assert.equal(
+            (stale.structuredContent as { error: { code: string } }).error.code,
+            "VERSION_CONFLICT",
+          );
+          assert.equal(externalCalls, 0);
+        } finally {
+          await client.close();
+          await getPool().query(
+            "DELETE FROM brain_pages WHERE owner_id = $1 AND id = $2",
+            [ownerId, page.id],
+          );
+        }
       },
     );
 

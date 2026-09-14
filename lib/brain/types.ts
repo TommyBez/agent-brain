@@ -57,6 +57,8 @@ export interface SearchResult extends PageSummary {
   score: number;
   excerpt: string;
   matchedBy: ("text" | "vector" | "graph")[];
+  /** UTF-16 offsets into this page version's canonical Markdown. */
+  matchedPassage?: { startOffset: number; endOffset: number; content: string };
 }
 
 export interface PageRevision {

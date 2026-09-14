@@ -140,5 +140,24 @@ export const indexEmbeddingSchema = z
   })
   .strict();
 
+export const indexChunksSchema = z
+  .object({
+    ref,
+    expectedVersion: z.number().int().positive(),
+    embeddingModel: z.string().trim().min(1).max(100),
+    chunkerVersion: z.string().trim().min(1).max(100),
+    embeddings: z
+      .array(
+        z
+          .object({
+            contentHash: z.string().regex(/^[a-f0-9]{64}$/),
+            embedding: embeddingSchema,
+          })
+          .strict(),
+      )
+      .max(32),
+  })
+  .strict();
+
 export type WriteInput = z.input<typeof writeSchema>;
 export type SearchInput = z.input<typeof searchSchema>;

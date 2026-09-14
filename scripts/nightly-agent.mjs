@@ -8,12 +8,11 @@ import {
   Client,
   StreamableHTTPClientTransport,
 } from "@modelcontextprotocol/client";
+import { indexPendingChunks } from "./index-embeddings.mjs";
 
 const origin = process.env.BRAIN_URL;
 const token = process.env.BRAIN_AGENT_TOKEN;
 const model = process.env.CONSOLIDATION_MODEL || "deepseek/deepseek-v4.1-flash";
-const embeddingModel =
-  process.env.EMBEDDING_MODEL || "openai/text-embedding-3-small";
 const outputDirectory = resolve(process.env.BRAIN_EXPORT_DIRECTORY || "export");
 const runStartedAt = Date.now();
 const maintenanceDeadline = runStartedAt + 17 * 60_000;
@@ -38,7 +37,7 @@ function git(args) {
   }).trim();
 }
 function callTool(client, params) {
-  return client.callTool(params, {
+  return client.callTool(params, undefined, {
     timeout: remainingTime(maintenanceDeadline),
   });
 }
@@ -100,55 +99,11 @@ function unpack(result) {
 }
 
 async function indexPending(client) {
-  let indexed = 0;
-  // Bound each nightly run. Pending pages remain visible to the next runner.
-  for (let batch = 0; batch < 4; batch++) {
-    const pending = unpack(
-      await callTool(client, {
-        name: "pending_embeddings",
-        arguments: { limit: 25 },
-      }),
-    );
-    const pages = Array.isArray(pending) ? pending : pending.pages;
-    if (!pages?.length) break;
-    for (const page of pages) {
-      // Byte bounds remain safe for multilingual text; character counts are not token bounds.
-      // Include the entity title/summary before the source excerpt.
-      const value = Buffer.from(
-        `${page.title}\n${page.summary}\n${page.markdown}`,
-        "utf8",
-      )
-        .subarray(0, 7500)
-        .toString("utf8");
-      const result = await gateway("embeddings", {
-        model: embeddingModel,
-        input: value,
-        dimensions: 1536,
-      });
-      const vector = result.data?.[0]?.embedding;
-      if (!Array.isArray(vector) || vector.length !== 1536)
-        throw new RunnerFailure("Gateway returned an invalid embedding.");
-      try {
-        unpack(
-          await callTool(client, {
-            name: "index_embedding",
-            arguments: {
-              ref: page.id,
-              expectedVersion: page.version,
-              embedding: vector,
-              embeddingModel,
-            },
-          }),
-        );
-        indexed++;
-      } catch (error) {
-        // A concurrent write supersedes this embedding. Never index an obsolete page version.
-        if (error.code !== "VERSION_CONFLICT") throw error;
-      }
-    }
-    if (pages.length < 25) break;
-  }
-  return indexed;
+  return indexPendingChunks({
+    callTool: (params) => callTool(client, params),
+    gateway,
+    unpack,
+  });
 }
 
 async function consolidate(client) {
@@ -410,8 +365,13 @@ async function exportToGit(job) {
 
 async function main() {
   const requestedKind = process.env.BRAIN_JOB_KIND;
-  if (requestedKind && !["consolidation", "export"].includes(requestedKind))
-    throw new RunnerFailure("BRAIN_JOB_KIND must be consolidation or export.");
+  if (
+    requestedKind &&
+    !["consolidation", "embeddings", "export"].includes(requestedKind)
+  )
+    throw new RunnerFailure(
+      "BRAIN_JOB_KIND must be consolidation, embeddings or export.",
+    );
   if (!origin || !token)
     throw new RunnerFailure("BRAIN_URL and BRAIN_AGENT_TOKEN are required.");
   if (!origin.startsWith("https://") && !origin.startsWith("http://localhost:"))
@@ -427,6 +387,11 @@ async function main() {
   );
   let failed = false;
   try {
+    if (requestedKind === "embeddings") {
+      const result = await indexPending(client);
+      console.info(`embeddings: ${JSON.stringify(result)}`);
+      return;
+    }
     for (const kind of requestedKind
       ? [requestedKind]
       : ["consolidation", "export"]) {
@@ -439,10 +404,7 @@ async function main() {
         const result =
           kind === "export"
             ? await exportToGit(job)
-            : {
-                ...(await consolidate(client)),
-                indexed: await indexPending(client),
-              };
+            : await consolidate(client);
         await api("/api/worker", {
           action: "finish",
           id: job.id,
@@ -474,6 +436,10 @@ async function main() {
         }
         console.error(`${kind}: failed`);
       }
+    }
+    if (!requestedKind) {
+      const result = await indexPending(client);
+      console.info(`embeddings: ${JSON.stringify(result)}`);
     }
   } finally {
     await client.close();

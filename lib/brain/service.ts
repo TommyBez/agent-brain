@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { Pool, PoolClient, QueryResultRow } from "pg";
 import { getPool, transaction } from "../db";
+import { CHUNKER_VERSION, chunkPage } from "./chunks";
 import { getQueryEmbedding } from "./embeddings";
 import * as schemas from "./schemas";
 import {
@@ -39,9 +40,11 @@ interface PageRow extends QueryResultRow {
   created_at: Date;
   updated_at: Date;
   embedded_at: Date | null;
+  chunk_index_version?: number | null;
+  chunk_indexed_at?: Date | null;
 }
 const PAGE_COLUMNS =
-  "p.id, p.slug, p.title, p.type, p.summary, p.aliases, p.tags, p.version, p.created_at, p.updated_at, p.embedded_at";
+  "p.id, p.slug, p.title, p.type, p.summary, p.aliases, p.tags, p.version, p.created_at, p.updated_at, p.embedded_at, p.chunk_index_version, p.chunk_indexed_at";
 const iso = (value: Date | string): string => new Date(value).toISOString();
 function summary(row: PageRow): PageSummary {
   return {
@@ -55,7 +58,12 @@ function summary(row: PageRow): PageSummary {
     version: row.version,
     createdAt: iso(row.created_at),
     updatedAt: iso(row.updated_at),
-    embeddedAt: row.embedded_at ? iso(row.embedded_at) : null,
+    embeddedAt:
+      row.chunk_index_version === row.version && row.chunk_indexed_at
+        ? iso(row.chunk_indexed_at)
+        : row.embedded_at
+          ? iso(row.embedded_at)
+          : null,
   };
 }
 function link(row: QueryResultRow): BrainLink {
@@ -343,12 +351,19 @@ export async function searchWithRetrieval(
         : "unavailable",
   };
   const candidates = Math.max(data.limit * 4, 60);
-  const query = (db: Database) =>
+  const query = (
+    db: Database,
+    chunkCandidateLimit: number | null = Math.min(20_000, candidates * 32),
+  ) =>
     db.query<
       PageRow & {
         text_rank: string | null;
         vector_rank: string | null;
         excerpt: string;
+        matched_content: string | null;
+        start_offset: number | null;
+        end_offset: number | null;
+        semantic_count: number;
       }
     >(
       `
@@ -361,14 +376,35 @@ export async function searchWithRetrieval(
         OR EXISTS (SELECT 1 FROM unnest(p.aliases) alias WHERE alias ILIKE $7))
       ORDER BY rank DESC,p.id LIMIT $5
     ), lexical AS (SELECT id,row_number() OVER (ORDER BY rank DESC,id) AS text_rank FROM lexical_candidates),
-    semantic_candidates AS (
-      SELECT p.id,p.embedding <=> $4::vector AS distance FROM brain_pages p
+    chunk_candidates AS MATERIALIZED (
+      SELECT p.id,c.embedding <=> $4::vector AS distance,c.content,c.start_offset,c.end_offset
+      FROM brain_page_chunks c JOIN brain_pages p ON p.owner_id=c.owner_id AND p.id=c.page_id
+      WHERE c.owner_id=$1 AND ($3::text IS NULL OR p.type=$3) AND $4::vector IS NOT NULL
+        AND c.embedding_model=$6 AND c.page_version=p.version AND c.chunker_version=$9
+        AND p.chunk_index_version=p.version AND p.chunk_index_model=c.embedding_model
+        AND p.chunk_index_chunker=c.chunker_version
+      ORDER BY c.embedding <=> $4::vector LIMIT $10
+    ), chunk_pages AS (
+      SELECT DISTINCT ON (id) id,distance,content,start_offset,end_offset FROM chunk_candidates
+      ORDER BY id,distance,start_offset
+    ), legacy_candidates AS (
+      SELECT p.id,p.embedding <=> $4::vector AS distance,NULL::text AS content,
+        NULL::integer AS start_offset,NULL::integer AS end_offset FROM brain_pages p
       WHERE p.owner_id=$1 AND ($3::text IS NULL OR p.type=$3) AND $4::vector IS NOT NULL
         AND p.embedding IS NOT NULL AND p.embedding_model=$6 AND p.embedding_version=p.version
+        AND (p.chunk_index_version IS DISTINCT FROM p.version OR p.chunk_index_model IS DISTINCT FROM $6
+          OR p.chunk_index_chunker IS DISTINCT FROM $9)
       ORDER BY p.embedding <=> $4::vector,p.id LIMIT $5
-    ), semantic AS (SELECT id,row_number() OVER (ORDER BY distance,id) AS vector_rank FROM semantic_candidates),
-    fused AS (SELECT coalesce(l.id,s.id) id,l.text_rank,s.vector_rank FROM lexical l FULL OUTER JOIN semantic s USING (id))
-    SELECT ${PAGE_COLUMNS},f.text_rank,f.vector_rank,left(p.markdown,500) AS excerpt
+    ), semantic_candidates AS (
+      SELECT * FROM chunk_pages UNION ALL SELECT * FROM legacy_candidates
+    ), semantic AS (
+      SELECT id,content,start_offset,end_offset,row_number() OVER (ORDER BY distance,id) AS vector_rank
+      FROM semantic_candidates ORDER BY distance,id LIMIT $5
+    ), fused AS (SELECT coalesce(l.id,s.id) id,l.text_rank,s.vector_rank,s.content,s.start_offset,s.end_offset
+      FROM lexical l FULL OUTER JOIN semantic s USING (id))
+    SELECT ${PAGE_COLUMNS},f.text_rank,f.vector_rank,coalesce(f.content,left(p.markdown,500)) AS excerpt,
+      f.content AS matched_content,f.start_offset,f.end_offset,
+      (SELECT count(*)::integer FROM semantic) AS semantic_count
       FROM fused f JOIN brain_pages p ON p.id=f.id AND p.owner_id=$1
       ORDER BY (coalesce(1.0/(60+f.text_rank),0)+coalesce(1.0/(60+f.vector_rank),0)) DESC,p.updated_at DESC LIMIT $8`,
       [
@@ -380,6 +416,8 @@ export async function searchWithRetrieval(
         queryEmbedding?.embeddingModel ?? embeddingModel(),
         `%${escapeLike(data.query)}%`,
         data.limit,
+        CHUNKER_VERSION,
+        chunkCandidateLimit,
       ],
     );
   const result = queryEmbedding
@@ -391,7 +429,15 @@ export async function searchWithRetrieval(
           "SELECT set_config('hnsw.iterative_scan','strict_order',true), set_config('hnsw.ef_search',$1,true), set_config('hnsw.max_scan_tuples','20000',true)",
           [String(candidates)],
         );
-        return query(db);
+        const approximate = await query(db);
+        // A long page can occupy an ANN candidate pool with many sections.
+        // Fill missing distinct-page slots with an exact scan rather than
+        // silently returning only that page. Small corpora make this cheap.
+        if ((approximate.rows[0]?.semantic_count ?? 0) < data.limit) {
+          await db.query("SET LOCAL enable_indexscan = off");
+          return query(db, null);
+        }
+        return approximate;
       })
     : await query(getPool());
   const hits: SearchResult[] = result.rows.map((row) => ({
@@ -401,6 +447,15 @@ export async function searchWithRetrieval(
       Number(row.vector_rank) || null,
     ),
     excerpt: row.excerpt,
+    ...(row.matched_content !== null
+      ? {
+          matchedPassage: {
+            content: row.matched_content,
+            startOffset: row.start_offset ?? 0,
+            endOffset: row.end_offset ?? 0,
+          },
+        }
+      : {}),
     matchedBy: [
       ...(row.text_rank ? ["text" as const] : []),
       ...(row.vector_rank ? ["vector" as const] : []),
@@ -536,6 +591,8 @@ export async function context(ownerId: string, input: unknown) {
     version: number;
     updatedAt: string;
     truncated: boolean;
+    startOffset: number;
+    endOffset: number;
   }[] = [];
   for (const page of pages) {
     const header = `\n## ${page.title}\n[${page.slug}] · ${page.type} · v${page.version} · ${page.updatedAt}\n\n`;
@@ -543,17 +600,52 @@ export async function context(ownerId: string, input: unknown) {
       ? `\n\nLinks: ${page.links.map((edge) => `${edge.type} → ${edge.targetSlug}`).join("; ")}\n`
       : "";
     const remaining =
-      budget - markdown.length - header.length - linkText.length - 40;
+      budget - markdown.length - header.length - linkText.length - 120;
     if (remaining < 100) {
       gaps.push(
         "Additional matching pages were omitted by the context size limit.",
       );
       break;
     }
-    const truncated = page.markdown.length > remaining;
+    const hit = hits.find(
+      (item) => item.id === page.id && item.version === page.version,
+    );
+    const passage = hit?.matchedPassage;
+    // Metadata chunks have no Markdown range. Preserve their matching evidence
+    // before spending the remaining budget on the canonical body.
+    const matchedMetadata =
+      passage && passage.startOffset === 0 && passage.endOffset === 0
+        ? `Matched page metadata:\n${passage.content}\n\n`
+        : "";
+    const displayedMetadata = matchedMetadata.slice(0, remaining);
+    const bodyBudget = remaining - displayedMetadata.length;
+    const truncated =
+      page.markdown.length > bodyBudget ||
+      displayedMetadata.length < matchedMetadata.length;
+    const startOffset =
+      truncated && passage && passage.endOffset > passage.startOffset
+        ? Math.max(
+            0,
+            Math.min(
+              passage.startOffset -
+                Math.floor(
+                  Math.max(
+                    0,
+                    bodyBudget - (passage.endOffset - passage.startOffset),
+                  ) / 2,
+                ),
+              page.markdown.length - bodyBudget,
+            ),
+          )
+        : 0;
+    const endOffset = Math.min(page.markdown.length, startOffset + bodyBudget);
     markdown +=
       header +
-      page.markdown.slice(0, remaining) +
+      displayedMetadata +
+      (startOffset
+        ? `[…matching section starts at character ${startOffset}]\n`
+        : "") +
+      page.markdown.slice(startOffset, endOffset) +
       (truncated ? "\n[…page truncated; use read for full text]" : "") +
       linkText;
     citations.push({
@@ -563,6 +655,8 @@ export async function context(ownerId: string, input: unknown) {
       version: page.version,
       updatedAt: page.updatedAt,
       truncated,
+      startOffset,
+      endOffset,
     });
     if (truncated) gaps.push(`Page truncated: ${page.slug}`);
     if (Date.now() - Date.parse(page.updatedAt) > 90 * 86_400_000)
@@ -626,10 +720,12 @@ export async function getGraph(ownerId: string, input: unknown = {}) {
 export async function getStats(ownerId: string): Promise<BrainStats> {
   assertOwner(ownerId);
   const result = await getPool().query(
-    `SELECT count(*)::int AS pages,count(embedding)::int AS embedded_pages,max(updated_at) AS last_updated,
+    `SELECT count(*)::int AS pages,
+    count(*) FILTER (WHERE chunk_index_version=version AND chunk_index_model=$2 AND chunk_index_chunker=$3)::int AS embedded_pages,
+    max(updated_at) AS last_updated,
     (SELECT count(*)::int FROM brain_links WHERE owner_id=$1) AS links,
     (SELECT count(*)::int FROM brain_revisions WHERE owner_id=$1) AS revisions FROM brain_pages WHERE owner_id=$1`,
-    [ownerId],
+    [ownerId, embeddingModel(), CHUNKER_VERSION],
   );
   const counts = await getPool().query<{ type: PageType; count: number }>(
     "SELECT type,count(*)::int AS count FROM brain_pages WHERE owner_id=$1 GROUP BY type",
@@ -718,18 +814,175 @@ export async function indexEmbedding(ownerId: string, input: unknown) {
   });
 }
 
-export async function listPendingEmbeddings(ownerId: string, limit = 50) {
+/** Stage bounded batches, publishing a revision only when its full manifest is indexed. */
+export async function indexChunks(ownerId: string, input: unknown) {
+  assertOwner(ownerId);
+  const data = schemas.indexChunksSchema.parse(input);
+  assertEmbeddingModel(data.embeddingModel, true);
+  if (data.chunkerVersion !== CHUNKER_VERSION)
+    throw new BrainError(
+      "CHUNKER_VERSION_MISMATCH",
+      "Fetch pending_embeddings again to use the current chunking procedure.",
+    );
+  return transaction(async (db) => {
+    const page = await rowForRef(db, ownerId, data.ref, true);
+    assertVersion(page.version, data.expectedVersion);
+    const chunks = chunkPage(page);
+    const hashes = new Set(chunks.map((chunk) => chunk.contentHash));
+    const supplied = new Map<string, string>();
+    for (const item of data.embeddings) {
+      if (!hashes.has(item.contentHash) || supplied.has(item.contentHash))
+        throw new BrainError(
+          "INVALID_CHUNK_MANIFEST",
+          "Submit each requested contentHash at most once, using the current pending_embeddings manifest.",
+        );
+      supplied.set(item.contentHash, vectorLiteral(item.embedding));
+    }
+    const reusable = await db.query<{
+      content_hash: string;
+      embedding: string;
+    }>(
+      `SELECT DISTINCT ON (content_hash) content_hash,embedding::text FROM brain_page_chunks
+       WHERE owner_id=$1 AND page_id=$2 AND embedding_model=$3 AND content_hash=ANY($4::text[])
+       ORDER BY content_hash,page_version DESC`,
+      [ownerId, page.id, data.embeddingModel, [...hashes]],
+    );
+    const available = new Map(
+      reusable.rows.map((row) => [row.content_hash, row.embedding]),
+    );
+    for (const [hash, embedding] of supplied) available.set(hash, embedding);
+    const populated = chunks.filter((chunk) =>
+      available.has(chunk.contentHash),
+    );
+    const staged = await db.query<{ chunk_index: number }>(
+      `SELECT chunk_index FROM brain_page_chunks WHERE owner_id=$1 AND page_id=$2
+       AND page_version=$3 AND embedding_model=$4 AND chunker_version=$5`,
+      [ownerId, page.id, page.version, data.embeddingModel, CHUNKER_VERSION],
+    );
+    const stagedIndices = new Set(staged.rows.map((row) => row.chunk_index));
+    const newlyPopulated = populated.filter(
+      (chunk) => !stagedIndices.has(chunk.index),
+    );
+    if (newlyPopulated.length) {
+      await db.query(
+        `INSERT INTO brain_page_chunks (owner_id,page_id,page_version,embedding_model,chunker_version,
+          chunk_index,content_hash,content,start_offset,end_offset,token_count,embedding)
+         SELECT $1,$2,$3,$4,$5,x.chunk_index,x.content_hash,x.content,x.start_offset,x.end_offset,x.token_count,x.embedding::vector
+         FROM jsonb_to_recordset($6::jsonb) AS x(chunk_index integer,content_hash text,content text,
+           start_offset integer,end_offset integer,token_count integer,embedding text)
+         ON CONFLICT (owner_id,page_id,page_version,embedding_model,chunker_version,chunk_index)
+         DO NOTHING`,
+        [
+          ownerId,
+          page.id,
+          page.version,
+          data.embeddingModel,
+          CHUNKER_VERSION,
+          JSON.stringify(
+            newlyPopulated.map((chunk) => ({
+              chunk_index: chunk.index,
+              content_hash: chunk.contentHash,
+              content: chunk.content,
+              start_offset: chunk.startOffset,
+              end_offset: chunk.endOffset,
+              token_count: chunk.tokenCount,
+              embedding: available.get(chunk.contentHash),
+            })),
+          ),
+        ],
+      );
+    }
+    const indexed = populated.length === chunks.length;
+    if (indexed) {
+      const published = await db.query(
+        `UPDATE brain_pages SET chunk_index_version=version,chunk_index_model=$3,
+         chunk_index_chunker=$4,chunk_indexed_at=now() WHERE owner_id=$1 AND id=$2
+         AND (chunk_index_version IS DISTINCT FROM version OR chunk_index_model IS DISTINCT FROM $3
+           OR chunk_index_chunker IS DISTINCT FROM $4) RETURNING id`,
+        [ownerId, page.id, data.embeddingModel, CHUNKER_VERSION],
+      );
+      await db.query(
+        `DELETE FROM brain_page_chunks WHERE owner_id=$1 AND page_id=$2
+         AND (page_version<>$3 OR embedding_model<>$4 OR chunker_version<>$5)`,
+        [ownerId, page.id, page.version, data.embeddingModel, CHUNKER_VERSION],
+      );
+      if (published.rowCount)
+        await db.query(
+          `INSERT INTO brain_activity (owner_id,page_id,action,version,reason,source)
+         VALUES ($1,$2,'embed',$3,$4,$5)`,
+          [
+            ownerId,
+            page.id,
+            page.version,
+            `Indexed all ${chunks.length} page sections`,
+            data.embeddingModel,
+          ],
+        );
+    }
+    return {
+      id: page.id,
+      version: page.version,
+      embeddingModel: data.embeddingModel,
+      chunkerVersion: CHUNKER_VERSION,
+      indexed,
+      totalChunks: chunks.length,
+      indexedChunks: populated.length,
+      pendingChunks: chunks.length - populated.length,
+      reusedChunks: populated.filter(
+        (chunk) => !supplied.has(chunk.contentHash),
+      ).length,
+    };
+  });
+}
+
+export async function listPendingEmbeddings(
+  ownerId: string,
+  limit = 50,
+  chunkLimit?: number,
+) {
   assertOwner(ownerId);
   const boundedLimit = Math.min(100, Math.max(1, Math.floor(limit)));
   const result = await getPool().query<PageRow>(
     `SELECT ${PAGE_COLUMNS},p.markdown FROM brain_pages p WHERE p.owner_id=$1
-    AND (p.embedding IS NULL OR p.embedding_model<>$2 OR p.embedding_version<>p.version) ORDER BY p.updated_at ASC LIMIT $3`,
-    [ownerId, embeddingModel(), boundedLimit],
+    AND (p.chunk_index_version IS DISTINCT FROM p.version OR p.chunk_index_model IS DISTINCT FROM $2
+      OR p.chunk_index_chunker IS DISTINCT FROM $4) ORDER BY p.updated_at ASC,p.id LIMIT $3`,
+    [ownerId, embeddingModel(), boundedLimit, CHUNKER_VERSION],
   );
-  return result.rows.map((row) => ({
-    ...summary(row),
-    markdown: row.markdown,
-  }));
+  const reusable = result.rows.length
+    ? await getPool().query<{ page_id: string; content_hash: string }>(
+        `SELECT DISTINCT page_id,content_hash FROM brain_page_chunks
+     WHERE owner_id=$1 AND page_id=ANY($2::uuid[]) AND embedding_model=$3`,
+        [ownerId, result.rows.map((row) => row.id), embeddingModel()],
+      )
+    : { rows: [] };
+  const available = new Set(
+    reusable.rows.map((row) => `${row.page_id}:${row.content_hash}`),
+  );
+  return result.rows.map((row) => {
+    const chunks = chunkPage(row).map((chunk) => ({
+      ...chunk,
+      needsEmbedding: !available.has(`${row.id}:${chunk.contentHash}`),
+    }));
+    const missing = [
+      ...new Map(
+        chunks
+          .filter((chunk) => chunk.needsEmbedding)
+          .map((chunk) => [chunk.contentHash, chunk]),
+      ).values(),
+    ];
+    return {
+      ...summary(row),
+      ...(chunkLimit === undefined ? { markdown: row.markdown } : {}),
+      embeddingModel: embeddingModel(),
+      chunkerVersion: CHUNKER_VERSION,
+      totalChunks: chunks.length,
+      pendingChunks: missing.length,
+      chunks:
+        chunkLimit === undefined
+          ? chunks
+          : missing.slice(0, Math.min(32, Math.max(1, Math.floor(chunkLimit)))),
+    };
+  });
 }
 
 export async function gapAnalysis(ownerId: string) {
@@ -751,8 +1004,10 @@ export async function gapAnalysis(ownerId: string) {
       [ownerId],
     ),
     getPool().query<{ count: number }>(
-      "SELECT count(*)::int AS count FROM brain_pages WHERE owner_id=$1 AND (embedding IS NULL OR embedding_model<>$2 OR embedding_version<>version)",
-      [ownerId, embeddingModel()],
+      `SELECT count(*)::int AS count FROM brain_pages WHERE owner_id=$1
+       AND (chunk_index_version IS DISTINCT FROM version OR chunk_index_model IS DISTINCT FROM $2
+         OR chunk_index_chunker IS DISTINCT FROM $3)`,
+      [ownerId, embeddingModel(), CHUNKER_VERSION],
     ),
   ]);
   return {
