@@ -70,9 +70,11 @@ export function EntityIcon({
 export function BrainWorkspace({
   name,
   email,
+  mcpEndpoint,
 }: {
   name: string;
   email: string;
+  mcpEndpoint: string;
 }) {
   const [view, setView] = useState<View>("pages");
   const [type, setType] = useState("");
@@ -677,7 +679,7 @@ export function BrainWorkspace({
               )}
             </>
           ) : view === "agents" ? (
-            <AgentSettings />
+            <AgentSettings endpoint={mcpEndpoint} />
           ) : (
             <Operations />
           )}

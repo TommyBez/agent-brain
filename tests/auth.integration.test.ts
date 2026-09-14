@@ -7,13 +7,18 @@ import {
   StreamableHTTPClientTransport,
 } from "@modelcontextprotocol/client";
 import { hashPassword } from "better-auth/crypto";
+import { GET as discoveryGET } from "../app/.well-known/[...path]/route";
 import {
   DELETE as tokensDELETE,
   GET as tokensGET,
   POST as tokensPOST,
 } from "../app/api/agent-tokens/route";
+import {
+  GET as authGET,
+  OPTIONS as authOPTIONS,
+  POST as authPOST,
+} from "../app/api/auth/[...all]/route";
 import { POST as mcpPOST } from "../app/mcp/route";
-import { getAuth } from "../lib/auth";
 import * as brain from "../lib/brain/service";
 import { getPool } from "../lib/db";
 
@@ -30,6 +35,9 @@ test(
     const password = randomBytes(24).toString("base64url");
     const originalOrigin = process.env.BETTER_AUTH_URL;
     const originalOwner = process.env.BRAIN_OWNER_EMAIL;
+    const originalAllowedOrigins = process.env.MCP_ALLOWED_ORIGINS;
+    const browserOrigin = "https://agent-client.example";
+    process.env.MCP_ALLOWED_ORIGINS = browserOrigin;
     process.env.BRAIN_OWNER_EMAIL = email;
     const clientIds: string[] = [];
     let origin = "";
@@ -59,7 +67,14 @@ test(
             POST: tokensPOST,
             DELETE: tokensDELETE,
           }[req.method as "GET" | "POST" | "DELETE"](request);
-        else response = await getAuth().handler(request);
+        else if (req.url?.startsWith("/.well-known/"))
+          response = await discoveryGET(request);
+        else
+          response = await {
+            GET: authGET,
+            POST: authPOST,
+            OPTIONS: authOPTIONS,
+          }[req.method as "GET" | "POST" | "OPTIONS"](request);
         res.statusCode = response.status;
         for (const [name, value] of response.headers)
           if (name !== "set-cookie") res.setHeader(name, value);
@@ -98,6 +113,9 @@ test(
       else delete process.env.BETTER_AUTH_URL;
       if (originalOwner) process.env.BRAIN_OWNER_EMAIL = originalOwner;
       else delete process.env.BRAIN_OWNER_EMAIL;
+      if (originalAllowedOrigins)
+        process.env.MCP_ALLOWED_ORIGINS = originalAllowedOrigins;
+      else delete process.env.MCP_ALLOWED_ORIGINS;
     });
     await getPool().query(
       'INSERT INTO "user" (id,name,email,"emailVerified","createdAt","updatedAt") VALUES ($1,\'Auth test\',$2,true,now(),now())',
@@ -605,9 +623,8 @@ test(
       "OAuth authorization requires PKCE, consent, exact callback and a resource-bound token",
       async () => {
         const callback = "https://agent-client.example/callback";
-        const registration = await fetch(
-          `${origin}/api/auth/oauth2/register`,
-          json({
+        const registration = await fetch(`${origin}/api/auth/oauth2/register`, {
+          ...json({
             client_name: "Integration OAuth client",
             redirect_uris: [callback],
             token_endpoint_auth_method: "none",
@@ -615,13 +632,21 @@ test(
             response_types: ["code"],
             scope: "openid offline_access brain:read",
           }),
-        );
+          headers: {
+            "Content-Type": "application/json",
+            Origin: browserOrigin,
+          },
+        });
         assert.equal(
           registration.status,
           201,
           await registration.clone().text(),
         );
         const registered = await registration.json();
+        assert.equal(
+          registration.headers.get("access-control-allow-origin"),
+          browserOrigin,
+        );
         const clientId = registered.client_id;
         clientIds.push(clientId);
         const verifier = randomBytes(32).toString("base64url");
@@ -692,11 +717,18 @@ test(
         };
         const exchange = await fetch(`${origin}/api/auth/oauth2/token`, {
           method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            Origin: browserOrigin,
+          },
           body: new URLSearchParams(tokenBody),
         });
         assert.equal(exchange.status, 200, await exchange.clone().text());
         const tokens = await exchange.json();
+        assert.equal(
+          exchange.headers.get("access-control-allow-origin"),
+          browserOrigin,
+        );
         assert.ok(tokens.access_token);
         assert.ok(tokens.refresh_token);
         const claims = JSON.parse(
@@ -714,15 +746,29 @@ test(
         await oauthClient.connect(
           new StreamableHTTPClientTransport(new URL(`${origin}/mcp`), {
             requestInit: {
-              headers: { authorization: `Bearer ${tokens.access_token}` },
+              headers: {
+                authorization: `Bearer ${tokens.access_token}`,
+                Origin: browserOrigin,
+              },
             },
           }),
         );
         assert.ok((await oauthClient.listTools()).tools.length >= 7);
+        const search = await oauthClient.callTool({
+          name: "search",
+          arguments: { query: "OAuth verification" },
+        });
+        assert.ok(
+          !search.isError,
+          "An OAuth read token must be able to call search",
+        );
         await oauthClient.close();
         const refreshed = await fetch(`${origin}/api/auth/oauth2/token`, {
           method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            Origin: browserOrigin,
+          },
           body: new URLSearchParams({
             grant_type: "refresh_token",
             client_id: clientId,
@@ -731,6 +777,10 @@ test(
           }),
         });
         assert.equal(refreshed.status, 200, await refreshed.clone().text());
+        assert.equal(
+          refreshed.headers.get("access-control-allow-origin"),
+          browserOrigin,
+        );
         assert.ok((await refreshed.json()).access_token);
         const replay = await fetch(`${origin}/api/auth/oauth2/token`, {
           method: "POST",

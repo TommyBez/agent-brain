@@ -5,24 +5,18 @@ import {
   getPrincipal,
   requireScope,
 } from "@/lib/auth-principal";
+import {
+  agentCorsPreflight,
+  mcpRequestHeaders,
+  withAgentCors,
+} from "@/lib/mcp/cors";
 import { createBrainHandler, requiredMcpScope } from "@/lib/mcp/server";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-export async function POST(request: Request) {
+async function handlePost(request: Request) {
   try {
-    const origin = request.headers.get("origin");
-    // Native/cloud MCP clients omit Origin; browser clients require an explicit allowlist.
-    const allowed = [
-      appOrigin(),
-      ...(process.env.MCP_ALLOWED_ORIGINS ?? "")
-        .split(",")
-        .map((value) => value.trim())
-        .filter(Boolean),
-    ];
-    if (origin && !allowed.includes(origin))
-      throw new AuthError("invalid_origin", "This origin is not allowed.", 403);
     if (!request.headers.has("authorization"))
       throw new AuthError(
         "unauthorized",
@@ -79,40 +73,16 @@ export async function POST(request: Request) {
     const handler = createBrainHandler(principal);
     const response = await handler.fetch(request, { parsedBody });
     response.headers.set("Cache-Control", "no-store");
-    if (origin) {
-      response.headers.set("Access-Control-Allow-Origin", origin);
-      response.headers.set("Vary", "Origin");
-      response.headers.set(
-        "Access-Control-Expose-Headers",
-        "WWW-Authenticate, MCP-Protocol-Version",
-      );
-    }
     return response;
   } catch (error) {
     return authErrorResponse(error);
   }
 }
 
+export function POST(request: Request) {
+  return withAgentCors(request, () => handlePost(request));
+}
+
 export function OPTIONS(request: Request) {
-  const origin = request.headers.get("origin");
-  const allowed = [
-    appOrigin(),
-    ...(process.env.MCP_ALLOWED_ORIGINS ?? "")
-      .split(",")
-      .map((value) => value.trim())
-      .filter(Boolean),
-  ];
-  if (!origin || !allowed.includes(origin))
-    return new Response(null, { status: 403 });
-  return new Response(null, {
-    status: 204,
-    headers: {
-      "Access-Control-Allow-Origin": origin,
-      Vary: "Origin",
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers":
-        "Authorization, Content-Type, Accept, MCP-Protocol-Version, MCP-Method, MCP-Name, DPoP",
-      "Access-Control-Max-Age": "600",
-    },
-  });
+  return agentCorsPreflight(request, ["POST"], mcpRequestHeaders);
 }

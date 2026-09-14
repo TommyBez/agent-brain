@@ -52,19 +52,17 @@ type Token = {
   lastUsedAt: string | null;
   revokedAt: string | null;
 };
-export function AgentSettings() {
+export function AgentSettings({ endpoint }: { endpoint: string }) {
   const [tokens, setTokens] = useState<Token[]>([]);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(true);
   const [creating, setCreating] = useState(false);
   const [rawToken, setRawToken] = useState("");
-  const [endpoint, setEndpoint] = useState("");
   const [copied, setCopied] = useState("");
   const [writing, setWriting] = useState(false);
   const [scopes, setScopes] = useState(["brain:read", "brain:write"]);
   const [revoking, setRevoking] = useState<string | null>(null);
   useEffect(() => {
-    setEndpoint(`${window.location.origin}/mcp`);
     request<{ tokens: Token[] }>("/api/agent-tokens")
       .then((data) => setTokens(data.tokens))
       .catch((cause) =>
@@ -165,13 +163,14 @@ export function AgentSettings() {
           <span className="eyebrow [font-size:10px] font-semibold tracking-[.16em] text-primary">
             REMOTE MCP
           </span>
-          <h2>One brain. Any agent.</h2>
+          <h2>Connect with OAuth</h2>
           <p>
-            Add this URL as a remote MCP server in your agent. Sign in when
-            prompted to grant access to your private workspace.
+            Add this URL as a remote MCP server and choose OAuth when your agent
+            asks for authentication. Sign in to Brain, review the requested
+            permissions, and approve the connection.
           </p>
           <div className="copy-field [border:1px_solid_#d2ddc0] rounded-[5px] [background:#fffef9] p-[9px_11px_9px_15px] flex items-center justify-between gap-[15px] m-[20px_0_15px] max-[460px]:pl-[10px]">
-            <code>{endpoint || "Your application URL/mcp"}</code>
+            <code>{endpoint}</code>
             <Button
               type="button"
               variant="ghost"
@@ -184,7 +183,7 @@ export function AgentSettings() {
           </div>
           <div className="connection-details flex gap-5 flex-wrap [color:#8d9f78] [font-size:9px] max-[460px]:gap-3 max-[460px]:[font-size:8px]">
             <span>
-              <ShieldCheck size={14} /> OAuth authorization
+              <ShieldCheck size={14} /> OAuth 2.1 + PKCE
             </span>
             <span>Streamable HTTP</span>
             <span>Cloud reachable</span>
@@ -211,8 +210,10 @@ export function AgentSettings() {
       <section className="settings-section mt-9">
         <div className="section-heading flex items-center justify-between gap-5 mb-5">
           <div>
-            <h2>Agent tokens</h2>
-            <p>Scoped access for headless agents and scheduled work.</p>
+            <h2>Headless agent tokens</h2>
+            <p>
+              Optional scoped tokens for scheduled jobs without browser sign-in.
+            </p>
           </div>
           <Button
             type="button"

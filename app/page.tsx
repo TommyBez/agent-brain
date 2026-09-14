@@ -2,13 +2,19 @@ import { headers } from "next/headers";
 import { Suspense } from "react";
 import { AuthGate } from "@/components/auth-gate";
 import { BrainWorkspace } from "@/components/brain-workspace";
-import { getSession, isAuthConfigured } from "@/lib/auth";
+import { getSession, isAuthConfigured, mcpResource } from "@/lib/auth";
 
 async function Workspace() {
   if (!isAuthConfigured()) return <AuthGate configured={false} />;
   const session = await getSession(await headers());
   if (!session) return <AuthGate configured />;
-  return <BrainWorkspace name={session.user.name} email={session.user.email} />;
+  return (
+    <BrainWorkspace
+      name={session.user.name}
+      email={session.user.email}
+      mcpEndpoint={mcpResource()}
+    />
+  );
 }
 
 export default function Home() {

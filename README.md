@@ -31,23 +31,26 @@ Integration tests use isolated owner IDs and remove only their own fixtures. SQL
 
 ## Connect an agent
 
-Connect to `https://YOUR_DOMAIN/mcp` using Streamable HTTP. Interactive clients discover OAuth metadata and use authorization code + PKCE, explicit consent and refresh tokens. Better Auth's dedicated MCP and CIMD plugins support HTTPS client metadata documents; dynamic registration supports clients without CIMD. MCP SDK v2 provides stateless transport and compatibility with earlier protocol clients.
+Connect to `https://YOUR_DOMAIN/mcp` using Streamable HTTP and **OAuth 2.1**. Add the URL in your agent, choose OAuth if prompted, sign in to Brain, and approve the requested permissions. The agent discovers the authorization server and obtains its own access token using authorization code + PKCE. No manually generated token or client secret is needed for interactive clients.
 
-Create headless tokens in **Agents & settings**, with only the scopes needed:
+For clients that use this configuration format:
 
 ```json
 {
   "mcpServers": {
     "brain": {
       "type": "http",
-      "url": "https://YOUR_DOMAIN/mcp",
-      "headers": { "Authorization": "Bearer YOUR_AGENT_TOKEN" }
+      "url": "https://YOUR_DOMAIN/mcp"
     }
   }
 }
 ```
 
-Configuration formats differ between agents; the URL and Bearer header are standard. Tokens are shown once, stored only as hashes, scoped, expiring and revocable. Nightly maintenance needs `brain:read`, `brain:write`, and `brain:maintain`.
+Configuration formats differ between agents. Use the canonical URL shown in **Agents & access**, which matches the OAuth resource audience. Better Auth's MCP and CIMD plugins support HTTPS client metadata documents; dynamic registration supports clients without CIMD. Access tokens last 15 minutes. Clients requesting `offline_access` can refresh their connection. MCP SDK v2 provides stateless transport and compatibility with earlier protocol clients.
+
+For browser-hosted clients, explicitly add their origin to `MCP_ALLOWED_ORIGINS` (comma-separated). Native and server-hosted cloud clients do not need this setting.
+
+Headless jobs have a separate optional token path: create a scoped token in **Agents & access → Headless agent tokens**, and send `Authorization: Bearer YOUR_AGENT_TOKEN` with MCP requests. These tokens are shown once, stored only as hashes, expiring and revocable. Nightly maintenance needs `brain:read`, `brain:write`, and `brain:maintain`.
 
 | Primitive | Behavior |
 | --- | --- |

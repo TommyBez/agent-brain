@@ -19,7 +19,9 @@ function data(result) {
 }
 
 async function document(url) {
+  const browserOrigin = new URL(base).origin;
   const response = await fetch(url, {
+    headers: { Origin: browserOrigin },
     redirect: "error",
     signal: AbortSignal.timeout(30_000),
   });
@@ -27,6 +29,10 @@ async function document(url) {
     response.status,
     200,
     `Discovery endpoint returned HTTP ${response.status}`,
+  );
+  assert.equal(
+    response.headers.get("access-control-allow-origin"),
+    browserOrigin,
   );
   return response.json();
 }
@@ -54,6 +60,7 @@ async function main() {
   const unauthorized = await fetch(endpoint, {
     method: "POST",
     headers: {
+      Origin: origin.origin,
       "Content-Type": "application/json",
       Accept: "application/json, text/event-stream",
     },
@@ -65,6 +72,14 @@ async function main() {
     unauthorized.status,
     401,
     "Unauthenticated MCP must return HTTP 401",
+  );
+  assert.equal(
+    unauthorized.headers.get("access-control-allow-origin"),
+    origin.origin,
+  );
+  assert.match(
+    unauthorized.headers.get("access-control-expose-headers") || "",
+    /WWW-Authenticate/i,
   );
   const challenge = unauthorized.headers.get("www-authenticate") || "";
   const metadataUrl = /resource_metadata="([^"]+)"/.exec(challenge)?.[1];
@@ -93,8 +108,30 @@ async function main() {
   assert.equal(metadata.client_id_metadata_document_supported, true);
   assert.ok(metadata.code_challenge_methods_supported.includes("S256"));
   assert.ok(metadata.token_endpoint_auth_methods_supported.includes("none"));
+  for (const url of [
+    endpoint.href,
+    metadata.token_endpoint,
+    metadata.registration_endpoint,
+  ]) {
+    assert.equal(new URL(url).origin, origin.origin);
+    const preflight = await fetch(url, {
+      method: "OPTIONS",
+      headers: {
+        Origin: origin.origin,
+        "Access-Control-Request-Method": "POST",
+        "Access-Control-Request-Headers": "content-type",
+      },
+      redirect: "error",
+      signal: AbortSignal.timeout(30_000),
+    });
+    assert.equal(preflight.status, 204);
+    assert.equal(
+      preflight.headers.get("access-control-allow-origin"),
+      origin.origin,
+    );
+  }
   console.log(
-    "PASS public OAuth discovery, CIMD, PKCE and unauthenticated challenge",
+    "PASS public OAuth discovery, CIMD, PKCE, browser CORS and unauthenticated challenge",
   );
 
   const client = new Client(
