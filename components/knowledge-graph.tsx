@@ -1,0 +1,277 @@
+"use client";
+
+import { ArrowUpRight, Network, RotateCcw } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  type BrainLink,
+  entityTypes,
+  type PageSummary,
+  request,
+} from "./brain-types";
+import { Empty, Loading } from "./brain-workspace";
+
+export function KnowledgeGraph({ onOpen }: { onOpen: (id: string) => void }) {
+  const [graph, setGraph] = useState<{
+    nodes: PageSummary[];
+    links: BrainLink[];
+  } | null>(null);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [filter, setFilter] = useState("");
+  const [error, setError] = useState("");
+  const [reload, setReload] = useState(0);
+  useEffect(() => {
+    const controller = new AbortController();
+    request<{ nodes: PageSummary[]; links: BrainLink[] }>(
+      `/api/brain/graph?refresh=${reload}`,
+      {
+        signal: controller.signal,
+      },
+    )
+      .then(setGraph)
+      .catch((cause) => {
+        if (!controller.signal.aborted)
+          setError(
+            cause instanceof Error
+              ? cause.message
+              : "Unable to read your graph.",
+          );
+      });
+    return () => controller.abort();
+  }, [reload]);
+  const nodes = useMemo(() => {
+    const filtered =
+      graph?.nodes.filter((n) => !filter || n.type === filter) ?? [];
+    return filtered.map((node, index) => {
+      const angle =
+        (index / Math.max(filtered.length, 1)) * Math.PI * 2 - Math.PI / 2;
+      const radius =
+        filtered.length === 1
+          ? 0
+          : filtered.length <= 8
+            ? 180
+            : index % 2 === 0
+              ? 225
+              : 130;
+      return {
+        ...node,
+        x: 460 + Math.cos(angle) * radius * 1.42,
+        y: 315 + Math.sin(angle) * radius,
+      };
+    });
+  }, [graph, filter]);
+  const selectedPage = nodes.find((node) => node.id === selected);
+  const selectedLinks =
+    graph?.links.filter(
+      (link) => link.sourceId === selected || link.targetId === selected,
+    ) ?? [];
+  const neighbors = new Set(
+    selectedLinks.flatMap((link) => [link.sourceId, link.targetId]),
+  );
+  return (
+    <>
+      <div className="page-heading flex items-center justify-between gap-5 mb-[35px] min-[1600px]:mb-[45px] max-[740px]:mb-7 max-[460px]:gap-[10px]">
+        <div>
+          <span className="eyebrow [font-size:10px] font-semibold tracking-[.16em] text-primary">
+            THE SPACE BETWEEN IDEAS
+          </span>
+          <h1>
+            Knowledge graph
+            <span className="heading-dot [color:#839567]">.</span>
+          </h1>
+          <p>Follow the connections. See a bigger picture.</p>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          className="button bg-transparent [border:1px_solid_#d8dbcf] rounded-[6px] p-[10px_15px] inline-flex items-center justify-center gap-2 leading-[1.3] font-medium [font-size:12px] min-h-[39px] [transition:background_.15s,_border-color_.15s,_transform_.15s] whitespace-nowrap"
+          onClick={() => {
+            setSelected(null);
+            setFilter("");
+            setReload((n) => n + 1);
+          }}
+        >
+          <RotateCcw size={15} /> Reset view
+        </Button>
+      </div>
+      {error ? (
+        <p
+          className="message [border:1px_solid_#d9dece] [background:#edf0e5] p-[16px_18px] rounded-[6px] [font-size:13px] m-[18px_0] error"
+          role="alert"
+        >
+          {error}
+        </p>
+      ) : !graph ? (
+        <Loading />
+      ) : !graph.nodes.length ? (
+        <Empty
+          icon={<Network size={32} strokeWidth={1.2} />}
+          title="Knowledge grows between the dots."
+          description="Create a few pages and connect them with typed links. Their relationships will take shape here."
+        />
+      ) : (
+        <>
+          <div className="graph-toolbar flex items-center justify-between gap-[15px] mb-[19px] max-[740px]:items-start max-[460px]:flex-col max-[460px]:gap-[5px]">
+            <div className="graph-legend flex flex-wrap gap-[7px] max-[460px]:gap-[1px]">
+              {entityTypes.map((type) => (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  key={type.id}
+                  className={filter === type.id ? "active" : ""}
+                  onClick={() => {
+                    setFilter(filter === type.id ? "" : type.id);
+                    setSelected(null);
+                  }}
+                >
+                  <span
+                    className={`legend-dot h-[7px] w-[7px] block rounded-full [background:currentColor] entity-${type.id}`}
+                  />
+                  {type.label}
+                </Button>
+              ))}
+            </div>
+            <span>
+              {nodes.length} pages · {graph.links.length} links
+            </span>
+          </div>
+          <div className="graph-canvas relative [border:1px_solid_var(--line)] rounded-[7px] overflow-hidden [background:#f7f9f0]">
+            <svg
+              viewBox="0 0 920 630"
+              role="img"
+              aria-label="Interactive knowledge graph. Select a page to inspect its connections."
+            >
+              <title>Your knowledge graph</title>
+              <defs>
+                <pattern
+                  id="graph-dots"
+                  width="24"
+                  height="24"
+                  patternUnits="userSpaceOnUse"
+                >
+                  <circle cx="2" cy="2" r=".7" fill="#c9cabc" />
+                </pattern>
+              </defs>
+              <rect width="920" height="630" fill="url(#graph-dots)" />
+              {graph.links.map((link) => {
+                const source = nodes.find((node) => node.id === link.sourceId);
+                const target = nodes.find((node) => node.id === link.targetId);
+                if (!source || !target) return null;
+                const active =
+                  !selected ||
+                  link.sourceId === selected ||
+                  link.targetId === selected;
+                return (
+                  <g key={link.id} opacity={active ? 1 : 0.12}>
+                    <line
+                      x1={source.x}
+                      y1={source.y}
+                      x2={target.x}
+                      y2={target.y}
+                      stroke={selected ? "#546849" : "#c2c8b8"}
+                      strokeWidth={selected && active ? 1.8 : 1}
+                    />
+                    {selected && active && (
+                      <text
+                        x={(source.x + target.x) / 2}
+                        y={(source.y + target.y) / 2 - 6}
+                        textAnchor="middle"
+                        className="graph-edge-label [fill:#8b9b79] [font-size:8px] [font-family:var(--sans)] [paint-order:stroke] [stroke:#f7f9f0] [stroke-width:5px] [stroke-linejoin:round]"
+                      >
+                        {link.type.replaceAll("_", " ")}
+                      </text>
+                    )}
+                  </g>
+                );
+              })}
+              {nodes.map((node) => (
+                // biome-ignore lint/a11y/useSemanticElements: SVG nodes need an SVG group; equivalent buttons are available in the page list.
+                <g
+                  key={node.id}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Inspect ${node.title}, ${node.type}`}
+                  className={`graph-node cursor-pointer graph-node-${node.type} ${selected === node.id ? "selected" : ""}`}
+                  opacity={
+                    !selected || neighbors.has(node.id) || selected === node.id
+                      ? 1
+                      : 0.3
+                  }
+                  onClick={() =>
+                    setSelected(selected === node.id ? null : node.id)
+                  }
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      setSelected(selected === node.id ? null : node.id);
+                    }
+                  }}
+                >
+                  <circle
+                    cx={node.x}
+                    cy={node.y}
+                    r={selected === node.id ? 15 : 9}
+                  />
+                  <circle
+                    cx={node.x}
+                    cy={node.y}
+                    r="25"
+                    fill="transparent"
+                    stroke="none"
+                  />
+                  <text x={node.x} y={node.y + 33} textAnchor="middle">
+                    {node.title.length > 27
+                      ? `${node.title.slice(0, 25)}…`
+                      : node.title}
+                  </text>
+                </g>
+              ))}
+            </svg>
+            <div className="graph-caption absolute bottom-[20px] left-[22px] flex items-center gap-2 [color:#a0ae91] [font-size:9px] max-[460px]:[font-size:7px] max-[460px]:bottom-[12px] max-[460px]:left-[13px]">
+              <Network size={14} /> Select a page to explore its neighborhood.
+            </div>
+          </div>
+          {selectedPage && (
+            <div className="graph-inspector flex items-center justify-between gap-6 p-[23px] [border:1px_solid_#d4e1c3] rounded-[6px] [background:#f0f5e7] mt-[17px] max-[460px]:p-[18px] max-[460px]:gap-[13px]">
+              <div>
+                <span className="eyebrow [font-size:10px] font-semibold tracking-[.16em] text-primary">
+                  {selectedPage.type}
+                </span>
+                <h2>{selectedPage.title}</h2>
+                <p>
+                  {selectedPage.summary ||
+                    `${selectedLinks.length} connections`}
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="default"
+                className="button bg-transparent [border:1px_solid_#d8dbcf] rounded-[6px] p-[10px_15px] inline-flex items-center justify-center gap-2 leading-[1.3] font-medium [font-size:12px] min-h-[39px] [transition:background_.15s,_border-color_.15s,_transform_.15s] whitespace-nowrap primary"
+                onClick={() => onOpen(selectedPage.id)}
+              >
+                Read page <ArrowUpRight size={15} />
+              </Button>
+            </div>
+          )}
+          <details className="graph-accessible mt-5 [color:#96a885] [font-size:10px]">
+            <summary>Browse pages as a list</summary>
+            <div>
+              {nodes.map((node) => (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="text-link h-auto justify-start inline-flex items-center gap-[7px] p-[0] text-primary bg-transparent [font-size:12px] font-semibold text-left"
+                  key={node.id}
+                  onClick={() => onOpen(node.id)}
+                >
+                  {node.title}
+                  <ArrowUpRight size={13} />
+                </Button>
+              ))}
+            </div>
+          </details>
+        </>
+      )}
+    </>
+  );
+}
