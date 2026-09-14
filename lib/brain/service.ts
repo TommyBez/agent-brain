@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { Pool, PoolClient, QueryResultRow } from "pg";
 import { getPool, transaction } from "../db";
+import { getQueryEmbedding } from "./embeddings";
 import * as schemas from "./schemas";
 import {
   type Activity,
@@ -306,13 +307,41 @@ export async function resolve(ownerId: string, input: unknown) {
   };
 }
 
+export interface SearchRetrieval {
+  mode: "hybrid" | "text-and-graph";
+  embeddingModel: string | null;
+  embeddingSource: "server" | "client" | "unavailable";
+}
+
 export async function search(
   ownerId: string,
   input: unknown,
 ): Promise<SearchResult[]> {
+  return (await searchWithRetrieval(ownerId, input)).results;
+}
+
+export async function searchWithRetrieval(
+  ownerId: string,
+  input: unknown,
+): Promise<{ results: SearchResult[]; retrieval: SearchRetrieval }> {
   assertOwner(ownerId);
   const data = schemas.searchSchema.parse(input);
   assertEmbeddingModel(data.embeddingModel, Boolean(data.embedding));
+  const queryEmbedding = data.embedding
+    ? {
+        embedding: data.embedding,
+        embeddingModel: data.embeddingModel ?? embeddingModel(),
+      }
+    : await getQueryEmbedding(ownerId, data.query);
+  const retrieval: SearchRetrieval = {
+    mode: queryEmbedding ? "hybrid" : "text-and-graph",
+    embeddingModel: queryEmbedding?.embeddingModel ?? null,
+    embeddingSource: data.embedding
+      ? "client"
+      : queryEmbedding
+        ? "server"
+        : "unavailable",
+  };
   const candidates = Math.max(data.limit * 4, 60);
   const query = (db: Database) =>
     db.query<
@@ -346,14 +375,14 @@ export async function search(
         ownerId,
         data.query,
         data.type ?? null,
-        data.embedding ? vectorLiteral(data.embedding) : null,
+        queryEmbedding ? vectorLiteral(queryEmbedding.embedding) : null,
         candidates,
-        data.embeddingModel ?? embeddingModel(),
+        queryEmbedding?.embeddingModel ?? embeddingModel(),
         `%${escapeLike(data.query)}%`,
         data.limit,
       ],
     );
-  const result = data.embedding
+  const result = queryEmbedding
     ? await transaction(async (db) => {
         // Approximate scans filter by owner/type after visiting candidates. Keep
         // scanning to fill the pool, while bounding effort and avoiding pooled
@@ -377,7 +406,7 @@ export async function search(
       ...(row.vector_rank ? ["vector" as const] : []),
     ],
   }));
-  if (!data.expandGraph || !hits.length) return hits;
+  if (!data.expandGraph || !hits.length) return { results: hits, retrieval };
   const seedIds = hits.slice(0, 5).map((page) => page.id);
   const graph = await getPool().query<
     PageRow & { excerpt: string; seed_id: string }
@@ -405,7 +434,10 @@ export async function search(
       matchedBy: ["graph"],
     });
   }
-  return hits.sort((a, b) => b.score - a.score).slice(0, data.limit);
+  return {
+    results: hits.sort((a, b) => b.score - a.score).slice(0, data.limit),
+    retrieval,
+  };
 }
 
 export async function related(ownerId: string, input: unknown) {
@@ -435,7 +467,7 @@ export async function related(ownerId: string, input: unknown) {
 export async function context(ownerId: string, input: unknown) {
   assertOwner(ownerId);
   const data = schemas.contextSchema.parse(input);
-  const hits = await search(ownerId, {
+  const { results: hits, retrieval } = await searchWithRetrieval(ownerId, {
     query: data.query,
     embedding: data.embedding,
     embeddingModel: data.embeddingModel,
@@ -487,9 +519,9 @@ export async function context(ownerId: string, input: unknown) {
     gaps.push(
       "No matching pages. The brain does not yet contain evidence for this query.",
     );
-  if (!data.embedding)
+  if (retrieval.mode === "text-and-graph")
     gaps.push(
-      "Retrieval used text and typed links. Supply a query embedding to include semantic matches.",
+      "Query embeddings are unavailable for this request. Retrieval used text and typed links.",
     );
   const budget = data.maxCharacters;
   const displayedQuery = data.query.slice(
@@ -544,8 +576,7 @@ export async function context(ownerId: string, input: unknown) {
     citations,
     gaps: [...new Set(gaps)],
     retrieval: {
-      mode: data.embedding ? "hybrid" : "text-and-graph",
-      embeddingModel: data.embedding ? data.embeddingModel : null,
+      ...retrieval,
       returnedPages: citations.length,
       characters: markdown.length,
     },

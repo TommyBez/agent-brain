@@ -251,6 +251,107 @@ test(
     );
 
     await t.test(
+      "MCP search preserves array payloads and reports automatic embedding or provider fallback mode",
+      async (subtest) => {
+        const originalKey = process.env.BRAIN_EMBEDDING_API_KEY;
+        const originalEnabled = process.env.BRAIN_QUERY_EMBEDDINGS;
+        process.env.BRAIN_EMBEDDING_API_KEY = "test-embedding-key";
+        process.env.BRAIN_QUERY_EMBEDDINGS = "true";
+        const originalFetch = globalThis.fetch;
+        let providerAvailable = true;
+        let providerCalls = 0;
+        subtest.mock.method(
+          globalThis,
+          "fetch",
+          async (...args: Parameters<typeof fetch>) => {
+            const [input, init] = args;
+            const url = input instanceof Request ? input.url : String(input);
+            if (url === "https://ai-gateway.vercel.sh/v1/embeddings") {
+              providerCalls++;
+              return providerAvailable
+                ? Response.json({
+                    data: [
+                      { embedding: Array.from({ length: 1536 }, () => 0.01) },
+                    ],
+                  })
+                : new Response(null, { status: 503 });
+            }
+            assert.equal(new URL(url).origin, origin);
+            return originalFetch(input, init);
+          },
+        );
+        const client = new Client(
+          { name: "retrieval-contract-test", version: "1.0.0" },
+          { versionNegotiation: { mode: { pin: "2026-07-28" } } },
+        );
+        try {
+          await client.connect(
+            new StreamableHTTPClientTransport(new URL(`${origin}/mcp`), {
+              requestInit: {
+                headers: { authorization: `Bearer ${rawToken}` },
+              },
+            }),
+          );
+          const { tools } = await client.listTools();
+          for (const name of ["search", "context"]) {
+            const tool = tools.find((entry) => entry.name === name);
+            assert.equal(tool?.annotations?.readOnlyHint, true);
+            assert.equal(tool?.annotations?.openWorldHint, true);
+          }
+          assert.equal(
+            tools.find((entry) => entry.name === "read")?.annotations
+              ?.openWorldHint,
+            false,
+          );
+          for (const mode of ["hybrid", "text-and-graph"]) {
+            providerAvailable = mode === "hybrid";
+            const response = await client.callTool({
+              name: "search",
+              arguments: { query: `Retrieval contract ${randomUUID()}` },
+            });
+            assert.equal(response.isError, undefined);
+            const structured = response.structuredContent as {
+              data: unknown[];
+              retrieval: {
+                mode: string;
+                embeddingSource: string;
+                embeddingModel: string | null;
+              };
+            };
+            assert.ok(Array.isArray(structured?.data));
+            assert.equal(response.content.length, 1);
+            const text = response.content[0];
+            assert.equal(text.type, "text");
+            assert.deepEqual(
+              JSON.parse(text.type === "text" ? text.text : "null"),
+              structured.data,
+            );
+            const { retrieval } = structured;
+            assert.equal(retrieval.mode, mode);
+            assert.equal(
+              retrieval.embeddingSource,
+              providerAvailable ? "server" : "unavailable",
+            );
+            assert.equal(
+              retrieval.embeddingModel,
+              providerAvailable
+                ? process.env.EMBEDDING_MODEL || "openai/text-embedding-3-small"
+                : null,
+            );
+          }
+          assert.equal(providerCalls, 2);
+        } finally {
+          await client.close();
+          if (originalKey) process.env.BRAIN_EMBEDDING_API_KEY = originalKey;
+          else delete process.env.BRAIN_EMBEDDING_API_KEY;
+          if (originalEnabled)
+            process.env.BRAIN_QUERY_EMBEDDINGS = originalEnabled;
+          else delete process.env.BRAIN_QUERY_EMBEDDINGS;
+        }
+      },
+    );
+
+    await t.test(
       "legacy agents can use SDK v2's stateless Streamable HTTP compatibility transport",
       async () => {
         const client = new Client({

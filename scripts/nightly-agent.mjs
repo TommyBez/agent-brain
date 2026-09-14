@@ -1,4 +1,5 @@
-// Runs outside Next.js. The application server never imports this file or calls a model.
+// Runs outside Next.js. The application only generates query embeddings;
+// consolidation and page embedding generation belong to this separate runner.
 
 import { execFileSync } from "node:child_process";
 import { mkdir, readdir, rm, writeFile } from "node:fs/promises";

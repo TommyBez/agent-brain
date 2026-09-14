@@ -11,7 +11,7 @@
     "typecheck": "next typegen && tsc --noEmit",
     "db:migrate": "node --env-file=.env.local --import tsx scripts/migrate.ts",
     "owner:bootstrap": "node --import tsx scripts/bootstrap-owner.ts",
-    "test": "node --env-file=.env.local --import tsx --test tests/*.test.ts",
+    "test": "BRAIN_QUERY_EMBEDDINGS=false node --env-file=.env.local --import tsx --test tests/*.test.ts",
     "agent:nightly": "node --env-file=.env.local scripts/nightly-agent.mjs"
   },
   "dependencies": {

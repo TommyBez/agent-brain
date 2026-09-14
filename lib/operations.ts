@@ -1,6 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
+import { queryEmbeddingsConfigured } from "@/lib/brain/embeddings";
 import { BrainError } from "@/lib/brain/types";
-import { assertOwner } from "@/lib/brain/utils";
+import { assertOwner, embeddingModel } from "@/lib/brain/utils";
 import { getPool, transaction } from "@/lib/db";
 
 export function isCronRequest(request: Request) {
@@ -121,6 +122,13 @@ export async function operationsStatus(ownerId: string) {
         "Connected. Markdown, links and revisions are stored in your database.",
     },
     {
+      name: "Query embeddings",
+      status: queryEmbeddingsConfigured() ? "ready" : "missing",
+      detail: queryEmbeddingsConfigured()
+        ? `Server-generated via AI Gateway (${embeddingModel()}). Text and graph remain available if the provider fails.`
+        : "Server query embeddings are disabled or lack BRAIN_EMBEDDING_API_KEY. Retrieval uses text and graph.",
+    },
+    {
       name: "Nightly schedule",
       status: process.env.CRON_SECRET ? "ready" : "missing",
       detail: "Vercel Cron queues nightly work at 02:00 UTC.",
@@ -130,7 +138,7 @@ export async function operationsStatus(ownerId: string) {
       status: process.env.BRAIN_RUNNER_REPOSITORY ? "ready" : "missing",
       detail: process.env.BRAIN_RUNNER_REPOSITORY
         ? `Runner: ${process.env.BRAIN_RUNNER_REPOSITORY}. Recent job results appear below.`
-        : "Configure the separate nightly runner. The application never calls a model.",
+        : "Configure the separate runner for consolidation and page embeddings.",
     },
     {
       name: "Consolidation model",
