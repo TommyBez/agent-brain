@@ -4,6 +4,7 @@ import {
   Client,
   StreamableHTTPClientTransport,
 } from "@modelcontextprotocol/client";
+import { mcpResource } from "../lib/auth";
 import {
   AuthError,
   assertSameOrigin,
@@ -64,6 +65,48 @@ test("cookie mutation origin is checked against configuration, not an attacker-c
   } finally {
     if (previous) process.env.BETTER_AUTH_URL = previous;
     else delete process.env.BETTER_AUTH_URL;
+  }
+});
+
+test("production browser mutations and MCP use the Vercel project domain", () => {
+  const selectedEnv = {
+    VERCEL_ENV: "production",
+    VERCEL_PROJECT_PRODUCTION_URL: "agent-brain.vercel.app",
+    VERCEL_URL: "agent-brain-deployment.vercel.app",
+    BETTER_AUTH_URL: "https://agent-brain-old.vercel.app",
+  };
+  const previous = Object.fromEntries(
+    Object.keys(selectedEnv).map((key) => [key, process.env[key]]),
+  );
+  Object.assign(process.env, selectedEnv);
+  try {
+    assertSameOrigin(
+      new Request("https://agent-brain.vercel.app/api/brain/pages", {
+        headers: { origin: "https://agent-brain.vercel.app" },
+      }),
+    );
+    assert.equal(mcpResource(), "https://agent-brain.vercel.app/mcp");
+    for (const origin of [
+      "https://agent-brain-old.vercel.app",
+      "https://agent-brain-deployment.vercel.app",
+      "https://evil.example",
+      undefined,
+    ]) {
+      assert.throws(
+        () =>
+          assertSameOrigin(
+            new Request("https://agent-brain.vercel.app/api/brain/pages", {
+              headers: origin ? { origin } : {},
+            }),
+          ),
+        AuthError,
+      );
+    }
+  } finally {
+    for (const [key, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
   }
 });
 

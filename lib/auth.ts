@@ -3,6 +3,7 @@ import { fetchClientMetadataResource } from "@better-auth/cimd/node";
 import { mcp } from "@better-auth/mcp";
 import { betterAuth } from "better-auth";
 import { jwt } from "better-auth/plugins/jwt";
+import { configuredAppOrigin } from "@/lib/app-origin";
 import { getPool } from "@/lib/db";
 
 export const BRAIN_SCOPES = [
@@ -15,35 +16,16 @@ export type BrainScope = (typeof BRAIN_SCOPES)[number];
 export function isAuthConfigured() {
   return Boolean(
     process.env.DATABASE_URL &&
-      process.env.BETTER_AUTH_URL &&
+      configuredAppOrigin() &&
       process.env.BETTER_AUTH_SECRET &&
       process.env.BRAIN_OWNER_EMAIL,
   );
 }
 
 export function appOrigin() {
-  const value = process.env.BETTER_AUTH_URL;
-  if (!value) throw new Error("BETTER_AUTH_URL is not configured.");
-  const url = new URL(value);
-  if (
-    url.pathname !== "/" ||
-    url.search ||
-    url.hash ||
-    url.username ||
-    url.password
-  )
-    throw new Error(
-      "BETTER_AUTH_URL must be an application origin, without a path.",
-    );
-  if (
-    url.protocol !== "https:" &&
-    !(
-      url.protocol === "http:" &&
-      ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname)
-    )
-  )
-    throw new Error("BETTER_AUTH_URL must use HTTPS (except localhost).");
-  return url.origin;
+  const origin = configuredAppOrigin();
+  if (!origin) throw new Error("The application origin is not configured.");
+  return origin;
 }
 
 export function mcpResource() {
