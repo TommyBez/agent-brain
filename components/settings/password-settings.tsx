@@ -73,11 +73,7 @@ export function PasswordSettings() {
         </output>
       )}
       <Button type="submit" disabled={busy}>
-        {busy ? (
-          <LoaderCircle className="animate-spin" size={15} />
-        ) : (
-          <ShieldCheck size={15} />
-        )}{" "}
+        {busy ? <LoaderCircle className="animate-spin" /> : <ShieldCheck />}{" "}
         Update password
       </Button>
     </form>

@@ -29,7 +29,7 @@ export function TokenRevoke({ id, name }: { id: string; name: string }) {
           size="icon"
           aria-label={`Revoke ${name}`}
         >
-          <Trash2 size={16} />
+          <Trash2 />
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>

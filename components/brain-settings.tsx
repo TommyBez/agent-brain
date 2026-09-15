@@ -34,45 +34,55 @@ export function AgentConnection({ endpoint }: { endpoint: string }) {
           </div>
           <div className="flex gap-5 flex-wrap text-sm text-muted-foreground">
             <span className="inline-flex items-center gap-2">
-              <ShieldCheck size={14} /> OAuth 2.1 + PKCE
+              <ShieldCheck className="size-4 shrink-0" /> OAuth 2.1 + PKCE
             </span>
             <span>Streamable HTTP</span>
             <span>Cloud reachable</span>
           </div>
         </CardContent>
       </Card>
-      <div className="agent-procedure grid grid-cols-[repeat(3,1fr)] p-[32px_0] m-[0_0_20px] [border-bottom:1px_solid_var(--line)] gap-[30px] max-[960px]:gap-[15px] max-[740px]:gap-5 max-[460px]:grid-cols-[1fr] max-[460px]:gap-5 max-[460px]:p-[25px_3px]">
-        <div>
-          <span>01</span>
-          <strong>Read before</strong>
-          <p>Resolve the entity and retrieve context before beginning work.</p>
-        </div>
-        <div>
-          <span>02</span>
-          <strong>Write after</strong>
-          <p>Save what matters, with sources and meaningful connections.</p>
-        </div>
-        <div>
-          <span>03</span>
-          <strong>Reflect at night</strong>
-          <p>Give your scheduled agent the consolidation procedure.</p>
-        </div>
-      </div>
+      <ol className="my-6 grid gap-6 border-b pb-6 sm:grid-cols-3">
+        <li className="space-y-2">
+          <span className="font-mono text-sm text-muted-foreground">01</span>
+          <h3 className="font-medium">Read before</h3>
+          <p className="text-sm text-muted-foreground">
+            Resolve the entity and retrieve context before beginning work.
+          </p>
+        </li>
+        <li className="space-y-2">
+          <span className="font-mono text-sm text-muted-foreground">02</span>
+          <h3 className="font-medium">Write after</h3>
+          <p className="text-sm text-muted-foreground">
+            Save what matters, with sources and meaningful connections.
+          </p>
+        </li>
+        <li className="space-y-2">
+          <span className="font-mono text-sm text-muted-foreground">03</span>
+          <h3 className="font-medium">Reflect at night</h3>
+          <p className="text-sm text-muted-foreground">
+            Give your scheduled agent the consolidation procedure.
+          </p>
+        </li>
+      </ol>
     </>
   );
 }
 
 export function HeadlessConnection({ endpoint }: { endpoint: string }) {
   return (
-    <div className="headless-example [border-top:1px_solid_var(--line)] mt-[34px] pt-7">
-      <h3>Headless connection</h3>
-      <p>
-        Send your token in the authorization header. Keep tokens in your agent’s
-        secret store.
-      </p>
-      <pre>
-        <code>{`POST ${endpoint || "https://your-domain/mcp"}\nAuthorization: Bearer <your-agent-token>\nContent-Type: application/json\nAccept: application/json, text/event-stream`}</code>
-      </pre>
-    </div>
+    <Card className="mt-8">
+      <CardHeader>
+        <CardTitle>Headless connection</CardTitle>
+        <CardDescription>
+          Send your token in the authorization header. Keep tokens in your
+          agent’s secret store.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <pre className="overflow-x-auto rounded-md border bg-muted p-4 font-mono text-sm">
+          <code>{`POST ${endpoint || "https://your-domain/mcp"}\nAuthorization: Bearer <your-agent-token>\nContent-Type: application/json\nAccept: application/json, text/event-stream`}</code>
+        </pre>
+      </CardContent>
+    </Card>
   );
 }

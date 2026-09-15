@@ -44,9 +44,11 @@ See [the rendering and verification guide](docs/next-app-router.md) for route bo
 
 ## UI components
 
-Use the vendored shadcn components in `components/ui` with their standard variants, sizes and composition APIs. Theme them through the semantic tokens in `app/globals.css`; avoid global element styles or wrappers that override component borders, padding, focus rings, disabled states or interaction behavior.
+Use the vendored shadcn components in `components/ui` unchanged, through their standard variants, sizes and composition APIs. Theme them through the tokens in `app/globals.css`; do not override their borders, padding, focus rings, disabled states or interaction behavior. Adapt registry import paths to the configured project aliases when installing a component.
 
-Custom styles are reserved for application-specific content and layout, such as entity colors, the knowledge graph and Markdown rendering. Keep those rules in the components layer so Tailwind utilities retain precedence. Search uses `InputGroup`; mobile navigation uses `Sheet` and its focus lifecycle APIs.
+Application code must use semantic color tokens, never literal colors or Tailwind palette utilities. Entity variants define local tokens in the theme. Unmodified shadcn components also consume Tailwind's built-in palette tokens, mapped centrally where needed. `tests/ui-tokens.test.ts` checks this boundary.
+
+Use standard Tailwind spacing, typography and responsive layout utilities. Custom CSS is limited to rendered Markdown typography and accessibility preferences. Graph geometry is application-specific; graph colors still use theme tokens. The Item registry component keeps its original list markup; its one semantic-element lint preference is configured in Biome rather than patched in vendored source.
 
 ## Connect an agent
 

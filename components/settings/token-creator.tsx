@@ -58,7 +58,7 @@ export function TokenCreator() {
           setError("");
         }}
       >
-        <Plus size={15} /> New token
+        <Plus /> New token
       </Button>
       {error && (
         <p className="mb-4 text-xs text-destructive" role="alert">
@@ -88,7 +88,7 @@ export function TokenCreator() {
               variant="link"
               onClick={() => setRawToken("")}
             >
-              I have saved it <Check size={14} />
+              I have saved it <Check />
             </Button>
           </CardContent>
         </Card>
@@ -96,8 +96,8 @@ export function TokenCreator() {
       {creating && (
         <Card className="mb-5">
           <CardContent>
-            <form className="token-form" action={createToken}>
-              <div className="grid gap-[18px] mb-[23px] sm:grid-cols-[2fr_1fr]">
+            <form className="space-y-6" action={createToken}>
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
                   <Label htmlFor={`${fieldId}-name`}>Agent name</Label>
                   <Input
@@ -124,8 +124,10 @@ export function TokenCreator() {
                   </NativeSelect>
                 </div>
               </div>
-              <fieldset>
-                <legend>Permissions</legend>
+              <fieldset className="flex flex-wrap gap-6">
+                <legend className="mb-3 text-sm font-medium">
+                  Permissions
+                </legend>
                 {[
                   {
                     value: "brain:read",
@@ -168,16 +170,16 @@ export function TokenCreator() {
                   </div>
                 ))}
               </fieldset>
-              <div className="button-group flex gap-[10px] items-center">
+              <div className="flex flex-wrap items-center gap-2">
                 <Button
                   type="submit"
                   variant="default"
                   disabled={writing || !scopes.length}
                 >
                   {writing ? (
-                    <LoaderCircle className="spin" size={15} />
+                    <LoaderCircle className="animate-spin" />
                   ) : (
-                    <KeyRound size={15} />
+                    <KeyRound />
                   )}{" "}
                   Create token
                 </Button>

@@ -31,10 +31,7 @@ async function Graph({
   const graph = await getWorkspaceGraph(type, offset);
   return (
     <>
-      <nav
-        aria-label="Graph filters"
-        className="graph-legend flex flex-wrap gap-2 mb-4"
-      >
+      <nav aria-label="Graph filters" className="mb-4 flex flex-wrap gap-2">
         <Button variant={type ? "ghost" : "secondary"} asChild>
           <Link href="/graph" aria-current={!type ? "page" : undefined}>
             All types
@@ -51,7 +48,7 @@ async function Graph({
               aria-current={type === item.id ? "page" : undefined}
             >
               <span
-                className={`legend-dot size-[7px] rounded-full bg-secondary-foreground entity-${item.id}`}
+                className={`size-2 rounded-full bg-secondary-foreground entity-${item.id}`}
               />
               {item.label}
             </Link>

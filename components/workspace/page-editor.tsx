@@ -193,7 +193,7 @@ export function PageEditor({
     <form
       action={formAction}
       onSubmit={() => setNotice("")}
-      className="page-editor"
+      className="grid gap-6"
     >
       <input type="hidden" name="id" value={id ?? ""} />
       <input type="hidden" name="expectedVersion" value={page?.version ?? 0} />
@@ -208,7 +208,7 @@ export function PageEditor({
           })),
         )}
       />
-      <div className="button-group flex justify-end gap-[10px] items-center mb-[30px]">
+      <div className="flex items-center justify-end gap-2">
         <Button variant="outline" asChild>
           <Link
             href={id ? `/pages/${id}` : "/"}
@@ -222,7 +222,7 @@ export function PageEditor({
         </Button>
         <Button type="submit" disabled={saving || loadingLatest}>
           {saving ? (
-            <LoaderCircle size={16} className="spin" />
+            <LoaderCircle size={16} className="animate-spin" />
           ) : (
             <Save size={16} />
           )}{" "}
@@ -230,9 +230,9 @@ export function PageEditor({
         </Button>
       </div>
       {error && (
-        <Alert className="my-5" variant={conflict ? "default" : "destructive"}>
+        <Alert variant={conflict ? "default" : "destructive"}>
           <AlertTitle>{conflict ? "Page changed" : "Page notice"}</AlertTitle>
-          <AlertDescription>
+          <AlertDescription className="wrap-anywhere">
             <p>{error}</p>
             {conflict && (
               <>
@@ -256,8 +256,8 @@ export function PageEditor({
           </AlertDescription>
         </Alert>
       )}
-      <div className="editor-fields grid grid-cols-[2fr_1fr] max-[460px]:grid-cols-1 gap-[18px] mb-[23px]">
-        <Label className="title-field grid gap-2">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Label className="grid gap-2">
           Title
           <Input
             value={title}
@@ -291,20 +291,20 @@ export function PageEditor({
         </Label>
       </div>
       {duplicates.length > 0 && (
-        <Alert className="mb-5">
+        <Alert>
           <AlertTitle>A page may already exist.</AlertTitle>
-          <AlertDescription>
+          <AlertDescription className="wrap-anywhere">
             <p>Read a possible match before creating another entity.</p>
             {duplicates.map((match) => (
               <Button
                 type="button"
                 variant="link"
-                className="h-auto px-0 mr-4"
                 key={match.id}
+                className="max-w-full"
                 asChild
               >
-                <Link href={`/pages/${match.id}`}>
-                  {match.title}
+                <Link href={`/pages/${match.id}`} title={match.title}>
+                  <span className="truncate">{match.title}</span>
                   <ArrowUpRight size={14} />
                 </Link>
               </Button>
@@ -327,7 +327,7 @@ export function PageEditor({
         value={preview ? "preview" : "write"}
         onValueChange={(value) => setPreview(value === "preview")}
       >
-        <div className="flex items-center justify-between mt-5 mb-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <Label htmlFor="markdown-content">Page content</Label>
           <TabsList>
             <TabsTrigger value="write">Write</TabsTrigger>
@@ -336,7 +336,7 @@ export function PageEditor({
         </div>
         <TabsContent
           value="preview"
-          className="markdown-body min-h-[420px] rounded-md border border-border p-6 mb-6"
+          className="markdown-body min-h-96 rounded-md border p-6"
         >
           {preview && (
             <MarkdownPreview
@@ -349,7 +349,7 @@ export function PageEditor({
         <TabsContent value="write">
           <Textarea
             id="markdown-content"
-            className="min-h-[420px] resize-y font-mono mb-6"
+            className="min-h-96 resize-y font-mono"
             value={markdown}
             onChange={(e) => setMarkdown(e.target.value)}
             placeholder={
@@ -359,7 +359,7 @@ export function PageEditor({
           />
         </TabsContent>
       </Tabs>
-      <div className="editor-fields grid grid-cols-2 max-[460px]:grid-cols-1 gap-[18px] mb-[23px]">
+      <div className="grid gap-4 sm:grid-cols-2">
         <Label className="grid gap-2">
           Aliases
           <Input
@@ -379,22 +379,22 @@ export function PageEditor({
           />
         </Label>
       </div>
-      <div className="editor-links [border-top:1px_solid_var(--line)] [border-bottom:1px_solid_var(--line)] p-[22px_0] mb-[23px]">
-        <h3>
-          <Link2 size={17} /> Connections
+      <div className="space-y-4 border-y py-6">
+        <h3 className="flex items-center gap-2 font-medium">
+          <Link2 size={16} /> Connections
         </h3>
-        <p className="form-note [font-size:11px] text-muted-foreground font-normal leading-[1.65]">
+        <p className="text-sm text-muted-foreground">
           Give every relationship a meaning.
         </p>
         {links.map((link, index) => (
           <div
-            className="draft-link flex gap-3 items-center [font-size:12px] p-[11px_0] [border-bottom:1px_solid_var(--line)] max-[460px]:gap-2 max-[460px]:[font-size:10px]"
+            className="flex items-center gap-3 border-b pb-4 text-sm"
             key={`${link.targetRef}-${link.type}`}
           >
-            <span className="relationship-label [color:#97a284] [font-size:10px] max-[460px]:[font-size:8px]">
+            <span className="text-muted-foreground">
               {link.type.replaceAll("_", " ")}
             </span>
-            <strong>
+            <strong className="min-w-0 wrap-anywhere">
               {link.targetTitle ||
                 choices.pages.find((p) => p.id === link.targetRef)?.title ||
                 page?.links.find((l) => l.targetId === link.targetRef)
@@ -405,7 +405,7 @@ export function PageEditor({
               type="button"
               variant="ghost"
               size="icon-sm"
-              className="ml-auto"
+              className="ml-auto shrink-0"
               aria-label="Remove connection"
               onClick={() => setLinks(links.filter((_, i) => i !== index))}
             >
@@ -413,7 +413,7 @@ export function PageEditor({
             </Button>
           </div>
         ))}
-        <div className="link-composer flex gap-[10px] mt-[15px] max-[460px]:flex-wrap">
+        <div className="flex flex-col items-stretch gap-4 lg:flex-row lg:items-start">
           <Label className="grid gap-2">
             <span className="sr-only">Relationship type</span>
             <NativeSelect
@@ -472,15 +472,19 @@ export function PageEditor({
         />
       </Label>
       {comparison && page && (
-        <details className="latest-comparison my-5 p-5 rounded-lg bg-muted border">
-          <summary>Current saved version ({page.version})</summary>
+        <details className="space-y-4 rounded-lg border bg-muted p-4">
+          <summary className="cursor-pointer font-medium">
+            Current saved version ({page.version})
+          </summary>
           <div className="markdown-body">
             <MarkdownPreview markdown={page.markdown} />
           </div>
         </details>
       )}
-      <div className="editor-bottom flex justify-between items-center p-[20px_0_10px] [border-top:1px_solid_var(--line)]">
-        <span>Markdown supported · Changes are versioned</span>
+      <div className="flex flex-wrap items-center justify-between gap-4 border-t pt-6">
+        <span className="text-sm text-muted-foreground">
+          Markdown supported · Changes are versioned
+        </span>
         <Button
           type="submit"
           variant="default"

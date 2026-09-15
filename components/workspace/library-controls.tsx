@@ -135,7 +135,7 @@ export function LibraryControls({ type }: { type: PageType | "" }) {
     >
       <search>
         <form
-          className="library-toolbar flex gap-[10px] items-center mb-[25px] max-[740px]:gap-[9px]"
+          className="mb-6 flex flex-wrap items-center gap-2"
           onSubmit={(event) => {
             event.preventDefault();
             change({ query: normalizedQuery });
@@ -144,7 +144,7 @@ export function LibraryControls({ type }: { type: PageType | "" }) {
           <Label htmlFor="library-search" className="sr-only">
             Search pages
           </Label>
-          <InputGroup className="flex-1">
+          <InputGroup className="flex-1 basis-full sm:basis-0">
             <InputGroupInput
               id="library-search"
               ref={inputRef}
@@ -194,7 +194,7 @@ export function LibraryControls({ type }: { type: PageType | "" }) {
               ))}
             </NativeSelect>
           </div>
-          <div className="w-36 shrink-0 max-[960px]:hidden">
+          <div className="w-36 shrink-0">
             <NativeSelect
               aria-label="Sort pages"
               name="sort"
@@ -211,7 +211,7 @@ export function LibraryControls({ type }: { type: PageType | "" }) {
           </div>
         </form>
       </search>
-      <output className="absolute right-0 -bottom-5 text-[10px] text-muted-foreground">
+      <output className="absolute right-0 -bottom-5 text-xs text-muted-foreground">
         {pending || normalizedQuery !== filters.query
           ? "Updating results…"
           : ""}

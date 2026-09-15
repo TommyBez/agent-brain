@@ -33,10 +33,7 @@ export function SignInForm({ callbackURL = "/" }: { callbackURL?: string }) {
     }
   }
   return (
-    <form
-      className="stack-form flex flex-col gap-[21px] mt-8"
-      onSubmit={signIn}
-    >
+    <form className="grid gap-6" onSubmit={signIn}>
       <div className="grid gap-2">
         <Label htmlFor="sign-in-email">Email address</Label>
         <Input
@@ -70,10 +67,10 @@ export function SignInForm({ callbackURL = "/" }: { callbackURL?: string }) {
         className="w-full"
         disabled={busy}
       >
-        {busy ? <LoaderCircle className="spin" size={16} /> : null} Sign in{" "}
-        <ArrowRight size={17} />
+        {busy ? <LoaderCircle className="animate-spin" size={16} /> : null} Sign
+        in <ArrowRight size={17} />
       </Button>
-      <p className="form-note [font-size:11px] text-muted-foreground font-normal leading-[1.65]">
+      <p className="text-sm text-muted-foreground">
         This is a private workspace. Accounts are provisioned by its owner.
       </p>
     </form>

@@ -8,7 +8,14 @@ import {
   Users,
 } from "lucide-react";
 import type { ReactNode } from "react";
-import { Card } from "@/components/ui/card";
+import {
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  Empty as EmptyRoot,
+  EmptyTitle,
+} from "@/components/ui/empty";
 
 const typeIcons = {
   person: Users,
@@ -42,19 +49,20 @@ export function PageHeading({
   children?: ReactNode;
 }) {
   return (
-    <div className="page-heading flex items-center justify-between gap-5 mb-[35px] min-[1600px]:mb-[45px] max-[740px]:mb-7 max-[460px]:gap-[10px]">
-      <div>
-        <span className="eyebrow text-[10px] font-semibold tracking-[.16em] text-primary">
+    <header className="mb-8 flex flex-wrap items-start justify-between gap-4">
+      <div className="min-w-0 space-y-2">
+        <p className="text-xs font-medium tracking-widest text-primary">
           {eyebrow}
-        </span>
-        <h1>
+        </p>
+        <h1 className="font-serif text-3xl tracking-tight sm:text-4xl">
           {title}
-          <span className="heading-dot text-[#839567]">.</span>
         </h1>
-        {description && <p>{description}</p>}
+        {description && (
+          <p className="text-sm text-muted-foreground">{description}</p>
+        )}
       </div>
       {children}
-    </div>
+    </header>
   );
 }
 
@@ -66,9 +74,9 @@ export function Loading({
   return (
     <output
       aria-live="polite"
-      className="loading-state flex justify-center items-center gap-3 text-[#839274] min-h-[210px] text-xs"
+      className="flex min-h-48 items-center justify-center gap-3 text-sm text-muted-foreground"
     >
-      <LoaderCircle size={20} className="spin" />
+      <LoaderCircle size={20} className="animate-spin" />
       {label}
     </output>
   );
@@ -86,13 +94,15 @@ export function Empty({
   children?: ReactNode;
 }) {
   return (
-    <Card className="empty-state items-center text-center px-6 py-12">
-      <span className="empty-symbol size-16 rounded-full flex items-center justify-center text-primary bg-secondary">
-        {icon}
-      </span>
-      <h2>{title}</h2>
-      <p>{description}</p>
-      {children}
-    </Card>
+    <EmptyRoot>
+      <EmptyHeader>
+        <EmptyMedia variant="icon">{icon}</EmptyMedia>
+        <EmptyTitle role="heading" aria-level={2}>
+          {title}
+        </EmptyTitle>
+        <EmptyDescription>{description}</EmptyDescription>
+      </EmptyHeader>
+      {children && <EmptyContent>{children}</EmptyContent>}
+    </EmptyRoot>
   );
 }

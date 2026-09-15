@@ -10,6 +10,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -67,14 +68,14 @@ export function WorkspaceShell({
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <div className="workspace flex min-h-[100svh]">
+      <div className="flex min-h-svh">
         <a
           href="#main-content"
-          className="skip-link fixed z-[100] top-[-60px] focus:top-3 left-4 px-4 py-[10px] bg-foreground text-white"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground"
         >
           Skip to content
         </a>
-        <aside className="sidebar w-61 bg-[var(--sidebar)] [border-right:1px_solid_var(--line)] p-[28px_20px_0] fixed [inset:0_auto_0_0] flex flex-col z-30 overflow-y-auto max-[1200px]:w-55 max-[1200px]:px-[15px] max-[960px]:w-[194px] max-[960px]:px-3 max-[740px]:hidden">
+        <aside className="fixed inset-y-0 left-0 z-30 flex w-64 flex-col gap-6 overflow-y-auto border-r bg-sidebar p-6 max-[740px]:hidden">
           {sidebar}
         </aside>
         <SheetContent
@@ -119,38 +120,37 @@ export function WorkspaceShell({
           </SheetHeader>
           <div
             ref={mobileNavigation}
-            className="flex flex-1 flex-col px-4 pb-4"
+            className="flex flex-1 flex-col gap-6 px-4 pb-4"
           >
             {sidebar}
           </div>
         </SheetContent>
-        <div className="main-shell ml-61 w-[calc(100%_-_244px)] min-w-0 max-[1200px]:ml-55 max-[1200px]:w-[calc(100%_-_220px)] max-[960px]:ml-[194px] max-[960px]:w-[calc(100%_-_194px)] max-[740px]:ml-0 max-[740px]:w-full">
-          <header className="topbar h-17 flex items-center justify-between [border-bottom:1px_solid_var(--line)] px-[42px] max-[1200px]:px-[30px] max-[960px]:px-[25px] max-[740px]:justify-start max-[740px]:h-15 max-[740px]:px-[23px] max-[460px]:px-[18px]">
+        <div className="ml-64 min-w-0 flex-1 max-[740px]:ml-0">
+          <header className="flex h-16 items-center gap-4 border-b px-4 md:px-6">
             <SheetTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon-sm"
-                className="mobile-menu hidden max-[740px]:flex max-[740px]:-ml-[5px] max-[740px]:mr-[10px]"
+                className="hidden max-[740px]:inline-flex"
                 aria-label="Open navigation"
               >
                 <Menu size={20} />
               </Button>
             </SheetTrigger>
-            <div className="breadcrumb flex items-center gap-[15px] text-[10px] text-[#8e9485] max-[740px]:gap-2 max-[740px]:text-[9px]">
-              Personal brain
-              <ChevronRight size={13} />
+            <div className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
+              <span className="hidden sm:inline">Personal brain</span>
+              <ChevronRight className="hidden size-4 shrink-0 sm:block" />
               <Suspense fallback={<span>Workspace</span>}>
                 <WorkspaceBreadcrumb />
               </Suspense>
             </div>
-            <span className="private-label flex items-center gap-[7px] text-[#8b947e] text-[8px] tracking-[.13em] max-[960px]:text-[7px] max-[740px]:ml-auto max-[460px]:text-[0px]">
-              <span className="status-dot size-[6px] rounded-full bg-[#7c916b] inline-block shrink-0" />
-              PRIVATE WORKSPACE
-            </span>
+            <Badge variant="outline" className="ml-auto">
+              Private
+            </Badge>
           </header>
           <main
             id="main-content"
-            className="main-content max-w-[1390px] p-[46px_50px_25px] mx-auto min-[1600px]:pt-15 max-[1200px]:p-[36px_30px_25px] max-[960px]:p-[31px_25px_23px] max-[740px]:p-[30px_23px_23px] max-[460px]:px-[18px]"
+            className="mx-auto max-w-7xl p-4 md:p-6 lg:p-8"
           >
             {children}
           </main>
@@ -162,13 +162,13 @@ export function WorkspaceShell({
 
 export function FindKnowledge() {
   return (
-    <Link
-      href="/?focus=search"
-      className="sidebar-search flex items-center w-full gap-2 text-[#838a77] text-left text-[11px] px-[9px] mb-7"
-    >
-      <Search size={15} />
-      Find anything<kbd>⌘ K</kbd>
-    </Link>
+    <Button variant="outline" asChild className="w-full justify-start">
+      <Link href="/?focus=search">
+        <Search />
+        Find anything
+        <kbd className="ml-auto text-xs text-muted-foreground">⌘ K</kbd>
+      </Link>
+    </Button>
   );
 }
 

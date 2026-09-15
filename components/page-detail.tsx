@@ -8,8 +8,19 @@ import {
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Markdown } from "@/components/markdown";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemGroup,
+  ItemMedia,
+  ItemTitle,
+} from "@/components/ui/item";
 import { Pagination } from "@/components/workspace/pagination";
 import { Empty, EntityIcon } from "@/components/workspace/primitives";
 import { BrainError, type BrainPage } from "@/lib/brain/types";
@@ -39,19 +50,18 @@ export async function readPage(params: PageParams) {
 
 export function PageBackLink() {
   return (
-    <Link
-      href="/"
-      className="text-link inline-flex items-center gap-[7px] text-primary text-xs font-semibold"
-    >
-      <ArrowLeft size={15} /> All pages
-    </Link>
+    <Button variant="ghost" asChild>
+      <Link href="/">
+        <ArrowLeft size={16} /> All pages
+      </Link>
+    </Button>
   );
 }
 
 export async function PageVersion({ params }: { params: PageParams }) {
   const page = await readPage(params);
   return (
-    <span>
+    <span className="min-w-0 wrap-anywhere">
       VERSION {page.version} · {page.slug}
     </span>
   );
@@ -65,14 +75,14 @@ export async function PageHeader({ params }: { params: PageParams }) {
 function PageHeadingContent({ page }: { page: BrainPage }) {
   return (
     <>
-      <div className="detail-heading flex justify-between gap-6 items-start max-[460px]:flex-col max-[460px]:gap-0">
-        <div>
+      <div className="flex flex-col items-start justify-between gap-4 sm:flex-row">
+        <div className="min-w-0 space-y-3">
           <Badge variant="secondary" className={`capitalize type-${page.type}`}>
             <EntityIcon type={page.type} size={13} /> {page.type}
           </Badge>
-          <h1>{page.title}</h1>
+          <h1 className="wrap-anywhere font-serif text-4xl">{page.title}</h1>
           {page.summary && (
-            <p className="page-summary max-w-[650px] text-[#7e8971] text-[15px] leading-[1.7] max-[460px]:text-[13px]">
+            <p className="max-w-prose wrap-anywhere text-muted-foreground leading-relaxed">
               {page.summary}
             </p>
           )}
@@ -83,12 +93,16 @@ function PageHeadingContent({ page }: { page: BrainPage }) {
           </Link>
         </Button>
       </div>
-      <div className="detail-meta flex gap-2 items-center flex-wrap mt-[23px] mb-[29px] text-[#9aa28e] text-[10px]">
+      <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
         <span>Updated {formatDate(page.updatedAt)}</span>
-        <span className="dot-separator px-[5px]">·</span>
+        <span aria-hidden="true">·</span>
         <span>{page.links.length + page.backlinks.length} connections</span>
         {page.tags.map((tag) => (
-          <Badge variant="secondary" key={tag}>
+          <Badge
+            variant="secondary"
+            key={tag}
+            className="max-w-full whitespace-normal wrap-anywhere"
+          >
             {tag}
           </Badge>
         ))}
@@ -106,24 +120,23 @@ export async function PageNavigation({
 }) {
   const { id } = await params;
   return (
-    <nav
-      aria-label="Page views"
-      className="flex gap-6 border-b border-border mb-8 pb-3 text-xs"
-    >
-      <Link
-        href={`/pages/${id}`}
-        aria-current={!history ? "page" : undefined}
-        className={`inline-flex items-center gap-2 py-1 ${!history ? "text-primary font-semibold" : "text-muted-foreground"}`}
-      >
-        <FileText size={15} /> Page
-      </Link>
-      <Link
-        href={`/pages/${id}/history`}
-        aria-current={history ? "page" : undefined}
-        className={`inline-flex items-center gap-2 py-1 ${history ? "text-primary font-semibold" : "text-muted-foreground"}`}
-      >
-        <Clock3 size={15} /> History
-      </Link>
+    <nav aria-label="Page views" className="flex gap-2 border-b pb-4">
+      <Button variant={!history ? "secondary" : "ghost"} asChild>
+        <Link
+          href={`/pages/${id}`}
+          aria-current={!history ? "page" : undefined}
+        >
+          <FileText size={16} /> Page
+        </Link>
+      </Button>
+      <Button variant={history ? "secondary" : "ghost"} asChild>
+        <Link
+          href={`/pages/${id}/history`}
+          aria-current={history ? "page" : undefined}
+        >
+          <Clock3 size={16} /> History
+        </Link>
+      </Button>
     </nav>
   );
 }
@@ -131,7 +144,7 @@ export async function PageNavigation({
 export async function PageBody({ params }: { params: PageParams }) {
   const page = await readPage(params);
   return (
-    <article className="markdown-body">
+    <article className="markdown-body min-w-0 lg:col-span-2">
       <Markdown markdown={page.markdown} />
     </article>
   );
@@ -140,63 +153,95 @@ export async function PageBody({ params }: { params: PageParams }) {
 export async function PageConnections({ params }: { params: PageParams }) {
   const page = await readPage(params);
   return (
-    <aside className="page-context border-l border-border pl-[25px] max-[1200px]:pl-5 max-[960px]:border-l-0 max-[960px]:pl-0 max-[960px]:border-t max-[960px]:pt-[25px] max-[960px]:grid max-[960px]:grid-cols-2 max-[960px]:gap-x-5">
-      <h3>CONNECTED KNOWLEDGE</h3>
-      {page.links.length + page.backlinks.length ? (
-        <>
-          {page.links.map((link) => (
-            <Link
-              className="connected-page block w-full text-left py-[13px] border-b border-border"
-              key={link.id}
-              href={`/pages/${link.targetId}`}
-            >
-              <span>{link.type.replaceAll("_", " ")}</span>
-              <strong>
-                {link.targetTitle || link.targetSlug}
-                <ArrowUpRight size={14} />
-              </strong>
-              {link.label && <p>{link.label}</p>}
-            </Link>
-          ))}
-          {page.backlinks.length > 0 && (
-            <h3 className="backlinks-title mt-[30px]!">LINKED FROM</h3>
-          )}
-          {page.backlinks.map((link) => (
-            <Link
-              className="connected-page block w-full text-left py-[13px] border-b border-border"
-              key={link.id}
-              href={`/pages/${link.sourceId}`}
-            >
-              <span>{link.type.replaceAll("_", " ")}</span>
-              <strong>
-                {link.sourceTitle || link.sourceSlug}
-                <ArrowUpRight size={14} />
-              </strong>
-            </Link>
-          ))}
-        </>
-      ) : (
-        <p className="context-empty">
-          No connections yet. Add a typed link to place this page in context.
-        </p>
-      )}
-      {page.aliases.length > 0 && (
-        <>
-          <h3>ALSO KNOWN AS</h3>
-          <p className="context-aliases">{page.aliases.join(" · ")}</p>
-        </>
-      )}
-      <div className="page-provenance mt-9 border-t border-border pt-5">
-        <span>FIRST REMEMBERED</span>
-        <p>{formatDate(page.createdAt)}</p>
-        <span>RETRIEVAL</span>
-        <p>
-          {page.embeddedAt
-            ? "Text + semantic search"
-            : "Text search · awaiting embedding"}
-        </p>
-      </div>
-    </aside>
+    <Card role="complementary" aria-label="Page context" className="min-w-0">
+      <CardHeader>
+        <CardTitle>Connected knowledge</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6 text-sm">
+        {page.links.length + page.backlinks.length ? (
+          <>
+            {page.links.length > 0 && (
+              <ul className="space-y-4">
+                {page.links.map((link) => (
+                  <li key={link.id}>
+                    <Item size="sm" asChild>
+                      <Link href={`/pages/${link.targetId}`}>
+                        <ItemContent className="min-w-0">
+                          <ItemDescription className="wrap-anywhere">
+                            {link.type.replaceAll("_", " ")}
+                          </ItemDescription>
+                          <ItemTitle className="wrap-anywhere">
+                            {link.targetTitle || link.targetSlug}
+                          </ItemTitle>
+                          {link.label && (
+                            <ItemDescription className="wrap-anywhere">
+                              {link.label}
+                            </ItemDescription>
+                          )}
+                        </ItemContent>
+                        <ItemActions>
+                          <ArrowUpRight size={16} />
+                        </ItemActions>
+                      </Link>
+                    </Item>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {page.backlinks.length > 0 && (
+              <section className="space-y-4">
+                <h3 className="font-medium">Linked from</h3>
+                <ul className="space-y-4">
+                  {page.backlinks.map((link) => (
+                    <li key={link.id}>
+                      <Item size="sm" asChild>
+                        <Link href={`/pages/${link.sourceId}`}>
+                          <ItemContent className="min-w-0">
+                            <ItemDescription className="wrap-anywhere">
+                              {link.type.replaceAll("_", " ")}
+                            </ItemDescription>
+                            <ItemTitle className="wrap-anywhere">
+                              {link.sourceTitle || link.sourceSlug}
+                            </ItemTitle>
+                          </ItemContent>
+                          <ItemActions>
+                            <ArrowUpRight size={16} />
+                          </ItemActions>
+                        </Link>
+                      </Item>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+          </>
+        ) : (
+          <p className="text-muted-foreground">
+            No connections yet. Add a typed link to place this page in context.
+          </p>
+        )}
+        {page.aliases.length > 0 && (
+          <section className="space-y-2">
+            <h3 className="font-medium">Also known as</h3>
+            <p className="wrap-anywhere text-muted-foreground">
+              {page.aliases.join(" · ")}
+            </p>
+          </section>
+        )}
+        <dl className="space-y-2 border-t pt-4">
+          <dt className="font-medium">First remembered</dt>
+          <dd className="text-muted-foreground">
+            {formatDate(page.createdAt)}
+          </dd>
+          <dt className="font-medium">Retrieval</dt>
+          <dd className="text-muted-foreground">
+            {page.embeddedAt
+              ? "Text + semantic search"
+              : "Text search · awaiting embedding"}
+          </dd>
+        </dl>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -220,24 +265,28 @@ export async function PageHistory({
     );
   return (
     <>
-      <div className="revision-list">
+      <ItemGroup>
         {revisions.slice(0, WORKSPACE_PAGE_SIZE).map((item) => (
-          <Link
-            href={`/pages/${id}/history/${item.version}`}
-            className="revision-row flex items-center gap-[17px] w-full text-left py-5 px-[6px] border-b border-border"
-            key={item.id}
-          >
-            <Badge variant="secondary">v{item.version}</Badge>
-            <div>
-              <strong>{item.reason || "Page saved"}</strong>
-              <p>
-                {item.source || "Workspace"} · {formatDate(item.createdAt)}
-              </p>
-            </div>
-            <ArrowUpRight size={17} />
-          </Link>
+          <Item key={item.id} asChild>
+            <Link href={`/pages/${id}/history/${item.version}`}>
+              <ItemMedia>
+                <Badge variant="secondary">v{item.version}</Badge>
+              </ItemMedia>
+              <ItemContent className="min-w-0">
+                <ItemTitle className="wrap-anywhere">
+                  {item.reason || "Page saved"}
+                </ItemTitle>
+                <ItemDescription className="wrap-anywhere">
+                  {item.source || "Workspace"} · {formatDate(item.createdAt)}
+                </ItemDescription>
+              </ItemContent>
+              <ItemActions>
+                <ArrowUpRight size={16} />
+              </ItemActions>
+            </Link>
+          </Item>
         ))}
-      </div>
+      </ItemGroup>
       <Pagination
         path={`/pages/${id}/history`}
         offset={offset}
@@ -274,17 +323,18 @@ export async function PageRevision({ params }: { params: RevisionParams }) {
   const revision = await readPageRevision(params);
   return (
     <>
-      <div className="revision-banner px-[18px] py-[15px] bg-[#edf2e3] flex justify-between gap-[10px] text-[11px] text-[#7d9165] mb-[30px]">
-        <span>
-          Reading version {revision.version} · {formatDate(revision.createdAt)}
-        </span>
-        <Link
-          className="text-primary font-semibold"
-          href={`/pages/${revision.pageId}/history`}
-        >
-          Back to history
-        </Link>
-      </div>
+      <Alert className="mb-6">
+        <Clock3 />
+        <AlertTitle>Reading version {revision.version}</AlertTitle>
+        <AlertDescription>
+          <p>{formatDate(revision.createdAt)}</p>
+          <Button variant="link" asChild>
+            <Link href={`/pages/${revision.pageId}/history`}>
+              Back to history
+            </Link>
+          </Button>
+        </AlertDescription>
+      </Alert>
       <article className="markdown-body">
         <Markdown markdown={revision.snapshot.markdown} />
       </article>

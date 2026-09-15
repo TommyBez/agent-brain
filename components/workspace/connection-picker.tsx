@@ -110,7 +110,7 @@ export function ConnectionPicker({
         ))}
       </NativeSelect>
       {error ? (
-        <div role="alert" className="text-xs text-destructive">
+        <div role="alert" className="text-sm text-destructive">
           {error}{" "}
           <Button
             type="button"
@@ -123,7 +123,7 @@ export function ConnectionPicker({
         </div>
       ) : (
         <div
-          className="flex items-center justify-between gap-2 text-xs text-muted-foreground"
+          className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground"
           aria-live="polite"
           aria-busy={loading}
         >

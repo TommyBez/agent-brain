@@ -1,4 +1,10 @@
-import { ArrowUpRight, CheckCircle2, ShieldCheck, XCircle } from "lucide-react";
+import {
+  ArrowUpRight,
+  CheckCircle2,
+  Clock3,
+  ShieldCheck,
+  XCircle,
+} from "lucide-react";
 import { formatDate } from "@/components/brain-types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -43,15 +49,12 @@ function OperationResult({ job }: { job: MaintenanceJob }) {
         <p>Run limit reached. Remaining work continues the next night.</p>
       )}
       {commitUrl && (
-        <a
-          href={commitUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex items-center gap-1 text-primary underline-offset-4 hover:underline"
-        >
-          View export commit {result.commit?.slice(0, 7)}
-          <ArrowUpRight size={12} />
-        </a>
+        <Button variant="link" asChild>
+          <a href={commitUrl} target="_blank" rel="noreferrer">
+            View export commit {result.commit?.slice(0, 7)}
+            <ArrowUpRight />
+          </a>
+        </Button>
       )}
       {typeof result.report === "string" && result.report && (
         <details className="rounded-md border p-3">
@@ -70,8 +73,8 @@ function OperationResult({ job }: { job: MaintenanceJob }) {
 export function OperationsSummary({ data }: { data: OperationsData }) {
   return (
     <>
-      <div className="section-heading flex items-center justify-between gap-5 mb-5">
-        <h2>Infrastructure</h2>
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
+        <h2 className="text-xl font-semibold">Infrastructure</h2>
         <Badge variant={data.configured ? "default" : "secondary"}>
           {data.configured ? "Configured" : "Setup incomplete"}
         </Badge>
@@ -80,17 +83,19 @@ export function OperationsSummary({ data }: { data: OperationsData }) {
         <CardContent className="divide-y">
           {data.checks.map((check) => (
             <div
-              className="flex items-center gap-4 py-5 first:pt-0 last:pb-0 max-[460px]:flex-wrap"
+              className="flex flex-wrap items-center gap-4 py-5 first:pt-0 last:pb-0"
               key={check.name}
             >
               {check.status === "ready" ? (
-                <CheckCircle2 className="shrink-0 text-primary" size={21} />
+                <CheckCircle2 className="size-5 shrink-0 text-primary" />
               ) : (
-                <XCircle className="shrink-0 text-muted-foreground" size={21} />
+                <XCircle className="size-5 shrink-0 text-muted-foreground" />
               )}
-              <div>
+              <div className="min-w-0 flex-1">
                 <h3 className="font-medium">{check.name}</h3>
-                <p className="text-sm text-muted-foreground">{check.detail}</p>
+                <p className="break-words text-sm text-muted-foreground">
+                  {check.detail}
+                </p>
               </div>
               <Badge
                 variant={
@@ -108,31 +113,35 @@ export function OperationsSummary({ data }: { data: OperationsData }) {
           ))}
         </CardContent>
       </Card>
-      <section className="settings-section mt-9">
-        <div className="section-heading flex items-center justify-between gap-5 mb-5">
-          <div>
-            <h2>Recent maintenance</h2>
-            <p>
-              Vercel starts each night at 02:00 UTC. Run maintenance starts
-              today's work or retries failures; completed work is kept.
-            </p>
-          </div>
+      <section className="mt-8">
+        <div className="mb-5 space-y-2">
+          <h2 className="text-xl font-semibold">Recent maintenance</h2>
+          <p className="text-sm text-muted-foreground">
+            Vercel starts each night at 02:00 UTC. Run maintenance starts
+            today's work or retries failures; completed work is kept.
+          </p>
         </div>
         {data.jobs.length ? (
-          <div className="jobs-list">
+          <div className="divide-y border-t">
             {data.jobs.map((job) => (
               <div
-                className="job-row flex justify-between items-start gap-5 p-[19px_12px] [border-top:1px_solid_var(--line)]"
+                className="flex flex-wrap items-start justify-between gap-4 py-5"
                 key={job.id}
               >
                 <div className="min-w-0 flex-1">
-                  <strong>{job.kind.replaceAll("_", " ")}</strong>
-                  <p>
+                  <strong className="font-medium capitalize">
+                    {job.kind.replaceAll("_", " ")}
+                  </strong>
+                  <p className="mt-1 text-sm text-muted-foreground">
                     {formatDate(job.runDate || job.startedAt?.toISOString())}
                     {job.finishedAt &&
                       ` · Finished ${new Date(job.finishedAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" })} UTC`}
                   </p>
-                  {job.error && <p className="text-destructive">{job.error}</p>}
+                  {job.error && (
+                    <p className="mt-2 break-words text-sm text-destructive">
+                      {job.error}
+                    </p>
+                  )}
                   <OperationResult job={job} />
                 </div>
                 <Badge
@@ -153,20 +162,22 @@ export function OperationsSummary({ data }: { data: OperationsData }) {
         ) : (
           <Card>
             <CardContent className="flex items-center gap-4">
-              <ClockGlyph />
-              <p>
+              <Clock3 className="size-6 shrink-0 text-muted-foreground" />
+              <p className="text-sm">
                 No maintenance has run yet.
                 <br />
-                <span>Completed runs and errors will appear here.</span>
+                <span className="text-muted-foreground">
+                  Completed runs and errors will appear here.
+                </span>
               </p>
             </CardContent>
           </Card>
         )}
       </section>
-      <Card className="mt-9">
+      <Card className="mt-8">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <ShieldCheck size={20} />
+            <ShieldCheck className="size-5 shrink-0" />
             Your knowledge has an exit door.
           </CardTitle>
           <CardDescription>
@@ -181,26 +192,11 @@ export function OperationsSummary({ data }: { data: OperationsData }) {
               target="_blank"
               rel="noreferrer"
             >
-              Operations guide <ArrowUpRight size={14} />
+              Operations guide <ArrowUpRight />
             </a>
           </Button>
         </CardContent>
       </Card>
     </>
-  );
-}
-
-function ClockGlyph() {
-  return (
-    <svg
-      width="28"
-      height="28"
-      viewBox="0 0 28 28"
-      fill="none"
-      aria-hidden="true"
-    >
-      <circle cx="14" cy="14" r="11" stroke="currentColor" />
-      <path d="M14 7v7l4 3" stroke="currentColor" />
-    </svg>
   );
 }

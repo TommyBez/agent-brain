@@ -32,14 +32,12 @@ export default function AgentsPage() {
         description="Your knowledge, available wherever you think."
       />
       <AgentConnection endpoint={endpoint} />
-      <section className="settings-section mt-9">
-        <div className="section-heading flex items-center justify-between gap-5 mb-5">
-          <div>
-            <h2>Headless agent tokens</h2>
-            <p>
-              Optional scoped tokens for scheduled jobs without browser sign-in.
-            </p>
-          </div>
+      <section className="mt-8">
+        <div className="mb-5 space-y-2">
+          <h2 className="text-xl font-semibold">Headless agent tokens</h2>
+          <p className="text-sm text-muted-foreground">
+            Optional scoped tokens for scheduled jobs without browser sign-in.
+          </p>
         </div>
         <Suspense fallback={<Loading />}>
           <AgentTokens />
@@ -60,26 +58,28 @@ async function AgentTokens() {
     <>
       <TokenCreator />
       {tokens.length ? (
-        <div className="token-list">
+        <div className="divide-y border-t">
           {tokens.map((token) => (
             <div
-              className={`token-row [border-top:1px_solid_var(--line)] p-[20px_5px] flex items-center gap-4 max-[460px]:gap-[10px] max-[460px]:flex-wrap ${token.revokedAt ? "is-revoked" : ""}`}
+              className={`flex flex-wrap items-center gap-4 py-5 ${token.revokedAt ? "opacity-50" : ""}`}
               key={token.id}
             >
-              <KeyRound size={18} />
-              <div>
-                <strong>
+              <KeyRound className="size-5 shrink-0 text-muted-foreground" />
+              <div className="min-w-0 flex-1 space-y-1">
+                <strong className="flex flex-wrap items-center gap-3 break-words font-medium">
                   {token.name}
-                  <span className="token-prefix [font-size:9px] [font-family:var(--mono)] [color:#a0ad90] font-normal">
+                  <span className="font-mono text-xs font-normal text-muted-foreground">
                     {token.prefix}…
                   </span>
                 </strong>
-                <p>{token.scopes.join(" · ")}</p>
-                <span>
+                <p className="text-sm text-muted-foreground">
+                  {token.scopes.join(" · ")}
+                </p>
+                <p className="text-xs text-muted-foreground">
                   {token.revokedAt
                     ? `Revoked ${formatDate(token.revokedAt.toISOString())}`
                     : `Expires ${formatDate(token.expiresAt?.toISOString())} · Last used ${formatDate(token.lastUsedAt?.toISOString())}`}
-                </span>
+                </p>
               </div>
               {!token.revokedAt && (
                 <TokenRevoke id={token.id} name={token.name} />
@@ -89,7 +89,7 @@ async function AgentTokens() {
         </div>
       ) : (
         <Empty
-          icon={<KeyRound size={25} />}
+          icon={<KeyRound className="size-6" />}
           title="Your agents have a place here."
           description="Create a token when an agent needs to connect without an interactive sign-in."
         />

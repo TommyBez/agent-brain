@@ -31,7 +31,7 @@ export function CopyButton({ value, label }: { value: string; label: string }) {
         aria-label={label}
         onClick={copy}
       >
-        {copied ? <Check size={17} /> : <Copy size={17} />}
+        {copied ? <Check /> : <Copy />}
       </Button>
     </span>
   );
