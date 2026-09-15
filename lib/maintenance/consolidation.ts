@@ -5,7 +5,7 @@ export const CONSOLIDATION_LIMITS = {
   writes: 8,
   inputTokens: 120_000,
   outputTokens: 18_000,
-  responseTokens: 3000,
+  responseTokens: 8192,
   reportCharacters: 12_000,
 } as const;
 
@@ -132,9 +132,20 @@ function record(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function invalidResponse(): never {
+type ResponseFault =
+  | "missing choice"
+  | "missing assistant message"
+  | "unexpected message role"
+  | "invalid content type"
+  | "invalid tool calls type"
+  | "too many tool calls"
+  | "invalid tool call shape"
+  | "duplicate tool call ID"
+  | "empty assistant message";
+
+function invalidResponse(reason: ResponseFault): never {
   throw new GatewayRequestError(
-    "AI Gateway returned an invalid consolidation response.",
+    `AI Gateway returned an invalid consolidation response (${reason}).`,
     {
       retryable: true,
     },
@@ -144,13 +155,14 @@ function invalidResponse(): never {
 function parseMessage(
   value: unknown,
 ): Extract<ConsolidationMessage, { role: "assistant" }> {
-  if (!record(value) || value.role !== "assistant") invalidResponse();
+  if (!record(value)) invalidResponse("missing assistant message");
+  if (value.role !== "assistant") invalidResponse("unexpected message role");
   if (
     value.content !== null &&
     value.content !== undefined &&
     typeof value.content !== "string"
   )
-    invalidResponse();
+    invalidResponse("invalid content type");
   const message: Extract<ConsolidationMessage, { role: "assistant" }> = {
     role: "assistant",
     content: typeof value.content === "string" ? value.content : null,
@@ -160,9 +172,10 @@ function parseMessage(
   if (typeof value.reasoning_content === "string") {
     message.reasoning_content = value.reasoning_content;
   }
-  if (value.tool_calls !== undefined) {
-    if (!Array.isArray(value.tool_calls) || value.tool_calls.length > 32)
-      invalidResponse();
+  if (value.tool_calls !== undefined && value.tool_calls !== null) {
+    if (!Array.isArray(value.tool_calls))
+      invalidResponse("invalid tool calls type");
+    if (value.tool_calls.length > 32) invalidResponse("too many tool calls");
     const ids = new Set<string>();
     message.tool_calls = value.tool_calls.map((call: unknown) => {
       if (
@@ -172,10 +185,10 @@ function parseMessage(
         call.type !== "function" ||
         !record(call.function) ||
         typeof call.function.name !== "string" ||
-        typeof call.function.arguments !== "string" ||
-        ids.has(call.id)
+        typeof call.function.arguments !== "string"
       )
-        invalidResponse();
+        invalidResponse("invalid tool call shape");
+      if (ids.has(call.id)) invalidResponse("duplicate tool call ID");
       ids.add(call.id);
       return {
         id: call.id,
@@ -188,7 +201,7 @@ function parseMessage(
     });
   }
   if (!message.content?.trim() && !message.tool_calls?.length)
-    invalidResponse();
+    invalidResponse("empty assistant message");
   return message;
 }
 
@@ -198,8 +211,11 @@ function tokenCount(value: unknown, fallback: number): number {
     : fallback;
 }
 
-function finishForBudget(state: ConsolidationState): ConsolidationState {
-  const note = `Consolidation stopped at its configured budget after ${state.rounds} model rounds and ${state.writes} successful writes. Remaining work is deferred to the next run.`;
+function finishForBudget(
+  state: ConsolidationState,
+  truncated = false,
+): ConsolidationState {
+  const note = `${truncated ? "The model reached its response output limit; its incomplete response was discarded. " : ""}Consolidation stopped at its configured budget after ${state.rounds} model rounds and ${state.writes} successful writes. Remaining work is deferred to the next run.`;
   return {
     ...state,
     completed: true,
@@ -249,31 +265,40 @@ export async function requestConsolidationRound(
     messages: state.messages,
     tools: state.tools,
     max_tokens: maximumOutput,
+    // DeepSeek defaults to high thinking effort. Reasoning shares the output cap.
+    // Gateway's Chat Completions API maps this explicit effort to the provider.
+    reasoning: { effort: "low" },
     ...(reportOnly ? { tool_choice: "none" } : {}),
   });
   if (!record(raw) || !Array.isArray(raw.choices) || !record(raw.choices[0]))
-    invalidResponse();
-  const message = parseMessage(raw.choices[0].message);
+    invalidResponse("missing choice");
   const usage = record(raw.usage) ? raw.usage : {};
-  const pendingToolCalls = message.tool_calls ?? [];
-  const report = message.content?.trim()
-    ? message.content.trim().slice(0, CONSOLIDATION_LIMITS.reportCharacters)
-    : state.report;
-  const next: ConsolidationState = {
+  const counted: ConsolidationState = {
     ...state,
     rounds: state.rounds + 1,
     inputTokens:
       state.inputTokens + tokenCount(usage.prompt_tokens, inputUpperBound),
     outputTokens:
       state.outputTokens + tokenCount(usage.completion_tokens, maximumOutput),
+  };
+  // An output-limited answer can contain reasoning only or incomplete tool JSON.
+  // Count the paid request and stop before parsing or exposing any tool calls;
+  // throwing here would replay the same paid request as a transient failure.
+  if (raw.choices[0].finish_reason === "length") {
+    return finishForBudget(counted, true);
+  }
+  const message = parseMessage(raw.choices[0].message);
+  const pendingToolCalls = message.tool_calls ?? [];
+  const report = message.content?.trim()
+    ? message.content.trim().slice(0, CONSOLIDATION_LIMITS.reportCharacters)
+    : state.report;
+  const next: ConsolidationState = {
+    ...counted,
     messages: [...state.messages, message],
     pendingToolCalls,
     report,
     completed: !pendingToolCalls.length,
-    budgetReached:
-      reportOnly ||
-      raw.choices[0].finish_reason === "length" ||
-      state.budgetReached,
+    budgetReached: reportOnly || state.budgetReached,
   };
   // A provider must not bypass the report-only turn by returning more writes.
   if (reportOnly && pendingToolCalls.length) {

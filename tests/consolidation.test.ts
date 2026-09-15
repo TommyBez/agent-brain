@@ -70,7 +70,8 @@ test("model round is checkpointable before tools and final narrative is retained
       assert.equal(options.cache, "no-store");
       assert.ok(options.signal instanceof AbortSignal);
       const body = JSON.parse(options.body as string);
-      assert.equal(body.max_tokens, 3000);
+      assert.equal(body.max_tokens, 8192);
+      assert.deepEqual(body.reasoning, { effort: "low" });
       requests++;
       if (requests === 1) {
         return Response.json({
@@ -249,7 +250,7 @@ test("last allowed round requests a narrative without more tools", async (t) => 
   assert.equal(finished.rounds, 16);
   assert.equal(finished.budgetReached, true);
   assert.equal(finished.completed, true);
-  assert.equal(finished.outputTokens, 3000);
+  assert.equal(finished.outputTokens, 8192);
   assert.ok(finished.inputTokens > 0);
   const alreadyAtLimit = await requestConsolidationRound({
     ...state(),
@@ -306,18 +307,24 @@ test("malformed model tool calls never become executable work", async (t) => {
   await assert.rejects(requestConsolidationRound(state()), (error: unknown) => {
     assert.ok(error instanceof GatewayRequestError);
     assert.equal(error.retryable, true);
+    assert.match(error.message, /duplicate tool call ID/);
+    assert.equal(error.message.includes('"write"'), false);
     return true;
   });
 });
 
-test("a token-truncated final narrative is bounded and marked as budget-limited", async (t) => {
+test("a valid final answer permits null tool calls and retains a bounded report", async (t) => {
   installKey(t);
   t.mock.method(globalThis, "fetch", async () =>
     Response.json({
       choices: [
         {
-          finish_reason: "length",
-          message: { role: "assistant", content: "Report. ".repeat(2000) },
+          finish_reason: "stop",
+          message: {
+            role: "assistant",
+            content: "Report. ".repeat(2000),
+            tool_calls: null,
+          },
         },
       ],
       usage: { prompt_tokens: 1000, completion_tokens: 3000 },
@@ -325,8 +332,91 @@ test("a token-truncated final narrative is bounded and marked as budget-limited"
   );
   const finished = await requestConsolidationRound(state());
   assert.equal(finished.completed, true);
-  assert.equal(finished.budgetReached, true);
+  assert.equal(finished.budgetReached, false);
+  assert.deepEqual(finished.pendingToolCalls, []);
   assert.equal(finished.report.length, CONSOLIDATION_LIMITS.reportCharacters);
+});
+
+test("output-limited reasoning and incomplete tool calls are charged once and deferred", async (t) => {
+  installKey(t);
+  const messages = [
+    {
+      role: "assistant",
+      content: null,
+      reasoning_content: "Private incomplete reasoning",
+      tool_calls: null,
+    },
+    {
+      role: "assistant",
+      content: "Private incomplete report",
+      tool_calls: [
+        {
+          id: "cut-off",
+          type: "function",
+          function: { name: "write", arguments: '{"markdown":' },
+        },
+      ],
+    },
+  ];
+  let requests = 0;
+  t.mock.method(globalThis, "fetch", async () =>
+    Response.json({
+      choices: [{ finish_reason: "length", message: messages[requests++] }],
+      usage: {
+        prompt_tokens: 400,
+        completion_tokens: 8192,
+        completion_tokens_details: { reasoning_tokens: 8190 },
+      },
+    }),
+  );
+  for (let index = 0; index < messages.length; index++) {
+    const initial = {
+      ...state(),
+      rounds: 2,
+      writes: 1,
+      inputTokens: 600,
+      outputTokens: 1000,
+    };
+    const finished = await requestConsolidationRound(initial);
+    assert.equal(finished.completed, true);
+    assert.equal(finished.budgetReached, true);
+    assert.equal(finished.rounds, 3);
+    assert.equal(finished.writes, 1);
+    assert.equal(finished.inputTokens, 1000);
+    assert.equal(finished.outputTokens, 9192);
+    assert.deepEqual(finished.pendingToolCalls, []);
+    assert.deepEqual(finished.messages, initial.messages);
+    assert.match(finished.report, /incomplete response was discarded/);
+    assert.equal(
+      JSON.stringify(finished).includes("Private incomplete"),
+      false,
+    );
+    assert.equal(await requestConsolidationRound(finished), finished);
+    assert.equal(requests, index + 1);
+  }
+});
+
+test("response headroom never exceeds the remaining nightly output budget", async (t) => {
+  installKey(t);
+  t.mock.method(
+    globalThis,
+    "fetch",
+    async (_url: string, options: RequestInit) => {
+      const body = JSON.parse(options.body as string);
+      assert.equal(body.max_tokens, 5000);
+      assert.deepEqual(body.reasoning, { effort: "low" });
+      return Response.json({
+        choices: [{ finish_reason: "length", message: null }],
+      });
+    },
+  );
+  const finished = await requestConsolidationRound({
+    ...state(),
+    outputTokens: 13_000,
+  });
+  assert.equal(finished.completed, true);
+  assert.equal(finished.outputTokens, CONSOLIDATION_LIMITS.outputTokens);
+  assert.equal(finished.budgetReached, true);
 });
 
 test("gateway classifies retryable status and hides provider response bodies", async (t) => {
