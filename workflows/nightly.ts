@@ -122,7 +122,7 @@ async function runPhase(
       );
     }
     const snapshot = await takeExportSnapshot(ownerId);
-    const result = await publishExport(snapshot, runDate, job.id);
+    const result = await publishExport(snapshot, runDate, job.id, job.attempts);
     return await completeJob(ownerId, job.id, runId, "succeeded", result);
   } catch (error) {
     return await completeJob(

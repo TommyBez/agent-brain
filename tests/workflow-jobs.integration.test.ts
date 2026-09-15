@@ -8,7 +8,29 @@ import {
   dailyWorkflowStatus,
   finishWorkflowJob,
   queueWorkflowJobs,
+  reconcileWorkflowDependencies,
+  workflowExportAttemptKey,
 } from "../lib/maintenance/jobs";
+
+test("export receipt keys change only with the logical job attempt", () => {
+  const jobId = randomUUID();
+  assert.equal(workflowExportAttemptKey(jobId, 1), jobId);
+  assert.equal(workflowExportAttemptKey(jobId, 2), `${jobId}-attempt-2`);
+  assert.equal(
+    workflowExportAttemptKey(jobId, 2),
+    workflowExportAttemptKey(jobId, 2),
+  );
+  assert.notEqual(
+    workflowExportAttemptKey(jobId, 2),
+    workflowExportAttemptKey(jobId, 3),
+  );
+  for (const attempts of [0, -1, 1.5, Number.NaN])
+    assert.throws(
+      () => workflowExportAttemptKey(jobId, attempts),
+      (error) =>
+        error instanceof BrainError && error.code === "INVALID_JOB_ATTEMPT",
+    );
+});
 
 test(
   "Workflow daily jobs track bounded passes and fence stale run completions",
@@ -17,7 +39,308 @@ test(
     const owner = `workflow-jobs-${randomUUID()}`;
     const outsider = `workflow-jobs-${randomUUID()}`;
     const runDate = "2035-01-15";
+    async function initialFailedPass(date: string) {
+      const consolidation = await beginWorkflowJob(
+        owner,
+        "consolidation",
+        date,
+        "initial-run",
+      );
+      await finishWorkflowJob(
+        owner,
+        consolidation.id,
+        "initial-run",
+        "failed",
+        {},
+        "Temporary model failure.",
+      );
+      const embeddings = await beginWorkflowJob(
+        owner,
+        "embeddings",
+        date,
+        "initial-run",
+      );
+      const exported = await beginWorkflowJob(
+        owner,
+        "export",
+        date,
+        "initial-run",
+      );
+      await finishWorkflowJob(owner, embeddings.id, "initial-run", "partial", {
+        remaining: 1,
+        budgetReached: true,
+      });
+      await finishWorkflowJob(owner, exported.id, "initial-run", "succeeded", {
+        pushed: true,
+        commit: "d".repeat(40),
+      });
+      return { consolidation, embeddings, exported };
+    }
     try {
+      await t.test(
+        "a consolidation retry that changes pages requeues both prior outputs atomically",
+        async () => {
+          for (const [index, status] of (
+            ["succeeded", "partial"] as const
+          ).entries()) {
+            const date = `2035-01-${21 + index}`;
+            const original = await initialFailedPass(date);
+            const retried = await beginWorkflowJob(
+              owner,
+              "consolidation",
+              date,
+              "corrected-run",
+            );
+            assert.equal(retried.attempts, 2);
+            const completion = await finishWorkflowJob(
+              owner,
+              retried.id,
+              "corrected-run",
+              status,
+              { writes: 2 },
+            );
+            const jobs = await dailyWorkflowStatus(owner, date);
+            assert.equal(
+              jobs.find((job) => job.id === retried.id)?.status,
+              status,
+            );
+            for (const previous of [original.embeddings, original.exported]) {
+              const queued = jobs.find((job) => job.id === previous.id);
+              assert.equal(queued?.status, "queued");
+              assert.equal(queued.attempts, 1);
+              assert.equal(queued.workflowRunId, null);
+              assert.equal(queued.result, null);
+            }
+            assert.deepEqual(
+              await finishWorkflowJob(
+                owner,
+                retried.id,
+                "corrected-run",
+                status,
+                { writes: 99 },
+              ),
+              completion,
+            );
+            const refreshed = await Promise.all([
+              beginWorkflowJob(owner, "embeddings", date, "corrected-run"),
+              beginWorkflowJob(owner, "export", date, "corrected-run"),
+            ]);
+            for (const job of refreshed) {
+              assert.equal(job.skip, false);
+              assert.equal(job.attempts, 2);
+              assert.deepEqual(
+                await beginWorkflowJob(owner, job.kind, date, "corrected-run"),
+                job,
+              );
+              await finishWorkflowJob(
+                owner,
+                job.id,
+                "corrected-run",
+                "succeeded",
+                job.kind === "export"
+                  ? { pushed: true, commit: "e".repeat(40) }
+                  : { remaining: 0 },
+              );
+            }
+            assert.equal(
+              workflowExportAttemptKey(
+                original.exported.id,
+                refreshed[1].attempts,
+              ),
+              `${original.exported.id}-attempt-2`,
+            );
+            assert.equal(await reconcileWorkflowDependencies(owner, date), 0);
+            assert.deepEqual(
+              await finishWorkflowJob(
+                owner,
+                retried.id,
+                "corrected-run",
+                status,
+                { writes: 2 },
+              ),
+              completion,
+            );
+            assert.ok(
+              (await dailyWorkflowStatus(owner, date)).every((job) =>
+                ["succeeded", "partial"].includes(job.status),
+              ),
+            );
+            assert.equal(
+              (
+                await beginWorkflowJob(
+                  owner,
+                  "consolidation",
+                  date,
+                  "later-run",
+                )
+              ).skip,
+              true,
+            );
+            assert.equal(
+              (await beginWorkflowJob(owner, "export", date, "later-run")).skip,
+              true,
+            );
+          }
+        },
+      );
+
+      await t.test(
+        "start-time reconciliation repairs an already completed stale pass without rerunning consolidation",
+        async () => {
+          const date = "2035-01-23";
+          const original = await initialFailedPass(date);
+          const corrected = await beginWorkflowJob(
+            owner,
+            "consolidation",
+            date,
+            "already-completed-run",
+          );
+          // Reproduce the prior deployed code: consolidation committed its success
+          // without invalidating the two outputs from before its page changes.
+          await getPool().query(
+            "UPDATE brain_jobs SET status='succeeded',result=$3::jsonb,finished_at=now() WHERE owner_id=$1 AND id=$2",
+            [owner, corrected.id, JSON.stringify({ writes: 2 })],
+          );
+          await getPool().query(
+            "INSERT INTO brain_jobs (owner_id,kind,run_date,executor,status,finished_at) VALUES ($1,'export',$2::date,'github','succeeded',now()-interval '1 day')",
+            [owner, date],
+          );
+          assert.ok(
+            (await dailyWorkflowStatus(owner, date)).every((job) =>
+              ["succeeded", "partial"].includes(job.status),
+            ),
+          );
+          const reconciled = await Promise.all([
+            reconcileWorkflowDependencies(owner, date),
+            reconcileWorkflowDependencies(owner, date),
+          ]);
+          assert.equal(
+            reconciled.reduce((sum, count) => sum + count, 0),
+            2,
+          );
+          assert.equal(await reconcileWorkflowDependencies(owner, date), 0);
+          const jobs = await dailyWorkflowStatus(owner, date);
+          assert.equal(
+            jobs.find((job) => job.id === original.embeddings.id)?.status,
+            "queued",
+          );
+          assert.equal(
+            jobs.find((job) => job.id === original.exported.id)?.status,
+            "queued",
+          );
+          const consolidation = await beginWorkflowJob(
+            owner,
+            "consolidation",
+            date,
+            "repair-run",
+          );
+          assert.equal(consolidation.skip, true);
+          assert.equal(consolidation.attempts, 2);
+          assert.equal(consolidation.workflowRunId, "already-completed-run");
+          const historical = await getPool().query(
+            "SELECT status FROM brain_jobs WHERE owner_id=$1 AND run_date=$2::date AND executor='github'",
+            [owner, date],
+          );
+          assert.equal(historical.rows[0].status, "succeeded");
+        },
+      );
+
+      await t.test(
+        "retried consolidation refreshes outputs even when failure lost its write count",
+        async () => {
+          for (const [index, status] of (
+            ["failed", "succeeded"] as const
+          ).entries()) {
+            const date = `2035-01-${24 + index}`;
+            const original = await initialFailedPass(date);
+            const retried = await beginWorkflowJob(
+              owner,
+              "consolidation",
+              date,
+              "unknown-writes-run",
+            );
+            const result = status === "failed" ? {} : { writes: 0 };
+            const completed = await finishWorkflowJob(
+              owner,
+              retried.id,
+              "unknown-writes-run",
+              status,
+              result,
+            );
+            assert.equal(await reconcileWorkflowDependencies(owner, date), 0);
+            const jobs = await dailyWorkflowStatus(owner, date);
+            assert.equal(
+              jobs.find((job) => job.id === original.embeddings.id)?.status,
+              "queued",
+            );
+            assert.equal(
+              jobs.find((job) => job.id === original.exported.id)?.status,
+              "queued",
+            );
+            assert.deepEqual(
+              await finishWorkflowJob(
+                owner,
+                retried.id,
+                "unknown-writes-run",
+                status,
+                result,
+              ),
+              completed,
+            );
+          }
+        },
+      );
+
+      await t.test(
+        "a first consolidation pass with no writes does not invalidate existing outputs",
+        async () => {
+          const date = "2035-01-26";
+          const embeddings = await beginWorkflowJob(
+            owner,
+            "embeddings",
+            date,
+            "prior-output-run",
+          );
+          const exported = await beginWorkflowJob(
+            owner,
+            "export",
+            date,
+            "prior-output-run",
+          );
+          await finishWorkflowJob(
+            owner,
+            embeddings.id,
+            "prior-output-run",
+            "succeeded",
+            { remaining: 0 },
+          );
+          await finishWorkflowJob(
+            owner,
+            exported.id,
+            "prior-output-run",
+            "succeeded",
+            { pushed: true, commit: "f".repeat(40) },
+          );
+          const consolidation = await beginWorkflowJob(
+            owner,
+            "consolidation",
+            date,
+            "first-consolidation-run",
+          );
+          assert.equal(consolidation.attempts, 1);
+          await finishWorkflowJob(
+            owner,
+            consolidation.id,
+            "first-consolidation-run",
+            "succeeded",
+            { writes: 0 },
+          );
+          assert.equal(await reconcileWorkflowDependencies(owner, date), 0);
+          const jobs = await dailyWorkflowStatus(owner, date);
+          assert.ok(jobs.every((job) => job.status === "succeeded"));
+        },
+      );
+
       await t.test(
         "start queues all stages once without resetting completed work",
         async () => {

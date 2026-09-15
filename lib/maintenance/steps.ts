@@ -25,6 +25,7 @@ import {
   beginWorkflowJob,
   finishWorkflowJob,
   type WorkflowJobKind,
+  workflowExportAttemptKey,
 } from "./jobs";
 import {
   consolidationTools,
@@ -183,6 +184,7 @@ export async function publishExport(
   snapshot: BrainExportSnapshot,
   runDate: string,
   jobId: string,
+  attempts = 1,
 ) {
   "use step";
   if (!process.env.BRAIN_EXPORT_GITHUB_TOKEN)
@@ -193,7 +195,7 @@ export async function publishExport(
     return await exportBrainToGitHub({
       snapshot,
       runDate,
-      jobId,
+      jobId: workflowExportAttemptKey(jobId, attempts),
       signal: AbortSignal.timeout(240_000),
     });
   } catch (error) {

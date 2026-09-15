@@ -560,6 +560,81 @@ test("a replay after later exports reuses the original job commit and original c
   assert.ok(github.file("export/receipts/job-two.json"));
 });
 
+test("a new daily job attempt publishes an updated snapshot and retries replay that attempt's receipt", async () => {
+  const github = new GitHub();
+  const jobId = "daily-export-job";
+  const firstInput = options(github, jobId);
+  const first = await exportBrainToGitHub(firstInput);
+  const firstReceipt = required(
+    github.file(`export/receipts/${jobId}.json`),
+  );
+  assert.equal(JSON.parse(firstReceipt).jobId, jobId);
+
+  const secondInput = options(github, `${jobId}-attempt-2`);
+  secondInput.snapshot.exportedAt = "2026-09-14T03:00:00.000Z";
+  secondInput.snapshot.pages[0].markdown = "# Brain\n\nUpdated in attempt 2\n";
+  secondInput.snapshot.pages[0].version = 4;
+  secondInput.snapshot.pages.push({
+    id: "page-two",
+    slug: "project/new-page",
+    markdown: "# A page added before attempt 2\n",
+    version: 1,
+  });
+  secondInput.snapshot.links = [];
+  const second = await exportBrainToGitHub(secondInput);
+  assert.notEqual(second.commit, first.commit);
+  assert.equal(second.commit, github.head);
+  assert.equal(
+    required(github.commits.get(second.commit)).parents[0].sha,
+    first.commit,
+  );
+  assert.equal(second.pages, 2);
+  assert.equal(second.links, 0);
+  const secondReceiptPath = `export/receipts/${jobId}-attempt-2.json`;
+  const secondReceipt = required(github.file(secondReceiptPath));
+  assert.deepEqual(JSON.parse(secondReceipt), {
+    schemaVersion: 1,
+    jobId: `${jobId}-attempt-2`,
+    runDate: firstInput.runDate,
+    exportedAt: secondInput.snapshot.exportedAt,
+    pages: 2,
+    links: 0,
+  });
+  assert.equal(github.file(`export/receipts/${jobId}.json`), firstReceipt);
+  const publishedPage = required(
+    github.file("export/pages/project/brain.md"),
+  );
+  assert.match(publishedPage, /Updated in attempt 2/);
+  assert.ok(github.file("export/pages/project/new-page.md"));
+  assert.deepEqual(
+    JSON.parse(required(github.file("export/graph.json"))),
+    [],
+  );
+  const manifest = required(github.file("export/manifest.json"));
+  assert.equal(JSON.parse(manifest).jobId, secondInput.jobId);
+
+  const writes = github.calls.filter((call) => call.method !== "GET").length;
+  const replay = await exportBrainToGitHub({
+    ...secondInput,
+    snapshot: {
+      ...snapshot(),
+      exportedAt: "2026-09-14T04:00:00.000Z",
+      pages: [],
+      links: [],
+    },
+  });
+  assert.deepEqual(replay, second);
+  assert.equal(github.head, second.commit);
+  assert.equal(github.file(secondReceiptPath), secondReceipt);
+  assert.equal(github.file("export/manifest.json"), manifest);
+  assert.equal(github.file("export/pages/project/brain.md"), publishedPage);
+  assert.ok(github.file("export/pages/project/new-page.md"));
+  assert.equal(
+    github.calls.filter((call) => call.method !== "GET").length,
+    writes,
+  );
+});
+
 test("a concurrent ref change is rebased without overwriting unrelated repository work", async () => {
   const github = new GitHub();
   github.conflictOnce = true;

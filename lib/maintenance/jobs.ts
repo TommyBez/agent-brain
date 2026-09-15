@@ -1,3 +1,4 @@
+import type { PoolClient } from "pg";
 import { BrainError } from "../brain/types";
 import { assertOwner } from "../brain/utils";
 import { getPool, transaction } from "../db";
@@ -49,6 +50,54 @@ function validateWorkflowRunId(workflowRunId: string) {
       "INVALID_WORKFLOW_RUN",
       "A Workflow run ID of 1–256 characters is required.",
     );
+}
+
+/** A fresh logical export needs a fresh receipt; step retries keep this key. */
+export function workflowExportAttemptKey(jobId: string, attempts: number) {
+  if (!Number.isSafeInteger(attempts) || attempts < 1)
+    throw new BrainError(
+      "INVALID_JOB_ATTEMPT",
+      "A positive job attempt is required.",
+    );
+  return attempts === 1 ? jobId : `${jobId}-attempt-${attempts}`;
+}
+
+async function requeueStaleDownstreamJobs(
+  db: PoolClient,
+  ownerId: string,
+  runDate: string,
+): Promise<number> {
+  const result = await db.query(
+    `UPDATE brain_jobs downstream
+     SET status='queued',workflow_run_id=NULL,started_at=NULL,finished_at=NULL,
+       result=NULL,error=NULL,lease_id=NULL,lease_until=NULL
+     FROM brain_jobs consolidation
+     WHERE consolidation.owner_id=$1 AND consolidation.run_date=$2::date
+       AND consolidation.executor='workflow' AND consolidation.kind='consolidation'
+       AND consolidation.status IN ('succeeded','partial','failed')
+       AND (consolidation.attempts > 1 OR
+         (consolidation.status IN ('succeeded','partial')
+           AND CASE WHEN jsonb_typeof(consolidation.result->'writes')='number'
+             THEN (consolidation.result->>'writes')::numeric > 0 ELSE false END))
+       AND downstream.owner_id=consolidation.owner_id
+       AND downstream.run_date=consolidation.run_date AND downstream.executor='workflow'
+       AND downstream.kind IN ('embeddings','export')
+       AND downstream.status IN ('succeeded','partial')
+       AND downstream.workflow_run_id IS DISTINCT FROM consolidation.workflow_run_id
+       AND downstream.finished_at < consolidation.finished_at`,
+    [ownerId, runDate],
+  );
+  return result.rowCount ?? 0;
+}
+
+/** Retried consolidation may have written before failing or losing its counters. */
+export async function reconcileWorkflowDependencies(
+  ownerId: string,
+  runDate: string,
+) {
+  assertOwner(ownerId);
+  validateRunDate(runDate);
+  return transaction((db) => requeueStaleDownstreamJobs(db, ownerId, runDate));
 }
 
 /** Show all stages as queued before the asynchronously started workflow wakes. */
@@ -165,6 +214,8 @@ export async function finishWorkflowJob(
         error?.slice(0, 2000) ?? null,
       ],
     );
+    if (current.kind === "consolidation")
+      await requeueStaleDownstreamJobs(db, ownerId, current.runDate);
     return updated.rows[0];
   });
 }

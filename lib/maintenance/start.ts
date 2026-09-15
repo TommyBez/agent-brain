@@ -2,11 +2,16 @@ import { getHookByToken, start } from "workflow/api";
 import { HookNotFoundError } from "workflow/errors";
 import { assertOwner } from "@/lib/brain/utils";
 import { nightlyMaintenance } from "@/workflows/nightly";
-import { dailyWorkflowStatus, queueWorkflowJobs } from "./jobs";
+import {
+  dailyWorkflowStatus,
+  queueWorkflowJobs,
+  reconcileWorkflowDependencies,
+} from "./jobs";
 
 export async function startNightlyMaintenance(ownerId: string) {
   assertOwner(ownerId);
   const runDate = new Date().toISOString().slice(0, 10);
+  await reconcileWorkflowDependencies(ownerId, runDate);
   const jobs = await dailyWorkflowStatus(ownerId, runDate);
   if (
     jobs.length === 3 &&
