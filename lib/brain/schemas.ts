@@ -124,13 +124,27 @@ export const listPagesSchema = z
   })
   .strict();
 export const graphSchema = z
-  .object({ limit: z.number().int().min(1).max(500).default(150) })
+  .object({
+    limit: z.number().int().min(1).max(500).default(150),
+    offset: z.number().int().min(0).default(0),
+    type: z.enum(PAGE_TYPES).optional(),
+  })
   .strict();
 export const revisionsSchema = z
-  .object({ ref, limit: z.number().int().min(1).max(100).default(20) })
+  .object({
+    ref,
+    limit: z.number().int().min(1).max(100).default(20),
+    offset: z.number().int().min(0).default(0),
+  })
+  .strict();
+export const revisionSchema = z
+  .object({ ref, version: z.number().int().positive() })
   .strict();
 export const activitySchema = z
-  .object({ limit: z.number().int().min(1).max(100).default(30) })
+  .object({
+    limit: z.number().int().min(1).max(100).default(30),
+    offset: z.number().int().min(0).default(0),
+  })
   .strict();
 export const indexEmbeddingSchema = z
   .object({

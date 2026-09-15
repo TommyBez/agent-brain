@@ -337,6 +337,89 @@ test(
     );
 
     await t.test(
+      "history and activity paginate past fifty entries and old revision URLs retain snapshot metadata",
+      async () => {
+        const originalTitle = `${prefix}OriginalTitle`;
+        const originalBody = `${prefix}OriginalBody`;
+        const historical = await createPage(originalTitle, originalBody);
+        // Seed a long history in the isolated fixture without fifty HTTP writes.
+        await db.query(
+          `INSERT INTO brain_revisions (owner_id,page_id,version,snapshot,reason,source)
+           SELECT $1,$2,n,$3::jsonb || jsonb_build_object('version',n),$4 || n,'acceptance'
+           FROM generate_series(2,51) AS n`,
+          [
+            ownerId,
+            historical.id,
+            JSON.stringify(historical),
+            `${prefix}Revision`,
+          ],
+        );
+        await db.query(
+          `INSERT INTO brain_activity (owner_id,page_id,action,version,reason,source)
+           SELECT $1,$2,'write',n,$3 || n,'acceptance' FROM generate_series(2,51) AS n`,
+          [ownerId, historical.id, `${prefix}Revision`],
+        );
+        await db.query(
+          "UPDATE brain_pages SET version=51 WHERE owner_id=$1 AND id=$2",
+          [ownerId, historical.id],
+        );
+        const changed = await request(
+          `/api/brain/pages/${historical.id}`,
+          json("PATCH", {
+            ...editable(historical),
+            expectedVersion: 51,
+            title: `${prefix}CurrentTitle`,
+            summary: `${prefix}CurrentSummary`,
+            type: "project",
+            markdown: `${prefix}CurrentBody`,
+          }),
+        );
+        assert.equal(changed.status, 200);
+
+        const firstHistory = renderedHtml(
+          await html(`/pages/${historical.id}/history`),
+        );
+        assert.ok(
+          firstHistory.includes(
+            `href="/pages/${historical.id}/history?offset=50"`,
+          ),
+        );
+        assert.ok(
+          !firstHistory.includes(`href="/pages/${historical.id}/history/1"`),
+        );
+        const olderHistory = renderedHtml(
+          await html(`/pages/${historical.id}/history?offset=50`),
+        );
+        assert.ok(
+          olderHistory.includes(`href="/pages/${historical.id}/history/1"`),
+        );
+        assert.ok(
+          olderHistory.includes(`href="/pages/${historical.id}/history"`),
+        );
+        const oldest = renderedHtml(
+          await html(`/pages/${historical.id}/history/1`),
+        );
+        assert.ok(oldest.includes(`<h1>${originalTitle}</h1>`));
+        assert.ok(oldest.includes(originalBody));
+        assert.ok(!oldest.includes(`${prefix}CurrentTitle`));
+        assert.ok(!oldest.includes(`${prefix}CurrentSummary`));
+        assert.ok(renderedText(oldest).includes("Reading version 1"));
+
+        const activity = renderedHtml(await html("/activity"));
+        assert.ok(activity.includes('href="/activity?offset=50"'));
+        const olderActivity = renderedHtml(await html("/activity?offset=50"));
+        assert.ok(olderActivity.includes('href="/activity"'));
+        const expected = await db.query<{ reason: string }>(
+          "SELECT reason FROM brain_activity WHERE owner_id=$1 ORDER BY created_at DESC,id DESC LIMIT 50 OFFSET 50",
+          [ownerId],
+        );
+        assert.ok(expected.rows.length > 0);
+        for (const item of expected.rows)
+          assert.ok(renderedText(olderActivity).includes(item.reason));
+      },
+    );
+
+    await t.test(
       "navigation and collection heading stream before a blocked database result",
       async () => {
         const lock = await db.connect();

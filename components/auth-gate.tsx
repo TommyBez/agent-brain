@@ -1,8 +1,15 @@
 import { ArrowUpRight, CircleCheck } from "lucide-react";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { SignInForm } from "./sign-in-form";
 
-export function AuthGate({ configured }: { configured: boolean }) {
+export function AuthGate({
+  configured,
+  form,
+}: {
+  configured: boolean;
+  form?: ReactNode;
+}) {
   return (
     <main className="auth-layout min-h-[100svh] grid grid-cols-[1.08fr_1fr] max-[740px]:grid-cols-[1fr]">
       <section className="auth-story [background:#edf0e4] p-[43px_8%_25px] min-h-[100svh] flex flex-col relative overflow-hidden max-[1200px]:pl-[9%] max-[1200px]:pr-[9%] max-[740px]:min-h-[auto] max-[740px]:p-[25px_30px_27px]">
@@ -73,7 +80,7 @@ export function AuthGate({ configured }: { configured: boolean }) {
               : "Your workspace is ready to connect to your infrastructure. Complete the setup to begin."}
           </p>
           {configured ? (
-            <SignInForm />
+            (form ?? <SignInForm />)
           ) : (
             <div className="setup-steps mt-[30px]">
               <div>

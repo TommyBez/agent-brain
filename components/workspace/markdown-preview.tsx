@@ -1,8 +1,7 @@
 "use client";
 
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import { Markdown } from "@/components/markdown";
 
 export default function MarkdownPreview({ markdown }: { markdown: string }) {
-  return <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdown}</ReactMarkdown>;
+  return <Markdown markdown={markdown} />;
 }

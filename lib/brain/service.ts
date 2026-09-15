@@ -769,17 +769,27 @@ export async function listPages(ownerId: string, input: unknown = {}) {
 
 export async function getGraph(ownerId: string, input: unknown = {}) {
   assertOwner(ownerId);
-  const { limit } = schemas.graphSchema.parse(input);
-  const nodes = await getPool().query<PageRow>(
-    `SELECT ${PAGE_COLUMNS} FROM brain_pages p WHERE p.owner_id=$1 ORDER BY p.updated_at DESC LIMIT $2`,
-    [ownerId, limit],
-  );
+  const { limit, offset, type } = schemas.graphSchema.parse(input);
+  const [nodes, count] = await Promise.all([
+    getPool().query<PageRow>(
+      `SELECT ${PAGE_COLUMNS} FROM brain_pages p WHERE p.owner_id=$1 AND ($2::text IS NULL OR p.type=$2) ORDER BY p.updated_at DESC,p.id LIMIT $3 OFFSET $4`,
+      [ownerId, type ?? null, limit, offset],
+    ),
+    getPool().query<{ total: number }>(
+      "SELECT count(*)::int AS total FROM brain_pages WHERE owner_id=$1 AND ($2::text IS NULL OR type=$2)",
+      [ownerId, type ?? null],
+    ),
+  ]);
   const ids = nodes.rows.map((row) => row.id);
   const edges = await getPool().query(
     "SELECT * FROM brain_links WHERE owner_id=$1 AND source_id=ANY($2::uuid[]) AND target_id=ANY($2::uuid[])",
     [ownerId, ids],
   );
-  return { nodes: nodes.rows.map(summary), links: edges.rows.map(link) };
+  return {
+    nodes: nodes.rows.map(summary),
+    links: edges.rows.map(link),
+    total: count.rows[0].total,
+  };
 }
 
 export async function getStats(ownerId: string): Promise<BrainStats> {
@@ -817,8 +827,8 @@ export async function listRevisions(
   const data = schemas.revisionsSchema.parse(input);
   const page = await rowForRef(getPool(), ownerId, data.ref);
   const result = await getPool().query(
-    "SELECT * FROM brain_revisions WHERE owner_id=$1 AND page_id=$2 ORDER BY version DESC LIMIT $3",
-    [ownerId, page.id, data.limit],
+    "SELECT * FROM brain_revisions WHERE owner_id=$1 AND page_id=$2 ORDER BY version DESC LIMIT $3 OFFSET $4",
+    [ownerId, page.id, data.limit, data.offset],
   );
   return result.rows.map((row) => ({
     id: row.id,
@@ -831,16 +841,63 @@ export async function listRevisions(
   }));
 }
 
+export async function listRevisionSummaries(
+  ownerId: string,
+  input: unknown,
+): Promise<Omit<PageRevision, "snapshot">[]> {
+  assertOwner(ownerId);
+  const data = schemas.revisionsSchema.parse(input);
+  const result = await getPool().query(
+    `SELECT r.id,r.page_id,r.version,r.reason,r.source,r.created_at
+     FROM brain_revisions r JOIN brain_pages p ON p.id=r.page_id AND p.owner_id=r.owner_id
+     WHERE r.owner_id=$1 AND (p.id::text=$2 OR p.slug=$2)
+     ORDER BY r.version DESC LIMIT $3 OFFSET $4`,
+    [ownerId, data.ref, data.limit, data.offset],
+  );
+  return result.rows.map((row) => ({
+    id: row.id,
+    pageId: row.page_id,
+    version: row.version,
+    reason: row.reason,
+    source: row.source,
+    createdAt: iso(row.created_at),
+  }));
+}
+
+export async function readRevision(
+  ownerId: string,
+  input: unknown,
+): Promise<PageRevision> {
+  assertOwner(ownerId);
+  const data = schemas.revisionSchema.parse(input);
+  const result = await getPool().query(
+    `SELECT r.* FROM brain_revisions r JOIN brain_pages p ON p.id=r.page_id AND p.owner_id=r.owner_id
+     WHERE r.owner_id=$1 AND (p.id::text=$2 OR p.slug=$2) AND r.version=$3`,
+    [ownerId, data.ref, data.version],
+  );
+  const row = result.rows[0];
+  if (!row) throw new BrainError("NOT_FOUND", "Page revision not found.", 404);
+  return {
+    id: row.id,
+    pageId: row.page_id,
+    version: row.version,
+    snapshot: row.snapshot,
+    reason: row.reason,
+    source: row.source,
+    createdAt: iso(row.created_at),
+  };
+}
+
 export async function listActivity(
   ownerId: string,
   input: unknown = {},
 ): Promise<Activity[]> {
   assertOwner(ownerId);
-  const { limit } = schemas.activitySchema.parse(input);
+  const { limit, offset } = schemas.activitySchema.parse(input);
   const result = await getPool().query(
     `SELECT a.*,p.title,p.slug FROM brain_activity a JOIN brain_pages p ON p.owner_id=a.owner_id AND p.id=a.page_id
-    WHERE a.owner_id=$1 ORDER BY a.created_at DESC LIMIT $2`,
-    [ownerId, limit],
+    WHERE a.owner_id=$1 ORDER BY a.created_at DESC,a.id DESC LIMIT $2 OFFSET $3`,
+    [ownerId, limit, offset],
   );
   return result.rows.map((row) => ({
     id: row.id,

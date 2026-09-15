@@ -26,9 +26,13 @@ export function WorkspaceShell({
       if ((event.metaKey || event.ctrlKey) && event.key === "k") {
         event.preventDefault();
         setOpen(false);
-        const input = document.getElementById("library-search");
-        // Activity preserves library DOM while its route is hidden.
-        if (input && input.getClientRects().length > 0) input.focus();
+        // Activity retains previous collection inputs in hidden route trees.
+        const input = Array.from(
+          document.querySelectorAll<HTMLInputElement>(
+            'input[id="library-search"]',
+          ),
+        ).find((candidate) => candidate.getClientRects().length > 0);
+        if (input) input.focus();
         else {
           cancel();
           router.push("/?focus=search");
@@ -122,14 +126,17 @@ export function SignOutButton() {
         disabled={busy}
         onClick={async () => {
           setBusy(true);
-          const result = await authClient.signOut();
-          if (result.error) {
+          setError(false);
+          try {
+            const result = await authClient.signOut();
+            if (result.error) throw new Error("Unable to sign out.");
+            // A new document drops the router's authenticated cache on sign-out.
+            window.location.assign("/sign-in");
+          } catch {
             setError(true);
+          } finally {
             setBusy(false);
-            return;
           }
-          // A new document drops the router's authenticated cache on sign-out.
-          window.location.assign("/sign-in");
         }}
       >
         <LogOut size={16} />

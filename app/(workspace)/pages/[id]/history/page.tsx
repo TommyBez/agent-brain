@@ -8,8 +8,15 @@ import {
   PageVersion,
 } from "@/components/page-detail";
 import { Loading } from "@/components/workspace/primitives";
+import type { PaginationSearchParams } from "@/lib/workspace/pagination";
 
-export default function HistoryPage({ params }: { params: PageParams }) {
+export default function HistoryPage({
+  params,
+  searchParams,
+}: {
+  params: PageParams;
+  searchParams: PaginationSearchParams;
+}) {
   return (
     <div className="page-detail">
       <div className="detail-topline flex justify-between gap-5 pb-[35px] items-center">
@@ -29,7 +36,7 @@ export default function HistoryPage({ params }: { params: PageParams }) {
         <PageNavigation params={params} history />
       </Suspense>
       <Suspense fallback={<Loading />}>
-        <PageHistory params={params} />
+        <PageHistory params={params} searchParams={searchParams} />
       </Suspense>
     </div>
   );

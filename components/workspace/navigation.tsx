@@ -120,6 +120,10 @@ export function WorkspaceBreadcrumb() {
                 ? "New page"
                 : pathname.endsWith("/edit")
                   ? "Edit page"
-                  : "Page";
+                  : pathname.endsWith("/history")
+                    ? "Page history"
+                    : /\/history\/[^/]+$/.test(pathname)
+                      ? "Page revision"
+                      : "Page";
   return <span>{title}</span>;
 }

@@ -7,12 +7,21 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import { Markdown } from "@/components/markdown";
 import { Button } from "@/components/ui/button";
+import { Pagination } from "@/components/workspace/pagination";
 import { Empty, EntityIcon } from "@/components/workspace/primitives";
-import { BrainError } from "@/lib/brain/types";
-import { getWorkspacePage, getWorkspaceRevisions } from "@/lib/workspace/data";
+import { BrainError, type BrainPage } from "@/lib/brain/types";
+import {
+  getWorkspacePage,
+  getWorkspaceRevision,
+  getWorkspaceRevisions,
+} from "@/lib/workspace/data";
+import {
+  type PaginationSearchParams,
+  paginationOffset,
+  WORKSPACE_PAGE_SIZE,
+} from "@/lib/workspace/pagination";
 import { formatDate } from "./brain-types";
 
 export type PageParams = Promise<{ id: string }>;
@@ -49,6 +58,10 @@ export async function PageVersion({ params }: { params: PageParams }) {
 
 export async function PageHeader({ params }: { params: PageParams }) {
   const page = await readPage(params);
+  return <PageHeadingContent page={page} />;
+}
+
+function PageHeadingContent({ page }: { page: BrainPage }) {
   return (
     <>
       <div className="detail-heading flex justify-between gap-6 items-start max-[460px]:flex-col max-[460px]:gap-0">
@@ -123,7 +136,7 @@ export async function PageBody({ params }: { params: PageParams }) {
   const page = await readPage(params);
   return (
     <article className="markdown-body">
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>{page.markdown}</ReactMarkdown>
+      <Markdown markdown={page.markdown} />
     </article>
   );
 }
@@ -191,10 +204,17 @@ export async function PageConnections({ params }: { params: PageParams }) {
   );
 }
 
-export async function PageHistory({ params }: { params: PageParams }) {
-  const { id } = await params;
-  const revisions = await getWorkspaceRevisions(id);
-  if (!revisions.length)
+export async function PageHistory({
+  params,
+  searchParams,
+}: {
+  params: PageParams;
+  searchParams: PaginationSearchParams;
+}) {
+  const [{ id }, query] = await Promise.all([params, searchParams]);
+  const offset = paginationOffset(query.offset);
+  const revisions = await getWorkspaceRevisions(id, offset);
+  if (!revisions.length && offset === 0)
     return (
       <Empty
         icon={<Clock3 size={27} />}
@@ -203,38 +223,61 @@ export async function PageHistory({ params }: { params: PageParams }) {
       />
     );
   return (
-    <div className="revision-list">
-      {revisions.map((item) => (
-        <Link
-          href={`/pages/${id}/history/${item.version}`}
-          className="revision-row flex items-center gap-[17px] w-full text-left py-5 px-[6px] border-b border-border"
-          key={item.id}
-        >
-          <span className="version-number bg-[#e8eede] text-[#82966b] rounded-[5px] px-[9px] py-[6px] text-[10px] font-mono">
-            v{item.version}
-          </span>
-          <div>
-            <strong>{item.reason || "Page saved"}</strong>
-            <p>
-              {item.source || "Workspace"} · {formatDate(item.createdAt)}
-            </p>
-          </div>
-          <ArrowUpRight size={17} />
-        </Link>
-      ))}
-    </div>
+    <>
+      <div className="revision-list">
+        {revisions.slice(0, WORKSPACE_PAGE_SIZE).map((item) => (
+          <Link
+            href={`/pages/${id}/history/${item.version}`}
+            className="revision-row flex items-center gap-[17px] w-full text-left py-5 px-[6px] border-b border-border"
+            key={item.id}
+          >
+            <span className="version-number bg-[#e8eede] text-[#82966b] rounded-[5px] px-[9px] py-[6px] text-[10px] font-mono">
+              v{item.version}
+            </span>
+            <div>
+              <strong>{item.reason || "Page saved"}</strong>
+              <p>
+                {item.source || "Workspace"} · {formatDate(item.createdAt)}
+              </p>
+            </div>
+            <ArrowUpRight size={17} />
+          </Link>
+        ))}
+      </div>
+      <Pagination
+        path={`/pages/${id}/history`}
+        offset={offset}
+        hasMore={revisions.length > WORKSPACE_PAGE_SIZE}
+      />
+    </>
   );
 }
 
-export async function PageRevision({
+type RevisionParams = Promise<{ id: string; version: string }>;
+
+async function readPageRevision(params: RevisionParams) {
+  const { id, version } = await params;
+  const number = Number(version);
+  if (!/^[1-9]\d*$/.test(version) || !Number.isSafeInteger(number)) notFound();
+  try {
+    return await getWorkspaceRevision(id, number);
+  } catch (error) {
+    if (error instanceof BrainError && error.code === "NOT_FOUND") notFound();
+    throw error;
+  }
+}
+
+export async function PageRevisionHeader({
   params,
 }: {
-  params: Promise<{ id: string; version: string }>;
+  params: RevisionParams;
 }) {
-  const { id, version } = await params;
-  const revisions = await getWorkspaceRevisions(id);
-  const revision = revisions.find((item) => String(item.version) === version);
-  if (!revision) notFound();
+  const revision = await readPageRevision(params);
+  return <PageHeadingContent page={revision.snapshot} />;
+}
+
+export async function PageRevision({ params }: { params: RevisionParams }) {
+  const revision = await readPageRevision(params);
   return (
     <>
       <div className="revision-banner px-[18px] py-[15px] bg-[#edf2e3] flex justify-between gap-[10px] text-[11px] text-[#7d9165] mb-[30px]">
@@ -243,15 +286,13 @@ export async function PageRevision({
         </span>
         <Link
           className="text-primary font-semibold"
-          href={`/pages/${id}/history`}
+          href={`/pages/${revision.pageId}/history`}
         >
           Back to history
         </Link>
       </div>
       <article className="markdown-body">
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-          {revision.snapshot.markdown}
-        </ReactMarkdown>
+        <Markdown markdown={revision.snapshot.markdown} />
       </article>
     </>
   );

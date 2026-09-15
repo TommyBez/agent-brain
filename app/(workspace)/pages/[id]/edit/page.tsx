@@ -7,19 +7,21 @@ import {
 import { PageEditor } from "@/components/workspace/page-editor";
 import { Loading, PageHeading } from "@/components/workspace/primitives";
 import { getWorkspacePages } from "@/lib/workspace/data";
+import { CONNECTION_PAGE_SIZE } from "@/lib/workspace/urls";
 
 async function Editor({ params }: { params: PageParams }) {
   const [page, choices] = await Promise.all([
     readPage(params),
-    getWorkspacePages({ limit: 100 }),
+    getWorkspacePages({ limit: CONNECTION_PAGE_SIZE, sort: "title" }),
   ]);
   return (
     <PageEditor
       key={page.id}
       initialPage={page}
-      choices={choices.pages
-        .filter((item) => item.id !== page.id)
-        .map(({ id, title }) => ({ id, title }))}
+      choices={{
+        pages: choices.pages.map(({ id, title }) => ({ id, title })),
+        total: choices.total,
+      }}
     />
   );
 }
