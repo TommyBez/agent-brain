@@ -30,7 +30,7 @@ export type LibraryFilters = {
 export type RouteSearchParams = Record<string, string | string[] | undefined>;
 export const LIBRARY_PAGE_SIZE = 50;
 export const CONNECTION_PAGE_SIZE = 20;
-export const GRAPH_PAGE_SIZE = 60;
+export const GRAPH_PAGE_SIZE = 150;
 
 export function graphHref(type: PageType | "" = "", offset = 0) {
   const params = new URLSearchParams();

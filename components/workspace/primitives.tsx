@@ -17,7 +17,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 
-const typeIcons = {
+export const typeIcons = {
   person: Users,
   client: Building2,
   project: FolderOpen,
