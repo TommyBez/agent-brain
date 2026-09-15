@@ -1,3 +1,4 @@
+import { unstable_rethrow } from "next/navigation";
 import {
   AuthError,
   authErrorResponse,
@@ -8,7 +9,6 @@ import {
 import { startNightlyMaintenance } from "@/lib/maintenance/start";
 import { operationsStatus } from "@/lib/operations";
 
-export const runtime = "nodejs";
 export const maxDuration = 60;
 
 export async function GET(request: Request) {
@@ -19,6 +19,7 @@ export async function GET(request: Request) {
       headers: { "Cache-Control": "no-store" },
     });
   } catch (error) {
+    unstable_rethrow(error);
     return authErrorResponse(error);
   }
 }
@@ -32,6 +33,7 @@ export async function POST(request: Request) {
       headers: { "Cache-Control": "no-store" },
     });
   } catch (error) {
+    unstable_rethrow(error);
     if (error instanceof AuthError) return authErrorResponse(error);
     console.error(
       "Could not start maintenance",

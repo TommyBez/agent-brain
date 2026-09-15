@@ -565,9 +565,7 @@ test("a new daily job attempt publishes an updated snapshot and retries replay t
   const jobId = "daily-export-job";
   const firstInput = options(github, jobId);
   const first = await exportBrainToGitHub(firstInput);
-  const firstReceipt = required(
-    github.file(`export/receipts/${jobId}.json`),
-  );
+  const firstReceipt = required(github.file(`export/receipts/${jobId}.json`));
   assert.equal(JSON.parse(firstReceipt).jobId, jobId);
 
   const secondInput = options(github, `${jobId}-attempt-2`);
@@ -601,15 +599,10 @@ test("a new daily job attempt publishes an updated snapshot and retries replay t
     links: 0,
   });
   assert.equal(github.file(`export/receipts/${jobId}.json`), firstReceipt);
-  const publishedPage = required(
-    github.file("export/pages/project/brain.md"),
-  );
+  const publishedPage = required(github.file("export/pages/project/brain.md"));
   assert.match(publishedPage, /Updated in attempt 2/);
   assert.ok(github.file("export/pages/project/new-page.md"));
-  assert.deepEqual(
-    JSON.parse(required(github.file("export/graph.json"))),
-    [],
-  );
+  assert.deepEqual(JSON.parse(required(github.file("export/graph.json"))), []);
   const manifest = required(github.file("export/manifest.json"));
   assert.equal(JSON.parse(manifest).jobId, secondInput.jobId);
 

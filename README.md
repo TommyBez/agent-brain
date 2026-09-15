@@ -30,6 +30,16 @@ pnpm build
 
 Integration tests use isolated owner IDs and remove only their own fixtures. SQL migrations use advisory locking and immutable checksums; run them explicitly before deploying, using the direct database URL.
 
+## Next.js application
+
+The browser workspace uses App Router routes: `/` for the searchable library, `/graph`, `/activity`, `/agents`, `/operations`, and `/pages/[id]` with separate edit and history routes. Filters, ordering and pagination live in the URL. Links use Next.js navigation and partial prefetching; the old `/?page=id` links redirect to the entity route.
+
+Cache Components and Partial Prefetching are enabled. Shared navigation and route shells render immediately; explicit, local Suspense boundaries stream authenticated statistics, lists, page content, relationships and live status. There are no route-level `loading.tsx` files. Server Components call the data layer directly instead of fetching the application's own HTTP APIs. The client handles input, form state, graph interaction and other browser behavior.
+
+The server data layer rechecks the owner session before reading owner-keyed caches. Knowledge caches use explicit 30-second client freshness, 30-second background revalidation and 60-second expiry. Server Actions invalidate the owner tag with `updateTag` after a committed save. HTTP/MCP writes and Workflow steps expire the same tag immediately. Navigation follows the client cache freshness window; Back/Forward can restore an existing view. Refresh requests current server state. External agent writes are not pushed into already open tabs. Sessions, token metadata and live operations are not persisted in these caches.
+
+See [the rendering and verification guide](docs/next-app-router.md) for route boundaries, invalidation, navigation checks, and the gated HTTP acceptance command (`RUN_NEXT_TESTS=1` with isolated `BRAIN_TEST_*` fixture settings).
+
 ## Connect an agent
 
 Connect to `https://YOUR_DOMAIN/mcp` using Streamable HTTP and **OAuth 2.1**. Add the URL in your agent, choose OAuth if prompted, sign in to Brain, and approve the requested permissions. The agent discovers the authorization server and obtains its own access token using authorization code + PKCE. No manually generated token or client secret is needed for interactive clients.
@@ -97,7 +107,7 @@ For exports, set `BRAIN_EXPORT_REPOSITORY` to a **private** `owner/repository`, 
 
 ## Deployment
 
-Apply migrations, bootstrap the owner, configure the application environment values in `.env.example`, and deploy with `vercel --prod`. Maintenance needs `CRON_SECRET`, `AI_GATEWAY_API_KEY`, and the export repository credential on Vercel. Query retrieval uses its separate `BRAIN_EMBEDDING_API_KEY`. `BETTER_AUTH_URL` must be the stable production origin. The Next.js configuration integrates the Vercel Workflow compiler and runtime routes.
+Apply migrations, bootstrap the owner, and configure the application environment values in `.env.example`. Vercel's Git integration deploys production from `main`; work on a feature branch, verify its changes, then merge through the repository workflow. Do not manually deploy a feature branch to production. Maintenance needs `CRON_SECRET`, `AI_GATEWAY_API_KEY`, and the export repository credential on Vercel. Query retrieval uses its separate `BRAIN_EMBEDDING_API_KEY`. `BETTER_AUTH_URL` must be the stable production origin. The Next.js configuration integrates the Vercel Workflow compiler and runtime routes.
 
 The production origin must be reachable without a Vercel team login; application auth protects all data. Keep previews protected. Verify unauthenticated MCP challenges, OAuth discovery and an authenticated tool invocation. Trigger maintenance from Operations, inspect the durable run and job results, and verify the exported commit in GitHub. Enable native snapshot scheduling in Neon and read back the schedule before marking backups configured. Check Neon for individual snapshot success; a configured schedule is not proof of a completed backup.
 

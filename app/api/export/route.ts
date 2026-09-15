@@ -1,3 +1,4 @@
+import { unstable_rethrow } from "next/navigation";
 import {
   authErrorResponse,
   getPrincipal,
@@ -16,6 +17,7 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
+    unstable_rethrow(error);
     return authErrorResponse(error);
   }
 }

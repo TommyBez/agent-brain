@@ -6,8 +6,6 @@ import {
   withAgentCors,
 } from "@/lib/mcp/cors";
 
-export const runtime = "nodejs";
-
 async function handleAuth(request: Request) {
   if (!isAuthConfigured())
     return Response.json(
