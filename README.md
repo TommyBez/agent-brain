@@ -42,6 +42,12 @@ The server data layer rechecks the owner session before reading owner-keyed cach
 
 See [the rendering and verification guide](docs/next-app-router.md) for route boundaries, invalidation, navigation checks, and the gated HTTP acceptance command (`RUN_NEXT_TESTS=1` with isolated `BRAIN_TEST_*` fixture settings).
 
+## UI components
+
+Use the vendored shadcn components in `components/ui` with their standard variants, sizes and composition APIs. Theme them through the semantic tokens in `app/globals.css`; avoid global element styles or wrappers that override component borders, padding, focus rings, disabled states or interaction behavior.
+
+Custom styles are reserved for application-specific content and layout, such as entity colors, the knowledge graph and Markdown rendering. Keep those rules in the components layer so Tailwind utilities retain precedence. Search uses `InputGroup`; mobile navigation uses `Sheet` and its focus lifecycle APIs.
+
 ## Connect an agent
 
 Connect to `https://YOUR_DOMAIN/mcp` using Streamable HTTP and **OAuth 2.1**. Add the URL in your agent, choose OAuth if prompted, sign in to Brain, and approve the requested permissions. The agent discovers the authorization server and obtains its own access token using authorization code + PKCE. No manually generated token or client secret is needed for interactive clients.

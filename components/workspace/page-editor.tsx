@@ -16,6 +16,7 @@ import {
   readLatestPageAction,
   savePageAction,
 } from "@/app/(workspace)/actions/pages";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -229,34 +230,34 @@ export function PageEditor({
         </Button>
       </div>
       {error && (
-        <div
-          className={`message border border-border bg-secondary p-4 rounded-md text-sm my-5 ${conflict ? "warning" : "error"}`}
-          role="alert"
-        >
-          {error}
-          {conflict && (
-            <div>
-              <p>
-                Another writer saved this page. Your draft is preserved. Load
-                the current version, compare it with your draft, and reconcile
-                the changes.
-              </p>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={loadLatest}
-                disabled={saving || loadingLatest}
-              >
-                {loadingLatest
-                  ? "Loading latest version…"
-                  : "Load latest version"}
-              </Button>
-            </div>
-          )}
-        </div>
+        <Alert className="my-5" variant={conflict ? "default" : "destructive"}>
+          <AlertTitle>{conflict ? "Page changed" : "Page notice"}</AlertTitle>
+          <AlertDescription>
+            <p>{error}</p>
+            {conflict && (
+              <>
+                <p>
+                  Another writer saved this page. Your draft is preserved. Load
+                  the current version, compare it with your draft, and reconcile
+                  the changes.
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={loadLatest}
+                  disabled={saving || loadingLatest}
+                >
+                  {loadingLatest
+                    ? "Loading latest version…"
+                    : "Load latest version"}
+                </Button>
+              </>
+            )}
+          </AlertDescription>
+        </Alert>
       )}
-      <div className="editor-fields grid grid-cols-[2fr_1fr] gap-[18px] mb-[23px]">
-        <Label className="title-field">
+      <div className="editor-fields grid grid-cols-[2fr_1fr] max-[460px]:grid-cols-1 gap-[18px] mb-[23px]">
+        <Label className="title-field grid gap-2">
           Title
           <Input
             value={title}
@@ -270,7 +271,7 @@ export function PageEditor({
             required
           />
         </Label>
-        <Label>
+        <Label className="grid gap-2">
           Page type
           <NativeSelect
             value={type}
@@ -290,26 +291,28 @@ export function PageEditor({
         </Label>
       </div>
       {duplicates.length > 0 && (
-        <div className="duplicate-notice mb-5 p-[16px_18px] [border-left:2px_solid_#b6c59b] [background:#eef2e3] [font-size:12px] [color:#778d5e]">
-          <strong>A page may already exist.</strong>
-          <p>Read a possible match before creating another entity.</p>
-          {duplicates.map((match) => (
-            <Button
-              type="button"
-              variant="ghost"
-              className="text-link h-auto justify-start inline-flex items-center gap-[7px] p-[0] text-primary bg-transparent [font-size:12px] font-semibold text-left"
-              key={match.id}
-              asChild
-            >
-              <Link href={`/pages/${match.id}`}>
-                {match.title}
-                <ArrowUpRight size={14} />
-              </Link>
-            </Button>
-          ))}
-        </div>
+        <Alert className="mb-5">
+          <AlertTitle>A page may already exist.</AlertTitle>
+          <AlertDescription>
+            <p>Read a possible match before creating another entity.</p>
+            {duplicates.map((match) => (
+              <Button
+                type="button"
+                variant="link"
+                className="h-auto px-0 mr-4"
+                key={match.id}
+                asChild
+              >
+                <Link href={`/pages/${match.id}`}>
+                  {match.title}
+                  <ArrowUpRight size={14} />
+                </Link>
+              </Button>
+            ))}
+          </AlertDescription>
+        </Alert>
       )}
-      <Label>
+      <Label className="grid gap-2">
         Summary
         <Input
           name="summary"
@@ -326,13 +329,9 @@ export function PageEditor({
       >
         <div className="flex items-center justify-between mt-5 mb-2">
           <Label htmlFor="markdown-content">Page content</Label>
-          <TabsList className="h-8">
-            <TabsTrigger className="text-xs" value="write">
-              Write
-            </TabsTrigger>
-            <TabsTrigger className="text-xs" value="preview">
-              Preview
-            </TabsTrigger>
+          <TabsList>
+            <TabsTrigger value="write">Write</TabsTrigger>
+            <TabsTrigger value="preview">Preview</TabsTrigger>
           </TabsList>
         </div>
         <TabsContent
@@ -350,7 +349,7 @@ export function PageEditor({
         <TabsContent value="write">
           <Textarea
             id="markdown-content"
-            className="min-h-[420px] resize-y font-mono text-xs leading-8 p-5 mb-6"
+            className="min-h-[420px] resize-y font-mono mb-6"
             value={markdown}
             onChange={(e) => setMarkdown(e.target.value)}
             placeholder={
@@ -360,8 +359,8 @@ export function PageEditor({
           />
         </TabsContent>
       </Tabs>
-      <div className="editor-fields grid grid-cols-[2fr_1fr] gap-[18px] mb-[23px]">
-        <Label>
+      <div className="editor-fields grid grid-cols-2 max-[460px]:grid-cols-1 gap-[18px] mb-[23px]">
+        <Label className="grid gap-2">
           Aliases
           <Input
             name="aliases"
@@ -370,7 +369,7 @@ export function PageEditor({
             placeholder="Other names, separated by commas"
           />
         </Label>
-        <Label>
+        <Label className="grid gap-2">
           Tags
           <Input
             name="tags"
@@ -405,7 +404,8 @@ export function PageEditor({
             <Button
               type="button"
               variant="ghost"
-              className="icon-button bg-transparent w-[30px] h-[30px] rounded-[5px] inline-flex items-center justify-center text-muted-foreground shrink-0"
+              size="icon-sm"
+              className="ml-auto"
               aria-label="Remove connection"
               onClick={() => setLinks(links.filter((_, i) => i !== index))}
             >
@@ -414,7 +414,7 @@ export function PageEditor({
           </div>
         ))}
         <div className="link-composer flex gap-[10px] mt-[15px] max-[460px]:flex-wrap">
-          <Label>
+          <Label className="grid gap-2">
             <span className="sr-only">Relationship type</span>
             <NativeSelect
               value={linkType}
@@ -436,7 +436,6 @@ export function PageEditor({
           <Button
             type="button"
             variant="outline"
-            className="button bg-transparent [border:1px_solid_#d8dbcf] rounded-[6px] p-[10px_15px] inline-flex items-center justify-center gap-2 leading-[1.3] font-medium [font-size:12px] min-h-[39px] [transition:background_.15s,_border-color_.15s,_transform_.15s] whitespace-nowrap"
             disabled={
               !linkTarget ||
               links.some(
@@ -462,7 +461,7 @@ export function PageEditor({
           </Button>
         </div>
       </div>
-      <Label>
+      <Label className="grid gap-2">
         Reason for this change
         <Input
           name="reason"
@@ -473,7 +472,7 @@ export function PageEditor({
         />
       </Label>
       {comparison && page && (
-        <details className="latest-comparison m-[20px_0] p-5 [background:#f4f1e3] [border:1px_solid_#dfd6b6]">
+        <details className="latest-comparison my-5 p-5 rounded-lg bg-muted border">
           <summary>Current saved version ({page.version})</summary>
           <div className="markdown-body">
             <MarkdownPreview markdown={page.markdown} />
@@ -485,7 +484,6 @@ export function PageEditor({
         <Button
           type="submit"
           variant="default"
-          className="button bg-transparent [border:1px_solid_#d8dbcf] rounded-[6px] p-[10px_15px] inline-flex items-center justify-center gap-2 leading-[1.3] font-medium [font-size:12px] min-h-[39px] [transition:background_.15s,_border-color_.15s,_transform_.15s] whitespace-nowrap primary"
           disabled={saving || loadingLatest}
         >
           <Save size={16} /> Save page

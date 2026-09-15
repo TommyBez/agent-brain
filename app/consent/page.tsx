@@ -2,6 +2,13 @@ import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { getAuth, getSession } from "@/lib/auth";
 import { consentSignInHref } from "@/lib/auth-navigation";
 import { ConsentActions } from "./consent-form";
@@ -129,18 +136,22 @@ export default function ConsentPage({
 }) {
   return (
     <main className="consent-shell">
-      <div className="consent-card">
-        <Link href="/" className="consent-brand">
-          ◈ Agent Brain
-        </Link>
-        <p className="consent-eyebrow">AGENT CONNECTION</p>
-        <h1>Give this agent access?</h1>
-        <Suspense
-          fallback={<output>Loading the authorization request…</output>}
-        >
-          <AuthorizedConsent searchParams={searchParams} />
-        </Suspense>
-      </div>
+      <Card className="w-full max-w-xl">
+        <CardHeader>
+          <Link href="/">◈ Agent Brain</Link>
+          <CardDescription>AGENT CONNECTION</CardDescription>
+          <CardTitle role="heading" aria-level={1}>
+            Give this agent access?
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Suspense
+            fallback={<output>Loading the authorization request…</output>}
+          >
+            <AuthorizedConsent searchParams={searchParams} />
+          </Suspense>
+        </CardContent>
+      </Card>
     </main>
   );
 }

@@ -51,7 +51,7 @@ async function Graph({
               aria-current={type === item.id ? "page" : undefined}
             >
               <span
-                className={`legend-dot size-[7px] rounded-full bg-current entity-${item.id}`}
+                className={`legend-dot size-[7px] rounded-full bg-secondary-foreground entity-${item.id}`}
               />
               {item.label}
             </Link>

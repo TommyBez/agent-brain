@@ -14,6 +14,9 @@ import {
   relativeTime,
   type Stats,
 } from "@/components/brain-types";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { PAGE_TYPES, type PageType } from "@/lib/brain/types";
 import { getWorkspacePages, getWorkspaceStats } from "@/lib/workspace/data";
 import {
@@ -26,13 +29,13 @@ import {
   routeSearchParams,
 } from "@/lib/workspace/urls";
 import { LibraryControls } from "./library-controls";
-import { actionClassName, Empty, EntityIcon, PageHeading } from "./primitives";
+import { Empty, EntityIcon, PageHeading } from "./primitives";
 import { WorkspaceLink as Link } from "./search-navigation";
 
 function StatsDisplay({ stats }: { stats?: Stats }) {
   return (
-    <div
-      className="workspace-stats grid grid-cols-[1fr_1fr_1fr_1.25fr] [border:1px_solid_var(--line)] rounded-[7px] bg-[#f8f8f0] mb-[35px] py-[23px] max-[1200px]:grid-cols-[repeat(3,1fr)] max-[740px]:mb-[26px] max-[740px]:py-[19px]"
+    <Card
+      className="workspace-stats grid grid-cols-[1fr_1fr_1fr_1.25fr] gap-0 mb-[35px] max-[1200px]:grid-cols-[repeat(3,1fr)] max-[740px]:mb-[26px]"
       aria-busy={!stats}
     >
       <div>
@@ -64,7 +67,7 @@ function StatsDisplay({ stats }: { stats?: Stats }) {
           <strong>Always yours to keep.</strong>
         </p>
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -143,11 +146,11 @@ async function LibraryResults({
             <Link
               key={page.id}
               href={pageHref(page.id)}
-              className="page-row whitespace-normal w-full bg-transparent text-left p-[20px_11px] border-b border-[var(--line)] transition-colors min-h-[97px] min-[1600px]:min-h-[105px] max-[960px]:p-[17px_5px]"
+              className="page-row group/page-row whitespace-normal w-full hover:bg-accent text-left p-[20px_11px] border-b border-[var(--line)] transition-colors min-h-[97px] min-[1600px]:min-h-[105px] max-[960px]:p-[17px_5px]"
             >
               <div className="page-row-main flex gap-[15px] items-start min-w-0 max-[960px]:gap-[10px]">
                 <span
-                  className={`entity-symbol w-[37px] h-10 shrink-0 flex items-center justify-center bg-[#edf0e5] border border-[#e4e7dc] rounded-[5px] text-[#7d8e67] max-[960px]:w-[31px] max-[960px]:h-[34px] entity-${page.type}`}
+                  className={`entity-symbol w-[37px] h-10 shrink-0 flex items-center justify-center bg-secondary border border-border rounded-md text-secondary-foreground max-[960px]:w-[31px] max-[960px]:h-[34px] entity-${page.type}`}
                 >
                   <EntityIcon type={page.type} size={19} />
                 </span>
@@ -155,24 +158,33 @@ async function LibraryResults({
                   <strong>{page.title}</strong>
                   <p>{page.summary || "Open to read this page."}</p>
                   {page.tags.length > 0 && (
-                    <div className="row-tags flex gap-[6px] mt-[7px] max-[460px]:hidden">
+                    <div className="row-tags flex flex-wrap gap-[6px] mt-[7px] max-[460px]:hidden">
                       {page.tags.slice(0, 3).map((tag) => (
-                        <span key={tag}>{tag}</span>
+                        <Badge
+                          key={tag}
+                          variant="secondary"
+                          className="max-w-full"
+                        >
+                          <span className="truncate" title={tag}>
+                            {tag}
+                          </span>
+                        </Badge>
                       ))}
                     </div>
                   )}
                 </div>
               </div>
-              <span
-                className={`type-tag inline-flex gap-[5px] items-center justify-self-start text-[9px] px-2 py-[3px] rounded bg-[#ebeee3] text-[#768566] capitalize whitespace-nowrap max-[460px]:text-[8px] max-[460px]:px-[6px] type-${page.type}`}
+              <Badge
+                variant="secondary"
+                className={`justify-self-start capitalize type-${page.type}`}
               >
                 {page.type}
-              </span>
+              </Badge>
               <time dateTime={page.updatedAt}>
                 {relativeTime(page.updatedAt)}
               </time>
               <ArrowUpRight
-                className="row-arrow text-[#9ba68c] opacity-0 translate-x-[-3px] translate-y-[3px] transition-all"
+                className="row-arrow text-muted-foreground opacity-0 group-hover/page-row:opacity-100 group-focus-visible/page-row:opacity-100 transition-opacity"
                 size={17}
               />
             </Link>
@@ -194,21 +206,24 @@ async function LibraryResults({
         >
           {!filters.query && (
             <div className="empty-actions flex gap-[10px] justify-center mt-7 max-[460px]:flex-col max-[460px]:max-w-[200px] max-[460px]:mx-auto">
-              <Link
-                href={
-                  filters.type
-                    ? `/pages/new?type=${filters.type}`
-                    : "/pages/new"
-                }
-                className={`${actionClassName} primary`}
-              >
-                <Plus size={16} />
-                Create a page
-              </Link>
-              <Link href="/agents" className={actionClassName}>
-                Connect an agent
-                <ArrowRight size={15} />
-              </Link>
+              <Button asChild>
+                <Link
+                  href={
+                    filters.type
+                      ? `/pages/new?type=${filters.type}`
+                      : "/pages/new"
+                  }
+                >
+                  <Plus size={16} />
+                  Create a page
+                </Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link href="/agents">
+                  Connect an agent
+                  <ArrowRight size={15} />
+                </Link>
+              </Button>
             </div>
           )}
         </Empty>
@@ -224,28 +239,30 @@ async function LibraryResults({
           </span>
           <div className="flex gap-3">
             {filters.offset > 0 && (
-              <Link
-                className={actionClassName}
-                href={libraryHref({
-                  ...filters,
-                  offset: Math.max(0, filters.offset - LIBRARY_PAGE_SIZE),
-                })}
-              >
-                <ArrowLeft size={14} />
-                Previous
-              </Link>
+              <Button asChild variant="outline">
+                <Link
+                  href={libraryHref({
+                    ...filters,
+                    offset: Math.max(0, filters.offset - LIBRARY_PAGE_SIZE),
+                  })}
+                >
+                  <ArrowLeft size={14} />
+                  Previous
+                </Link>
+              </Button>
             )}
             {filters.offset + pages.length < total && (
-              <Link
-                className={actionClassName}
-                href={libraryHref({
-                  ...filters,
-                  offset: filters.offset + LIBRARY_PAGE_SIZE,
-                })}
-              >
-                Next
-                <ArrowRight size={14} />
-              </Link>
+              <Button asChild variant="outline">
+                <Link
+                  href={libraryHref({
+                    ...filters,
+                    offset: filters.offset + LIBRARY_PAGE_SIZE,
+                  })}
+                >
+                  Next
+                  <ArrowRight size={14} />
+                </Link>
+              </Button>
             )}
           </div>
         </nav>
@@ -274,13 +291,12 @@ export function Library({
             : "Everything you know. A little more connected."
         }
       >
-        <Link
-          href={type ? `/pages/new?type=${type}` : "/pages/new"}
-          className={`${actionClassName} primary`}
-        >
-          <Plus size={16} />
-          New page
-        </Link>
+        <Button asChild>
+          <Link href={type ? `/pages/new?type=${type}` : "/pages/new"}>
+            <Plus size={16} />
+            New page
+          </Link>
+        </Button>
       </PageHeading>
       <Suspense fallback={<StatsDisplay />}>
         <WorkspaceStats />

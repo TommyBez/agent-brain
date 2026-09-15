@@ -8,6 +8,7 @@ import {
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Markdown } from "@/components/markdown";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Pagination } from "@/components/workspace/pagination";
 import { Empty, EntityIcon } from "@/components/workspace/primitives";
@@ -66,11 +67,9 @@ function PageHeadingContent({ page }: { page: BrainPage }) {
     <>
       <div className="detail-heading flex justify-between gap-6 items-start max-[460px]:flex-col max-[460px]:gap-0">
         <div>
-          <span
-            className={`type-tag inline-flex gap-[5px] items-center text-[9px] px-2 py-[3px] rounded bg-[#ebeee3] text-[#768566] capitalize whitespace-nowrap type-${page.type}`}
-          >
+          <Badge variant="secondary" className={`capitalize type-${page.type}`}>
             <EntityIcon type={page.type} size={13} /> {page.type}
-          </span>
+          </Badge>
           <h1>{page.title}</h1>
           {page.summary && (
             <p className="page-summary max-w-[650px] text-[#7e8971] text-[15px] leading-[1.7] max-[460px]:text-[13px]">
@@ -89,12 +88,9 @@ function PageHeadingContent({ page }: { page: BrainPage }) {
         <span className="dot-separator px-[5px]">·</span>
         <span>{page.links.length + page.backlinks.length} connections</span>
         {page.tags.map((tag) => (
-          <span
-            className="metadata-tag px-[7px] py-[2px] rounded bg-[#edf0e5] text-[#839372] text-[9px]"
-            key={tag}
-          >
+          <Badge variant="secondary" key={tag}>
             {tag}
-          </span>
+          </Badge>
         ))}
       </div>
     </>
@@ -231,9 +227,7 @@ export async function PageHistory({
             className="revision-row flex items-center gap-[17px] w-full text-left py-5 px-[6px] border-b border-border"
             key={item.id}
           >
-            <span className="version-number bg-[#e8eede] text-[#82966b] rounded-[5px] px-[9px] py-[6px] text-[10px] font-mono">
-              v{item.version}
-            </span>
+            <Badge variant="secondary">v{item.version}</Badge>
             <div>
               <strong>{item.reason || "Page saved"}</strong>
               <p>

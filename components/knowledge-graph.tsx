@@ -188,12 +188,11 @@ export function KnowledgeGraph({
                     `${selectedLinks.length} connections`}
                 </p>
               </div>
-              <Link
-                href={pageHref(selectedPage.id)}
-                className="button bg-transparent [border:1px_solid_#d8dbcf] rounded-[6px] p-[10px_15px] inline-flex items-center justify-center gap-2 leading-[1.3] font-medium [font-size:12px] min-h-[39px] [transition:background_.15s,_border-color_.15s,_transform_.15s] whitespace-nowrap primary"
-              >
-                Read page <ArrowUpRight size={15} />
-              </Link>
+              <Button asChild>
+                <Link href={pageHref(selectedPage.id)}>
+                  Read page <ArrowUpRight size={15} />
+                </Link>
+              </Button>
             </div>
           )}
           <details className="graph-accessible mt-5 [color:#96a885] [font-size:10px]">

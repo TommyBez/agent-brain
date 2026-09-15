@@ -12,7 +12,7 @@ import { EntityIcon } from "./primitives";
 import { WorkspaceLink as Link } from "./search-navigation";
 
 const navClass =
-  "nav-item flex items-center w-full gap-[10px] bg-transparent p-[10px_11px] rounded-[5px] text-[#717968] text-[11px] text-left my-[2px] min-h-9 transition-colors";
+  "nav-item flex items-center w-full gap-[10px] p-[10px_11px] rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground aria-[current=page]:bg-secondary aria-[current=page]:text-secondary-foreground aria-[current=page]:font-semibold text-[11px] text-left my-[2px] min-h-9 transition-colors";
 
 function ActiveNavigationLink({
   href,
@@ -26,7 +26,7 @@ function ActiveNavigationLink({
   return (
     <Link
       href={href}
-      className={`${navClass} ${active ? "active" : ""}`}
+      className={navClass}
       aria-current={active ? "page" : undefined}
     >
       {children}

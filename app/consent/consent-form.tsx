@@ -44,12 +44,7 @@ export function ConsentActions() {
         >
           Cancel
         </Button>
-        <Button
-          type="button"
-          className="consent-approve"
-          disabled={busy}
-          onClick={() => decide(true)}
-        >
+        <Button type="button" disabled={busy} onClick={() => decide(true)}>
           {busy ? "Connecting…" : "Allow access"}
         </Button>
       </div>

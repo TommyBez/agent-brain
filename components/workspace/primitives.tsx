@@ -86,8 +86,8 @@ export function Empty({
   children?: ReactNode;
 }) {
   return (
-    <Card className="block shadow-none empty-state p-[66px_25px_77px] text-center [border:1px_solid_var(--line)] rounded-[6px] bg-[#f8f9f2] max-[740px]:p-[53px_25px] max-[460px]:p-[42px_18px]">
-      <span className="empty-symbol w-[71px] h-[71px] border border-[#dce4ce] rounded-full flex items-center justify-center m-[0_auto_25px] text-[#82956d] bg-[#edf1e3]">
+    <Card className="empty-state items-center text-center px-6 py-12">
+      <span className="empty-symbol size-16 rounded-full flex items-center justify-center text-primary bg-secondary">
         {icon}
       </span>
       <h2>{title}</h2>
@@ -96,6 +96,3 @@ export function Empty({
     </Card>
   );
 }
-
-export const actionClassName =
-  "button rounded-md px-[15px] py-[10px] inline-flex items-center justify-center gap-2 leading-[1.3] font-medium text-xs min-h-[39px] whitespace-nowrap border border-input";

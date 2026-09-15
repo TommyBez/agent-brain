@@ -1,5 +1,14 @@
 import { ArrowUpRight, CheckCircle2, ShieldCheck, XCircle } from "lucide-react";
 import { formatDate } from "@/components/brain-types";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import type { MaintenanceJob, OperationsData } from "@/lib/operations";
 
 function OperationResult({ job }: { job: MaintenanceJob }) {
@@ -63,35 +72,42 @@ export function OperationsSummary({ data }: { data: OperationsData }) {
     <>
       <div className="section-heading flex items-center justify-between gap-5 mb-5">
         <h2>Infrastructure</h2>
-        <span
-          className={`type-tag inline-flex gap-[5px] items-center [justify-self:start] [font-size:9px] p-[3px_8px] rounded-[4px] [background:#ebeee3] [color:#768566] [text-transform:capitalize] whitespace-nowrap max-[460px]:[font-size:8px] max-[460px]:p-[3px_6px] ${data.configured ? "type-project" : "type-decision"}`}
-        >
+        <Badge variant={data.configured ? "default" : "secondary"}>
           {data.configured ? "Configured" : "Setup incomplete"}
-        </span>
+        </Badge>
       </div>
-      <div className="operation-checks [border:1px_solid_var(--line)] rounded-[6px]">
-        {data.checks.map((check) => (
-          <div
-            className="operation-check flex items-center gap-[18px] p-[23px] [border-bottom:1px_solid_var(--line)] max-[960px]:p-[18px] max-[960px]:gap-[13px] max-[460px]:gap-3 max-[460px]:flex-wrap"
-            key={check.name}
-          >
-            {check.status === "ready" ? (
-              <CheckCircle2 className="check-ready [color:#8da774]" size={21} />
-            ) : (
-              <XCircle className="check-missing [color:#c2ad72]" size={21} />
-            )}
-            <div>
-              <h3>{check.name}</h3>
-              <p>{check.detail}</p>
-            </div>
-            <span
-              className={`check-status [font-size:9px] [text-transform:capitalize] rounded-[4px] [background:#edf1e4] [color:#8da277] p-[4px_8px] whitespace-nowrap status-${check.status}`}
+      <Card>
+        <CardContent className="divide-y">
+          {data.checks.map((check) => (
+            <div
+              className="flex items-center gap-4 py-5 first:pt-0 last:pb-0 max-[460px]:flex-wrap"
+              key={check.name}
             >
-              {check.status === "missing" ? "Not configured" : check.status}
-            </span>
-          </div>
-        ))}
-      </div>
+              {check.status === "ready" ? (
+                <CheckCircle2 className="shrink-0 text-primary" size={21} />
+              ) : (
+                <XCircle className="shrink-0 text-muted-foreground" size={21} />
+              )}
+              <div>
+                <h3 className="font-medium">{check.name}</h3>
+                <p className="text-sm text-muted-foreground">{check.detail}</p>
+              </div>
+              <Badge
+                variant={
+                  check.status === "ready"
+                    ? "default"
+                    : check.status === "error"
+                      ? "destructive"
+                      : "secondary"
+                }
+                className="ml-auto capitalize"
+              >
+                {check.status === "missing" ? "Not configured" : check.status}
+              </Badge>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
       <section className="settings-section mt-9">
         <div className="section-heading flex items-center justify-between gap-5 mb-5">
           <div>
@@ -116,48 +132,60 @@ export function OperationsSummary({ data }: { data: OperationsData }) {
                     {job.finishedAt &&
                       ` · Finished ${new Date(job.finishedAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" })} UTC`}
                   </p>
-                  {job.error && (
-                    <p className="inline-error [color:#9e523a]!">{job.error}</p>
-                  )}
+                  {job.error && <p className="text-destructive">{job.error}</p>}
                   <OperationResult job={job} />
                 </div>
-                <span
-                  className={`check-status [font-size:9px] [text-transform:capitalize] rounded-[4px] [background:#edf1e4] [color:#8da277] p-[4px_8px] whitespace-nowrap status-${["completed", "success", "succeeded"].includes(job.status) ? "ready" : job.status === "failed" ? "error" : "missing"}`}
+                <Badge
+                  variant={
+                    ["completed", "success", "succeeded"].includes(job.status)
+                      ? "default"
+                      : job.status === "failed"
+                        ? "destructive"
+                        : "secondary"
+                  }
+                  className="capitalize"
                 >
                   {job.status}
-                </span>
+                </Badge>
               </div>
             ))}
           </div>
         ) : (
-          <div className="quiet-empty flex items-center gap-[17px] p-[30px_25px] [border:1px_solid_var(--line)] rounded-[6px] [color:#92a27c]">
-            <ClockGlyph />
-            <p>
-              No maintenance has run yet.
-              <br />
-              <span>Completed runs and errors will appear here.</span>
-            </p>
-          </div>
+          <Card>
+            <CardContent className="flex items-center gap-4">
+              <ClockGlyph />
+              <p>
+                No maintenance has run yet.
+                <br />
+                <span>Completed runs and errors will appear here.</span>
+              </p>
+            </CardContent>
+          </Card>
         )}
       </section>
-      <div className="ownership-note flex gap-[18px] p-7 [background:#f0f4e7] [border:1px_solid_#e2e9d7] rounded-[6px] mt-[37px] max-[460px]:p-5 max-[460px]:gap-[14px]">
-        <ShieldCheck size={25} strokeWidth={1.3} />
-        <div>
-          <h3>Your knowledge has an exit door.</h3>
-          <p>
+      <Card className="mt-9">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ShieldCheck size={20} />
+            Your knowledge has an exit door.
+          </CardTitle>
+          <CardDescription>
             Postgres is the source of truth. Git exports keep readable daily
             history; database snapshots protect the complete workspace.
-          </p>
-          <a
-            className="text-link h-auto justify-start inline-flex items-center gap-[7px] p-[0] text-primary bg-transparent [font-size:12px] font-semibold text-left"
-            href="https://github.com/TommyBez/agent-brain#nightly-maintenance-export-and-backup"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Operations guide <ArrowUpRight size={14} />
-          </a>
-        </div>
-      </div>
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button variant="link" asChild>
+            <a
+              href="https://github.com/TommyBez/agent-brain#nightly-maintenance-export-and-backup"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Operations guide <ArrowUpRight size={14} />
+            </a>
+          </Button>
+        </CardContent>
+      </Card>
     </>
   );
 }

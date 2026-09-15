@@ -101,12 +101,10 @@ async function AgentTokens() {
 async function OwnerPassword() {
   await getWorkspaceUser();
   return (
-    <Card className="mt-8 gap-5 rounded-md bg-background shadow-none">
+    <Card className="mt-8">
       <CardHeader>
-        <CardTitle className="font-[family-name:var(--serif)] text-2xl font-normal">
-          Your password
-        </CardTitle>
-        <CardDescription className="text-xs">
+        <CardTitle>Your password</CardTitle>
+        <CardDescription>
           Change your sign-in password and end your other browser sessions.
         </CardDescription>
       </CardHeader>

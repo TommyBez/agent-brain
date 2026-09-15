@@ -1,8 +1,6 @@
 import Link from "next/link";
-import {
-  actionClassName,
-  PageHeading,
-} from "@/components/workspace/primitives";
+import { Button } from "@/components/ui/button";
+import { PageHeading } from "@/components/workspace/primitives";
 
 export default function PageNotFound() {
   return (
@@ -12,9 +10,9 @@ export default function PageNotFound() {
         title="This page isn't here"
         description="It may have been merged into another page, or the link may be incorrect."
       />
-      <Link href="/" className={actionClassName}>
-        Back to all pages
-      </Link>
+      <Button asChild variant="outline">
+        <Link href="/">Back to all pages</Link>
+      </Button>
     </>
   );
 }
