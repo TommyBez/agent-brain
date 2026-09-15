@@ -1,8 +1,6 @@
 import { getAuth, isAuthConfigured } from "@/lib/auth";
 import { agentCorsPreflight, withAgentCors } from "@/lib/mcp/cors";
 
-export const runtime = "nodejs";
-
 export async function GET(request: Request) {
   return withAgentCors(request, () => {
     if (!isAuthConfigured())

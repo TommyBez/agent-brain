@@ -752,9 +752,11 @@ export async function listPages(ownerId: string, input: unknown = {}) {
   ];
   const filter =
     "p.owner_id=$1 AND ($2::text IS NULL OR p.type=$2) AND ($3::text IS NULL OR p.title ILIKE $3 OR p.summary ILIKE $3 OR p.markdown ILIKE $3 OR EXISTS(SELECT 1 FROM unnest(p.aliases) alias WHERE alias ILIKE $3))";
+  const order =
+    data.sort === "title" ? "lower(p.title),p.id" : "p.updated_at DESC,p.id";
   const [pages, count] = await Promise.all([
     getPool().query<PageRow>(
-      `SELECT ${PAGE_COLUMNS} FROM brain_pages p WHERE ${filter} ORDER BY p.updated_at DESC,p.id LIMIT $4 OFFSET $5`,
+      `SELECT ${PAGE_COLUMNS} FROM brain_pages p WHERE ${filter} ORDER BY ${order} LIMIT $4 OFFSET $5`,
       [...params, data.limit, data.offset],
     ),
     getPool().query<{ total: string }>(

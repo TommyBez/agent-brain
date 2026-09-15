@@ -1,4 +1,5 @@
 import { listPages, write } from "@/lib/brain/service";
+import { revalidateWorkspaceCache } from "@/lib/workspace/cache";
 import { body, failure, json, owner } from "../shared";
 
 export async function GET(request: Request) {
@@ -8,6 +9,7 @@ export async function GET(request: Request) {
     const data = await listPages(ownerId, {
       query: params.get("q") || undefined,
       type: params.get("type") || undefined,
+      sort: params.get("sort") || "updated",
       limit: Number(params.get("limit") || 50),
       offset: Number(params.get("offset") || 0),
     });
@@ -25,10 +27,9 @@ export async function POST(request: Request) {
         { error: "Use the page endpoint to update an existing page." },
         400,
       );
-    return json(
-      { page: await write(ownerId, { ...input, source: "workspace" }) },
-      201,
-    );
+    const page = await write(ownerId, { ...input, source: "workspace" });
+    revalidateWorkspaceCache(ownerId);
+    return json({ page }, 201);
   } catch (error) {
     return failure(error);
   }

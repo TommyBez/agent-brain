@@ -118,6 +118,7 @@ export const listPagesSchema = z
   .object({
     query: z.string().trim().max(1000).optional(),
     type: z.enum(PAGE_TYPES).optional(),
+    sort: z.enum(["updated", "title"]).default("updated"),
     limit: z.number().int().min(1).max(100).default(50),
     offset: z.number().int().min(0).default(0),
   })

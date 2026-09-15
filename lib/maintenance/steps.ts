@@ -3,6 +3,7 @@ import * as brain from "@/lib/brain/service";
 import { BrainError } from "@/lib/brain/types";
 import { BRAIN_INSTRUCTIONS } from "@/lib/mcp/server";
 import { exportBrain } from "@/lib/operations";
+import { revalidateWorkspaceCache } from "@/lib/workspace/cache";
 import {
   type ConsolidationState,
   type ConsolidationToolCall,
@@ -96,13 +97,15 @@ export async function consolidationTool(
   canWrite: boolean,
 ) {
   "use step";
-  return executeConsolidationTool(
+  const result = await executeConsolidationTool(
     ownerId,
     call,
     `workflow:${getStepMetadata().stepId}`,
     reads,
     canWrite,
   );
+  if (result.writeSucceeded) revalidateWorkspaceCache(ownerId);
+  return result;
 }
 
 export async function nextEmbeddingBatch(
@@ -152,16 +155,15 @@ export async function storeEmbeddingBatch(
 ) {
   "use step";
   try {
-    return {
-      conflict: false as const,
-      ...(await brain.indexChunks(ownerId, {
-        ref: batch.id,
-        expectedVersion: batch.version,
-        embeddingModel: batch.embeddingModel,
-        chunkerVersion: batch.chunkerVersion,
-        embeddings,
-      })),
-    };
+    const result = await brain.indexChunks(ownerId, {
+      ref: batch.id,
+      expectedVersion: batch.version,
+      embeddingModel: batch.embeddingModel,
+      chunkerVersion: batch.chunkerVersion,
+      embeddings,
+    });
+    revalidateWorkspaceCache(ownerId);
+    return { conflict: false as const, ...result };
   } catch (error) {
     if (error instanceof BrainError && error.code === "VERSION_CONFLICT")
       return { conflict: true as const, indexed: false };

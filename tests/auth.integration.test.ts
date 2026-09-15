@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { createServer } from "node:http";
+import { createRequire } from "node:module";
 import test from "node:test";
 import {
   Client,
@@ -31,6 +32,20 @@ test(
       "AUTH_INTEGRATION_TEST requires a migrated Postgres database",
     );
     const ownerId = randomUUID();
+    // This protocol harness invokes Route Handlers through node:http, outside
+    // Next's request context. Assert the cache adapter call at that boundary;
+    // actual invalidation and rendering require verification in a Next runtime.
+    const nextCache = createRequire(import.meta.url)(
+      "next/cache",
+    ) as typeof import("next/cache");
+    const invalidations = t.mock.method(
+      nextCache,
+      "revalidateTag",
+      (...[tag, profile]: Parameters<typeof nextCache.revalidateTag>) => {
+        assert.equal(tag, `workspace:${ownerId}`);
+        assert.deepEqual(profile, { expire: 0 });
+      },
+    );
     const email = `auth-test-${ownerId}@example.invalid`;
     const password = randomBytes(24).toString("base64url");
     const originalOrigin = process.env.BETTER_AUTH_URL;
@@ -873,5 +888,6 @@ test(
         );
       },
     );
+    assert.ok(invalidations.mock.callCount() > 0);
   },
 );

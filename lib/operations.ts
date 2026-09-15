@@ -4,6 +4,35 @@ import { queryEmbeddingsConfigured } from "@/lib/brain/embeddings";
 import { assertOwner, embeddingModel } from "@/lib/brain/utils";
 import { getPool, transaction } from "@/lib/db";
 
+export type MaintenanceJob = {
+  id: string;
+  kind: string;
+  status: string;
+  runDate: string;
+  workflowRunId: string | null;
+  workflowStatus?: string;
+  startedAt: Date | null;
+  finishedAt: Date | null;
+  error: string | null;
+  result: {
+    report?: string;
+    writes?: number;
+    indexed?: number;
+    indexedPages?: number;
+    embeddedChunks?: number;
+    remaining?: number;
+    inputTokens?: number;
+    outputTokens?: number;
+    pages?: number;
+    links?: number;
+    budgetReached?: boolean;
+    commit?: string;
+    repository?: string;
+  } | null;
+};
+
+export type OperationsData = Awaited<ReturnType<typeof operationsStatus>>;
+
 export function isCronRequest(request: Request) {
   const secret = process.env.CRON_SECRET;
   if (!secret) return false;
@@ -16,7 +45,7 @@ export function isCronRequest(request: Request) {
 
 export async function operationsStatus(ownerId: string) {
   assertOwner(ownerId);
-  const { rows: jobs } = await getPool().query(
+  const { rows: jobs } = await getPool().query<MaintenanceJob>(
     `SELECT id, kind, status, started_at AS "startedAt", finished_at AS "finishedAt", error,
       run_date::text AS "runDate", executor, workflow_run_id AS "workflowRunId", attempts, result FROM brain_jobs WHERE owner_id = $1
      ORDER BY created_at DESC LIMIT 20`,
@@ -24,7 +53,9 @@ export async function operationsStatus(ownerId: string) {
   );
   const runIds = [
     ...new Set<string>(
-      jobs.filter((job) => job.workflowRunId).map((job) => job.workflowRunId),
+      jobs
+        .map((job) => job.workflowRunId)
+        .filter((runId): runId is string => Boolean(runId)),
     ),
   ];
   const runs = await Promise.all(

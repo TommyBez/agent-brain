@@ -1,0 +1,35 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { startTransition } from "react";
+import { Button } from "@/components/ui/button";
+
+export default function WorkspaceError({
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  const router = useRouter();
+  return (
+    <div
+      role="alert"
+      className="rounded-md border border-destructive/20 bg-destructive/5 p-6"
+    >
+      <h2>Unable to load this view.</h2>
+      <p className="my-3 text-sm text-muted-foreground">
+        Your knowledge is temporarily unavailable. Please try again.
+      </p>
+      <Button
+        onClick={() =>
+          startTransition(() => {
+            router.refresh();
+            reset();
+          })
+        }
+      >
+        Try again
+      </Button>
+    </div>
+  );
+}

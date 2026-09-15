@@ -1,3 +1,4 @@
+import { unstable_rethrow } from "next/navigation";
 import { ZodError } from "zod";
 import type { BrainScope } from "@/lib/auth";
 import {
@@ -23,6 +24,7 @@ export function json(data: unknown, status = 200) {
   });
 }
 export function failure(error: unknown) {
+  unstable_rethrow(error);
   if (error instanceof AuthError) return authErrorResponse(error);
   if (error instanceof BrainError)
     return json(

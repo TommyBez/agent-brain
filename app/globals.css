@@ -568,6 +568,7 @@ label {
 }
 .page-row-main strong {
   display: block;
+  overflow-wrap: anywhere;
   font-family: var(--serif);
   font-weight: 500;
   font-size: 17px;
@@ -1615,4 +1616,8 @@ label {
 }
 .page-context > h3:not(:first-child) {
   margin-top: 26px;
+}
+
+.library-view:has([data-pending="true"]) [data-slot="library-results"] {
+  opacity: 0.5;
 }

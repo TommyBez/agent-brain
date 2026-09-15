@@ -1,47 +1,12 @@
-"use client";
-
-import {
-  ArrowRight,
-  ArrowUpRight,
-  CircleCheck,
-  LoaderCircle,
-} from "lucide-react";
-import { type FormEvent, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { authClient } from "@/lib/auth-client";
+import { ArrowUpRight, CircleCheck } from "lucide-react";
+import Link from "next/link";
+import { SignInForm } from "./sign-in-form";
 
 export function AuthGate({ configured }: { configured: boolean }) {
-  const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
-  async function signIn(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    setBusy(true);
-    setError("");
-    try {
-      const result = await authClient.signIn.email({
-        email: String(form.get("email")),
-        password: String(form.get("password")),
-        callbackURL: "/",
-      });
-      if (result.error)
-        throw new Error(
-          result.error.message ??
-            "Unable to sign in. Check your email and password.",
-        );
-      window.location.assign(result.data?.url || "/");
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Unable to sign in.");
-    } finally {
-      setBusy(false);
-    }
-  }
   return (
     <main className="auth-layout min-h-[100svh] grid grid-cols-[1.08fr_1fr] max-[740px]:grid-cols-[1fr]">
       <section className="auth-story [background:#edf0e4] p-[43px_8%_25px] min-h-[100svh] flex flex-col relative overflow-hidden max-[1200px]:pl-[9%] max-[1200px]:pr-[9%] max-[740px]:min-h-[auto] max-[740px]:p-[25px_30px_27px]">
-        <a
+        <Link
           className="wordmark flex items-center gap-[11px] [font-family:var(--serif)] [font-size:31px] font-semibold tracking-[-1.2px]"
           href="/"
           aria-label="Brain home"
@@ -53,7 +18,7 @@ export function AuthGate({ configured }: { configured: boolean }) {
           <span className="wordmark-label [font-family:var(--sans)] [font-size:9px] tracking-[.17em] font-medium ml-[23px] pl-6 [border-left:1px_solid_#cbd2c0] text-muted-foreground max-[1200px]:hidden">
             YOUR KNOWLEDGE, CONNECTED
           </span>
-        </a>
+        </Link>
         <div className="auth-intro p-[90px_0_50px] relative z-[1] min-[1600px]:pt-30 max-[960px]:pt-[85px] max-[740px]:p-[50px_0_25px]">
           <span className="eyebrow [font-size:10px] font-semibold tracking-[.16em] text-primary">
             A PLACE FOR WHAT YOU KNOW
@@ -108,52 +73,7 @@ export function AuthGate({ configured }: { configured: boolean }) {
               : "Your workspace is ready to connect to your infrastructure. Complete the setup to begin."}
           </p>
           {configured ? (
-            <form
-              className="stack-form flex flex-col gap-[21px] mt-8"
-              onSubmit={signIn}
-            >
-              <Label>
-                Email address
-                <Input
-                  type="email"
-                  name="email"
-                  autoComplete="email"
-                  placeholder="you@example.com"
-                  required
-                />
-              </Label>
-              <Label>
-                Password
-                <Input
-                  type="password"
-                  name="password"
-                  autoComplete="current-password"
-                  placeholder="Your password"
-                  required
-                />
-              </Label>
-              {error && (
-                <p
-                  className="message [border:1px_solid_#d9dece] [background:#edf0e5] p-[16px_18px] rounded-[6px] [font-size:13px] m-[18px_0] error"
-                  role="alert"
-                >
-                  {error}
-                </p>
-              )}
-              <Button
-                type="submit"
-                variant="default"
-                className="button bg-transparent [border:1px_solid_#d8dbcf] rounded-[6px] p-[10px_15px] inline-flex items-center justify-center gap-2 leading-[1.3] font-medium [font-size:12px] min-h-[39px] [transition:background_.15s,_border-color_.15s,_transform_.15s] whitespace-nowrap primary wide"
-                disabled={busy}
-              >
-                {busy ? <LoaderCircle className="spin" size={16} /> : null} Sign
-                in <ArrowRight size={17} />
-              </Button>
-              <p className="form-note [font-size:11px] text-muted-foreground font-normal leading-[1.65]">
-                This is a private workspace. Accounts are provisioned by its
-                owner.
-              </p>
-            </form>
+            <SignInForm />
           ) : (
             <div className="setup-steps mt-[30px]">
               <div>

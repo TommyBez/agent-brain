@@ -1,25 +1,20 @@
 "use client";
 
 import { ArrowUpRight, Network, RotateCcw } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  type BrainLink,
-  entityTypes,
-  type PageSummary,
-  request,
-} from "./brain-types";
-import { Empty, Loading } from "./brain-workspace";
+import { pageHref } from "@/lib/workspace/urls";
+import { type BrainLink, entityTypes, type PageSummary } from "./brain-types";
+import { Empty } from "./workspace/primitives";
 
-export function KnowledgeGraph({ onOpen }: { onOpen: (id: string) => void }) {
-  const [graph, setGraph] = useState<{
-    nodes: PageSummary[];
-    links: BrainLink[];
-  } | null>(null);
+export function KnowledgeGraph({
+  graph,
+}: {
+  graph: { nodes: PageSummary[]; links: BrainLink[] };
+}) {
   const [selected, setSelected] = useState<string | null>(null);
   const [filter, setFilter] = useState("");
-  const [error, setError] = useState("");
-  const [reload, setReload] = useState(0);
   const [compact, setCompact] = useState(false);
   useEffect(() => {
     const media = window.matchMedia("(max-width: 740px)");
@@ -28,25 +23,6 @@ export function KnowledgeGraph({ onOpen }: { onOpen: (id: string) => void }) {
     media.addEventListener("change", update);
     return () => media.removeEventListener("change", update);
   }, []);
-  useEffect(() => {
-    const controller = new AbortController();
-    request<{ nodes: PageSummary[]; links: BrainLink[] }>(
-      `/api/brain/graph?refresh=${reload}`,
-      {
-        signal: controller.signal,
-      },
-    )
-      .then(setGraph)
-      .catch((cause) => {
-        if (!controller.signal.aborted)
-          setError(
-            cause instanceof Error
-              ? cause.message
-              : "Unable to read your graph.",
-          );
-      });
-    return () => controller.abort();
-  }, [reload]);
   const nodes = useMemo(() => {
     const filtered =
       graph?.nodes.filter((n) => !filter || n.type === filter) ?? [];
@@ -86,40 +62,7 @@ export function KnowledgeGraph({ onOpen }: { onOpen: (id: string) => void }) {
   );
   return (
     <>
-      <div className="page-heading flex items-center justify-between gap-5 mb-[35px] min-[1600px]:mb-[45px] max-[740px]:mb-7 max-[460px]:gap-[10px]">
-        <div>
-          <span className="eyebrow [font-size:10px] font-semibold tracking-[.16em] text-primary">
-            THE SPACE BETWEEN IDEAS
-          </span>
-          <h1>
-            Knowledge graph
-            <span className="heading-dot [color:#839567]">.</span>
-          </h1>
-          <p>Follow the connections. See a bigger picture.</p>
-        </div>
-        <Button
-          type="button"
-          variant="outline"
-          className="button bg-transparent [border:1px_solid_#d8dbcf] rounded-[6px] p-[10px_15px] inline-flex items-center justify-center gap-2 leading-[1.3] font-medium [font-size:12px] min-h-[39px] [transition:background_.15s,_border-color_.15s,_transform_.15s] whitespace-nowrap"
-          onClick={() => {
-            setSelected(null);
-            setFilter("");
-            setReload((n) => n + 1);
-          }}
-        >
-          <RotateCcw size={15} /> Reset view
-        </Button>
-      </div>
-      {error ? (
-        <p
-          className="message [border:1px_solid_#d9dece] [background:#edf0e5] p-[16px_18px] rounded-[6px] [font-size:13px] m-[18px_0] error"
-          role="alert"
-        >
-          {error}
-        </p>
-      ) : !graph ? (
-        <Loading />
-      ) : !graph.nodes.length ? (
+      {!graph.nodes.length ? (
         <Empty
           icon={<Network size={32} strokeWidth={1.2} />}
           title="Knowledge grows between the dots."
@@ -127,6 +70,18 @@ export function KnowledgeGraph({ onOpen }: { onOpen: (id: string) => void }) {
         />
       ) : (
         <>
+          <Button
+            type="button"
+            variant="outline"
+            className="mb-4"
+            onClick={() => {
+              setSelected(null);
+              setFilter("");
+            }}
+          >
+            <RotateCcw size={15} />
+            Reset view
+          </Button>
           <div className="graph-toolbar flex items-center justify-between gap-[15px] mb-[19px] max-[740px]:items-start max-[460px]:flex-col max-[460px]:gap-[5px]">
             <div className="graph-legend flex flex-wrap gap-[7px] max-[460px]:gap-[1px]">
               {entityTypes.map((type) => (
@@ -260,30 +215,26 @@ export function KnowledgeGraph({ onOpen }: { onOpen: (id: string) => void }) {
                     `${selectedLinks.length} connections`}
                 </p>
               </div>
-              <Button
-                type="button"
-                variant="default"
+              <Link
+                href={pageHref(selectedPage.id)}
                 className="button bg-transparent [border:1px_solid_#d8dbcf] rounded-[6px] p-[10px_15px] inline-flex items-center justify-center gap-2 leading-[1.3] font-medium [font-size:12px] min-h-[39px] [transition:background_.15s,_border-color_.15s,_transform_.15s] whitespace-nowrap primary"
-                onClick={() => onOpen(selectedPage.id)}
               >
                 Read page <ArrowUpRight size={15} />
-              </Button>
+              </Link>
             </div>
           )}
           <details className="graph-accessible mt-5 [color:#96a885] [font-size:10px]">
             <summary>Browse pages as a list</summary>
             <div>
               {nodes.map((node) => (
-                <Button
-                  type="button"
-                  variant="ghost"
+                <Link
+                  href={pageHref(node.id)}
                   className="text-link h-auto justify-start inline-flex items-center gap-[7px] p-[0] text-primary bg-transparent [font-size:12px] font-semibold text-left"
                   key={node.id}
-                  onClick={() => onOpen(node.id)}
                 >
                   {node.title}
                   <ArrowUpRight size={13} />
-                </Button>
+                </Link>
               ))}
             </div>
           </details>

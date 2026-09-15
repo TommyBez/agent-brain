@@ -89,7 +89,10 @@ async function result<T>(
   }
 }
 
-export function createBrainServer(principal: Principal) {
+export function createBrainServer(
+  principal: Principal,
+  onMutation: () => void = () => {},
+) {
   const server = new McpServer(
     { name: "agent-brain", version: "1.0.0", title: "Agent Brain" },
     { instructions: BRAIN_INSTRUCTIONS },
@@ -101,6 +104,15 @@ export function createBrainServer(principal: Principal) {
         requireScope(principal, scope);
         return fn(input);
       });
+  const guardedMutation = (
+    scope: BrainScope,
+    fn: (input: unknown) => Promise<unknown>,
+  ) =>
+    guarded(scope, async (input) => {
+      const value = await fn(input);
+      onMutation();
+      return value;
+    });
   const read = {
     readOnlyHint: true,
     destructiveHint: false,
@@ -150,7 +162,9 @@ export function createBrainServer(principal: Principal) {
       inputSchema: schemas.writeSchema,
       annotations: { ...write, destructiveHint: true },
     },
-    guarded("brain:write", (input) => brain.write(principal.ownerId, input)),
+    guardedMutation("brain:write", (input) =>
+      brain.write(principal.ownerId, input),
+    ),
   );
   server.registerTool(
     "append",
@@ -160,7 +174,9 @@ export function createBrainServer(principal: Principal) {
       inputSchema: schemas.appendSchema,
       annotations: write,
     },
-    guarded("brain:write", (input) => brain.append(principal.ownerId, input)),
+    guardedMutation("brain:write", (input) =>
+      brain.append(principal.ownerId, input),
+    ),
   );
   server.registerTool(
     "resolve",
@@ -200,7 +216,7 @@ export function createBrainServer(principal: Principal) {
       inputSchema: schemas.indexChunksSchema,
       annotations: write,
     },
-    guarded("brain:maintain", (input) =>
+    guardedMutation("brain:maintain", (input) =>
       brain.indexChunks(principal.ownerId, input),
     ),
   );
@@ -212,7 +228,7 @@ export function createBrainServer(principal: Principal) {
       inputSchema: schemas.indexEmbeddingSchema,
       annotations: write,
     },
-    guarded("brain:maintain", (input) =>
+    guardedMutation("brain:maintain", (input) =>
       brain.indexEmbedding(principal.ownerId, input),
     ),
   );
@@ -330,8 +346,11 @@ export function createBrainServer(principal: Principal) {
   return server;
 }
 
-export function createBrainHandler(principal: Principal) {
-  return createMcpHandler(() => createBrainServer(principal), {
+export function createBrainHandler(
+  principal: Principal,
+  onMutation?: () => void,
+) {
+  return createMcpHandler(() => createBrainServer(principal, onMutation), {
     legacy: "stateless",
     keepAliveMs: 0,
     maxSubscriptions: 0,

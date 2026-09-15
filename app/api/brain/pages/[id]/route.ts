@@ -1,4 +1,5 @@
 import { listRevisions, read, write } from "@/lib/brain/service";
+import { revalidateWorkspaceCache } from "@/lib/workspace/cache";
 import { body, failure, json, owner } from "../../shared";
 
 type Context = { params: Promise<{ id: string }> };
@@ -20,9 +21,9 @@ export async function PATCH(request: Request, context: Context) {
     const ownerId = await owner(request, "brain:write");
     const { id } = await context.params;
     const input = await body(request);
-    return json({
-      page: await write(ownerId, { ...input, id, source: "workspace" }),
-    });
+    const page = await write(ownerId, { ...input, id, source: "workspace" });
+    revalidateWorkspaceCache(ownerId);
+    return json({ page });
   } catch (error) {
     return failure(error);
   }

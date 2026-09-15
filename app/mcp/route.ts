@@ -1,3 +1,4 @@
+import { unstable_rethrow } from "next/navigation";
 import { appOrigin } from "@/lib/auth";
 import {
   AuthError,
@@ -11,8 +12,8 @@ import {
   withAgentCors,
 } from "@/lib/mcp/cors";
 import { createBrainHandler, requiredMcpScope } from "@/lib/mcp/server";
+import { revalidateWorkspaceCache } from "@/lib/workspace/cache";
 
-export const runtime = "nodejs";
 export const maxDuration = 60;
 
 async function handlePost(request: Request) {
@@ -70,11 +71,14 @@ async function handlePost(request: Request) {
     }
     const scope = requiredMcpScope(parsedBody);
     if (scope) requireScope(principal, scope);
-    const handler = createBrainHandler(principal);
+    const handler = createBrainHandler(principal, () =>
+      revalidateWorkspaceCache(principal.ownerId),
+    );
     const response = await handler.fetch(request, { parsedBody });
     response.headers.set("Cache-Control", "no-store");
     return response;
   } catch (error) {
+    unstable_rethrow(error);
     return authErrorResponse(error);
   }
 }

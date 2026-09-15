@@ -2,7 +2,6 @@ import { getPool } from "@/lib/db";
 import { startNightlyMaintenance } from "@/lib/maintenance/start";
 import { isCronRequest } from "@/lib/operations";
 
-export const runtime = "nodejs";
 export const maxDuration = 60;
 
 export async function GET(request: Request) {
