@@ -6,7 +6,7 @@ Next.js 16.3 runs this application with `cacheComponents: true` and `partialPref
 | --- | --- | --- | --- |
 | `/` | All pages heading, navigation, statistics and list placeholders | Owner statistics; searched, sorted, paginated pages | Search and sort update query parameters; type selection navigates to a collection |
 | `/people`, `/clients`, `/projects`, `/articles`, `/decisions`, `/notes` | Collection-specific heading, navigation, statistics and list placeholders | Owner statistics; pages scoped to the route's collection, with search, sorting and pagination | Collection selection changes pathname; search, sort and pagination retain that collection |
-| `/graph` | Heading and graph placeholder | Owner-scoped graph, filtered before pagination, with totals | Next Links for filters and pagination; node selection |
+| `/graph` | Heading and graph placeholder | Owner-scoped graph, filtered before pagination, with totals and type counts | Next Links for filters and pagination; animated force layout, zoom/pan/drag, in-graph search, type and relationship filters, node selection with an inspector panel |
 | `/activity` | Heading and activity placeholder | Paginated audit entries and page links | Next Links and refresh |
 | `/pages/[id]` | Back navigation, heading/body/connection placeholders | Markdown, metadata, typed links and backlinks | Next Links |
 | `/pages/new`, `/pages/[id]/edit` | Editor heading and placeholder | Initial page and relationship choices | Draft, preview, duplicate hints, save, conflict reconciliation |
