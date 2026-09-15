@@ -4,13 +4,14 @@ import { PageEditor } from "@/components/workspace/page-editor";
 import { Loading, PageHeading } from "@/components/workspace/primitives";
 import { PAGE_TYPES, type PageType } from "@/lib/brain/types";
 import { getWorkspacePages } from "@/lib/workspace/data";
+import { CONNECTION_PAGE_SIZE } from "@/lib/workspace/urls";
 
 type SearchParams = Promise<{ type?: string | string[] }>;
 
 async function Editor({ searchParams }: { searchParams: SearchParams }) {
   const [params, choices] = await Promise.all([
     searchParams,
-    getWorkspacePages({ limit: 100 }),
+    getWorkspacePages({ limit: CONNECTION_PAGE_SIZE, sort: "title" }),
   ]);
   const type =
     typeof params.type === "string" &&
@@ -19,9 +20,13 @@ async function Editor({ searchParams }: { searchParams: SearchParams }) {
       : "note";
   return (
     <PageEditor
+      key={type}
       initialPage={null}
       initialType={type}
-      choices={choices.pages.map(({ id, title }) => ({ id, title }))}
+      choices={{
+        pages: choices.pages.map(({ id, title }) => ({ id, title })),
+        total: choices.total,
+      }}
     />
   );
 }

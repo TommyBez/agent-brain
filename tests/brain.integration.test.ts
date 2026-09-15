@@ -90,6 +90,14 @@ test(
             brain.read(owner, { ref: outsiderPage.id }),
             (error) => error instanceof BrainError && error.status === 404,
           );
+          await assert.rejects(
+            brain.readRevision(owner, { ref: outsiderPage.id, version: 1 }),
+            (error) => error instanceof BrainError && error.status === 404,
+          );
+          assert.deepEqual(
+            await brain.listRevisionSummaries(owner, { ref: outsiderPage.id }),
+            [],
+          );
           assert.equal(
             (await brain.search(owner, { query: "Private Blueprint" })).length,
             0,
@@ -293,6 +301,20 @@ test(
               .links.length,
             1,
           );
+          const historical = await brain.readRevision(owner, {
+            ref: project.id,
+            version: 1,
+          });
+          assert.equal(historical.version, 1);
+          assert.equal(historical.snapshot.links.length, 1);
+          const summaries = await brain.listRevisionSummaries(owner, {
+            ref: project.id,
+            limit: 1,
+            offset: 1,
+          });
+          assert.equal(summaries.length, 1);
+          assert.equal(summaries[0].version, 2);
+          assert.equal("snapshot" in summaries[0], false);
           project = replacement;
         },
       );

@@ -4,8 +4,10 @@ import { cacheLife, cacheTag } from "next/cache";
 import { cache } from "react";
 import { listPagesSchema } from "@/lib/brain/schemas";
 import * as brain from "@/lib/brain/service";
+import type { PageType } from "@/lib/brain/types";
 import { workspaceCacheTag } from "./cache";
 import { getWorkspaceUser } from "./session";
+import { GRAPH_PAGE_SIZE } from "./urls";
 
 export type WorkspacePageOptions = {
   query?: string;
@@ -39,25 +41,40 @@ async function pageForOwner(ownerId: string, id: string) {
   return brain.read(ownerId, { ref: id });
 }
 
-async function revisionsForOwner(ownerId: string, id: string) {
+async function revisionsForOwner(ownerId: string, id: string, offset: number) {
   "use cache";
   cacheTag(workspaceCacheTag(ownerId));
   cacheLife({ stale: 30, revalidate: 30, expire: 60 });
-  return brain.listRevisions(ownerId, { ref: id, limit: 50 });
+  return brain.listRevisionSummaries(ownerId, { ref: id, limit: 51, offset });
 }
 
-async function graphForOwner(ownerId: string) {
+async function revisionForOwner(ownerId: string, id: string, version: number) {
   "use cache";
   cacheTag(workspaceCacheTag(ownerId));
   cacheLife({ stale: 30, revalidate: 30, expire: 60 });
-  return brain.getGraph(ownerId, { limit: 200 });
+  return brain.readRevision(ownerId, { ref: id, version });
 }
 
-async function activityForOwner(ownerId: string) {
+async function graphForOwner(
+  ownerId: string,
+  type: PageType | "",
+  offset: number,
+) {
   "use cache";
   cacheTag(workspaceCacheTag(ownerId));
   cacheLife({ stale: 30, revalidate: 30, expire: 60 });
-  return brain.listActivity(ownerId, { limit: 50 });
+  return brain.getGraph(ownerId, {
+    limit: GRAPH_PAGE_SIZE,
+    type: type || undefined,
+    offset,
+  });
+}
+
+async function activityForOwner(ownerId: string, offset: number) {
+  "use cache";
+  cacheTag(workspaceCacheTag(ownerId));
+  cacheLife({ stale: 30, revalidate: 30, expire: 60 });
+  return brain.listActivity(ownerId, { limit: 51, offset });
 }
 
 // Authorize outside every cache boundary. Only these owner-free getters are
@@ -77,17 +94,26 @@ export const getWorkspacePage = cache(async (id: string) => {
   return pageForOwner(user.id, id);
 });
 
-export const getWorkspaceRevisions = cache(async (id: string) => {
+export const getWorkspaceRevisions = cache(async (id: string, offset = 0) => {
   const user = await getWorkspaceUser();
-  return revisionsForOwner(user.id, id);
+  return revisionsForOwner(user.id, id, offset);
 });
 
-export const getWorkspaceGraph = cache(async () => {
-  const user = await getWorkspaceUser();
-  return graphForOwner(user.id);
-});
+export const getWorkspaceRevision = cache(
+  async (id: string, version: number) => {
+    const user = await getWorkspaceUser();
+    return revisionForOwner(user.id, id, version);
+  },
+);
 
-export const getWorkspaceActivity = cache(async () => {
+export const getWorkspaceGraph = cache(
+  async (type: PageType | "" = "", offset = 0) => {
+    const user = await getWorkspaceUser();
+    return graphForOwner(user.id, type, offset);
+  },
+);
+
+export const getWorkspaceActivity = cache(async (offset = 0) => {
   const user = await getWorkspaceUser();
-  return activityForOwner(user.id);
+  return activityForOwner(user.id, offset);
 });

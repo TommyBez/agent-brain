@@ -1,16 +1,13 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { startTransition } from "react";
 import { Button } from "@/components/ui/button";
 
 export default function WorkspaceError({
-  reset,
+  retry,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  retry: () => void;
 }) {
-  const router = useRouter();
   return (
     <div
       role="alert"
@@ -20,16 +17,7 @@ export default function WorkspaceError({
       <p className="my-3 text-sm text-muted-foreground">
         Your knowledge is temporarily unavailable. Please try again.
       </p>
-      <Button
-        onClick={() =>
-          startTransition(() => {
-            router.refresh();
-            reset();
-          })
-        }
-      >
-        Try again
-      </Button>
+      <Button onClick={retry}>Try again</Button>
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
-export function SignInForm() {
+export function SignInForm({ callbackURL = "/" }: { callbackURL?: string }) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   async function signIn(event: FormEvent<HTMLFormElement>) {
@@ -17,14 +17,15 @@ export function SignInForm() {
       const result = await authClient.signIn.email({
         email: String(form.get("email")),
         password: String(form.get("password")),
-        callbackURL: "/",
+        callbackURL,
       });
       if (result.error)
         throw new Error(
           result.error.message ??
             "Unable to sign in. Check your email and password.",
         );
-      window.location.assign(result.data?.url || "/");
+      // A signed MCP authorization flow can return its own provider redirect.
+      window.location.assign(result.data?.url || callbackURL);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Unable to sign in.");
     } finally {

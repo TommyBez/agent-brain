@@ -32,6 +32,11 @@ import type {
   PageType,
 } from "@/lib/brain/types";
 import { entityTypes, linkTypes, request } from "../brain-types";
+import {
+  type ConnectionChoice,
+  type ConnectionChoices,
+  ConnectionPicker,
+} from "./connection-picker";
 
 const MarkdownPreview = dynamic(() => import("./markdown-preview"), {
   loading: () => (
@@ -40,7 +45,12 @@ const MarkdownPreview = dynamic(() => import("./markdown-preview"), {
     </output>
   ),
 });
-type DraftLink = { targetRef: string; type: LinkType; label: string };
+type DraftLink = {
+  targetRef: string;
+  type: LinkType;
+  label: string;
+  targetTitle?: string;
+};
 
 export function PageEditor({
   initialPage,
@@ -49,7 +59,7 @@ export function PageEditor({
 }: {
   initialPage: BrainPage | null;
   initialType?: PageType;
-  choices: Pick<PageSummary, "id" | "title">[];
+  choices: ConnectionChoices;
 }) {
   const router = useRouter();
   const [page, setPage] = useState(initialPage);
@@ -66,9 +76,10 @@ export function PageEditor({
       targetRef: link.targetId,
       type: link.type,
       label: link.label || "",
+      targetTitle: link.targetTitle,
     })) ?? [],
   );
-  const [linkTarget, setLinkTarget] = useState("");
+  const [linkTarget, setLinkTarget] = useState<ConnectionChoice | null>(null);
   const [linkType, setLinkType] = useState<LinkType>("relates_to");
   const [preview, setPreview] = useState(false);
   const [duplicates, setDuplicates] = useState<PageSummary[]>([]);
@@ -114,9 +125,10 @@ export function PageEditor({
         targetRef: link.targetId,
         type: link.type,
         label: link.label || "",
+        targetTitle: link.targetTitle,
       })) ?? [],
     );
-    setLinkTarget("");
+    setLinkTarget(null);
     setPreview(false);
     setDuplicates([]);
     setComparison(false);
@@ -184,12 +196,22 @@ export function PageEditor({
     >
       <input type="hidden" name="id" value={id ?? ""} />
       <input type="hidden" name="expectedVersion" value={page?.version ?? 0} />
-      <input type="hidden" name="links" value={JSON.stringify(links)} />
+      <input
+        type="hidden"
+        name="links"
+        value={JSON.stringify(
+          links.map(({ targetRef, type, label }) => ({
+            targetRef,
+            type,
+            label,
+          })),
+        )}
+      />
       <div className="button-group flex justify-end gap-[10px] items-center mb-[30px]">
         <Button variant="outline" asChild>
           <Link
             href={id ? `/pages/${id}` : "/"}
-            onClick={() => {
+            onNavigate={() => {
               resetDraft(page);
               startTransition(() => formAction("reset"));
             }}
@@ -374,7 +396,8 @@ export function PageEditor({
               {link.type.replaceAll("_", " ")}
             </span>
             <strong>
-              {choices.find((p) => p.id === link.targetRef)?.title ||
+              {link.targetTitle ||
+                choices.pages.find((p) => p.id === link.targetRef)?.title ||
                 page?.links.find((l) => l.targetId === link.targetRef)
                   ?.targetTitle ||
                 link.targetRef}
@@ -404,20 +427,12 @@ export function PageEditor({
               ))}
             </NativeSelect>
           </Label>
-          <Label className="link-target flex-[1]">
-            <span className="sr-only">Page to connect</span>
-            <NativeSelect
-              value={linkTarget}
-              onChange={(e) => setLinkTarget(e.target.value)}
-            >
-              <NativeSelectOption value="">Choose a page…</NativeSelectOption>
-              {choices.map((item) => (
-                <NativeSelectOption key={item.id} value={item.id}>
-                  {item.title}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
-          </Label>
+          <ConnectionPicker
+            initialChoices={choices}
+            excludeId={id}
+            value={linkTarget}
+            onChange={setLinkTarget}
+          />
           <Button
             type="button"
             variant="outline"
@@ -426,15 +441,21 @@ export function PageEditor({
               !linkTarget ||
               links.some(
                 (link) =>
-                  link.targetRef === linkTarget && link.type === linkType,
+                  link.targetRef === linkTarget?.id && link.type === linkType,
               )
             }
             onClick={() => {
+              if (!linkTarget) return;
               setLinks([
                 ...links,
-                { targetRef: linkTarget, type: linkType, label: "" },
+                {
+                  targetRef: linkTarget.id,
+                  targetTitle: linkTarget.title,
+                  type: linkType,
+                  label: "",
+                },
               ]);
-              setLinkTarget("");
+              setLinkTarget(null);
             }}
           >
             <Plus size={15} /> Add
@@ -465,7 +486,7 @@ export function PageEditor({
           type="submit"
           variant="default"
           className="button bg-transparent [border:1px_solid_#d8dbcf] rounded-[6px] p-[10px_15px] inline-flex items-center justify-center gap-2 leading-[1.3] font-medium [font-size:12px] min-h-[39px] [transition:background_.15s,_border-color_.15s,_transform_.15s] whitespace-nowrap primary"
-          disabled={saving}
+          disabled={saving || loadingLatest}
         >
           <Save size={16} /> Save page
         </Button>

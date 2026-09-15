@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { pageHref } from "@/lib/workspace/urls";
-import { type BrainLink, entityTypes, type PageSummary } from "./brain-types";
+import type { BrainLink, PageSummary } from "./brain-types";
 import { Empty } from "./workspace/primitives";
 
 export function KnowledgeGraph({
@@ -14,7 +14,6 @@ export function KnowledgeGraph({
   graph: { nodes: PageSummary[]; links: BrainLink[] };
 }) {
   const [selected, setSelected] = useState<string | null>(null);
-  const [filter, setFilter] = useState("");
   const [compact, setCompact] = useState(false);
   useEffect(() => {
     const media = window.matchMedia("(max-width: 740px)");
@@ -24,8 +23,7 @@ export function KnowledgeGraph({
     return () => media.removeEventListener("change", update);
   }, []);
   const nodes = useMemo(() => {
-    const filtered =
-      graph?.nodes.filter((n) => !filter || n.type === filter) ?? [];
+    const filtered = graph.nodes;
     return filtered.map((node, index) => {
       const angle =
         (index / Math.max(filtered.length, 1)) * Math.PI * 2 - Math.PI / 2;
@@ -51,7 +49,7 @@ export function KnowledgeGraph({
         y: (compact ? 260 : 315) + Math.sin(angle) * radius,
       };
     });
-  }, [graph, filter, compact]);
+  }, [graph, compact]);
   const selectedPage = nodes.find((node) => node.id === selected);
   const selectedLinks =
     graph?.links.filter(
@@ -76,36 +74,11 @@ export function KnowledgeGraph({
             className="mb-4"
             onClick={() => {
               setSelected(null);
-              setFilter("");
             }}
           >
             <RotateCcw size={15} />
-            Reset view
+            Clear selection
           </Button>
-          <div className="graph-toolbar flex items-center justify-between gap-[15px] mb-[19px] max-[740px]:items-start max-[460px]:flex-col max-[460px]:gap-[5px]">
-            <div className="graph-legend flex flex-wrap gap-[7px] max-[460px]:gap-[1px]">
-              {entityTypes.map((type) => (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  key={type.id}
-                  className={filter === type.id ? "active" : ""}
-                  onClick={() => {
-                    setFilter(filter === type.id ? "" : type.id);
-                    setSelected(null);
-                  }}
-                >
-                  <span
-                    className={`legend-dot h-[7px] w-[7px] block rounded-full [background:currentColor] entity-${type.id}`}
-                  />
-                  {type.label}
-                </Button>
-              ))}
-            </div>
-            <span>
-              {nodes.length} pages · {graph.links.length} links
-            </span>
-          </div>
           <div className="graph-canvas relative [border:1px_solid_var(--line)] rounded-[7px] overflow-hidden [background:#f7f9f0]">
             <svg
               viewBox={compact ? "0 0 460 560" : "0 0 920 630"}

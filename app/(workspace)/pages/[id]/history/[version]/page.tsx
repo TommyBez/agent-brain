@@ -1,9 +1,9 @@
 import { Suspense } from "react";
 import {
   PageBackLink,
-  PageHeader,
   PageNavigation,
   PageRevision,
+  PageRevisionHeader,
 } from "@/components/page-detail";
 import { Loading } from "@/components/workspace/primitives";
 
@@ -23,7 +23,7 @@ export default function RevisionPage({
           <div className="h-40 animate-pulse rounded-md bg-secondary" />
         }
       >
-        <PageHeader params={params} />
+        <PageRevisionHeader params={params} />
       </Suspense>
       <Suspense fallback={<div className="h-12 border-b border-border mb-8" />}>
         <PageNavigation params={params} history />
