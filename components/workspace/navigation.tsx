@@ -4,6 +4,7 @@ import { Activity, BookOpen, Bot, Network, Settings2 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { type ReactNode, Suspense } from "react";
 import { entityTypes, type Stats } from "@/components/brain-types";
+import { Button } from "@/components/ui/button";
 import {
   collectionHref,
   collectionTypeFromPathname,
@@ -11,8 +12,7 @@ import {
 import { EntityIcon } from "./primitives";
 import { WorkspaceLink as Link } from "./search-navigation";
 
-const navClass =
-  "nav-item flex items-center w-full gap-[10px] bg-transparent p-[10px_11px] rounded-[5px] text-[#717968] text-[11px] text-left my-[2px] min-h-9 transition-colors";
+const navClass = "w-full justify-start";
 
 function ActiveNavigationLink({
   href,
@@ -24,13 +24,15 @@ function ActiveNavigationLink({
   const pathname = usePathname();
   const active = pathname === href;
   return (
-    <Link
-      href={href}
-      className={`${navClass} ${active ? "active" : ""}`}
-      aria-current={active ? "page" : undefined}
+    <Button
+      variant={active ? "secondary" : "ghost"}
+      className={navClass}
+      asChild
     >
-      {children}
-    </Link>
+      <Link href={href} aria-current={active ? "page" : undefined}>
+        {children}
+      </Link>
+    </Button>
   );
 }
 
@@ -44,9 +46,9 @@ function NavigationLink({
   return (
     <Suspense
       fallback={
-        <Link href={href} className={navClass}>
-          {children}
-        </Link>
+        <Button variant="ghost" className={navClass} asChild>
+          <Link href={href}>{children}</Link>
+        </Button>
       }
     >
       <ActiveNavigationLink href={href}>{children}</ActiveNavigationLink>
@@ -56,13 +58,16 @@ function NavigationLink({
 
 export function WorkspaceNavigation({ stats }: { stats?: Stats }) {
   return (
-    <nav aria-label="Workspace navigation">
-      <span className="nav-label block text-[#979e8c] text-[8px] font-semibold tracking-[.16em] px-[10px] mb-[10px]">
+    <nav aria-label="Workspace navigation" className="space-y-1">
+      <span className="mb-2 block px-3 text-xs font-medium text-muted-foreground">
         WORKSPACE
       </span>
       <NavigationLink href="/">
         <BookOpen size={17} />
-        All pages<span>{stats?.pages ?? "—"}</span>
+        All pages
+        <span className="ml-auto text-xs text-muted-foreground">
+          {stats?.pages ?? "—"}
+        </span>
       </NavigationLink>
       <NavigationLink href="/graph">
         <Network size={17} />
@@ -72,14 +77,16 @@ export function WorkspaceNavigation({ stats }: { stats?: Stats }) {
         <Activity size={17} />
         Activity
       </NavigationLink>
-      <span className="nav-label block text-[#979e8c] text-[8px] font-semibold tracking-[.16em] px-[10px] mb-[10px] mt-[27px]">
+      <span className="mt-6 mb-2 block px-3 text-xs font-medium text-muted-foreground">
         COLLECTIONS
       </span>
       {entityTypes.map((item) => (
         <NavigationLink key={item.id} href={collectionHref(item.id)}>
           <EntityIcon type={item.id} />
           {item.label}
-          <span>{stats ? (stats.byType[item.id] ?? 0) : "—"}</span>
+          <span className="ml-auto text-xs text-muted-foreground">
+            {stats ? (stats.byType[item.id] ?? 0) : "—"}
+          </span>
         </NavigationLink>
       ))}
     </nav>
@@ -88,7 +95,7 @@ export function WorkspaceNavigation({ stats }: { stats?: Stats }) {
 
 export function SettingsNavigation() {
   return (
-    <>
+    <nav aria-label="Workspace settings" className="space-y-1">
       <NavigationLink href="/agents">
         <Bot size={17} />
         Agents & access
@@ -97,7 +104,7 @@ export function SettingsNavigation() {
         <Settings2 size={17} />
         Operations
       </NavigationLink>
-    </>
+    </nav>
   );
 }
 
@@ -125,5 +132,5 @@ export function WorkspaceBreadcrumb() {
                     : /\/history\/[^/]+$/.test(pathname)
                       ? "Page revision"
                       : "Page";
-  return <span>{title}</span>;
+  return <span className="truncate text-foreground">{title}</span>;
 }

@@ -56,7 +56,7 @@ export function OperationsControls({ active }: { active: boolean }) {
     <div className="mb-5">
       <div className="flex flex-wrap justify-end gap-2">
         <Button type="button" disabled={pending} onClick={run}>
-          {pending && <LoaderCircle size={14} className="animate-spin" />}
+          {pending && <LoaderCircle className="animate-spin" />}
           Run maintenance
         </Button>
         <Button
@@ -65,7 +65,7 @@ export function OperationsControls({ active }: { active: boolean }) {
           disabled={refreshing}
           onClick={() => refreshTransition(() => router.refresh())}
         >
-          {refreshing && <LoaderCircle size={14} className="animate-spin" />}
+          {refreshing && <LoaderCircle className="animate-spin" />}
           Refresh status
         </Button>
       </div>

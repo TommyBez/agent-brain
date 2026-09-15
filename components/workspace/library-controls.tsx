@@ -4,8 +4,12 @@ import { Search, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { entityTypes } from "@/components/brain-types";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
 import {
   NativeSelect,
@@ -131,16 +135,17 @@ export function LibraryControls({ type }: { type: PageType | "" }) {
     >
       <search>
         <form
-          className="library-toolbar flex gap-[10px] items-center mb-[25px] max-[740px]:gap-[9px]"
+          className="mb-6 flex flex-wrap items-center gap-2"
           onSubmit={(event) => {
             event.preventDefault();
             change({ query: normalizedQuery });
           }}
         >
-          <Label className="search-field flex-1 flex flex-row items-center gap-[9px] px-[13px] [border:1px_solid_var(--line)] rounded-[5px] bg-[#fffefb] text-[#8c9580] h-[39px] max-[460px]:pl-[10px] max-[460px]:gap-[7px]">
-            <Search size={17} />
-            <span className="sr-only">Search pages</span>
-            <Input
+          <Label htmlFor="library-search" className="sr-only">
+            Search pages
+          </Label>
+          <InputGroup className="flex-1 basis-full sm:basis-0">
+            <InputGroupInput
               id="library-search"
               ref={inputRef}
               name="q"
@@ -153,27 +158,29 @@ export function LibraryControls({ type }: { type: PageType | "" }) {
               autoComplete="off"
               maxLength={500}
             />
+            <InputGroupAddon>
+              <Search aria-hidden="true" />
+            </InputGroupAddon>
             {query && (
-              <Button
-                type="button"
-                variant="ghost"
-                className="icon-button bg-transparent size-[30px] rounded-[5px] inline-flex items-center justify-center text-muted-foreground shrink-0"
-                aria-label="Clear search"
-                onClick={() => {
-                  setQuery("");
-                  change({ query: "" });
-                  inputRef.current?.focus();
-                }}
-              >
-                <X size={15} />
-              </Button>
+              <InputGroupAddon align="inline-end">
+                <InputGroupButton
+                  size="icon-xs"
+                  aria-label="Clear search"
+                  onClick={() => {
+                    setQuery("");
+                    change({ query: "" });
+                    inputRef.current?.focus();
+                  }}
+                >
+                  <X aria-hidden="true" />
+                </InputGroupButton>
+              </InputGroupAddon>
             )}
-          </Label>
+          </InputGroup>
           <div className="w-32 shrink-0">
             <NativeSelect
               aria-label="Filter by page type"
               name="type"
-              className="h-[39px] text-xs text-muted-foreground"
               value={filters.type}
               onChange={(event) =>
                 change({ type: event.target.value as LibraryFilters["type"] })
@@ -187,11 +194,10 @@ export function LibraryControls({ type }: { type: PageType | "" }) {
               ))}
             </NativeSelect>
           </div>
-          <div className="w-36 shrink-0 max-[960px]:hidden">
+          <div className="w-36 shrink-0">
             <NativeSelect
               aria-label="Sort pages"
               name="sort"
-              className="h-[39px] text-xs text-muted-foreground"
               value={filters.sort}
               onChange={(event) =>
                 change({ sort: event.target.value as LibraryFilters["sort"] })
@@ -205,7 +211,7 @@ export function LibraryControls({ type }: { type: PageType | "" }) {
           </div>
         </form>
       </search>
-      <output className="absolute right-0 -bottom-5 text-[10px] text-muted-foreground">
+      <output className="absolute right-0 -bottom-5 text-xs text-muted-foreground">
         {pending || normalizedQuery !== filters.query
           ? "Updating results…"
           : ""}

@@ -37,8 +37,8 @@ export default function NewPage({
   searchParams: SearchParams;
 }) {
   return (
-    <div className="page-detail">
-      <div className="detail-topline pb-[35px]">
+    <div className="space-y-6">
+      <div className="text-sm">
         <PageBackLink />
       </div>
       <PageHeading eyebrow="MAKE ROOM FOR A THOUGHT" title="A new page" />

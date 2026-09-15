@@ -28,8 +28,8 @@ async function Editor({ params }: { params: PageParams }) {
 
 export default function EditPage({ params }: { params: PageParams }) {
   return (
-    <div className="page-detail">
-      <div className="detail-topline pb-[35px]">
+    <div className="space-y-6">
+      <div className="text-sm">
         <PageBackLink />
       </div>
       <PageHeading eyebrow="REFINE WHAT YOU KNOW" title="Edit page" />

@@ -39,11 +39,8 @@ export function PasswordSettings() {
   return (
     <form onSubmit={changePassword} className="space-y-5">
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <Label
-          htmlFor="current-password"
-          className="flex flex-col items-start gap-2 text-xs"
-        >
-          Current password
+        <div className="grid gap-2">
+          <Label htmlFor="current-password">Current password</Label>
           <Input
             id="current-password"
             name="currentPassword"
@@ -51,12 +48,9 @@ export function PasswordSettings() {
             autoComplete="current-password"
             required
           />
-        </Label>
-        <Label
-          htmlFor="new-password"
-          className="flex flex-col items-start gap-2 text-xs"
-        >
-          New password
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="new-password">New password</Label>
           <Input
             id="new-password"
             name="newPassword"
@@ -66,7 +60,7 @@ export function PasswordSettings() {
             placeholder="At least 12 characters"
             required
           />
-        </Label>
+        </div>
       </div>
       {error && (
         <p role="alert" className="text-xs text-destructive">
@@ -79,11 +73,7 @@ export function PasswordSettings() {
         </output>
       )}
       <Button type="submit" disabled={busy}>
-        {busy ? (
-          <LoaderCircle className="animate-spin" size={15} />
-        ) : (
-          <ShieldCheck size={15} />
-        )}{" "}
+        {busy ? <LoaderCircle className="animate-spin" /> : <ShieldCheck />}{" "}
         Update password
       </Button>
     </form>

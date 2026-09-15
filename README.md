@@ -42,6 +42,14 @@ The server data layer rechecks the owner session before reading owner-keyed cach
 
 See [the rendering and verification guide](docs/next-app-router.md) for route boundaries, invalidation, navigation checks, and the gated HTTP acceptance command (`RUN_NEXT_TESTS=1` with isolated `BRAIN_TEST_*` fixture settings).
 
+## UI components
+
+Use the vendored shadcn components in `components/ui` unchanged, through their standard variants, sizes and composition APIs. Theme them through the tokens in `app/globals.css`; do not override their borders, padding, focus rings, disabled states or interaction behavior. Adapt registry import paths to the configured project aliases when installing a component.
+
+Application code must use semantic color tokens, never literal colors or Tailwind palette utilities. Entity variants define local tokens in the theme. Unmodified shadcn components also consume Tailwind's built-in palette tokens, mapped centrally where needed. `tests/ui-tokens.test.ts` checks this boundary.
+
+Use standard Tailwind spacing, typography and responsive layout utilities. Custom CSS is limited to rendered Markdown typography and accessibility preferences. Graph geometry is application-specific; graph colors still use theme tokens. The Item registry component keeps its original list markup; its one semantic-element lint preference is configured in Biome rather than patched in vendored source.
+
 ## Connect an agent
 
 Connect to `https://YOUR_DOMAIN/mcp` using Streamable HTTP and **OAuth 2.1**. Add the URL in your agent, choose OAuth if prompted, sign in to Brain, and approve the requested permissions. The agent discovers the authorization server and obtains its own access token using authorization code + PKCE. No manually generated token or client secret is needed for interactive clients.

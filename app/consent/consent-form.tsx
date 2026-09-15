@@ -31,11 +31,11 @@ export function ConsentActions() {
   return (
     <>
       {error && (
-        <p role="alert" className="consent-error">
+        <p role="alert" className="text-destructive">
           {error}
         </p>
       )}
-      <div className="consent-actions">
+      <div className="flex gap-2.5 justify-end mt-7">
         <Button
           type="button"
           variant="outline"
@@ -44,12 +44,7 @@ export function ConsentActions() {
         >
           Cancel
         </Button>
-        <Button
-          type="button"
-          className="consent-approve"
-          disabled={busy}
-          onClick={() => decide(true)}
-        >
+        <Button type="button" disabled={busy} onClick={() => decide(true)}>
           {busy ? "Connecting…" : "Allow access"}
         </Button>
       </div>

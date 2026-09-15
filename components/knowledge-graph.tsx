@@ -3,7 +3,15 @@
 import { ArrowUpRight, Network, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { pageHref } from "@/lib/workspace/urls";
 import type { BrainLink, PageSummary } from "./brain-types";
 import { Empty } from "./workspace/primitives";
@@ -62,7 +70,7 @@ export function KnowledgeGraph({
     <>
       {!graph.nodes.length ? (
         <Empty
-          icon={<Network size={32} strokeWidth={1.2} />}
+          icon={<Network className="size-8" />}
           title="Knowledge grows between the dots."
           description="Create a few pages and connect them with typed links. Their relationships will take shape here."
         />
@@ -76,12 +84,13 @@ export function KnowledgeGraph({
               setSelected(null);
             }}
           >
-            <RotateCcw size={15} />
+            <RotateCcw />
             Clear selection
           </Button>
-          <div className="graph-canvas relative [border:1px_solid_var(--line)] rounded-[7px] overflow-hidden [background:#f7f9f0]">
+          <div className="relative overflow-hidden rounded-lg border bg-card">
             <svg
               viewBox={compact ? "0 0 460 560" : "0 0 920 630"}
+              className="block h-auto max-h-160 w-full"
               role="img"
               aria-label="Interactive knowledge graph. Select a page to inspect its connections."
             >
@@ -93,7 +102,7 @@ export function KnowledgeGraph({
                   height="24"
                   patternUnits="userSpaceOnUse"
                 >
-                  <circle cx="2" cy="2" r=".7" fill="#c9cabc" />
+                  <circle cx="2" cy="2" r=".7" className="fill-border" />
                 </pattern>
               </defs>
               <rect width="920" height="630" fill="url(#graph-dots)" />
@@ -112,7 +121,7 @@ export function KnowledgeGraph({
                       y1={source.y}
                       x2={target.x}
                       y2={target.y}
-                      stroke={selected ? "#546849" : "#c2c8b8"}
+                      className={selected ? "stroke-primary" : "stroke-border"}
                       strokeWidth={selected && active ? 1.8 : 1}
                     />
                     {selected && active && (
@@ -120,7 +129,10 @@ export function KnowledgeGraph({
                         x={(source.x + target.x) / 2}
                         y={(source.y + target.y) / 2 - 6}
                         textAnchor="middle"
-                        className="graph-edge-label [fill:#8b9b79] [font-size:8px] [font-family:var(--sans)] [paint-order:stroke] [stroke:#f7f9f0] [stroke-width:5px] [stroke-linejoin:round]"
+                        className="fill-muted-foreground stroke-card font-sans text-xs"
+                        paintOrder="stroke"
+                        strokeWidth={5}
+                        strokeLinejoin="round"
                       >
                         {link.type.replaceAll("_", " ")}
                       </text>
@@ -135,7 +147,7 @@ export function KnowledgeGraph({
                   role="button"
                   tabIndex={0}
                   aria-label={`Inspect ${node.title}, ${node.type}`}
-                  className={`graph-node cursor-pointer graph-node-${node.type} ${selected === node.id ? "selected" : ""}`}
+                  className={`cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring entity-${node.type}`}
                   opacity={
                     !selected || neighbors.has(node.id) || selected === node.id
                       ? 1
@@ -155,15 +167,26 @@ export function KnowledgeGraph({
                     cx={node.x}
                     cy={node.y}
                     r={selected === node.id ? 15 : 9}
+                    className={`fill-secondary-foreground ${selected === node.id ? "stroke-primary" : "stroke-card"}`}
+                    strokeWidth={selected === node.id ? 2 : 3}
                   />
                   <circle
                     cx={node.x}
                     cy={node.y}
                     r="25"
-                    fill="transparent"
+                    className="fill-card"
+                    fillOpacity={0}
                     stroke="none"
                   />
-                  <text x={node.x} y={node.y + 33} textAnchor="middle">
+                  <text
+                    x={node.x}
+                    y={node.y + 33}
+                    textAnchor="middle"
+                    className={`fill-foreground stroke-card font-sans font-medium ${compact ? "text-base" : "text-xs"}`}
+                    paintOrder="stroke"
+                    strokeWidth={5}
+                    strokeLinejoin="round"
+                  >
                     {node.title.length > (compact ? 19 : 27)
                       ? `${node.title.slice(0, compact ? 17 : 25)}…`
                       : node.title}
@@ -171,43 +194,52 @@ export function KnowledgeGraph({
                 </g>
               ))}
             </svg>
-            <div className="graph-caption absolute bottom-[20px] left-[22px] flex items-center gap-2 [color:#a0ae91] [font-size:9px] max-[460px]:[font-size:7px] max-[460px]:bottom-[12px] max-[460px]:left-[13px]">
-              <Network size={14} className="shrink-0" /> Select a page to
-              explore its neighborhood.
+            <div className="absolute inset-x-4 bottom-4 flex items-center gap-2 text-xs text-muted-foreground">
+              <Network className="size-4 shrink-0" /> Select a page to explore
+              its neighborhood.
             </div>
           </div>
           {selectedPage && (
-            <div className="graph-inspector flex items-center justify-between gap-6 p-[23px] [border:1px_solid_#d4e1c3] rounded-[6px] [background:#f0f5e7] mt-[17px] max-[460px]:p-[18px] max-[460px]:gap-[13px]">
-              <div>
-                <span className="eyebrow [font-size:10px] font-semibold tracking-[.16em] text-primary">
+            <Card className="mt-4">
+              <CardHeader>
+                <Badge
+                  variant="secondary"
+                  className={`capitalize type-${selectedPage.type}`}
+                >
                   {selectedPage.type}
-                </span>
-                <h2>{selectedPage.title}</h2>
-                <p>
+                </Badge>
+                <CardTitle className="break-words">
+                  {selectedPage.title}
+                </CardTitle>
+                <CardDescription className="break-words">
                   {selectedPage.summary ||
                     `${selectedLinks.length} connections`}
-                </p>
-              </div>
-              <Link
-                href={pageHref(selectedPage.id)}
-                className="button bg-transparent [border:1px_solid_#d8dbcf] rounded-[6px] p-[10px_15px] inline-flex items-center justify-center gap-2 leading-[1.3] font-medium [font-size:12px] min-h-[39px] [transition:background_.15s,_border-color_.15s,_transform_.15s] whitespace-nowrap primary"
-              >
-                Read page <ArrowUpRight size={15} />
-              </Link>
-            </div>
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button asChild>
+                  <Link href={pageHref(selectedPage.id)}>
+                    Read page <ArrowUpRight />
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
           )}
-          <details className="graph-accessible mt-5 [color:#96a885] [font-size:10px]">
-            <summary>Browse pages as a list</summary>
-            <div>
+          <details className="mt-5 text-sm text-muted-foreground">
+            <summary className="cursor-pointer">Browse pages as a list</summary>
+            <div className="mt-4 flex flex-wrap gap-2">
               {nodes.map((node) => (
-                <Link
-                  href={pageHref(node.id)}
-                  className="text-link h-auto justify-start inline-flex items-center gap-[7px] p-[0] text-primary bg-transparent [font-size:12px] font-semibold text-left"
+                <Button
                   key={node.id}
+                  variant="link"
+                  asChild
+                  className="max-w-full"
                 >
-                  {node.title}
-                  <ArrowUpRight size={13} />
-                </Link>
+                  <Link href={pageHref(node.id)} title={node.title}>
+                    <span className="truncate">{node.title}</span>
+                    <ArrowUpRight />
+                  </Link>
+                </Button>
               ))}
             </div>
           </details>

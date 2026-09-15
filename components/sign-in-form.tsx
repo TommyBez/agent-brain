@@ -33,48 +33,44 @@ export function SignInForm({ callbackURL = "/" }: { callbackURL?: string }) {
     }
   }
   return (
-    <form
-      className="stack-form flex flex-col gap-[21px] mt-8"
-      onSubmit={signIn}
-    >
-      <Label>
-        Email address
+    <form className="grid gap-6" onSubmit={signIn}>
+      <div className="grid gap-2">
+        <Label htmlFor="sign-in-email">Email address</Label>
         <Input
+          id="sign-in-email"
           type="email"
           name="email"
           autoComplete="email"
           placeholder="you@example.com"
           required
         />
-      </Label>
-      <Label>
-        Password
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor="sign-in-password">Password</Label>
         <Input
+          id="sign-in-password"
           type="password"
           name="password"
           autoComplete="current-password"
           placeholder="Your password"
           required
         />
-      </Label>
+      </div>
       {error && (
-        <p
-          className="message [border:1px_solid_#d9dece] [background:#edf0e5] p-[16px_18px] rounded-[6px] [font-size:13px] m-[18px_0] error"
-          role="alert"
-        >
+        <p className="text-sm text-destructive" role="alert">
           {error}
         </p>
       )}
       <Button
         type="submit"
         variant="default"
-        className="button bg-transparent [border:1px_solid_#d8dbcf] rounded-[6px] p-[10px_15px] inline-flex items-center justify-center gap-2 leading-[1.3] font-medium [font-size:12px] min-h-[39px] [transition:background_.15s,_border-color_.15s,_transform_.15s] whitespace-nowrap primary wide"
+        className="w-full"
         disabled={busy}
       >
-        {busy ? <LoaderCircle className="spin" size={16} /> : null} Sign in{" "}
-        <ArrowRight size={17} />
+        {busy ? <LoaderCircle className="animate-spin" size={16} /> : null} Sign
+        in <ArrowRight size={17} />
       </Button>
-      <p className="form-note [font-size:11px] text-muted-foreground font-normal leading-[1.65]">
+      <p className="text-sm text-muted-foreground">
         This is a private workspace. Accounts are provisioned by its owner.
       </p>
     </form>
