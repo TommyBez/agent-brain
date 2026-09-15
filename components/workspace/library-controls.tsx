@@ -1,7 +1,7 @@
 "use client";
 
-import { Plus, Search, X } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { Search, X } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { entityTypes } from "@/components/brain-types";
 import { Button } from "@/components/ui/button";
@@ -11,53 +11,26 @@ import {
   NativeSelect,
   NativeSelectOption,
 } from "@/components/ui/native-select";
+import type { PageType } from "@/lib/brain/types";
 import {
   type LibraryFilters,
   libraryHref,
   parseLibraryFilters,
 } from "@/lib/workspace/urls";
-import { actionClassName, PageHeading } from "./primitives";
-import {
-  WorkspaceLink as Link,
-  useSearchNavigation,
-} from "./search-navigation";
+import { useSearchNavigation } from "./search-navigation";
 
-export function LibraryHeading() {
-  const params = useSearchParams();
-  const type = parseLibraryFilters(params).type;
-  const title =
-    entityTypes.find((item) => item.id === type)?.label ?? "All pages";
-  return (
-    <PageHeading
-      eyebrow="THE KNOWLEDGE DESK"
-      title={title}
-      description={
-        type
-          ? `Your ${title.toLowerCase()}, with the context that matters.`
-          : "Everything you know. A little more connected."
-      }
-    >
-      <Link
-        href={type ? `/pages/new?type=${type}` : "/pages/new"}
-        className={`${actionClassName} primary`}
-      >
-        <Plus size={16} />
-        New page
-      </Link>
-    </PageHeading>
-  );
-}
-
-export function LibraryControls() {
+export function LibraryControls({ type }: { type: PageType | "" }) {
+  const pathname = usePathname();
   const params = useSearchParams();
   const router = useRouter();
   const { register } = useSearchNavigation();
-  const filters = parseLibraryFilters(params);
+  const filters = parseLibraryFilters(params, type);
   const [query, setQuery] = useState(filters.query);
   const [pending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
   const serialized = params.toString();
-  const observedSearch = useRef(serialized);
+  const location = serialized ? `${pathname}?${serialized}` : pathname;
+  const observedLocation = useRef(location);
   const pendingNavigation = useRef<{
     href: string;
     filters: LibraryFilters;
@@ -74,7 +47,9 @@ export function LibraryControls() {
       cancelledForNavigation.current = true;
       clearTimeout(debounceTimer.current);
       pendingNavigation.current = null;
-      setQuery(parseLibraryFilters(new URLSearchParams(serialized)).query);
+      setQuery(
+        parseLibraryFilters(new URLSearchParams(serialized), type).query,
+      );
     }
     const unregister = register(cancelSearch);
     window.addEventListener("popstate", cancelSearch);
@@ -83,23 +58,24 @@ export function LibraryControls() {
       unregister();
       window.removeEventListener("popstate", cancelSearch);
     };
-  }, [register, serialized]);
+  }, [register, serialized, type]);
 
   useEffect(() => {
-    if (observedSearch.current === serialized) return;
-    observedSearch.current = serialized;
+    if (observedLocation.current === location) return;
+    observedLocation.current = location;
     cancelledForNavigation.current = false;
-    const href = serialized ? `/?${serialized}` : "/";
-    const ownNavigation = pendingNavigation.current?.href === href;
+    const ownNavigation = pendingNavigation.current?.href === location;
     pendingNavigation.current = null;
     if (!ownNavigation) {
       // A collection link or browser Back/Forward replaces an unsubmitted draft,
       // even when both URLs have the same (usually empty) query.
       clearTimeout(debounceTimer.current);
       resetDraft.current = true;
-      setQuery(parseLibraryFilters(new URLSearchParams(serialized)).query);
+      setQuery(
+        parseLibraryFilters(new URLSearchParams(serialized), type).query,
+      );
     }
-  }, [serialized]);
+  }, [location, serialized, type]);
 
   useEffect(() => {
     // Also prevent an already queued passive effect from rearming after a click.
@@ -108,9 +84,14 @@ export function LibraryControls() {
       resetDraft.current = false;
       return;
     }
-    const current = parseLibraryFilters(new URLSearchParams(serialized));
+    const current = parseLibraryFilters(new URLSearchParams(serialized), type);
     if (normalizedQuery === current.query) return;
     debounceTimer.current = setTimeout(() => {
+      if (
+        cancelledForNavigation.current ||
+        observedLocation.current !== location
+      )
+        return;
       // Keep a type/sort change that is still navigating when more text arrives.
       const next = {
         ...(pendingNavigation.current?.filters ?? current),
@@ -122,7 +103,7 @@ export function LibraryControls() {
       startTransition(() => router.replace(href, { scroll: false }));
     }, 220);
     return () => clearTimeout(debounceTimer.current);
-  }, [normalizedQuery, serialized, router]);
+  }, [normalizedQuery, location, serialized, type, router]);
 
   const focusSearch = params.get("focus") === "search";
   useEffect(() => {

@@ -1,9 +1,13 @@
 "use client";
 
 import { Activity, BookOpen, Bot, Network, Settings2 } from "lucide-react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { type ReactNode, Suspense } from "react";
 import { entityTypes, type Stats } from "@/components/brain-types";
+import {
+  collectionHref,
+  collectionTypeFromPathname,
+} from "@/lib/workspace/urls";
 import { EntityIcon } from "./primitives";
 import { WorkspaceLink as Link } from "./search-navigation";
 
@@ -18,12 +22,7 @@ function ActiveNavigationLink({
   children: ReactNode;
 }) {
   const pathname = usePathname();
-  const params = useSearchParams();
-  const target = new URL(href, "https://brain.invalid");
-  const active =
-    pathname === target.pathname &&
-    (pathname !== "/" ||
-      (params.get("type") ?? "") === (target.searchParams.get("type") ?? ""));
+  const active = pathname === href;
   return (
     <Link
       href={href}
@@ -77,7 +76,7 @@ export function WorkspaceNavigation({ stats }: { stats?: Stats }) {
         COLLECTIONS
       </span>
       {entityTypes.map((item) => (
-        <NavigationLink key={item.id} href={`/?type=${item.id}`}>
+        <NavigationLink key={item.id} href={collectionHref(item.id)}>
           <EntityIcon type={item.id} />
           {item.label}
           <span>{stats ? (stats.byType[item.id] ?? 0) : "—"}</span>
@@ -104,11 +103,11 @@ export function SettingsNavigation() {
 
 export function WorkspaceBreadcrumb() {
   const pathname = usePathname();
-  const params = useSearchParams();
-  const title =
-    pathname === "/"
-      ? (entityTypes.find((t) => t.id === params.get("type"))?.label ??
-        "All pages")
+  const collection = collectionTypeFromPathname(pathname);
+  const title = collection
+    ? entityTypes.find((item) => item.id === collection)?.label
+    : pathname === "/"
+      ? "All pages"
       : pathname === "/graph"
         ? "Knowledge graph"
         : pathname === "/activity"

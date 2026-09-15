@@ -6,7 +6,7 @@ import {
   StreamableHTTPClientTransport,
 } from "@modelcontextprotocol/client";
 import { Pool } from "pg";
-import type { BrainPage } from "../lib/brain/types";
+import type { BrainPage, PageType } from "../lib/brain/types";
 
 // These acceptance tests require a running Next build and an isolated fixture
 // owner. They deliberately do not import or mock App Router handlers/components.
@@ -21,6 +21,22 @@ function renderedText(html: string) {
   return renderedHtml(html)
     .replace(/<[^>]+>/g, " ")
     .replace(/\s+/g, " ");
+}
+
+async function assertRedirect(response: Response, destination: string) {
+  if (response.headers.has("location")) {
+    assert.equal(response.headers.get("location"), destination);
+  } else {
+    const content = await response.text();
+    assert.ok(
+      content.includes('http-equiv="refresh"'),
+      "A streamed redirect must include a real browser redirect instruction",
+    );
+    assert.ok(
+      content.includes(`url=${destination.replaceAll("&", "&amp;")}`),
+      `Expected a streamed redirect to ${destination}`,
+    );
+  }
 }
 
 function editable(page: BrainPage) {
@@ -190,12 +206,13 @@ test(
       title: string,
       markdown: string,
       links: { targetRef: string; type: "references" }[] = [],
+      type: PageType = "note",
     ) {
       const response = await request(
         "/api/brain/pages",
         json("POST", {
           title,
-          type: "note",
+          type,
           markdown,
           expectedVersion: 0,
           links,
@@ -220,6 +237,67 @@ test(
       `${prefix}Page`,
       `# Server rendered knowledge\n\n${bodyMarker}`,
       [{ targetRef: connected.id, type: "references" }],
+    );
+    const project = await createPage(
+      `${prefix}Project`,
+      "Temporary project collection fixture.",
+      [],
+      "project",
+    );
+
+    await t.test(
+      "plural collection routes render their own heading, links, and type-scoped search results",
+      async () => {
+        for (const [path, title] of [
+          ["/people", "People"],
+          ["/clients", "Clients"],
+          ["/projects", "Projects"],
+          ["/articles", "Articles"],
+          ["/decisions", "Decisions"],
+          ["/notes", "Notes"],
+        ]) {
+          const collection = renderedHtml(await html(`${path}?q=${prefix}`));
+          const heading = collection.match(/<h1\b[^>]*>[\s\S]*?<\/h1>/)?.[0];
+          assert.ok(heading, `Expected a heading on ${path}`);
+          assert.match(
+            renderedText(heading),
+            new RegExp(`^\\s*${title}\\s*\\.?\\s*$`),
+          );
+          assert.ok(
+            collection.includes(`href="${path}"`),
+            `Collections navigation must link directly to ${path}`,
+          );
+        }
+
+        const projects = renderedHtml(
+          await html(`/projects?q=${prefix}&type=note`),
+        );
+        assert.ok(projects.includes(`href="/pages/${project.id}"`));
+        assert.ok(!renderedText(projects).includes(page.title));
+        assert.ok(!renderedText(projects).includes(connected.title));
+        assert.ok(projects.includes('href="/pages/new?type=project"'));
+        assert.ok(projects.includes(`value="${prefix}"`));
+
+        const notes = renderedHtml(
+          await html(`/notes?q=${prefix}&type=project`),
+        );
+        assert.ok(notes.includes(`href="/pages/${page.id}"`));
+        assert.ok(notes.includes(`href="/pages/${connected.id}"`));
+        assert.ok(!renderedText(notes).includes(project.title));
+        assert.ok(notes.includes('href="/pages/new?type=note"'));
+
+        const unmatched = renderedText(await html(`/projects?q=${page.title}`));
+        assert.ok(unmatched.includes("Nothing here, yet."));
+        assert.ok(!unmatched.includes(project.title));
+
+        const laterResults = renderedHtml(
+          await html(`/projects?q=${prefix}&sort=title&offset=50`),
+        );
+        assert.ok(
+          laterResults.includes(`href="/projects?q=${prefix}&amp;sort=title"`),
+          "Pagination must preserve the collection, search and sort",
+        );
+      },
     );
 
     await t.test(
@@ -259,7 +337,7 @@ test(
     );
 
     await t.test(
-      "navigation and route heading stream before a blocked database result",
+      "navigation and collection heading stream before a blocked database result",
       async () => {
         const lock = await db.connect();
         let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
@@ -272,7 +350,9 @@ test(
           );
           await lock.query("LOCK TABLE brain_pages IN ACCESS EXCLUSIVE MODE");
           // A unique query cannot reuse the data entry warmed by the preceding test.
-          const response = await request(`/?q=${page.title}&offset=0`);
+          const response = await request(
+            `/projects?q=${project.title}&offset=0`,
+          );
           assert.equal(response.status, 200);
           assert.ok(response.body);
           reader = response.body.getReader();
@@ -280,7 +360,7 @@ test(
           let received = "";
           while (
             !renderedHtml(received).includes('href="/graph"') ||
-            !/<h1[^>]*>All pages/.test(renderedHtml(received))
+            !/<h1[^>]*>Projects/.test(renderedHtml(received))
           ) {
             const chunk = await reader.read();
             assert.equal(
@@ -291,7 +371,9 @@ test(
             received += decoder.decode(chunk.value, { stream: true });
           }
           assert.ok(
-            !renderedHtml(received).includes(`<strong>${page.title}</strong>`),
+            !renderedHtml(received).includes(
+              `<strong>${project.title}</strong>`,
+            ),
             "Private results must not be required to send the shell",
           );
           await lock.query("ROLLBACK");
@@ -303,7 +385,9 @@ test(
           }
           received += decoder.decode();
           assert.ok(
-            renderedHtml(received).includes(`<strong>${page.title}</strong>`),
+            renderedHtml(received).includes(
+              `<strong>${project.title}</strong>`,
+            ),
             "The server must stream actual page rows after the database resumes",
           );
         } finally {
@@ -423,6 +507,8 @@ test(
       async () => {
         for (const path of [
           "/",
+          `/projects?q=${prefix}`,
+          `/notes?q=${prefix}`,
           `/pages/${page.id}`,
           `/pages/${page.id}/edit`,
           `/pages/${page.id}/history`,
@@ -442,6 +528,10 @@ test(
           assert.ok(
             !content.includes(page.title),
             `Private title escaped authentication on ${path}`,
+          );
+          assert.ok(
+            !content.includes(project.title),
+            `Private project escaped authentication on ${path}`,
           );
           assert.ok(
             !content.includes(email),
@@ -466,20 +556,21 @@ test(
     );
 
     await t.test(
-      "legacy page query links redirect to the addressable entity route",
+      "legacy query links redirect to collection paths and retain entity-link precedence",
       async () => {
-        const response = await request(`/?page=${page.id}`);
-        const content = await response.text();
-        const destination = `/pages/${page.id}`;
-        if (response.headers.has("location"))
-          assert.equal(response.headers.get("location"), destination);
-        else {
-          assert.ok(
-            content.includes('http-equiv="refresh"'),
-            "A streamed redirect must include a real browser redirect instruction",
-          );
-          assert.ok(content.includes(`url=${destination}`));
-        }
+        await assertRedirect(
+          await request(`/?type=project&q=${prefix}&sort=title&offset=50`),
+          `/projects?q=${prefix}&sort=title&offset=50`,
+        );
+        await assertRedirect(await request("/?type=person"), "/people");
+        await assertRedirect(
+          await request(`/?page=${page.id}`),
+          `/pages/${page.id}`,
+        );
+        await assertRedirect(
+          await request(`/?page=${page.id}&type=project`),
+          `/pages/${page.id}`,
+        );
       },
     );
   },

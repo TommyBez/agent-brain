@@ -4,7 +4,8 @@ Next.js 16.3 runs this application with `cacheComponents: true` and `partialPref
 
 | Route | Immediate shell | Streamed server content | Client interaction |
 | --- | --- | --- | --- |
-| `/` | Library heading, navigation, statistics and list placeholders | Owner statistics; filtered, sorted, paginated pages | Search, type and sort controls update URL |
+| `/` | All pages heading, navigation, statistics and list placeholders | Owner statistics; searched, sorted, paginated pages | Search and sort update query parameters; type selection navigates to a collection |
+| `/people`, `/clients`, `/projects`, `/articles`, `/decisions`, `/notes` | Collection-specific heading, navigation, statistics and list placeholders | Owner statistics; pages scoped to the route's collection, with search, sorting and pagination | Collection selection changes pathname; search, sort and pagination retain that collection |
 | `/graph` | Heading and graph placeholder | Owner-scoped graph snapshot | Node selection, local graph filter, reset |
 | `/activity` | Heading and activity placeholder | Audit entries and page links | Refresh |
 | `/pages/[id]` | Back navigation, heading/body/connection placeholders | Markdown, metadata, typed links and backlinks | Next Links |
@@ -15,6 +16,8 @@ Next.js 16.3 runs this application with `cacheComponents: true` and `partialPref
 | `/sign-in`, `/consent` | Authentication/consent copy | Consent identity and permissions | Better Auth forms |
 
 Keep each asynchronous or URL-dependent read under a Suspense boundary within its page. A boundary above the shared layout cannot provide the loading UI for sibling navigations. Do not add `loading.tsx`, `instant = false`, `force-dynamic`, or blanket cache bypasses to silence a rendering error.
+
+Each collection has a static App Router page and passes its entity type into the shared server-rendered library. The pathname owns collection identity: `/projects?type=note` still renders projects. Query parameters hold only search, sorting and pagination state. Existing `/?type=project` links redirect on the server to `/projects`, preserving the remaining query parameters. Legacy `/?page=...` links continue to redirect to the entity page and take precedence over a legacy type parameter.
 
 ## Data and mutation boundaries
 
@@ -30,7 +33,7 @@ Full token values are returned only when creating a token, through its Server Ac
 
 Run `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm build`. Database tests must use a separate Neon test branch. The rendering build should report the workspace routes as partially prerendered; both shell and dynamic parts are intentional.
 
-The HTTP acceptance suite exercises a running Next server without importing or mocking its handlers: rendered HTML, streaming while a database query is blocked, API/MCP cache invalidation, revisions, and authorization after caches are warm. It is skipped by `pnpm test` unless `RUN_NEXT_TESTS=1`.
+The HTTP acceptance suite exercises a running Next server without importing or mocking its handlers: rendered HTML, collection headings and type isolation, collection-preserving search and pagination links, legacy redirects, streaming while a database query is blocked, API/MCP cache invalidation, revisions, and authorization after caches are warm. It is skipped by `pnpm test` unless `RUN_NEXT_TESTS=1`. The unit suite verifies plural collection URL construction and parsing, including protection against a query parameter overriding the route's collection.
 
 Prepare a separate fixture owner whose email ends in `.invalid`, and run a Next build/server against that isolated test database with `BETTER_AUTH_URL` matching its loopback origin. The HTTP server and the cleanup database connection must refer to the same fixture. Put the following in a gitignored `.env.next-test`, replacing the placeholders with that fixture's values:
 
@@ -52,6 +55,7 @@ This suite creates temporary pages and a scoped token, then cleans up its exact 
 Verify the actual browser journeys as well:
 
 - Open and refresh a deep page URL. Follow links between library, entities, connections, revisions and settings; use Back and Forward.
+- Follow Collections → Projects and confirm the address is `/projects`; refresh and use Back/Forward across collections. Search and sort must retain the collection pathname.
 - Search, change type/order, navigate to a different collection before debounce completes, and check that URL and input stay in sync.
 - Save from the editor and from Markdown preview; revisit New page and confirm the completed draft is reset. Cancel an edit and reopen it.
 - Save concurrently through an agent/API and the editor. Confirm stale writes are rejected, the draft survives, and reconciliation uses the latest version.
