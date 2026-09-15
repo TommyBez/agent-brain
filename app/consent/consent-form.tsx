@@ -31,11 +31,11 @@ export function ConsentActions() {
   return (
     <>
       {error && (
-        <p role="alert" className="consent-error">
+        <p role="alert" className="text-destructive">
           {error}
         </p>
       )}
-      <div className="consent-actions">
+      <div className="flex gap-2.5 justify-end mt-7">
         <Button
           type="button"
           variant="outline"

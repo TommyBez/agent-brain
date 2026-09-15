@@ -12,7 +12,6 @@ import {
 import { getAuth, getSession } from "@/lib/auth";
 import { consentSignInHref } from "@/lib/auth-navigation";
 import { ConsentActions } from "./consent-form";
-import "./consent.css";
 
 const permissions: Record<string, string> = {
   "brain:read": "Read and search your pages, links and context",
@@ -89,38 +88,40 @@ async function AuthorizedConsent({
         Signed in as {session.user.email}. Review the permissions before
         connecting this agent to your private brain.
       </p>
-      <div className="consent-client">
+      <div className="my-6 grid gap-1.5 break-all">
         <strong>{identityHost || name || "Unknown client"}</strong>
         {name && name !== identityHost && <span>{name}</span>}
-        <code>{clientId}</code>
+        <code className="text-sm text-muted-foreground">{clientId}</code>
         <span>Authorization returns to</span>
-        <code>{redirectUri || "No callback provided"}</code>
+        <code className="text-sm text-muted-foreground">
+          {redirectUri || "No callback provided"}
+        </code>
       </div>
       {localCallback && (
-        <p className="consent-note">
+        <p className="mt-4 text-sm text-muted-foreground">
           This agent receives authorization on your computer. Continue only if
           you just started connecting that local application.
         </p>
       )}
-      <ul className="consent-scopes">
+      <ul>
         {scopes.map((scope) => (
-          <li key={scope}>
+          <li key={scope} className="grid gap-1 py-3 border-b">
             <span>{permissions[scope] || scope}</span>
-            <code>{scope}</code>
+            <code className="text-sm text-muted-foreground">{scope}</code>
           </li>
         ))}
       </ul>
       {claims.length > 0 && (
         <p>Additional identity fields requested: {claims.join(", ")}.</p>
       )}
-      <p className="consent-note">
+      <p className="mt-4 text-sm text-muted-foreground">
         Only approve agents you recognize. They will be able to use the
         permissions above on your behalf.
       </p>
       {verified ? (
         <ConsentActions />
       ) : (
-        <p role="alert" className="consent-error">
+        <p role="alert" className="text-destructive">
           This authorization request could not be verified. Start the connection
           again from your agent.
         </p>
@@ -135,7 +136,7 @@ export default function ConsentPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   return (
-    <main className="consent-shell">
+    <main className="min-h-dvh grid place-items-center p-8">
       <Card className="w-full max-w-xl">
         <CardHeader>
           <Link href="/">◈ Agent Brain</Link>
