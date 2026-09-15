@@ -4,6 +4,8 @@ A private, agent-native second brain. One canonical Markdown page per person, cl
 
 The MCP request path exposes validated storage and retrieval primitives, with automatic query embeddings. Vercel Cron starts a durable Vercel Workflow for consolidation, page embeddings and Git export. Remote MCP is the primary interface. The browser provides a knowledge desk for reading, editing, graph navigation, revisions, credentials and operational status.
 
+Using Brain from an agent? [Connect through MCP](#connect-an-agent) and install the [Agent Brain skill](#agent-skill).
+
 ## Local setup
 
 Requires Node.js 24, pnpm 11, and Postgres with `vector` and `pg_trgm` (Neon).
@@ -76,6 +78,26 @@ External headless agents have a separate optional token path: create a scoped to
 Maintenance tools expose paginated pages, gaps and pending chunk embeddings. `pending_embeddings` with `chunkLimit` returns a bounded batch of missing inputs; `index_chunks` accepts version-checked batches and publishes the index only when the full page is covered. Legacy `index_embedding` remains compatible but does not count as complete chunk coverage. Procedures are MCP instructions, resource `brain://procedures`, and prompts `before_work`, `after_conversation`, `nightly_consolidation`. The canonical procedure text lives in `lib/mcp/server.ts`; the portable skill refers to these prompts.
 
 All tools scope data to the authenticated owner. Foreign keys prevent cross-owner links. Accepted writes create full revisions and audit entries. On conflict, reread and reconcile. `write` replaces aliases, tags and outgoing links, so callers must preserve existing values deliberately.
+
+## Agent skill
+
+The portable [`brain-memory` skill](skills/brain-memory/SKILL.md) guides agents using Brain: retrieve context, resolve identities, preserve durable knowledge and verify saves. Its [writing reference](skills/brain-memory/references/writing-pages.md) explains full replacements, link payloads and conflict handling. The live MCP instructions, prompts and tool schemas remain authoritative; clients that expose only tools can follow the skill's workflow directly.
+
+Install it in a project using the [Skills CLI](https://github.com/vercel-labs/skills):
+
+```sh
+npx skills add TommyBez/agent-brain --skill brain-memory
+```
+
+From a local checkout, use `npx skills add ./skills/brain-memory`. Alternatively, copy the complete `skills/brain-memory` folder into your client's supported skill directory. Repository access is required if the repository is private. Installing the skill does not connect or authorize MCP; complete [the connection steps](#connect-an-agent) separately.
+
+Example requests after connecting:
+
+- “Use Agent Brain to recover the context and open decisions for this project.”
+- “Save the decisions from this conversation in Agent Brain, preserving their rationale and sources.”
+- “Review possible duplicates in Agent Brain and show me the uncertain cases.”
+
+In clients supporting explicit skill invocation, use `$brain-memory`. No database credentials, Git export access or model provider key is needed for ordinary agent use.
 
 ## Retrieval
 
