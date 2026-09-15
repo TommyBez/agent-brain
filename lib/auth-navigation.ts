@@ -1,5 +1,20 @@
 export const WORKSPACE_PATH_HEADER = "x-brain-workspace-path";
 
+export function consentSignInHref(
+  query: Record<string, string | string[] | undefined>,
+) {
+  // oauthProviderClient reads the signed query from window.location.search.
+  // Keep it at the top level: nesting it in returnTo prevents the provider
+  // from validating and resuming authorization after the session is created.
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(query)) {
+    if (typeof value === "string") params.append(key, value);
+    else if (Array.isArray(value))
+      for (const item of value) params.append(key, item);
+  }
+  return `/sign-in?${params.toString()}`;
+}
+
 // A post-login destination is an application path, never a provider callback.
 // OAuth redirects are returned by Better Auth after it validates the signed flow.
 export function safeReturnTo(value: string | null | undefined): string {

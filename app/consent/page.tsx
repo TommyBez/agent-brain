@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { getAuth, getSession } from "@/lib/auth";
+import { consentSignInHref } from "@/lib/auth-navigation";
 import { ConsentActions } from "./consent-form";
 import "./consent.css";
 
@@ -24,15 +25,7 @@ async function AuthorizedConsent({
   const query = await searchParams;
   const requestHeaders = await headers();
   const session = await getSession(requestHeaders);
-  if (!session) {
-    const params = new URLSearchParams();
-    for (const [key, value] of Object.entries(query)) {
-      if (typeof value === "string") params.append(key, value);
-      else if (Array.isArray(value))
-        for (const item of value) params.append(key, item);
-    }
-    redirect(`/sign-in?${params.toString()}`);
-  }
+  if (!session) redirect(consentSignInHref(query));
   const clientId = typeof query.client_id === "string" ? query.client_id : "";
   const redirectUri =
     typeof query.redirect_uri === "string" ? query.redirect_uri : "";
