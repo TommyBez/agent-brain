@@ -7,11 +7,17 @@ import {
   Network,
   Plus,
 } from "lucide-react";
-import { redirect } from "next/navigation";
+import { permanentRedirect, redirect } from "next/navigation";
 import { Suspense } from "react";
-import { relativeTime, type Stats } from "@/components/brain-types";
+import {
+  entityTypes,
+  relativeTime,
+  type Stats,
+} from "@/components/brain-types";
+import { PAGE_TYPES, type PageType } from "@/lib/brain/types";
 import { getWorkspacePages, getWorkspaceStats } from "@/lib/workspace/data";
 import {
+  collectionHref,
   LIBRARY_PAGE_SIZE,
   libraryHref,
   pageHref,
@@ -19,7 +25,7 @@ import {
   type RouteSearchParams,
   routeSearchParams,
 } from "@/lib/workspace/urls";
-import { LibraryControls, LibraryHeading } from "./library-controls";
+import { LibraryControls } from "./library-controls";
 import { actionClassName, Empty, EntityIcon, PageHeading } from "./primitives";
 import { WorkspaceLink as Link } from "./search-navigation";
 
@@ -91,13 +97,21 @@ export function LibrarySkeleton() {
 
 async function LibraryResults({
   searchParams,
+  type,
 }: {
   searchParams: Promise<RouteSearchParams>;
+  type: PageType | "";
 }) {
   const params = routeSearchParams(await searchParams);
   const legacyPage = params.get("page");
   if (legacyPage) redirect(pageHref(legacyPage));
-  const filters = parseLibraryFilters(params);
+  const legacyType = params.get("type");
+  if (!type && PAGE_TYPES.includes(legacyType as PageType)) {
+    params.delete("type");
+    const pathname = collectionHref(legacyType as PageType);
+    permanentRedirect(params.size ? `${pathname}?${params}` : pathname);
+  }
+  const filters = parseLibraryFilters(params, type);
   const { pages, total } = await getWorkspacePages({
     query: filters.query || undefined,
     type: filters.type || undefined,
@@ -242,27 +256,32 @@ async function LibraryResults({
 
 export function Library({
   searchParams,
+  type = "",
 }: {
   searchParams: Promise<RouteSearchParams>;
+  type?: PageType | "";
 }) {
+  const title =
+    entityTypes.find((item) => item.id === type)?.label ?? "All pages";
   return (
     <div className="library-view">
-      <Suspense
-        fallback={
-          <PageHeading
-            eyebrow="THE KNOWLEDGE DESK"
-            title="All pages"
-            description="Everything you know. A little more connected."
-          >
-            <Link href="/pages/new" className={`${actionClassName} primary`}>
-              <Plus size={16} />
-              New page
-            </Link>
-          </PageHeading>
+      <PageHeading
+        eyebrow="THE KNOWLEDGE DESK"
+        title={title}
+        description={
+          type
+            ? `Your ${title.toLowerCase()}, with the context that matters.`
+            : "Everything you know. A little more connected."
         }
       >
-        <LibraryHeading />
-      </Suspense>
+        <Link
+          href={type ? `/pages/new?type=${type}` : "/pages/new"}
+          className={`${actionClassName} primary`}
+        >
+          <Plus size={16} />
+          New page
+        </Link>
+      </PageHeading>
       <Suspense fallback={<StatsDisplay />}>
         <WorkspaceStats />
       </Suspense>
@@ -274,10 +293,10 @@ export function Library({
           />
         }
       >
-        <LibraryControls />
+        <LibraryControls type={type} />
       </Suspense>
       <Suspense fallback={<LibrarySkeleton />}>
-        <LibraryResults searchParams={searchParams} />
+        <LibraryResults searchParams={searchParams} type={type} />
       </Suspense>
       <div className="library-footer mt-[29px] pt-[13px] flex items-center justify-between text-[#a6ad9a] text-[7px] tracking-[.14em] max-[740px]:text-[6px]">
         <span>ONE PAGE PER ENTITY. EVERY CONNECTION COUNTS.</span>
