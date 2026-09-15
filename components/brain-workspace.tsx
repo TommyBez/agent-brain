@@ -2,7 +2,6 @@
 
 import {
   Activity as ActivityIcon,
-  ArrowDownUp,
   ArrowRight,
   ArrowUpRight,
   BookOpen,
@@ -21,7 +20,6 @@ import {
   Plus,
   Search,
   Settings2,
-  SlidersHorizontal,
   Users,
   X,
 } from "lucide-react";
@@ -465,10 +463,10 @@ export function BrainWorkspace({
                     </Button>
                   )}
                 </Label>
-                <Label className="select-field flex flex-row items-center gap-[3px] p-[0_11px] [border:1px_solid_var(--line)] rounded-[5px] h-[39px] bg-transparent [color:#7d8672] max-[740px]:p-[0_8px]">
-                  <SlidersHorizontal size={15} />
-                  <span className="sr-only">Filter by page type</span>
+                <div className="w-32 shrink-0">
                   <NativeSelect
+                    aria-label="Filter by page type"
+                    className="h-[39px] text-xs text-muted-foreground"
                     value={type}
                     onChange={(event) => setType(event.target.value)}
                   >
@@ -479,11 +477,11 @@ export function BrainWorkspace({
                       </NativeSelectOption>
                     ))}
                   </NativeSelect>
-                </Label>
-                <Label className="select-field flex flex-row items-center gap-[3px] p-[0_11px] [border:1px_solid_var(--line)] rounded-[5px] h-[39px] bg-transparent [color:#7d8672] max-[740px]:p-[0_8px] sort-select max-[960px]:hidden">
-                  <ArrowDownUp size={15} />
-                  <span className="sr-only">Sort pages</span>
+                </div>
+                <div className="w-36 shrink-0 max-[960px]:hidden">
                   <NativeSelect
+                    aria-label="Sort pages"
+                    className="h-[39px] text-xs text-muted-foreground"
                     value={sort}
                     onChange={(event) => setSort(event.target.value)}
                   >
@@ -494,7 +492,7 @@ export function BrainWorkspace({
                       Title A–Z
                     </NativeSelectOption>
                   </NativeSelect>
-                </Label>
+                </div>
               </div>
               <div className="section-caption flex items-center justify-between [color:#939c86] mb-3 [font-size:9px] tracking-[.09em]">
                 <span>{query ? "SEARCH RESULTS" : "YOUR LIBRARY"}</span>

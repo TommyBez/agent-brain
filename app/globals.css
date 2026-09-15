@@ -82,7 +82,6 @@ body {
 }
 button,
 input,
-select,
 textarea {
   font: inherit;
 }
@@ -119,7 +118,6 @@ summary:focus-visible,
   border-radius: 3px;
 }
 input:focus,
-select:focus,
 textarea:focus {
   outline: 2px solid #9eae90;
   outline-offset: 1px;
@@ -185,7 +183,6 @@ p {
 }
 
 input,
-select,
 textarea {
   width: 100%;
   border: 1px solid #dce0d2;
@@ -198,9 +195,6 @@ textarea {
 input::placeholder,
 textarea::placeholder {
   color: #949789;
-}
-select {
-  appearance: auto;
 }
 label {
   display: flex;
@@ -552,14 +546,6 @@ label {
 }
 .search-field .icon-button {
   width: 20px;
-}
-.select-field select {
-  border: 0;
-  width: auto;
-  padding: 6px;
-  font-size: 10px;
-  background: transparent;
-  color: #717c64;
 }
 .section-caption > span:first-child {
   font-size: 8px;
@@ -932,9 +918,6 @@ label {
   font-size: 12px;
   font-weight: 500;
   margin-bottom: 7px;
-}
-.link-composer select {
-  font-size: 11px;
 }
 
 .draft-link strong {
@@ -1384,9 +1367,6 @@ label {
     width: 16px;
   }
 
-  .select-field select {
-    font-size: 9px;
-  }
   .empty-state h2 {
     font-size: 25px;
   }
@@ -1478,9 +1458,6 @@ label {
   }
   .page-row-main strong {
     font-size: 16px;
-  }
-  .select-field > svg {
-    display: none;
   }
   .search-field input {
     font-size: 10px;
