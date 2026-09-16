@@ -1,11 +1,19 @@
 ---
 name: brain-memory
-description: Use a connected Agent Brain MCP server to recall project or people context, save durable facts and decisions from conversations, and organize canonical entity pages. Use for working with the user's brain, not developing the Agent Brain application.
+description: Use a connected Agent Brain MCP server whenever you notice relevant information that may be worth saving for future work, or need context about people, projects, companies or clients the user deals with, even when the user does not mention Brain or ask to remember. Also use for explicit Brain retrieval, saving and organization requests. Not for developing the Agent Brain application itself.
 ---
 
 # Agent Brain
 
 Use the owner's private brain as a source of context and durable knowledge. Each person, client, project, article, decision or note has one canonical Markdown page, connected by typed links. Access it through MCP; no repository checkout, database access or embedding provider key is needed to use the brain.
+
+## When to activate
+
+- **Notice knowledge worth preserving:** activate during any task or conversation when you encounter information likely to help future work with the user, such as a person's role or relationship, a company's priorities, a project's constraints or progress, a decision and its rationale, or a meaningful open question. Do not wait for “save this” or for the conversation to end. Activation means assessing whether the information belongs in Brain; it does not mean saving every observation.
+- **Need context about the user's world:** activate whenever the task needs background about people, projects, companies or clients the user deals with. This includes preparing a meeting, drafting a proposal, continuing a project or understanding a prior decision, even without an explicit recall request. Retrieve relevant Brain context before relying on assumptions or asking the user to repeat information that may already be stored.
+- **Explicit Brain work:** activate for requested retrieval, saving or organization of Brain knowledge.
+
+Use these triggers throughout the task as new information or context needs emerge. Reuse context already retrieved when sufficient; refresh it when the task needs missing details or a newer state. General knowledge questions and routine implementation work without relevant user-specific context do not require a Brain lookup.
 
 ## Connect and load the current procedure
 
@@ -24,9 +32,11 @@ Use the owner's private brain as a source of context and durable knowledge. Each
 
 Pass plain-text queries to `search` and `context`; the server supplies query embeddings. Inspect retrieval metadata for `hybrid` or `text-and-graph` mode. Fallback results remain usable, but do not describe them as semantic search. Newly saved content is immediately text-searchable; page vectors are updated by the nightly workflow. Do not generate vectors during ordinary reading or saving.
 
-## Preserve knowledge after a conversation
+## Preserve knowledge during or after work
 
-For a requested memory update, retain durable facts, decisions, rationale, sources and open questions in the relevant entity pages. A retrieval-only task does not require a write. Keep the user's language and terminology; do not turn the entire conversation into a transcript or create a page for every isolated fact.
+When you notice a candidate memory or receive a requested update, assess its future usefulness and compare it with the relevant existing pages. Retain durable facts, decisions, rationale, sources and meaningful open questions; skip transient chatter, unchanged duplicates and unsupported guesses. A retrieval-only task does not require a write.
+
+Save when authorized by the user's request or standing instructions, without asking again for already authorized updates. Otherwise, briefly propose the concrete information worth preserving and ask before writing. Discovering useful information or having a write-capable connection does not itself authorize a save. Keep the user's language and terminology; do not turn the entire conversation into a transcript or create a page for every isolated fact.
 
 - Resolve each entity and link target, then read current pages before changing them. Create a page only when no existing entity fits. A similar name alone is insufficient to merge people, clients or projects.
 - Choose `append` for a genuinely additive, sourced passage. Choose `write` to revise or reorganize the full page, including its metadata and outgoing links. Read [Writing pages](references/writing-pages.md) before constructing either payload.
