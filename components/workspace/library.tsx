@@ -6,7 +6,6 @@ import {
   Network,
   Plus,
 } from "lucide-react";
-import { permanentRedirect, redirect } from "next/navigation";
 import { Suspense } from "react";
 import {
   entityTypes,
@@ -25,10 +24,9 @@ import {
   ItemTitle,
 } from "@/components/ui/item";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PAGE_TYPES, type PageType } from "@/lib/brain/types";
+import type { PageType } from "@/lib/brain/types";
 import { getWorkspacePages, getWorkspaceStats } from "@/lib/workspace/data";
 import {
-  collectionHref,
   LIBRARY_PAGE_SIZE,
   libraryHref,
   pageHref,
@@ -99,14 +97,6 @@ async function LibraryResults({
   type: PageType | "";
 }) {
   const params = routeSearchParams(await searchParams);
-  const legacyPage = params.get("page");
-  if (legacyPage) redirect(pageHref(legacyPage));
-  const legacyType = params.get("type");
-  if (!type && PAGE_TYPES.includes(legacyType as PageType)) {
-    params.delete("type");
-    const pathname = collectionHref(legacyType as PageType);
-    permanentRedirect(params.size ? `${pathname}?${params}` : pathname);
-  }
   const filters = parseLibraryFilters(params, type);
   const { pages, total } = await getWorkspacePages({
     query: filters.query || undefined,

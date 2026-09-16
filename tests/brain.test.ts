@@ -6,6 +6,7 @@ import {
   contextSchema,
   EMBEDDING_DIMENSIONS,
   embeddingSchema,
+  searchSchema,
   writeSchema,
 } from "../lib/brain/schemas";
 import { BrainError } from "../lib/brain/types";
@@ -83,7 +84,29 @@ test("embeddings must have the configured dimensions and a usable finite norm", 
     false,
   );
   assert.equal(
-    writeSchema.safeParse({ ...newPage, embedding: valid }).success,
+    writeSchema.safeParse({
+      ...newPage,
+      embedding: valid,
+      embeddingModel: "openai/text-embedding-3-small",
+    }).success,
+    false,
+  );
+});
+
+test("query vectors remain supported without permitting page-vector writes", () => {
+  const embedding = Array.from({ length: EMBEDDING_DIMENSIONS }, (_, i) =>
+    Number(i === 0),
+  );
+  const query = {
+    query: "Atlas",
+    embedding,
+    embeddingModel: "openai/text-embedding-3-small",
+  };
+  assert.equal(searchSchema.safeParse(query).success, true);
+  assert.equal(contextSchema.safeParse(query).success, true);
+  assert.equal(
+    writeSchema.safeParse({ ...newPage, embeddingModel: query.embeddingModel })
+      .success,
     false,
   );
 });

@@ -14,7 +14,6 @@ export type WorkflowJobStatus = "queued" | "running" | WorkflowJobCompletion;
 
 export interface WorkflowJob {
   id: string;
-  executor: "workflow";
   kind: WorkflowJobKind;
   runDate: string;
   status: WorkflowJobStatus;
@@ -24,7 +23,7 @@ export interface WorkflowJob {
   error: string | null;
 }
 
-const JOB_COLUMNS = `id, executor, kind, run_date::text AS "runDate", status,
+const JOB_COLUMNS = `id, kind, run_date::text AS "runDate", status,
   workflow_run_id AS "workflowRunId", attempts, result, error`;
 
 function validateRunDate(runDate: string) {
@@ -62,42 +61,32 @@ export function workflowExportAttemptKey(jobId: string, attempts: number) {
   return attempts === 1 ? jobId : `${jobId}-attempt-${attempts}`;
 }
 
+/** Retried consolidation may have written before failing or losing its counters. */
 async function requeueStaleDownstreamJobs(
   db: PoolClient,
   ownerId: string,
   runDate: string,
-): Promise<number> {
-  const result = await db.query(
+): Promise<void> {
+  await db.query(
     `UPDATE brain_jobs downstream
      SET status='queued',workflow_run_id=NULL,started_at=NULL,finished_at=NULL,
-       result=NULL,error=NULL,lease_id=NULL,lease_until=NULL
+       result=NULL,error=NULL
      FROM brain_jobs consolidation
      WHERE consolidation.owner_id=$1 AND consolidation.run_date=$2::date
-       AND consolidation.executor='workflow' AND consolidation.kind='consolidation'
+       AND consolidation.kind='consolidation'
        AND consolidation.status IN ('succeeded','partial','failed')
        AND (consolidation.attempts > 1 OR
          (consolidation.status IN ('succeeded','partial')
            AND CASE WHEN jsonb_typeof(consolidation.result->'writes')='number'
              THEN (consolidation.result->>'writes')::numeric > 0 ELSE false END))
        AND downstream.owner_id=consolidation.owner_id
-       AND downstream.run_date=consolidation.run_date AND downstream.executor='workflow'
+       AND downstream.run_date=consolidation.run_date
        AND downstream.kind IN ('embeddings','export')
        AND downstream.status IN ('succeeded','partial')
        AND downstream.workflow_run_id IS DISTINCT FROM consolidation.workflow_run_id
        AND downstream.finished_at < consolidation.finished_at`,
     [ownerId, runDate],
   );
-  return result.rowCount ?? 0;
-}
-
-/** Retried consolidation may have written before failing or losing its counters. */
-export async function reconcileWorkflowDependencies(
-  ownerId: string,
-  runDate: string,
-) {
-  assertOwner(ownerId);
-  validateRunDate(runDate);
-  return transaction((db) => requeueStaleDownstreamJobs(db, ownerId, runDate));
 }
 
 /** Show all stages as queued before the asynchronously started workflow wakes. */
@@ -105,9 +94,9 @@ export async function queueWorkflowJobs(ownerId: string, runDate: string) {
   assertOwner(ownerId);
   validateRunDate(runDate);
   await getPool().query(
-    `INSERT INTO brain_jobs (owner_id,kind,run_date,executor)
-     SELECT $1,kind,$2::date,'workflow' FROM unnest($3::text[]) AS kind
-     ON CONFLICT (owner_id,kind,run_date,executor) DO NOTHING`,
+    `INSERT INTO brain_jobs (owner_id,kind,run_date)
+     SELECT $1,kind,$2::date FROM unnest($3::text[]) AS kind
+     ON CONFLICT (owner_id,kind,run_date) DO NOTHING`,
     [ownerId, runDate, WORKFLOW_JOB_KINDS],
   );
 }
@@ -129,13 +118,13 @@ export async function beginWorkflowJob(
     );
   return transaction(async (db) => {
     await db.query(
-      `INSERT INTO brain_jobs (owner_id,kind,run_date,executor) VALUES ($1,$2,$3::date,'workflow')
-       ON CONFLICT (owner_id,kind,run_date,executor) DO NOTHING`,
+      `INSERT INTO brain_jobs (owner_id,kind,run_date) VALUES ($1,$2,$3::date)
+       ON CONFLICT (owner_id,kind,run_date) DO NOTHING`,
       [ownerId, kind, runDate],
     );
     const { rows } = await db.query<WorkflowJob>(
       `SELECT ${JOB_COLUMNS} FROM brain_jobs
-       WHERE owner_id=$1 AND kind=$2 AND run_date=$3::date AND executor='workflow' FOR UPDATE`,
+       WHERE owner_id=$1 AND kind=$2 AND run_date=$3::date FOR UPDATE`,
       [ownerId, kind, runDate],
     );
     const current = rows[0];
@@ -143,12 +132,11 @@ export async function beginWorkflowJob(
       return { ...current, skip: true };
     if (current.status === "running" && current.workflowRunId === workflowRunId)
       return { ...current, skip: false };
-    // A new owner-locked run can recover an interrupted or failed pass. Old
-    // runner lease fields remain for history but have no role in Workflow.
+    // A new owner-locked run can recover an interrupted or failed pass.
     const updated = await db.query<WorkflowJob>(
       `UPDATE brain_jobs SET status='running',workflow_run_id=$3,attempts=attempts+1,
-        started_at=now(),finished_at=NULL,error=NULL,result=NULL,lease_id=NULL,lease_until=NULL
-       WHERE owner_id=$1 AND id=$2 AND executor='workflow' RETURNING ${JOB_COLUMNS}`,
+        started_at=now(),finished_at=NULL,error=NULL,result=NULL
+       WHERE owner_id=$1 AND id=$2 RETURNING ${JOB_COLUMNS}`,
       [ownerId, current.id, workflowRunId],
     );
     return { ...updated.rows[0], skip: false };
@@ -172,7 +160,7 @@ export async function finishWorkflowJob(
     );
   return transaction(async (db) => {
     const { rows } = await db.query<WorkflowJob>(
-      `SELECT ${JOB_COLUMNS} FROM brain_jobs WHERE owner_id=$1 AND id=$2 AND executor='workflow' FOR UPDATE`,
+      `SELECT ${JOB_COLUMNS} FROM brain_jobs WHERE owner_id=$1 AND id=$2 FOR UPDATE`,
       [ownerId, id],
     );
     const current = rows[0];
@@ -203,8 +191,8 @@ export async function finishWorkflowJob(
         "A Git export can succeed only after its commit has been pushed and read back from the remote.",
       );
     const updated = await db.query<WorkflowJob>(
-      `UPDATE brain_jobs SET status=$4,result=$5::jsonb,error=$6,finished_at=now(),lease_until=NULL
-       WHERE owner_id=$1 AND id=$2 AND workflow_run_id=$3 AND executor='workflow' RETURNING ${JOB_COLUMNS}`,
+      `UPDATE brain_jobs SET status=$4,result=$5::jsonb,error=$6,finished_at=now()
+       WHERE owner_id=$1 AND id=$2 AND workflow_run_id=$3 RETURNING ${JOB_COLUMNS}`,
       [
         ownerId,
         id,
@@ -227,7 +215,7 @@ export async function dailyWorkflowStatus(
   assertOwner(ownerId);
   validateRunDate(runDate);
   const { rows } = await getPool().query<WorkflowJob>(
-    `SELECT ${JOB_COLUMNS} FROM brain_jobs WHERE owner_id=$1 AND run_date=$2::date AND executor='workflow'
+    `SELECT ${JOB_COLUMNS} FROM brain_jobs WHERE owner_id=$1 AND run_date=$2::date
      ORDER BY kind`,
     [ownerId, runDate],
   );

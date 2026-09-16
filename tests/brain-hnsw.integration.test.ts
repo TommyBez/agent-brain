@@ -21,8 +21,8 @@ test(
       // tests and never inserts fixtures into the application's shared ANN index.
       await db.query(`CREATE TEMP TABLE brain_hnsw_fixture (
         id uuid PRIMARY KEY DEFAULT gen_random_uuid(),owner_id text NOT NULL,
-        embedding vector(1536),embedding_model text,version integer NOT NULL DEFAULT 1,
-        embedding_version integer NOT NULL DEFAULT 1) ON COMMIT DROP`);
+        embedding vector(1536),embedding_model text,current_version integer NOT NULL DEFAULT 1,
+        page_version integer NOT NULL DEFAULT 1) ON COMMIT DROP`);
       await db.query(
         "CREATE INDEX brain_hnsw_fixture_owner_idx ON brain_hnsw_fixture (owner_id)",
       );
@@ -46,7 +46,7 @@ test(
         );
       }
       const sql = `SELECT id FROM brain_hnsw_fixture WHERE owner_id=$1 AND embedding IS NOT NULL
-      AND embedding_model=$3 AND embedding_version=version ORDER BY embedding <=> $2::vector,id LIMIT 50`;
+      AND embedding_model=$3 AND page_version=current_version ORDER BY embedding <=> $2::vector,id LIMIT 50`;
       const params = [owner, JSON.stringify(vector), embeddingModel()];
       await db.query("SET LOCAL enable_seqscan=off");
       await db.query("SET LOCAL enable_bitmapscan=off");

@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1789544966255,
+      "tag": "0000_baseline",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789545066940,
+      "tag": "0001_remove_retired_storage",
+      "breakpoints": true
+    }
+  ]
+}

@@ -8,7 +8,6 @@ import {
   dailyWorkflowStatus,
   finishWorkflowJob,
   queueWorkflowJobs,
-  reconcileWorkflowDependencies,
   workflowExportAttemptKey,
 } from "../lib/maintenance/jobs";
 
@@ -149,7 +148,6 @@ test(
               ),
               `${original.exported.id}-attempt-2`,
             );
-            assert.equal(await reconcileWorkflowDependencies(owner, date), 0);
             assert.deepEqual(
               await finishWorkflowJob(
                 owner,
@@ -185,67 +183,6 @@ test(
       );
 
       await t.test(
-        "start-time reconciliation repairs an already completed stale pass without rerunning consolidation",
-        async () => {
-          const date = "2035-01-23";
-          const original = await initialFailedPass(date);
-          const corrected = await beginWorkflowJob(
-            owner,
-            "consolidation",
-            date,
-            "already-completed-run",
-          );
-          // Reproduce the prior deployed code: consolidation committed its success
-          // without invalidating the two outputs from before its page changes.
-          await getPool().query(
-            "UPDATE brain_jobs SET status='succeeded',result=$3::jsonb,finished_at=now() WHERE owner_id=$1 AND id=$2",
-            [owner, corrected.id, JSON.stringify({ writes: 2 })],
-          );
-          await getPool().query(
-            "INSERT INTO brain_jobs (owner_id,kind,run_date,executor,status,finished_at) VALUES ($1,'export',$2::date,'github','succeeded',now()-interval '1 day')",
-            [owner, date],
-          );
-          assert.ok(
-            (await dailyWorkflowStatus(owner, date)).every((job) =>
-              ["succeeded", "partial"].includes(job.status),
-            ),
-          );
-          const reconciled = await Promise.all([
-            reconcileWorkflowDependencies(owner, date),
-            reconcileWorkflowDependencies(owner, date),
-          ]);
-          assert.equal(
-            reconciled.reduce((sum, count) => sum + count, 0),
-            2,
-          );
-          assert.equal(await reconcileWorkflowDependencies(owner, date), 0);
-          const jobs = await dailyWorkflowStatus(owner, date);
-          assert.equal(
-            jobs.find((job) => job.id === original.embeddings.id)?.status,
-            "queued",
-          );
-          assert.equal(
-            jobs.find((job) => job.id === original.exported.id)?.status,
-            "queued",
-          );
-          const consolidation = await beginWorkflowJob(
-            owner,
-            "consolidation",
-            date,
-            "repair-run",
-          );
-          assert.equal(consolidation.skip, true);
-          assert.equal(consolidation.attempts, 2);
-          assert.equal(consolidation.workflowRunId, "already-completed-run");
-          const historical = await getPool().query(
-            "SELECT status FROM brain_jobs WHERE owner_id=$1 AND run_date=$2::date AND executor='github'",
-            [owner, date],
-          );
-          assert.equal(historical.rows[0].status, "succeeded");
-        },
-      );
-
-      await t.test(
         "retried consolidation refreshes outputs even when failure lost its write count",
         async () => {
           for (const [index, status] of (
@@ -267,7 +204,6 @@ test(
               status,
               result,
             );
-            assert.equal(await reconcileWorkflowDependencies(owner, date), 0);
             const jobs = await dailyWorkflowStatus(owner, date);
             assert.equal(
               jobs.find((job) => job.id === original.embeddings.id)?.status,
@@ -335,7 +271,6 @@ test(
             "succeeded",
             { writes: 0 },
           );
-          assert.equal(await reconcileWorkflowDependencies(owner, date), 0);
           const jobs = await dailyWorkflowStatus(owner, date);
           assert.ok(jobs.every((job) => job.status === "succeeded"));
         },
@@ -579,7 +514,7 @@ test(
         "an existing Workflow queued job is adopted without losing its identity",
         async () => {
           const inserted = await getPool().query<{ id: string }>(
-            "INSERT INTO brain_jobs (owner_id,kind,run_date,attempts,executor) VALUES ($1,'export','2035-01-18',2,'workflow') RETURNING id",
+            "INSERT INTO brain_jobs (owner_id,kind,run_date,attempts) VALUES ($1,'export','2035-01-18',2) RETURNING id",
             [owner],
           );
           const job = await beginWorkflowJob(
@@ -591,58 +526,6 @@ test(
           assert.equal(job.id, inserted.rows[0].id);
           assert.equal(job.attempts, 3);
           assert.equal(job.workflowRunId, "adopted-run");
-        },
-      );
-
-      await t.test(
-        "same-day GitHub success remains intact while Workflow executes a fresh pass",
-        async () => {
-          const cutoverDate = "2035-01-19";
-          const legacy = await getPool().query(
-            `INSERT INTO brain_jobs (owner_id,kind,run_date,status,attempts,executor,result,started_at,finished_at)
-             VALUES ($1,'export',$2::date,'succeeded',1,'github',$3::jsonb,now(),now()) RETURNING *`,
-            [
-              owner,
-              cutoverDate,
-              JSON.stringify({ pushed: true, commit: "b".repeat(40) }),
-            ],
-          );
-          assert.deepEqual(await dailyWorkflowStatus(owner, cutoverDate), []);
-          const fresh = await beginWorkflowJob(
-            owner,
-            "export",
-            cutoverDate,
-            "cutover-run",
-          );
-          assert.notEqual(fresh.id, legacy.rows[0].id);
-          assert.equal(fresh.executor, "workflow");
-          assert.equal(fresh.status, "running");
-          assert.equal(fresh.skip, false);
-          assert.equal(fresh.attempts, 1);
-          await finishWorkflowJob(owner, fresh.id, "cutover-run", "succeeded", {
-            pushed: true,
-            commit: "c".repeat(40),
-          });
-          const jobs = await dailyWorkflowStatus(owner, cutoverDate);
-          assert.equal(jobs.length, 1);
-          assert.equal(jobs[0].id, fresh.id);
-          assert.equal(jobs[0].status, "succeeded");
-          const historical = await getPool().query(
-            "SELECT * FROM brain_jobs WHERE owner_id=$1 AND id=$2",
-            [owner, legacy.rows[0].id],
-          );
-          assert.deepEqual(historical.rows, legacy.rows);
-          await assert.rejects(
-            finishWorkflowJob(
-              owner,
-              legacy.rows[0].id,
-              "cutover-run",
-              "succeeded",
-            ),
-            (error) =>
-              error instanceof BrainError &&
-              error.code === "WORKFLOW_RUN_SUPERSEDED",
-          );
         },
       );
 

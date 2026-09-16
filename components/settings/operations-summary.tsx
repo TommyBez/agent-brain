@@ -23,7 +23,7 @@ function OperationResult({ job }: { job: MaintenanceJob }) {
   const counts: string[] = [];
   for (const [value, label] of [
     [result.writes, "successful writes"],
-    [result.indexedPages ?? result.indexed, "pages indexed"],
+    [result.indexedPages, "pages indexed"],
     [result.embeddedChunks, "chunks embedded"],
     [result.remaining, "pages awaiting indexing"],
     [result.pages, "pages exported"],
@@ -133,7 +133,7 @@ export function OperationsSummary({ data }: { data: OperationsData }) {
                     {job.kind.replaceAll("_", " ")}
                   </strong>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    {formatDate(job.runDate || job.startedAt?.toISOString())}
+                    {formatDate(job.runDate)}
                     {job.finishedAt &&
                       ` · Finished ${new Date(job.finishedAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" })} UTC`}
                   </p>
@@ -146,7 +146,7 @@ export function OperationsSummary({ data }: { data: OperationsData }) {
                 </div>
                 <Badge
                   variant={
-                    ["completed", "success", "succeeded"].includes(job.status)
+                    job.status === "succeeded"
                       ? "default"
                       : job.status === "failed"
                         ? "destructive"

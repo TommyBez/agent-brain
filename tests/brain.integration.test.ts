@@ -6,6 +6,7 @@ import * as brain from "../lib/brain/service";
 import { BrainError } from "../lib/brain/types";
 import { embeddingModel } from "../lib/brain/utils";
 import { getPool } from "../lib/db";
+import { indexPageFixture } from "./helpers/brain-embeddings";
 
 test(
   "Postgres memory lifecycle, isolation, conflicts, graph and retrieval",
@@ -33,9 +34,8 @@ test(
         markdown: "The observatory maps hydrothermal vents.",
         expectedVersion: 0,
         links: [{ targetRef: client.slug, type: "part_of" }],
-        embedding: vector,
-        embeddingModel: embeddingModel(),
       });
+      await indexPageFixture(owner, project, vector);
       const outsiderPage = await brain.write(outsider, {
         title: "Private Blueprint",
         type: "decision",
@@ -99,7 +99,8 @@ test(
             [],
           );
           assert.equal(
-            (await brain.search(owner, { query: "Private Blueprint" })).length,
+            (await brain.search(owner, { query: "Private Blueprint" })).results
+              .length,
             0,
           );
           await assert.rejects(
@@ -205,16 +206,12 @@ test(
         "fulltext and vectors participate in hybrid retrieval",
         async () => {
           assert.equal(
-            (await brain.search(owner, { query: "hydrothermal" }))[0].id,
+            (await brain.search(owner, { query: "hydrothermal" })).results[0]
+              .id,
             project.id,
           );
-          await brain.indexEmbedding(owner, {
-            ref: client.id,
-            expectedVersion: 1,
-            embedding: otherVector,
-            embeddingModel: embeddingModel(),
-          });
-          const matches = await brain.search(owner, {
+          await indexPageFixture(owner, client, otherVector);
+          const { results: matches } = await brain.search(owner, {
             query: "submarine exploration",
             embedding: vector,
             embeddingModel: embeddingModel(),
@@ -252,12 +249,7 @@ test(
           assert.equal(project.embeddedAt, null);
           assert.equal(project.links.length, 1);
           await assert.rejects(
-            brain.indexEmbedding(owner, {
-              ref: project.id,
-              expectedVersion: 1,
-              embedding: vector,
-              embeddingModel: embeddingModel(),
-            }),
+            indexPageFixture(owner, { ...project, version: 1 }, vector),
             (error) =>
               error instanceof BrainError && error.code === "VERSION_CONFLICT",
           );

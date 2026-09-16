@@ -42,14 +42,14 @@ test("cookie mutation origin is checked against configuration, not an attacker-c
   process.env.BETTER_AUTH_URL = "https://brain.example.com";
   try {
     assertSameOrigin(
-      new Request("https://brain.example.com/api/agent-tokens", {
+      new Request("https://brain.example.com/api/operations", {
         headers: { origin: "https://brain.example.com" },
       }),
     );
     assert.throws(
       () =>
         assertSameOrigin(
-          new Request("https://evil.example/api/agent-tokens", {
+          new Request("https://evil.example/api/operations", {
             headers: { origin: "https://evil.example" },
           }),
         ),
@@ -58,7 +58,7 @@ test("cookie mutation origin is checked against configuration, not an attacker-c
     assert.throws(
       () =>
         assertSameOrigin(
-          new Request("https://brain.example.com/api/agent-tokens"),
+          new Request("https://brain.example.com/api/operations"),
         ),
       AuthError,
     );

@@ -6,6 +6,7 @@ import * as brain from "../lib/brain/service";
 import { BrainError } from "../lib/brain/types";
 import { embeddingModel } from "../lib/brain/utils";
 import { getPool } from "../lib/db";
+import { indexPageFixture } from "./helpers/brain-embeddings";
 
 const vector = (coordinate: number) =>
   Array.from({ length: 1536 }, (_, index) => Number(index === coordinate));
@@ -77,7 +78,7 @@ test(
               error instanceof BrainError &&
               error.code === "INVALID_CHUNK_MANIFEST",
           );
-          const matches = await brain.search(owner, {
+          const { results: matches } = await brain.search(owner, {
             query: "absent-lexical-query",
             embedding: vector(0),
             embeddingModel: model,
@@ -112,15 +113,14 @@ test(
           assert.equal(final.totalChunks, manifest.length);
           assert.equal(final.pendingChunks, 0);
           assert.equal((await brain.listPendingEmbeddings(owner)).length, 0);
-          await brain.write(outsider, {
+          const privatePage = await brain.write(outsider, {
             title: "Private archive",
             type: "article",
             markdown: tail,
             expectedVersion: 0,
-            embedding: vector(0),
-            embeddingModel: model,
           });
-          const matches = await brain.search(owner, {
+          await indexPageFixture(outsider, privatePage, vector(0));
+          const { results: matches } = await brain.search(owner, {
             query: "unmatched-semantic-probe",
             embedding: vector(0),
             embeddingModel: model,
@@ -154,7 +154,7 @@ test(
             markdown:
               "## New addendum\n\nThe updated backup key is JADE-CLOUD.",
           });
-          const matches = await brain.search(owner, {
+          const { results: matches } = await brain.search(owner, {
             query: "unmatched-semantic-probe",
             embedding: vector(0),
             embeddingModel: model,
@@ -285,28 +285,8 @@ test(
       );
 
       await t.test(
-        "legacy vectors stay compatible but never mark full-page coverage complete",
+        "chunk indexing enforces owner and model boundaries",
         async () => {
-          const legacy = await brain.write(owner, {
-            title: "Legacy index",
-            type: "note",
-            markdown: "Short legacy page",
-            expectedVersion: 0,
-            embedding: vector(2),
-            embeddingModel: model,
-          });
-          assert.ok(
-            (await brain.listPendingEmbeddings(owner)).some(
-              (item) => item.id === legacy.id,
-            ),
-          );
-          const matches = await brain.search(owner, {
-            query: "unmatched-semantic-probe",
-            embedding: vector(2),
-            embeddingModel: model,
-            expandGraph: false,
-          });
-          assert.equal(matches[0].id, legacy.id);
           await assert.rejects(
             brain.indexChunks(outsider, {
               ref: page.id,
