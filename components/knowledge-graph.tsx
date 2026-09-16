@@ -139,6 +139,15 @@ export function KnowledgeGraph({
     .map(([type, count]) => ({ type: type as LinkType, count: count ?? 0 }))
     .sort((a, b) => b.count - a.count);
   const unlinkedCount = model.nodes.filter((node) => node.isolated).length;
+  const unlinkedVisibleCount = model.nodes.filter(
+    (node) => node.isolated && visible.has(node.id),
+  ).length;
+  // The inspector only offers pages that are on screen, so selecting one
+  // always resolves. Hidden relationship types still count as connections.
+  const inspectorNodes = model.nodes.filter((node) => visible.has(node.id));
+  const inspectorEdges = model.edges.filter(
+    (edge) => visible.has(edge.sourceId) && visible.has(edge.targetId),
+  );
 
   const select = (id: string | null, center = false) => {
     if (!id) {
@@ -286,8 +295,8 @@ export function KnowledgeGraph({
         className="rounded-lg border bg-card lg:h-[clamp(420px,62vh,760px)] lg:overflow-y-auto"
       >
         <GraphInspector
-          nodes={model.nodes}
-          edges={model.edges}
+          nodes={inspectorNodes}
+          edges={inspectorEdges}
           selected={selected}
           canGoBack={trail.length > 1}
           onSelect={(id) => select(id, true)}
@@ -304,6 +313,7 @@ export function KnowledgeGraph({
             setHiddenLinkTypes((current) => toggled(current, type))
           }
           unlinkedCount={unlinkedCount}
+          unlinkedVisibleCount={unlinkedVisibleCount}
           showUnlinked={showUnlinked}
           onToggleUnlinked={() => setShowUnlinked((current) => !current)}
           visibleCount={visible.size}

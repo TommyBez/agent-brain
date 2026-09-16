@@ -28,7 +28,10 @@ export interface GraphInspectorProps {
   linkTypeCounts: { type: LinkType; count: number }[];
   hiddenLinkTypes: ReadonlySet<LinkType>;
   onToggleLinkType: (type: LinkType) => void;
+  /** Unlinked pages in the loaded graph, shown next to the toggle. */
   unlinkedCount: number;
+  /** Unlinked pages currently drawn. */
+  unlinkedVisibleCount: number;
   showUnlinked: boolean;
   onToggleUnlinked: () => void;
   visibleCount: number;
@@ -102,16 +105,28 @@ function Details({
 > & { selected: GraphNode }) {
   const nodeById = new Map(nodes.map((node) => [node.id, node]));
   const outgoing = edges.flatMap((edge) => {
-    if (edge.sourceId !== selected.id) return [];
+    if (!edge.directed || edge.sourceId !== selected.id) return [];
     const node = nodeById.get(edge.targetId);
     return node ? [{ edge, node }] : [];
   });
   const incoming = edges.flatMap((edge) => {
-    if (edge.targetId !== selected.id) return [];
+    if (!edge.directed || edge.targetId !== selected.id) return [];
     const node = nodeById.get(edge.sourceId);
     return node ? [{ edge, node }] : [];
   });
-  const total = outgoing.length + incoming.length;
+  // relates_to and collaborates_with have no direction; show them symmetrically.
+  const linked = edges.flatMap((edge) => {
+    if (edge.directed) return [];
+    const otherId =
+      edge.sourceId === selected.id
+        ? edge.targetId
+        : edge.targetId === selected.id
+          ? edge.sourceId
+          : null;
+    const node = otherId ? nodeById.get(otherId) : undefined;
+    return node ? [{ edge, node }] : [];
+  });
+  const total = outgoing.length + incoming.length + linked.length;
   return (
     <div className="space-y-5">
       <div className="flex items-start justify-between gap-2">
@@ -221,6 +236,21 @@ function Details({
             ))}
           </div>
         )}
+        {linked.length > 0 && (
+          <div className="space-y-1">
+            <p className="px-2 text-xs text-muted-foreground">
+              Linked · {linked.length}
+            </p>
+            {linked.map(({ edge, node }) => (
+              <NodeButton
+                key={edge.id}
+                node={node}
+                caption={`↔ ${linkLabel(edge.type)}`}
+                onSelect={onSelect}
+              />
+            ))}
+          </div>
+        )}
         {total > 0 && (
           <p className="px-2 text-xs text-muted-foreground">
             Select a connection to walk the graph. Only links between loaded
@@ -241,6 +271,7 @@ function Overview({
   hiddenLinkTypes,
   onToggleLinkType,
   unlinkedCount,
+  unlinkedVisibleCount,
   showUnlinked,
   onToggleUnlinked,
   visibleCount,
@@ -258,7 +289,7 @@ function Overview({
           {[
             { label: "Pages", value: visibleCount },
             { label: "Links", value: visibleLinkCount },
-            { label: "Unlinked", value: unlinkedCount },
+            { label: "Unlinked", value: unlinkedVisibleCount },
           ].map((item) => (
             <div key={item.label} className="min-w-0">
               <dt className="text-xs text-muted-foreground">{item.label}</dt>

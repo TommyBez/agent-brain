@@ -378,6 +378,17 @@ export function GraphCanvas({
     pointers.set(event.pointerId, point);
     svgRef.current?.setPointerCapture(event.pointerId);
     if (pointers.size >= 2) {
+      const previous = gestureRef.current;
+      if (previous?.type === "drag") {
+        // A second finger turns the drag into a pinch; free the page again.
+        const node = layoutRef.current.nodes.find(
+          (entry) => entry.id === previous.nodeId,
+        );
+        if (node) {
+          node.fx = null;
+          node.fy = null;
+        }
+      }
       const [a, b] = [...pointers.values()];
       gestureRef.current = {
         type: "pinch",
