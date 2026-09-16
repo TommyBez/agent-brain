@@ -23,22 +23,6 @@ function renderedText(html: string) {
     .replace(/\s+/g, " ");
 }
 
-async function assertRedirect(response: Response, destination: string) {
-  if (response.headers.has("location")) {
-    assert.equal(response.headers.get("location"), destination);
-  } else {
-    const content = await response.text();
-    assert.ok(
-      content.includes('http-equiv="refresh"'),
-      "A streamed redirect must include a real browser redirect instruction",
-    );
-    assert.ok(
-      content.includes(`url=${destination.replaceAll("&", "&amp;")}`),
-      `Expected a streamed redirect to ${destination}`,
-    );
-  }
-}
-
 function editable(page: BrainPage) {
   return {
     expectedVersion: page.version,
@@ -634,25 +618,6 @@ test(
         assert.ok(
           !(await withHeadlessToken.text()).includes(bodyMarker),
           "An agent token does not substitute for an interactive workspace session",
-        );
-      },
-    );
-
-    await t.test(
-      "legacy query links redirect to collection paths and retain entity-link precedence",
-      async () => {
-        await assertRedirect(
-          await request(`/?type=project&q=${prefix}&sort=title&offset=50`),
-          `/projects?q=${prefix}&sort=title&offset=50`,
-        );
-        await assertRedirect(await request("/?type=person"), "/people");
-        await assertRedirect(
-          await request(`/?page=${page.id}`),
-          `/pages/${page.id}`,
-        );
-        await assertRedirect(
-          await request(`/?page=${page.id}&type=project`),
-          `/pages/${page.id}`,
         );
       },
     );

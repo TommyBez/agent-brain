@@ -17,7 +17,7 @@ Next.js 16.3 runs this application with `cacheComponents: true` and `partialPref
 
 Keep each asynchronous or URL-dependent read under a Suspense boundary within its page. A boundary above the shared layout cannot provide the loading UI for sibling navigations. Do not add `loading.tsx`, `instant = false`, `force-dynamic`, or blanket cache bypasses to silence a rendering error.
 
-Each collection has a static App Router page and passes its entity type into the shared server-rendered library. The pathname owns collection identity: `/projects?type=note` still renders projects. Query parameters hold only search, sorting and pagination state. Existing `/?type=project` links redirect on the server to `/projects`, preserving the remaining query parameters. Legacy `/?page=...` links continue to redirect to the entity page and take precedence over a legacy type parameter.
+Each collection has a static App Router page and passes its entity type into the shared server-rendered library. The pathname owns collection identity, such as `/projects` or `/people`. Library query parameters hold only search, sorting and pagination state. Entity links point directly to `/pages/[id]`.
 
 Internal Markdown links use Next Link, including absolute URLs on the current origin. Authentication retains the requested path and query through a validated `returnTo`. The proxy only forwards that destination in an overwritten request header; it performs no session/database work and does not authorize access. The DAL remains the authentication boundary. OAuth retains its provider-validated callback and repeated signed parameters.
 
@@ -43,7 +43,7 @@ OAuth consent identity and permissions are fetched in the authorized Server Comp
 
 Run `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm build`. Database tests must use a separate Neon test branch. The rendering build should report the workspace routes as partially prerendered; both shell and dynamic parts are intentional.
 
-The HTTP acceptance suite exercises a running Next server without importing or mocking its handlers: rendered HTML, collection headings and type isolation, collection-preserving search and pagination links, legacy redirects, streaming while a database query is blocked, API/MCP cache invalidation, revisions, and authorization after caches are warm. It is skipped by `pnpm test` unless `RUN_NEXT_TESTS=1`. The unit suite verifies plural collection URL construction and parsing, including protection against a query parameter overriding the route's collection.
+The HTTP acceptance suite exercises a running Next server without importing or mocking its handlers: rendered HTML, collection headings and type isolation, collection-preserving search and pagination links, streaming while a database query is blocked, API/MCP cache invalidation, revisions, and authorization after caches are warm. It is skipped by `pnpm test` unless `RUN_NEXT_TESTS=1`. The unit suite verifies plural collection URL construction and parsing, including protection against a query parameter overriding the route's collection.
 
 Prepare a separate fixture owner whose email ends in `.invalid`, and run a Next build/server against that isolated test database with `BETTER_AUTH_URL` matching its loopback origin. The HTTP server and the cleanup database connection must refer to the same fixture. Put the following in a gitignored `.env.next-test`, replacing the placeholders with that fixture's values:
 
