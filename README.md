@@ -34,7 +34,7 @@ Integration tests use isolated owner IDs and remove only their own fixtures. SQL
 
 ## Next.js application
 
-The browser workspace uses App Router routes: `/` for the searchable library, `/graph`, `/activity`, `/agents`, `/operations`, and `/pages/[id]` with separate edit and history routes. Filters, ordering and pagination live in the URL. Links use Next.js navigation and partial prefetching; the old `/?page=id` links redirect to the entity route.
+The browser workspace uses App Router routes: `/` for the searchable library, `/graph`, `/activity`, `/agents`, `/operations`, and `/pages/[id]` with separate edit and history routes. Filters, ordering and pagination live in the URL. Links use Next.js navigation and partial prefetching; the old `/?page=id` links redirect to the entity route. The graph page loads the most recently updated pages in bounded sets, lays them out with a deterministic force simulation (`lib/graph/layout.ts`, no rendering dependency), and offers zoom, pan, drag, search, type and relationship filters, and an inspector for walking connections; `?node=<id>` preselects a loaded page.
 
 Cache Components and Partial Prefetching are enabled. Shared navigation and route shells render immediately; explicit, local Suspense boundaries stream authenticated statistics, lists, page content, relationships and live status. There are no route-level `loading.tsx` files. Server Components call the data layer directly instead of fetching the application's own HTTP APIs. The client handles input, form state, graph interaction and other browser behavior.
 
