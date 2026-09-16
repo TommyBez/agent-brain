@@ -32,9 +32,10 @@ Set `DATABASE_URL_UNPOOLED` to its direct connection and run `pnpm db:migrate`.
 `0000_baseline.sql` creates the complete original schema, including `vector`,
 `pg_trgm`, the generated full-text search document, graph constraints, chunk
 indexes and Better Auth/OAuth tables. `0001_remove_retired_storage.sql` then
-removes the retired page vectors, GitHub job history, executor/lease fields and
-old migration register. The final schema contains only the current application
-storage. Running the command again skips already recorded migrations.
+removes the retired page vectors, GitHub job history, cancelled jobs from either
+executor, executor/lease fields and old migration register. The final schema
+contains only the current application storage. Running the command again skips
+already recorded migrations.
 
 ## Existing installation: one-time adoption
 
@@ -79,10 +80,11 @@ cat drizzle/meta/_journal.json
 ```
 
 Then run `pnpm db:migrate`. Drizzle skips the baseline and applies only the
-cleanup. This deletes the retired GitHub runner's job history; Workflow jobs
-remain, and the old `brain_migrations` table is removed. Run the command a second
-time and verify that the register still contains exactly the two migration
-records:
+cleanup. This deletes the retired GitHub runner's job history and cancelled jobs
+from either executor before tightening the status constraint. Other Workflow jobs
+remain unchanged, and the old `brain_migrations` table is removed. Run the command
+a second time and verify that the register still contains exactly the two
+migration records:
 
 ```sql
 SELECT id, hash, created_at

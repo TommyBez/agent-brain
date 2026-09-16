@@ -1,6 +1,6 @@
--- Workflow is the sole executor. Remove the retired runner's job history
--- before dropping its discriminator and restoring daily job uniqueness.
-DELETE FROM "brain_jobs" WHERE "executor" = 'github';
+-- Workflow is the sole executor. Discard retired runner history and cancelled
+-- jobs from either executor before restoring daily uniqueness and status checks.
+DELETE FROM "brain_jobs" WHERE "executor" = 'github' OR "status" = 'cancelled';
 --> statement-breakpoint
 ALTER TABLE "brain_migrations" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
 DROP TABLE "brain_migrations" CASCADE;--> statement-breakpoint
