@@ -54,7 +54,6 @@ export const writeSchema = z
     tags: z.array(z.string().trim().min(1).max(80)).max(30).default([]),
     links: z.array(linkSchema).max(100).default([]),
     ...provenance,
-    ...embeddingFields,
   })
   .strict()
   .superRefine((input, context) => {
@@ -66,12 +65,6 @@ export const writeSchema = z
           "Use expectedVersion 0 without id to create, or an id and the current positive version to update",
       });
     }
-    if (input.embedding && !input.embeddingModel)
-      context.addIssue({
-        code: "custom",
-        path: ["embeddingModel"],
-        message: "Include the model that generated the embedding",
-      });
   });
 
 export const appendSchema = z
@@ -146,15 +139,6 @@ export const activitySchema = z
     offset: z.number().int().min(0).default(0),
   })
   .strict();
-export const indexEmbeddingSchema = z
-  .object({
-    ref,
-    expectedVersion: z.number().int().positive(),
-    embedding: embeddingSchema,
-    embeddingModel: z.string().trim().min(1).max(100),
-  })
-  .strict();
-
 export const indexChunksSchema = z
   .object({
     ref,
@@ -173,6 +157,3 @@ export const indexChunksSchema = z
       .max(32),
   })
   .strict();
-
-export type WriteInput = z.input<typeof writeSchema>;
-export type SearchInput = z.input<typeof searchSchema>;

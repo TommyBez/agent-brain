@@ -3,11 +3,15 @@ import { getRun } from "workflow/api";
 import { queryEmbeddingsConfigured } from "@/lib/brain/embeddings";
 import { assertOwner, embeddingModel } from "@/lib/brain/utils";
 import { getPool, transaction } from "@/lib/db";
+import type {
+  WorkflowJobKind,
+  WorkflowJobStatus,
+} from "@/lib/maintenance/jobs";
 
 export type MaintenanceJob = {
   id: string;
-  kind: string;
-  status: string;
+  kind: WorkflowJobKind;
+  status: WorkflowJobStatus;
   runDate: string;
   workflowRunId: string | null;
   workflowStatus?: string;
@@ -17,7 +21,6 @@ export type MaintenanceJob = {
   result: {
     report?: string;
     writes?: number;
-    indexed?: number;
     indexedPages?: number;
     embeddedChunks?: number;
     remaining?: number;
@@ -47,7 +50,7 @@ export async function operationsStatus(ownerId: string) {
   assertOwner(ownerId);
   const { rows: jobs } = await getPool().query<MaintenanceJob>(
     `SELECT id, kind, status, started_at AS "startedAt", finished_at AS "finishedAt", error,
-      run_date::text AS "runDate", executor, workflow_run_id AS "workflowRunId", attempts, result FROM brain_jobs WHERE owner_id = $1
+      run_date::text AS "runDate", workflow_run_id AS "workflowRunId", attempts, result FROM brain_jobs WHERE owner_id = $1
      ORDER BY created_at DESC LIMIT 20`,
     [ownerId],
   );

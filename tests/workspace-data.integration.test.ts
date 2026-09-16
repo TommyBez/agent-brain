@@ -7,7 +7,6 @@ import {
 } from "@modelcontextprotocol/client";
 import * as brain from "../lib/brain/service";
 import type { BrainPage } from "../lib/brain/types";
-import { embeddingModel } from "../lib/brain/utils";
 import { getPool } from "../lib/db";
 import { createBrainHandler } from "../lib/mcp/server";
 
@@ -88,8 +87,15 @@ test(
         },
       );
       await t.test(
-        "write, append, and both index paths invalidate only after success",
+        "write, append, and chunk indexing invalidate only after success",
         async () => {
+          const available = await client.listTools();
+          assert.ok(
+            available.tools.some(({ name }) => name === "index_chunks"),
+          );
+          assert.ok(
+            !available.tools.some(({ name }) => name === "index_embedding"),
+          );
           const created = await client.callTool({
             name: "write",
             arguments: {
@@ -127,17 +133,6 @@ test(
           const embedding = Array.from({ length: 1536 }, (_, i) =>
             i === 0 ? 1 : 0,
           );
-          const legacy = await client.callTool({
-            name: "index_embedding",
-            arguments: {
-              ref: current.id,
-              expectedVersion: current.version,
-              embeddingModel: embeddingModel(),
-              embedding,
-            },
-          });
-          assert.equal(legacy.isError, undefined);
-          assert.equal(invalidations, 3);
           const pending = (await brain.listPendingEmbeddings(ownerId)).find(
             (item) => item.id === current.id,
           );
@@ -156,12 +151,36 @@ test(
             },
           });
           assert.equal(indexed.isError, undefined);
-          assert.equal(invalidations, 4);
+          assert.equal(invalidations, 3);
           await client.callTool({
             name: "read",
             arguments: { ref: current.id },
           });
-          assert.equal(invalidations, 4);
+          assert.equal(invalidations, 3);
+          const discovered = await client.callTool({
+            name: "search",
+            arguments: {
+              query: "unmatched-semantic-probe",
+              embedding,
+              embeddingModel: pending.embeddingModel,
+              expandGraph: false,
+            },
+          });
+          assert.equal(discovered.isError, undefined);
+          const data = (
+            discovered.structuredContent as {
+              data: Awaited<ReturnType<typeof brain.search>>;
+            }
+          ).data;
+          assert.equal(data.results[0].id, current.id);
+          assert.equal(data.retrieval.embeddingSource, "client");
+          const text = discovered.content[0];
+          assert.equal(text.type, "text");
+          assert.deepEqual(
+            JSON.parse(text.type === "text" ? text.text : "null"),
+            data,
+          );
+          assert.equal(invalidations, 3);
         },
       );
     } finally {

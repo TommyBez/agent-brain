@@ -1,0 +1,39 @@
+name: Cleanup Neon preview branch
+
+# The Neon/Vercel integration creates preview/<git-branch> databases.
+# This workflow deletes the matching preview when a same-repository PR closes.
+# Requires the repository variable NEON_PROJECT_ID and secret NEON_API_KEY.
+# pull_request_target also runs for closed PRs with merge conflicts. Never
+# check out or execute PR code here; the job skips fork PRs.
+on:
+  pull_request_target:
+    types: [closed]
+
+permissions: {}
+
+jobs:
+  delete-neon-branch:
+    name: Delete Neon preview branch
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      # The upstream action interpolates its branch input into Bash. Reject
+      # shell syntax before giving it the cleanup credential.
+      - name: Validate preview branch name
+        shell: bash
+        env:
+          GIT_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          if [[ ! "$GIT_BRANCH" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+            echo "::error::Preview cleanup requires a branch name containing only letters, digits, dots, underscores, slashes, or hyphens."
+            exit 1
+          fi
+
+      - name: Delete branch preview/${{ github.event.pull_request.head.ref }}
+        uses: neondatabase/delete-branch-action@v3
+        with:
+          project_id: ${{ vars.NEON_PROJECT_ID }}
+          branch: preview/${{ github.event.pull_request.head.ref }}
+          api_key: ${{ secrets.NEON_API_KEY }}

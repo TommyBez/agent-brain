@@ -1,15 +1,11 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import test from "node:test";
-import {
-  context,
-  search,
-  searchWithRetrieval,
-  write,
-} from "../lib/brain/service";
+import { context, search, write } from "../lib/brain/service";
 import { BrainError } from "../lib/brain/types";
 import { embeddingModel } from "../lib/brain/utils";
 import { getPool } from "../lib/db";
+import { indexPageFixture } from "./helpers/brain-embeddings";
 
 test(
   "automatic query embeddings, explicit vector bypass and truthful fallback",
@@ -57,36 +53,34 @@ test(
         type: "project",
         markdown: "Handles artisanal weaving.",
         expectedVersion: 0,
-        embedding: vector,
-        embeddingModel: embeddingModel(),
       });
-      await write(owner, {
+      await indexPageFixture(owner, page, vector);
+      const otherPage = await write(owner, {
         title: "Orchard Planning",
         type: "project",
         markdown: "Seasonal crop schedule.",
         expectedVersion: 0,
-        embedding: otherVector,
-        embeddingModel: embeddingModel(),
       });
-      await write(outsider, {
+      await indexPageFixture(owner, otherPage, otherVector);
+      const privatePage = await write(outsider, {
         title: "Other Owner",
         type: "project",
         markdown: "Private test fixture.",
         expectedVersion: 0,
-        embedding: vector,
-        embeddingModel: embeddingModel(),
       });
+
+      await indexPageFixture(outsider, privatePage, vector);
 
       await t.test(
         "authentication and explicit vector validation precede the provider",
         async () => {
           const before = requests;
           await assert.rejects(
-            searchWithRetrieval("", { query: "anything" }),
+            search("", { query: "anything" }),
             (error) => error instanceof BrainError && error.status === 401,
           );
           await assert.rejects(
-            searchWithRetrieval(owner, {
+            search(owner, {
               query: "anything",
               embedding: vector,
               embeddingModel: "different/model",
@@ -103,7 +97,7 @@ test(
         "server-generated vectors find pages with no lexical overlap",
         async () => {
           const before = requests;
-          const result = await searchWithRetrieval(owner, {
+          const result = await search(owner, {
             query: `semantic-probe-${randomUUID()}`,
             expandGraph: false,
           });
@@ -116,12 +110,6 @@ test(
             embeddingModel: embeddingModel(),
             embeddingSource: "server",
           });
-          const legacy = await search(owner, {
-            query: `legacy-probe-${randomUUID()}`,
-            expandGraph: false,
-          });
-          assert.ok(Array.isArray(legacy));
-          assert.equal(legacy[0].id, page.id);
         },
       );
 
@@ -130,7 +118,7 @@ test(
         async () => {
           const before = requests;
           responseStatus = 503;
-          const result = await searchWithRetrieval(owner, {
+          const result = await search(owner, {
             query: `explicit-probe-${randomUUID()}`,
             embedding: vector,
             embeddingModel: embeddingModel(),
@@ -173,7 +161,7 @@ test(
         async () => {
           responseStatus = 503;
           const before = requests;
-          const result = await searchWithRetrieval(owner, {
+          const result = await search(owner, {
             query: "Saffron",
             expandGraph: false,
           });

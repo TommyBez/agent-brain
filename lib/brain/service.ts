@@ -39,12 +39,11 @@ interface PageRow extends QueryResultRow {
   markdown: string;
   created_at: Date;
   updated_at: Date;
-  embedded_at: Date | null;
-  chunk_index_version?: number | null;
-  chunk_indexed_at?: Date | null;
+  chunk_index_version: number | null;
+  chunk_indexed_at: Date | null;
 }
 const PAGE_COLUMNS =
-  "p.id, p.slug, p.title, p.type, p.summary, p.aliases, p.tags, p.version, p.created_at, p.updated_at, p.embedded_at, p.chunk_index_version, p.chunk_indexed_at";
+  "p.id, p.slug, p.title, p.type, p.summary, p.aliases, p.tags, p.version, p.created_at, p.updated_at, p.chunk_index_version, p.chunk_indexed_at";
 const iso = (value: Date | string): string => new Date(value).toISOString();
 function summary(row: PageRow): PageSummary {
   return {
@@ -61,9 +60,7 @@ function summary(row: PageRow): PageSummary {
     embeddedAt:
       row.chunk_index_version === row.version && row.chunk_indexed_at
         ? iso(row.chunk_indexed_at)
-        : row.embedded_at
-          ? iso(row.embedded_at)
-          : null,
+        : null,
   };
 }
 function link(row: QueryResultRow): BrainLink {
@@ -208,7 +205,6 @@ export async function write(
   assertOwner(ownerId);
   validateOperationKey(options.operationKey);
   const data = schemas.writeSchema.parse(input);
-  assertEmbeddingModel(data.embeddingModel, Boolean(data.embedding));
   try {
     return await transaction(async (db) => {
       const replay = await replayOperation(db, ownerId, options.operationKey);
@@ -244,20 +240,16 @@ export async function write(
         aliases,
         tags,
         version,
-        data.embedding ? vectorLiteral(data.embedding) : null,
-        data.embedding ? data.embeddingModel : null,
       ];
       const result = existing
         ? await db.query<PageRow>(
-            `UPDATE brain_pages SET slug=$3,type=$4,title=$5,summary=$6,markdown=$7,aliases=$8,tags=$9,version=$10,
-            embedding=$11::vector,embedding_model=$12,embedding_version=CASE WHEN $11::vector IS NULL THEN NULL ELSE $10::integer END,
-            embedded_at=CASE WHEN $11::vector IS NULL THEN NULL ELSE now() END,updated_at=now()
+            `UPDATE brain_pages SET slug=$3,type=$4,title=$5,summary=$6,markdown=$7,aliases=$8,tags=$9,version=$10,updated_at=now()
             WHERE owner_id=$1 AND id=$2 RETURNING *`,
             values,
           )
         : await db.query<PageRow>(
-            `INSERT INTO brain_pages (owner_id,id,slug,type,title,summary,markdown,aliases,tags,version,embedding,embedding_model,embedding_version,embedded_at)
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10::integer,$11::vector,$12,CASE WHEN $11::vector IS NULL THEN NULL ELSE $10::integer END,CASE WHEN $11::vector IS NULL THEN NULL ELSE now() END) RETURNING *`,
+            `INSERT INTO brain_pages (owner_id,id,slug,type,title,summary,markdown,aliases,tags,version)
+            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
             values,
           );
       await db.query(
@@ -325,8 +317,7 @@ export async function append(
         "The combined page exceeds 200,000 characters. Consolidate it before appending.",
       );
     const result = await db.query<PageRow>(
-      `UPDATE brain_pages SET markdown=$3,version=version+1,updated_at=now(),
-      embedding=NULL,embedding_model=NULL,embedding_version=NULL,embedded_at=NULL WHERE owner_id=$1 AND id=$2 RETURNING *`,
+      `UPDATE brain_pages SET markdown=$3,version=version+1,updated_at=now() WHERE owner_id=$1 AND id=$2 RETURNING *`,
       [ownerId, current.id, markdown],
     );
     const page = await pageFromRow(db, ownerId, result.rows[0]);
@@ -387,13 +378,6 @@ export interface SearchRetrieval {
 export async function search(
   ownerId: string,
   input: unknown,
-): Promise<SearchResult[]> {
-  return (await searchWithRetrieval(ownerId, input)).results;
-}
-
-export async function searchWithRetrieval(
-  ownerId: string,
-  input: unknown,
 ): Promise<{ results: SearchResult[]; retrieval: SearchRetrieval }> {
   assertOwner(ownerId);
   const data = schemas.searchSchema.parse(input);
@@ -450,19 +434,9 @@ export async function searchWithRetrieval(
     ), chunk_pages AS (
       SELECT DISTINCT ON (id) id,distance,content,start_offset,end_offset FROM chunk_candidates
       ORDER BY id,distance,start_offset
-    ), legacy_candidates AS (
-      SELECT p.id,p.embedding <=> $4::vector AS distance,NULL::text AS content,
-        NULL::integer AS start_offset,NULL::integer AS end_offset FROM brain_pages p
-      WHERE p.owner_id=$1 AND ($3::text IS NULL OR p.type=$3) AND $4::vector IS NOT NULL
-        AND p.embedding IS NOT NULL AND p.embedding_model=$6 AND p.embedding_version=p.version
-        AND (p.chunk_index_version IS DISTINCT FROM p.version OR p.chunk_index_model IS DISTINCT FROM $6
-          OR p.chunk_index_chunker IS DISTINCT FROM $9)
-      ORDER BY p.embedding <=> $4::vector,p.id LIMIT $5
-    ), semantic_candidates AS (
-      SELECT * FROM chunk_pages UNION ALL SELECT * FROM legacy_candidates
     ), semantic AS (
       SELECT id,content,start_offset,end_offset,row_number() OVER (ORDER BY distance,id) AS vector_rank
-      FROM semantic_candidates ORDER BY distance,id LIMIT $5
+      FROM chunk_pages ORDER BY distance,id LIMIT $5
     ), fused AS (SELECT coalesce(l.id,s.id) id,l.text_rank,s.vector_rank,s.content,s.start_offset,s.end_offset
       FROM lexical l FULL OUTER JOIN semantic s USING (id))
     SELECT ${PAGE_COLUMNS},f.text_rank,f.vector_rank,coalesce(f.content,left(p.markdown,500)) AS excerpt,
@@ -585,7 +559,7 @@ export async function related(ownerId: string, input: unknown) {
 export async function context(ownerId: string, input: unknown) {
   assertOwner(ownerId);
   const data = schemas.contextSchema.parse(input);
-  const { results: hits, retrieval } = await searchWithRetrieval(ownerId, {
+  const { results: hits, retrieval } = await search(ownerId, {
     query: data.query,
     embedding: data.embedding,
     embeddingModel: data.embeddingModel,
@@ -910,30 +884,6 @@ export async function listActivity(
     source: row.source,
     createdAt: iso(row.created_at),
   }));
-}
-
-export async function indexEmbedding(ownerId: string, input: unknown) {
-  assertOwner(ownerId);
-  const data = schemas.indexEmbeddingSchema.parse(input);
-  assertEmbeddingModel(data.embeddingModel, true);
-  return transaction(async (db) => {
-    const page = await rowForRef(db, ownerId, data.ref, true);
-    assertVersion(page.version, data.expectedVersion);
-    await db.query(
-      "UPDATE brain_pages SET embedding=$3::vector,embedding_model=$4,embedding_version=version,embedded_at=now() WHERE owner_id=$1 AND id=$2",
-      [ownerId, page.id, vectorLiteral(data.embedding), data.embeddingModel],
-    );
-    await db.query(
-      "INSERT INTO brain_activity (owner_id,page_id,action,version,reason,source) VALUES ($1,$2,'embed',$3,'Indexed the current page revision',$4)",
-      [ownerId, page.id, page.version, data.embeddingModel],
-    );
-    return {
-      id: page.id,
-      version: page.version,
-      embeddingModel: data.embeddingModel,
-      indexed: true,
-    };
-  });
 }
 
 /** Stage bounded batches, publishing a revision only when its full manifest is indexed. */

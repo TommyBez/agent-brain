@@ -39,7 +39,7 @@ Built-in nightly maintenance already runs in Vercel Workflow. Ordinary agents do
 
 For an explicitly requested organization review, use `gap_analysis`, resolve candidates and read evidence. Gaps and likely duplicates are review findings, not permission to merge or delete. `related` and `context` already follow backlinks; do not add reciprocal links solely for reverse navigation.
 
-For an authorized external maintenance worker, request `nightly_consolidation` and follow the live procedure and maintenance tool schemas. Content changes still require `brain:read` and `brain:write`; maintenance operations additionally require `brain:maintain`. Use `pending_embeddings` and `index_chunks` for complete page coverage; do not substitute the legacy single-vector tool or truncate canonical Markdown. Report unfinished work accurately.
+For an authorized external maintenance worker, request `nightly_consolidation` and follow the live procedure and maintenance tool schemas. Content changes still require `brain:read` and `brain:write`; maintenance operations additionally require `brain:maintain`. Use `pending_embeddings` and `index_chunks` for complete page coverage; do not truncate canonical Markdown. Report unfinished work accurately.
 
 ## Verify
 

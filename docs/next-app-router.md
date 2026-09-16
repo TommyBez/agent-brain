@@ -35,7 +35,7 @@ The owner-wide tag covers lists, counts, page bodies, graph, backlinks, revision
 
 Knowledge reads advertise a 30-second client freshness window. A remote agent's mutation invalidates the server cache but does not send a push message to an open tab. A new server request sees the invalidated data; Back/Forward can restore an existing view, and shared layouts are not refetched on every navigation. Refresh the view to request current server state. The editor always submits `expectedVersion`; conflict reconciliation reads the committed database version directly, preserving the user's draft.
 
-Full token values are returned only when creating a token, through its Server Action or the compatible HTTP endpoint. Subsequent reads contain metadata only. Token metadata and operations status are read fresh on the server. Sign-out navigates to a new document to discard authenticated router state.
+Full token values are returned only when creating a token through its Server Action. Subsequent reads contain metadata only. Token metadata and operations status are read fresh on the server. Sign-out navigates to a new document to discard authenticated router state.
 
 OAuth consent identity and permissions are fetched in the authorized Server Component; only the approve/deny buttons are interactive. Unknown or unavailable clients cannot be approved. Sign-out transport errors allow retry, and the workspace error boundary uses Next's `retry()` API.
 

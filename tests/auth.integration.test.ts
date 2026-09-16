@@ -10,16 +10,17 @@ import {
 import { hashPassword } from "better-auth/crypto";
 import { GET as discoveryGET } from "../app/.well-known/[...path]/route";
 import {
-  DELETE as tokensDELETE,
-  GET as tokensGET,
-  POST as tokensPOST,
-} from "../app/api/agent-tokens/route";
-import {
   GET as authGET,
   OPTIONS as authOPTIONS,
   POST as authPOST,
 } from "../app/api/auth/[...all]/route";
 import { POST as mcpPOST } from "../app/mcp/route";
+import {
+  createAgentToken,
+  listAgentTokens,
+  revokeAgentToken,
+} from "../lib/agent-tokens";
+import { AuthError, requireSessionPrincipal } from "../lib/auth-principal";
 import * as brain from "../lib/brain/service";
 import { getPool } from "../lib/db";
 
@@ -76,12 +77,6 @@ test(
             req.method === "POST"
               ? await mcpPOST(request)
               : new Response(null, { status: 405 });
-        else if (req.url === "/api/agent-tokens")
-          response = await {
-            GET: tokensGET,
-            POST: tokensPOST,
-            DELETE: tokensDELETE,
-          }[req.method as "GET" | "POST" | "DELETE"](request);
         else if (req.url?.startsWith("/.well-known/"))
           response = await discoveryGET(request);
         else
@@ -196,49 +191,56 @@ test(
     );
 
     await t.test(
-      "session management creates a once-visible token and never lists its secret or hash",
+      "the token service returns a once-visible secret and session-only operations reject CSRF and bearer credentials",
       async () => {
-        const response = await fetch(
-          `${origin}/api/agent-tokens`,
-          json(
-            {
-              name: "Integration test",
-              scopes: ["brain:read"],
-              expiresInDays: 1,
-            },
-            cookie,
-          ),
+        const principal = await requireSessionPrincipal(
+          new Request(`${origin}/api/operations`, json({}, cookie)),
         );
-        assert.equal(response.status, 201, await response.clone().text());
-        const body = await response.json();
-        tokenId = body.record.id;
-        rawToken = body.token;
-        const listing = await (
-          await fetch(`${origin}/api/agent-tokens`, { headers: { cookie } })
-        ).json();
-        assert.ok(
-          listing.tokens.some((token: { id: string }) => token.id === tokenId),
-        );
+        assert.equal(principal.ownerId, ownerId);
+        const credential = await createAgentToken(principal.ownerId, {
+          name: "Integration test",
+          scopes: ["brain:read"],
+          expiresInDays: 1,
+        });
+        tokenId = credential.record.id;
+        rawToken = credential.token;
+        const listing = await listAgentTokens(principal.ownerId);
+        assert.ok(listing.some((token) => token.id === tokenId));
         assert.equal(JSON.stringify(listing).includes(rawToken), false);
         assert.equal(JSON.stringify(listing).includes("token_hash"), false);
-        const csrf = await fetch(`${origin}/api/agent-tokens`, {
-          ...json({ name: "Forbidden", scopes: ["brain:read"] }, cookie),
-          headers: {
-            "Content-Type": "application/json",
-            cookie,
-            origin: "https://evil.example",
-          },
-        });
-        assert.equal(csrf.status, 403);
-        const escalation = await fetch(`${origin}/api/agent-tokens`, {
-          ...json({ name: "Forbidden", scopes: ["brain:write"] }),
-          headers: {
-            "Content-Type": "application/json",
-            authorization: `Bearer ${rawToken}`,
-            origin,
-          },
-        });
-        assert.equal(escalation.status, 403);
+        await assert.rejects(
+          requireSessionPrincipal(
+            new Request(`${origin}/api/operations`, {
+              ...json({}, cookie),
+              headers: {
+                "Content-Type": "application/json",
+                cookie,
+                origin: "https://evil.example",
+              },
+            }),
+          ),
+          (error: unknown) =>
+            error instanceof AuthError &&
+            error.status === 403 &&
+            error.code === "invalid_origin",
+        );
+        await assert.rejects(
+          requireSessionPrincipal(
+            new Request(`${origin}/api/operations`, {
+              ...json({}, cookie),
+              headers: {
+                "Content-Type": "application/json",
+                cookie,
+                authorization: `Bearer ${rawToken}`,
+                origin,
+              },
+            }),
+          ),
+          (error: unknown) =>
+            error instanceof AuthError &&
+            error.status === 403 &&
+            error.code === "session_required",
+        );
       },
     );
 
@@ -314,19 +316,11 @@ test(
             return originalFetch(input, init);
           },
         );
-        const issued = await fetch(
-          `${origin}/api/agent-tokens`,
-          json(
-            {
-              name: "Chunk worker integration test",
-              scopes: ["brain:maintain"],
-              expiresInDays: 1,
-            },
-            cookie,
-          ),
-        );
-        assert.equal(issued.status, 201, await issued.clone().text());
-        const workerToken = (await issued.json()).token;
+        const { token: workerToken } = await createAgentToken(ownerId, {
+          name: "Chunk worker integration test",
+          scopes: ["brain:maintain"],
+          expiresInDays: 1,
+        });
         const suffix = `Long page suffix ${randomUUID()}`;
         const markdown = `${Array.from(
           { length: 180 },
@@ -471,7 +465,7 @@ test(
     );
 
     await t.test(
-      "MCP search preserves array payloads and reports automatic embedding or provider fallback mode",
+      "MCP search returns matching results and retrieval metadata in both response representations",
       async (subtest) => {
         const originalKey = process.env.BRAIN_EMBEDDING_API_KEY;
         const originalEnabled = process.env.BRAIN_QUERY_EMBEDDINGS;
@@ -525,20 +519,22 @@ test(
           );
           for (const mode of ["hybrid", "text-and-graph"]) {
             providerAvailable = mode === "hybrid";
+            const query = `Retrieval contract ${randomUUID()}`;
+            const page = await brain.write(ownerId, {
+              expectedVersion: 0,
+              title: query,
+              type: "note",
+              markdown: "A lexical match must retain its retrieval provenance.",
+            });
             const response = await client.callTool({
               name: "search",
-              arguments: { query: `Retrieval contract ${randomUUID()}` },
+              arguments: { query },
             });
             assert.equal(response.isError, undefined);
             const structured = response.structuredContent as {
-              data: unknown[];
-              retrieval: {
-                mode: string;
-                embeddingSource: string;
-                embeddingModel: string | null;
-              };
+              data: Awaited<ReturnType<typeof brain.search>>;
             };
-            assert.ok(Array.isArray(structured?.data));
+            assert.ok(Array.isArray(structured?.data?.results));
             assert.equal(response.content.length, 1);
             const text = response.content[0];
             assert.equal(text.type, "text");
@@ -546,7 +542,10 @@ test(
               JSON.parse(text.type === "text" ? text.text : "null"),
               structured.data,
             );
-            const { retrieval } = structured;
+            const { results, retrieval } = structured.data;
+            const match = results.find((entry) => entry.id === page.id);
+            assert.ok(match);
+            assert.deepEqual(match.matchedBy, ["text"]);
             assert.equal(retrieval.mode, mode);
             assert.equal(
               retrieval.embeddingSource,
@@ -617,11 +616,9 @@ test(
           "UPDATE agent_tokens SET expires_at = now() + interval '1 day' WHERE id = $1",
           [tokenId],
         );
-        const revoke = await fetch(`${origin}/api/agent-tokens`, {
-          ...json({ id: tokenId }, cookie),
-          method: "DELETE",
+        assert.deepEqual(await revokeAgentToken(ownerId, { id: tokenId }), {
+          revoked: true,
         });
-        assert.equal(revoke.status, 200);
         assert.equal(
           (
             await fetch(`${origin}/mcp`, {
