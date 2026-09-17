@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, LogOut, Menu, Search } from "lucide-react";
+import { LogOut, Menu, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
   type ReactNode,
@@ -10,7 +10,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -20,8 +19,9 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { Wordmark } from "@/components/wordmark";
 import { authClient } from "@/lib/auth-client";
-import { WorkspaceBreadcrumb } from "./navigation";
+import { PrimaryNavigation } from "./navigation";
 import {
   WorkspaceLink as Link,
   useSearchNavigation,
@@ -68,19 +68,16 @@ export function WorkspaceShell({
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <div className="flex min-h-svh">
+      <div className="min-h-svh">
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground"
         >
           Skip to content
         </a>
-        <aside className="fixed inset-y-0 left-0 z-30 flex w-64 flex-col gap-6 overflow-y-auto border-r bg-sidebar p-6 max-[740px]:hidden">
-          {sidebar}
-        </aside>
         <SheetContent
-          side="left"
-          className="overflow-y-auto"
+          side="right"
+          className="overflow-y-auto bg-sidebar"
           onOpenAutoFocus={(event) => {
             // This Sheet contains navigation links before its action buttons.
             const firstLink = mobileNavigation.current?.querySelector("a");
@@ -115,8 +112,10 @@ export function WorkspaceShell({
           }}
         >
           <SheetHeader>
-            <SheetTitle>Navigation</SheetTitle>
-            <SheetDescription>Browse and organize your brain.</SheetDescription>
+            <SheetTitle>Your workspace</SheetTitle>
+            <SheetDescription>
+              Collections, agents and settings.
+            </SheetDescription>
           </SheetHeader>
           <div
             ref={mobileNavigation}
@@ -125,32 +124,49 @@ export function WorkspaceShell({
             {sidebar}
           </div>
         </SheetContent>
-        <div className="ml-64 min-w-0 flex-1 max-[740px]:ml-0">
-          <header className="flex h-16 items-center gap-4 border-b px-4 md:px-6">
-            <SheetTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                className="hidden max-[740px]:inline-flex"
-                aria-label="Open navigation"
+        <div className="min-w-0">
+          <header className="border-b">
+            <div className="mx-auto flex max-w-[1360px] flex-wrap items-center gap-x-6 px-5 sm:h-24 md:gap-x-14 md:px-10 lg:px-16">
+              <Link
+                href="/"
+                aria-label="a native brain home"
+                className="inline-flex max-sm:py-4"
               >
-                <Menu size={20} />
-              </Button>
-            </SheetTrigger>
-            <div className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
-              <span className="hidden sm:inline">Personal brain</span>
-              <ChevronRight className="hidden size-4 shrink-0 sm:block" />
-              <Suspense fallback={<span>Workspace</span>}>
-                <WorkspaceBreadcrumb />
-              </Suspense>
+                <Wordmark />
+              </Link>
+              <div className="h-11 max-sm:order-3 max-sm:basis-full sm:h-full">
+                <Suspense fallback={<div className="w-52" />}>
+                  <PrimaryNavigation />
+                </Suspense>
+              </div>
+              <div className="ml-auto flex items-center gap-1 sm:gap-3">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={focusSearch}
+                  aria-label="Search pages (Command K)"
+                >
+                  <Search size={19} />
+                </Button>
+                <span
+                  aria-hidden="true"
+                  className="hidden h-5 border-l sm:block"
+                />
+                <SheetTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Open workspace menu"
+                  >
+                    <Menu size={20} />
+                  </Button>
+                </SheetTrigger>
+              </div>
             </div>
-            <Badge variant="outline" className="ml-auto">
-              Private
-            </Badge>
           </header>
           <main
             id="main-content"
-            className="mx-auto max-w-7xl p-4 md:p-6 lg:p-8"
+            className="mx-auto max-w-[1360px] px-5 pt-8 pb-20 md:px-10 md:pt-14 lg:px-16"
           >
             {children}
           </main>
@@ -162,11 +178,17 @@ export function WorkspaceShell({
 
 export function FindKnowledge() {
   return (
-    <Button variant="outline" asChild className="w-full justify-start">
+    <Button
+      variant="outline"
+      asChild
+      className="h-10 w-full justify-start border-border/80 bg-background/70 font-normal shadow-none"
+    >
       <Link href="/?focus=search">
         <Search />
-        Find anything
-        <kbd className="ml-auto text-xs text-muted-foreground">⌘ K</kbd>
+        Search
+        <kbd className="ml-auto rounded border bg-sidebar px-1.5 py-0.5 text-[10px] text-muted-foreground">
+          ⌘ K
+        </kbd>
       </Link>
     </Button>
   );

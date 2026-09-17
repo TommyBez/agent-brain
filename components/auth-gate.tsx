@@ -1,4 +1,4 @@
-import { ArrowUpRight, CircleCheck } from "lucide-react";
+import { ArrowUpRight, LockKeyhole } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { SignInForm } from "./sign-in-form";
+import { Wordmark } from "./wordmark";
 
 export function AuthGate({
   configured,
@@ -19,51 +20,34 @@ export function AuthGate({
   form?: ReactNode;
 }) {
   return (
-    <main className="grid min-h-svh md:grid-cols-2">
-      <section className="flex flex-col gap-12 bg-muted p-6 md:p-12">
-        <Link
-          className="font-serif text-3xl font-semibold"
-          href="/"
-          aria-label="Brain home"
-        >
-          brain
+    <main className="flex min-h-svh flex-col px-5 py-8 sm:px-10">
+      <header className="flex items-center justify-between">
+        <Link className="inline-flex" href="/" aria-label="a native brain home">
+          <Wordmark />
         </Link>
-        <div className="my-auto max-w-lg space-y-6">
-          <h1 className="font-serif text-4xl tracking-tight md:text-5xl">
-            Good thoughts deserve a longer life.
-          </h1>
-          <p className="text-muted-foreground">
-            A second brain that grows with your conversations. One page for each
-            person, project, and idea. Connected, considered, and yours.
-          </p>
-        </div>
-        <ul className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-          {["Your infrastructure", "Any agent", "Open by design"].map(
-            (label) => (
-              <li key={label} className="flex items-center gap-2">
-                <CircleCheck className="size-4" />
-                {label}
-              </li>
-            ),
-          )}
-        </ul>
-      </section>
+        <span className="flex items-center gap-2 text-xs text-muted-foreground">
+          <LockKeyhole className="size-3.5" />
+          Personal workspace
+        </span>
+      </header>
       <section
-        className="flex items-center justify-center p-6 md:p-12"
-        aria-label={configured ? "Sign in" : "Set up Brain"}
+        className="flex flex-1 items-center justify-center py-12"
+        aria-label={configured ? "Sign in" : "Set up a native brain"}
       >
-        <Card className="w-full max-w-md">
-          <CardHeader>
+        <Card className="w-full max-w-[440px] gap-8 py-8 sm:py-10">
+          <CardHeader className="gap-3 px-7 sm:px-10">
             <CardTitle>
-              <h2>{configured ? "Welcome back." : "A home for your brain."}</h2>
+              <h1 className="text-3xl font-semibold tracking-tight">
+                {configured ? "Welcome back" : "Set up your workspace"}
+              </h1>
             </CardTitle>
             <CardDescription>
               {configured
-                ? "Sign in to pick up the thread."
+                ? "Sign in to your personal knowledge workspace."
                 : "Connect your workspace to your infrastructure to begin."}
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-7 sm:px-10">
             {configured ? (
               (form ?? <SignInForm />)
             ) : (

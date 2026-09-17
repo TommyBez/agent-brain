@@ -40,7 +40,7 @@ export function authOptions() {
   if (!process.env.BRAIN_OWNER_EMAIL)
     throw new Error("BRAIN_OWNER_EMAIL is required.");
   return {
-    appName: "Agent Brain",
+    appName: "a native brain",
     baseURL: origin,
     secret,
     database: getPool(),

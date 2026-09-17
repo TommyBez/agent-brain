@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { PageBackLink } from "@/components/page-detail";
 import { PageEditor } from "@/components/workspace/page-editor";
-import { Loading, PageHeading } from "@/components/workspace/primitives";
+import { Loading } from "@/components/workspace/primitives";
 import { PAGE_TYPES, type PageType } from "@/lib/brain/types";
 import { getWorkspacePages } from "@/lib/workspace/data";
 import { CONNECTION_PAGE_SIZE } from "@/lib/workspace/urls";
@@ -37,11 +37,10 @@ export default function NewPage({
   searchParams: SearchParams;
 }) {
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-4xl space-y-6">
       <div className="text-sm">
         <PageBackLink />
       </div>
-      <PageHeading eyebrow="MAKE ROOM FOR A THOUGHT" title="A new page" />
       <Suspense fallback={<Loading />}>
         <Editor searchParams={searchParams} />
       </Suspense>

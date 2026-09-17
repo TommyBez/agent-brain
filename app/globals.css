@@ -1,32 +1,37 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #fbfaf6;
-  --foreground: #292c24;
-  --card: #f8f9f2;
-  --card-foreground: #292c24;
-  --popover: #fbfaf6;
-  --popover-foreground: #292c24;
-  --primary: #4c6142;
+  color-scheme: light;
+  --background: #f4f2ec;
+  --foreground: #282724;
+  --card: #fffefa;
+  --card-foreground: #282724;
+  --popover: #ffffff;
+  --popover-foreground: #282724;
+  --primary: #282724;
   --primary-foreground: #ffffff;
-  --secondary: #e5eadb;
-  --secondary-foreground: #4c6142;
-  --muted: #edf0e5;
-  --muted-foreground: #767b6e;
-  --accent: #edf0e5;
-  --accent-foreground: #35482c;
-  --destructive: #9f4e3a;
-  --border: #e1e3d8;
-  --input: #dce0d2;
-  --ring: #9eae90;
+  --secondary: #ebe7df;
+  --secondary-foreground: #48453e;
+  --muted: #edeae3;
+  --muted-foreground: #726c62;
+  --accent: #e8e4db;
+  --accent-foreground: #282724;
+  --destructive: #a24334;
+  --border: #ddd8ce;
+  --input: #d2ccc0;
+  --ring: #ab5237;
   --radius: 0.5rem;
-  --sidebar: #f0f0e8;
+  --sidebar: #f4f2ec;
+  --brand: #a0442c;
+  --brand-soft: #efe0d6;
   --overlay: #000000;
   --serif:
-    "Iowan Old Style", "Baskerville", "Palatino Linotype", "Book Antiqua",
-    Georgia, serif;
-  --sans: "Avenir Next", "Avenir", "Trebuchet MS", sans-serif;
+    var(--font-editorial), "Iowan Old Style", "Baskerville",
+    "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  --sans: var(--font-interface), "Avenir Next", "Avenir", sans-serif;
   --mono: "SFMono-Regular", Consolas, monospace;
 }
 
@@ -54,6 +59,8 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --color-sidebar: var(--sidebar);
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
   /* Built-in palette tokens used by unmodified shadcn overlay/destructive variants. */
   --color-black: var(--overlay);
   --color-white: var(--primary-foreground);
@@ -69,6 +76,10 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
   a:focus-visible,
   summary:focus-visible,
   [tabindex]:focus-visible {
@@ -82,39 +93,39 @@
 @layer components {
   .entity-person,
   .type-person {
-    --secondary-foreground: #a48668;
-    --secondary: #f2ebdf;
-    --border: #e8dfd0;
+    --secondary-foreground: #8b513b;
+    --secondary: #f3e5db;
+    --border: #e9d7ca;
   }
   .entity-client,
   .type-client {
-    --secondary-foreground: #7e8b9c;
-    --secondary: #e9edf1;
-    --border: #dde3e7;
+    --secondary-foreground: #48647e;
+    --secondary: #e6ecf1;
+    --border: #d5e0e8;
   }
   .entity-project,
   .type-project {
-    --secondary-foreground: #788a64;
-    --secondary: #e9efdf;
-    --border: #dde6cf;
+    --secondary-foreground: #4c6646;
+    --secondary: #e6eddf;
+    --border: #d7e1ce;
   }
   .entity-article,
   .type-article {
-    --secondary-foreground: #948981;
-    --secondary: #efebe7;
-    --border: #e7e0d8;
+    --secondary-foreground: #78604b;
+    --secondary: #eee7de;
+    --border: #e1d7ca;
   }
   .entity-decision,
   .type-decision {
-    --secondary-foreground: #ae975b;
-    --secondary: #f3eddb;
-    --border: #e9dfbd;
+    --secondary-foreground: #7d672b;
+    --secondary: #f2ecd5;
+    --border: #e6ddba;
   }
   .entity-note,
   .type-note {
-    --secondary-foreground: #8a8491;
-    --secondary: #edebef;
-    --border: #e2dce5;
+    --secondary-foreground: #71627d;
+    --secondary: #ede7f0;
+    --border: #ded4e4;
   }
 
   /* Agent-authored Markdown needs typography for elements emitted at runtime. */
@@ -189,6 +200,12 @@
   }
   .markdown-body .contains-task-list {
     @apply list-none;
+  }
+  .reading-body {
+    @apply font-serif text-[17px] leading-[1.85] sm:text-lg;
+  }
+  .reading-body :is(h1, h2, h3, h4) {
+    @apply tracking-tight;
   }
 }
 

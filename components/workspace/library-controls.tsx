@@ -3,7 +3,7 @@
 import { Search, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { entityTypes } from "@/components/brain-types";
+import { entityTypes, type Stats } from "@/components/brain-types";
 import {
   InputGroup,
   InputGroupAddon,
@@ -21,7 +21,48 @@ import {
   libraryHref,
   parseLibraryFilters,
 } from "@/lib/workspace/urls";
-import { useSearchNavigation } from "./search-navigation";
+import {
+  WorkspaceLink as Link,
+  useSearchNavigation,
+} from "./search-navigation";
+
+export function LibraryCollections({
+  stats,
+  type,
+}: {
+  stats?: Stats;
+  type: PageType | "";
+}) {
+  const params = useSearchParams();
+  const filters = parseLibraryFilters(params, type);
+  return (
+    <nav
+      aria-label="Collections"
+      aria-busy={!stats}
+      className="mb-5 flex gap-6 overflow-x-auto border-b whitespace-nowrap sm:mb-7 sm:gap-8"
+    >
+      {[{ id: "" as const, label: "All pages" }, ...entityTypes].map((item) => {
+        const active = filters.type === item.id;
+        const count = item.id
+          ? (stats?.byType[item.id] ?? (stats ? 0 : "—"))
+          : (stats?.pages ?? "—");
+        return (
+          <Link
+            key={item.id}
+            href={libraryHref({ ...filters, type: item.id, offset: 0 })}
+            aria-current={active ? "page" : undefined}
+            className={`flex items-baseline gap-2 border-b-2 pt-2 pb-4 text-[13px] transition-colors ${active ? "border-brand font-medium text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+          >
+            {item.label}
+            <span className="text-[10px] font-normal tabular-nums text-muted-foreground">
+              {count}
+            </span>
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
 
 export function LibraryControls({ type }: { type: PageType | "" }) {
   const pathname = usePathname();
@@ -135,7 +176,7 @@ export function LibraryControls({ type }: { type: PageType | "" }) {
     >
       <search>
         <form
-          className="mb-6 flex flex-wrap items-center gap-2"
+          className="mb-6 flex items-center justify-between gap-3 sm:mb-8"
           onSubmit={(event) => {
             event.preventDefault();
             change({ query: normalizedQuery });
@@ -144,7 +185,7 @@ export function LibraryControls({ type }: { type: PageType | "" }) {
           <Label htmlFor="library-search" className="sr-only">
             Search pages
           </Label>
-          <InputGroup className="flex-1 basis-full sm:basis-0">
+          <InputGroup className="h-11 min-w-0 flex-1 basis-0 rounded-none border-0 border-b border-transparent bg-transparent shadow-none focus-within:border-input focus-within:ring-0 sm:max-w-md">
             <InputGroupInput
               id="library-search"
               ref={inputRef}
@@ -154,7 +195,7 @@ export function LibraryControls({ type }: { type: PageType | "" }) {
                 cancelledForNavigation.current = false;
                 setQuery(event.target.value);
               }}
-              placeholder="Search your knowledge…"
+              placeholder="Search pages…"
               autoComplete="off"
               maxLength={500}
             />
@@ -177,25 +218,9 @@ export function LibraryControls({ type }: { type: PageType | "" }) {
               </InputGroupAddon>
             )}
           </InputGroup>
-          <div className="w-32 shrink-0">
+          <div className="w-32 shrink-0 sm:w-36">
             <NativeSelect
-              aria-label="Filter by page type"
-              name="type"
-              value={filters.type}
-              onChange={(event) =>
-                change({ type: event.target.value as LibraryFilters["type"] })
-              }
-            >
-              <NativeSelectOption value="">All types</NativeSelectOption>
-              {entityTypes.map((item) => (
-                <NativeSelectOption value={item.id} key={item.id}>
-                  {item.label}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
-          </div>
-          <div className="w-36 shrink-0">
-            <NativeSelect
+              className="h-10 border-0 bg-transparent shadow-none text-xs"
               aria-label="Sort pages"
               name="sort"
               value={filters.sort}

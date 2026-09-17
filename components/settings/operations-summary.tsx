@@ -178,7 +178,7 @@ export function OperationsSummary({ data }: { data: OperationsData }) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ShieldCheck className="size-5 shrink-0" />
-            Your knowledge has an exit door.
+            Export & recovery
           </CardTitle>
           <CardDescription>
             Postgres is the source of truth. Git exports keep readable daily

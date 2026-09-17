@@ -60,8 +60,8 @@ export function KnowledgeGraph({
     return (
       <Empty
         icon={<Network className="size-8" />}
-        title="Knowledge grows between the dots."
-        description="Create a few pages and connect them with typed links. Their relationships will take shape here."
+        title="No pages to explore"
+        description="Create pages and add connections to see their relationships here."
       />
     );
   }
@@ -163,8 +163,8 @@ export function KnowledgeGraph({
   };
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start">
-      <div className="relative h-[clamp(420px,62vh,760px)] overflow-hidden rounded-lg border bg-card">
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start">
+      <div className="relative min-w-0 h-[clamp(420px,62vh,760px)] overflow-hidden rounded-xl border bg-card">
         <GraphCanvas
           ref={canvas}
           nodes={model.nodes}
@@ -292,7 +292,7 @@ export function KnowledgeGraph({
       </div>
       <aside
         aria-label="Graph inspector"
-        className="rounded-lg border bg-card lg:h-[clamp(420px,62vh,760px)] lg:overflow-y-auto"
+        className="min-w-0 rounded-xl border bg-card lg:h-[clamp(420px,62vh,760px)] lg:overflow-y-auto"
       >
         <GraphInspector
           nodes={inspectorNodes}

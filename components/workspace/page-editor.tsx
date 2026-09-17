@@ -193,7 +193,7 @@ export function PageEditor({
     <form
       action={formAction}
       onSubmit={() => setNotice("")}
-      className="grid gap-6"
+      className="mx-auto grid max-w-4xl gap-7"
     >
       <input type="hidden" name="id" value={id ?? ""} />
       <input type="hidden" name="expectedVersion" value={page?.version ?? 0} />
@@ -208,7 +208,10 @@ export function PageEditor({
           })),
         )}
       />
-      <div className="flex items-center justify-end gap-2">
+      <div className="flex items-center justify-end gap-2 border-b pb-5">
+        <h1 className="mr-auto text-sm font-medium">
+          {id ? "Edit page" : "New page"}
+        </h1>
         <Button variant="outline" asChild>
           <Link
             href={id ? `/pages/${id}` : "/"}
@@ -256,17 +259,18 @@ export function PageEditor({
           </AlertDescription>
         </Alert>
       )}
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-5 sm:grid-cols-[minmax(0,1fr)_12rem]">
         <Label className="grid gap-2">
           Title
           <Input
             value={title}
             name="title"
+            className="h-16 rounded-none border-0 border-b bg-transparent px-0 font-serif text-3xl font-normal shadow-none md:text-4xl"
             onChange={(e) => {
               setTitle(e.target.value);
               scheduleResolve(e.target.value, type);
             }}
-            placeholder="A person, a project, an idea…"
+            placeholder="Untitled page"
             maxLength={200}
             required
           />
@@ -274,6 +278,7 @@ export function PageEditor({
         <Label className="grid gap-2">
           Page type
           <NativeSelect
+            className="h-16 border-0 bg-transparent shadow-none"
             value={type}
             name="type"
             onChange={(e) => {
@@ -316,6 +321,7 @@ export function PageEditor({
         Summary
         <Input
           name="summary"
+          className="rounded-none border-0 border-b bg-transparent px-0 shadow-none"
           value={summary}
           onChange={(e) => setSummary(e.target.value)}
           maxLength={2000}
@@ -336,20 +342,18 @@ export function PageEditor({
         </div>
         <TabsContent
           value="preview"
-          className="markdown-body min-h-96 rounded-md border p-6"
+          className="markdown-body reading-body min-h-[32rem] border-y bg-card p-6 sm:p-10"
         >
           {preview && (
             <MarkdownPreview
-              markdown={
-                markdown || "*Your page is waiting for its first words.*"
-              }
+              markdown={markdown || "*Nothing to preview yet.*"}
             />
           )}
         </TabsContent>
         <TabsContent value="write">
           <Textarea
             id="markdown-content"
-            className="min-h-96 resize-y font-mono"
+            className="min-h-[32rem] resize-y rounded-none border-x-0 bg-card p-6 font-mono leading-relaxed shadow-none sm:p-10"
             value={markdown}
             onChange={(e) => setMarkdown(e.target.value)}
             placeholder={
@@ -359,118 +363,126 @@ export function PageEditor({
           />
         </TabsContent>
       </Tabs>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Label className="grid gap-2">
-          Aliases
-          <Input
-            name="aliases"
-            value={aliases}
-            onChange={(e) => setAliases(e.target.value)}
-            placeholder="Other names, separated by commas"
-          />
-        </Label>
-        <Label className="grid gap-2">
-          Tags
-          <Input
-            name="tags"
-            value={tags}
-            onChange={(e) => setTags(e.target.value)}
-            placeholder="Tags, separated by commas"
-          />
-        </Label>
-      </div>
-      <div className="space-y-4 border-y py-6">
-        <h3 className="flex items-center gap-2 font-medium">
-          <Link2 size={16} /> Connections
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          Give every relationship a meaning.
-        </p>
-        {links.map((link, index) => (
-          <div
-            className="flex items-center gap-3 border-b pb-4 text-sm"
-            key={`${link.targetRef}-${link.type}`}
-          >
-            <span className="text-muted-foreground">
-              {link.type.replaceAll("_", " ")}
-            </span>
-            <strong className="min-w-0 wrap-anywhere">
-              {link.targetTitle ||
-                choices.pages.find((p) => p.id === link.targetRef)?.title ||
-                page?.links.find((l) => l.targetId === link.targetRef)
-                  ?.targetTitle ||
-                link.targetRef}
-            </strong>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              className="ml-auto shrink-0"
-              aria-label="Remove connection"
-              onClick={() => setLinks(links.filter((_, i) => i !== index))}
-            >
-              <X size={15} />
-            </Button>
+      <details className="group/details border-y py-5">
+        <summary className="cursor-pointer text-sm font-medium">
+          Connections & metadata
+        </summary>
+        <div className="mt-6 grid gap-7">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Label className="grid gap-2">
+              Aliases
+              <Input
+                name="aliases"
+                value={aliases}
+                onChange={(e) => setAliases(e.target.value)}
+                placeholder="Other names, separated by commas"
+              />
+            </Label>
+            <Label className="grid gap-2">
+              Tags
+              <Input
+                name="tags"
+                value={tags}
+                onChange={(e) => setTags(e.target.value)}
+                placeholder="Tags, separated by commas"
+              />
+            </Label>
           </div>
-        ))}
-        <div className="flex flex-col items-stretch gap-4 lg:flex-row lg:items-start">
+          <div className="space-y-4 border-y py-6">
+            <h3 className="flex items-center gap-2 font-medium">
+              <Link2 size={16} /> Connections
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Link this page to related people, projects, or notes.
+            </p>
+            {links.map((link, index) => (
+              <div
+                className="flex items-center gap-3 border-b pb-4 text-sm"
+                key={`${link.targetRef}-${link.type}`}
+              >
+                <span className="text-muted-foreground">
+                  {link.type.replaceAll("_", " ")}
+                </span>
+                <strong className="min-w-0 wrap-anywhere">
+                  {link.targetTitle ||
+                    choices.pages.find((p) => p.id === link.targetRef)?.title ||
+                    page?.links.find((l) => l.targetId === link.targetRef)
+                      ?.targetTitle ||
+                    link.targetRef}
+                </strong>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  className="ml-auto shrink-0"
+                  aria-label="Remove connection"
+                  onClick={() => setLinks(links.filter((_, i) => i !== index))}
+                >
+                  <X size={15} />
+                </Button>
+              </div>
+            ))}
+            <div className="flex flex-col items-stretch gap-4 lg:flex-row lg:items-start">
+              <Label className="grid gap-2">
+                <span className="sr-only">Relationship type</span>
+                <NativeSelect
+                  value={linkType}
+                  onChange={(e) => setLinkType(e.target.value as LinkType)}
+                >
+                  {linkTypes.map((item) => (
+                    <NativeSelectOption key={item} value={item}>
+                      {item.replaceAll("_", " ")}
+                    </NativeSelectOption>
+                  ))}
+                </NativeSelect>
+              </Label>
+              <ConnectionPicker
+                initialChoices={choices}
+                excludeId={id}
+                value={linkTarget}
+                onChange={setLinkTarget}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                disabled={
+                  !linkTarget ||
+                  links.some(
+                    (link) =>
+                      link.targetRef === linkTarget?.id &&
+                      link.type === linkType,
+                  )
+                }
+                onClick={() => {
+                  if (!linkTarget) return;
+                  setLinks([
+                    ...links,
+                    {
+                      targetRef: linkTarget.id,
+                      targetTitle: linkTarget.title,
+                      type: linkType,
+                      label: "",
+                    },
+                  ]);
+                  setLinkTarget(null);
+                }}
+              >
+                <Plus size={15} /> Add
+              </Button>
+            </div>
+          </div>
           <Label className="grid gap-2">
-            <span className="sr-only">Relationship type</span>
-            <NativeSelect
-              value={linkType}
-              onChange={(e) => setLinkType(e.target.value as LinkType)}
-            >
-              {linkTypes.map((item) => (
-                <NativeSelectOption key={item} value={item}>
-                  {item.replaceAll("_", " ")}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
+            Reason for this change
+            <Input
+              name="reason"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="What changed, and why?"
+              maxLength={1000}
+            />
           </Label>
-          <ConnectionPicker
-            initialChoices={choices}
-            excludeId={id}
-            value={linkTarget}
-            onChange={setLinkTarget}
-          />
-          <Button
-            type="button"
-            variant="outline"
-            disabled={
-              !linkTarget ||
-              links.some(
-                (link) =>
-                  link.targetRef === linkTarget?.id && link.type === linkType,
-              )
-            }
-            onClick={() => {
-              if (!linkTarget) return;
-              setLinks([
-                ...links,
-                {
-                  targetRef: linkTarget.id,
-                  targetTitle: linkTarget.title,
-                  type: linkType,
-                  label: "",
-                },
-              ]);
-              setLinkTarget(null);
-            }}
-          >
-            <Plus size={15} /> Add
-          </Button>
         </div>
-      </div>
-      <Label className="grid gap-2">
-        Reason for this change
-        <Input
-          name="reason"
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
-          placeholder="What changed, and why?"
-          maxLength={1000}
-        />
-      </Label>
+      </details>
       {comparison && page && (
         <details className="space-y-4 rounded-lg border bg-muted p-4">
           <summary className="cursor-pointer font-medium">

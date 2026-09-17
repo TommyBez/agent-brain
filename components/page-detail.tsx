@@ -76,13 +76,15 @@ function PageHeadingContent({ page }: { page: BrainPage }) {
   return (
     <>
       <div className="flex flex-col items-start justify-between gap-4 sm:flex-row">
-        <div className="min-w-0 space-y-3">
+        <div className="min-w-0 max-w-[760px] space-y-5">
           <Badge variant="secondary" className={`capitalize type-${page.type}`}>
             <EntityIcon type={page.type} size={13} /> {page.type}
           </Badge>
-          <h1 className="wrap-anywhere font-serif text-4xl">{page.title}</h1>
+          <h1 className="wrap-anywhere font-serif text-4xl font-normal leading-[1.15] tracking-[-0.04em] sm:text-5xl">
+            {page.title}
+          </h1>
           {page.summary && (
-            <p className="max-w-prose wrap-anywhere text-muted-foreground leading-relaxed">
+            <p className="max-w-prose wrap-anywhere text-base text-muted-foreground leading-relaxed sm:text-lg">
               {page.summary}
             </p>
           )}
@@ -93,7 +95,7 @@ function PageHeadingContent({ page }: { page: BrainPage }) {
           </Link>
         </Button>
       </div>
-      <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+      <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
         <span>Updated {formatDate(page.updatedAt)}</span>
         <span aria-hidden="true">·</span>
         <span>{page.links.length + page.backlinks.length} connections</span>
@@ -144,7 +146,7 @@ export async function PageNavigation({
 export async function PageBody({ params }: { params: PageParams }) {
   const page = await readPage(params);
   return (
-    <article className="markdown-body min-w-0 lg:col-span-2">
+    <article className="markdown-body reading-body min-w-0 max-w-[740px]">
       <Markdown markdown={page.markdown} />
     </article>
   );
@@ -153,9 +155,13 @@ export async function PageBody({ params }: { params: PageParams }) {
 export async function PageConnections({ params }: { params: PageParams }) {
   const page = await readPage(params);
   return (
-    <Card role="complementary" aria-label="Page context" className="min-w-0">
+    <Card
+      role="complementary"
+      aria-label="Page context"
+      className="min-w-0 rounded-none border-0 border-l bg-transparent py-0 lg:sticky lg:top-8"
+    >
       <CardHeader>
-        <CardTitle>Connected knowledge</CardTitle>
+        <CardTitle>Connections</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6 text-sm">
         {page.links.length + page.backlinks.length ? (
@@ -229,7 +235,7 @@ export async function PageConnections({ params }: { params: PageParams }) {
           </section>
         )}
         <dl className="space-y-2 border-t pt-4">
-          <dt className="font-medium">First remembered</dt>
+          <dt className="font-medium">Created</dt>
           <dd className="text-muted-foreground">
             {formatDate(page.createdAt)}
           </dd>

@@ -20,16 +20,16 @@ import { listAgentTokens } from "@/lib/agent-tokens";
 import { mcpResource } from "@/lib/auth";
 import { getWorkspaceUser } from "@/lib/workspace/session";
 
-export const metadata = { title: "Agents & access — Brain" };
+export const metadata = { title: "Agents & access · a native brain" };
 
 export default function AgentsPage() {
   const endpoint = mcpResource();
   return (
     <>
       <PageHeading
-        eyebrow="A SHARED PLACE TO REMEMBER"
+        eyebrow="Settings"
         title="Agents & access"
-        description="Your knowledge, available wherever you think."
+        description="Connect your agents and manage access to your workspace."
       />
       <AgentConnection endpoint={endpoint} />
       <section className="mt-8">

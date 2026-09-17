@@ -1,28 +1,13 @@
 import {
   ArrowLeft,
   ArrowRight,
+  ArrowUpRight,
   BookOpen,
-  Layers,
-  Network,
   Plus,
 } from "lucide-react";
 import { Suspense } from "react";
-import {
-  entityTypes,
-  relativeTime,
-  type Stats,
-} from "@/components/brain-types";
-import { Badge } from "@/components/ui/badge";
+import { entityTypes, relativeTime } from "@/components/brain-types";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Item,
-  ItemActions,
-  ItemContent,
-  ItemDescription,
-  ItemMedia,
-  ItemTitle,
-} from "@/components/ui/item";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { PageType } from "@/lib/brain/types";
 import { getWorkspacePages, getWorkspaceStats } from "@/lib/workspace/data";
@@ -34,36 +19,13 @@ import {
   type RouteSearchParams,
   routeSearchParams,
 } from "@/lib/workspace/urls";
-import { LibraryControls } from "./library-controls";
+import { LibraryCollections, LibraryControls } from "./library-controls";
 import { Empty, EntityIcon, PageHeading } from "./primitives";
 import { WorkspaceLink as Link } from "./search-navigation";
 
-function StatsDisplay({ stats }: { stats?: Stats }) {
-  return (
-    <Card className="mb-8" aria-busy={!stats}>
-      <CardContent className="grid grid-cols-3 gap-4">
-        {[
-          { label: "Pages", value: stats?.pages, Icon: BookOpen },
-          { label: "Connections", value: stats?.links, Icon: Network },
-          { label: "Versions", value: stats?.revisions, Icon: Layers },
-        ].map(({ label, value, Icon }) => (
-          <div key={label} className="min-w-0 space-y-2">
-            <p className="text-sm text-muted-foreground">{label}</p>
-            <div className="flex items-center gap-3">
-              <strong className="font-serif text-3xl font-normal">
-                {value ?? "—"}
-              </strong>
-              <Icon className="hidden size-4 text-muted-foreground sm:block" />
-            </div>
-          </div>
-        ))}
-      </CardContent>
-    </Card>
-  );
-}
-
-async function WorkspaceStats() {
-  return <StatsDisplay stats={await getWorkspaceStats()} />;
+async function WorkspaceCollections({ type }: { type: PageType | "" }) {
+  const stats = await getWorkspaceStats();
+  return <LibraryCollections stats={stats} type={type} />;
 }
 
 export function LibrarySkeleton() {
@@ -71,18 +33,15 @@ export function LibrarySkeleton() {
     <output
       aria-label="Loading pages"
       aria-busy="true"
-      className="block space-y-2"
+      className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
     >
       {[1, 2, 3].map((row) => (
-        <Item key={row} variant="outline">
-          <ItemMedia>
-            <Skeleton className="size-8" />
-          </ItemMedia>
-          <ItemContent>
-            <Skeleton className="h-4 w-2/5" />
-            <Skeleton className="h-3 w-3/5" />
-          </ItemContent>
-        </Item>
+        <div key={row} className="space-y-6 rounded-lg border bg-card p-7">
+          <Skeleton className="h-3 w-16" />
+          <Skeleton className="h-8 w-3/4" />
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-3 w-2/5" />
+        </div>
       ))}
       <span className="sr-only">Opening your pages…</span>
     </output>
@@ -111,63 +70,61 @@ async function LibraryResults({
       aria-label="Pages"
       className="transition-opacity group-has-[[data-pending=true]]/library:opacity-50"
     >
-      <div className="mb-3 flex items-center justify-between text-xs text-muted-foreground">
-        <span>{filters.query ? "SEARCH RESULTS" : "YOUR LIBRARY"}</span>
-        <span>
+      <div className="mb-4 flex items-center justify-between gap-3 text-xs text-muted-foreground">
+        <h2 className="text-sm font-medium text-foreground">
+          {filters.query
+            ? "Search results"
+            : filters.sort === "title"
+              ? "Pages A–Z"
+              : "Recently updated"}
+        </h2>
+        <span className="tabular-nums">
           {total} {total === 1 ? "page" : "pages"}
         </span>
       </div>
       {pages.length ? (
-        <ul className="space-y-2">
+        <ul className="grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
           {pages.map((page) => (
-            <li key={page.id}>
-              <Item variant="outline" asChild>
-                <Link href={pageHref(page.id)}>
-                  <ItemMedia
-                    variant="icon"
-                    className={`text-secondary-foreground entity-${page.type}`}
+            <li key={page.id} className="min-w-0">
+              <Link
+                href={pageHref(page.id)}
+                className="group/page flex h-full flex-col rounded-lg border border-border/80 bg-card p-6 transition-colors hover:border-foreground/35 sm:min-h-80 sm:p-7"
+              >
+                <div className="mb-5 flex items-center justify-between gap-3 sm:mb-7">
+                  <span
+                    className={`entity-${page.type} flex items-center gap-2 text-[10px] font-medium tracking-[0.1em] uppercase text-secondary-foreground`}
                   >
-                    <EntityIcon type={page.type} />
-                  </ItemMedia>
-                  <ItemContent className="min-w-0">
-                    <ItemTitle className="wrap-anywhere">
-                      {page.title}
-                    </ItemTitle>
-                    <ItemDescription>
-                      {page.summary || "Open to read this page."}
-                    </ItemDescription>
-                    {page.tags.length > 0 && (
-                      <div className="mt-2 hidden flex-wrap gap-1 sm:flex">
-                        {page.tags.slice(0, 3).map((tag) => (
-                          <Badge
-                            key={tag}
-                            variant="secondary"
-                            className="max-w-full"
-                          >
-                            <span className="truncate" title={tag}>
-                              {tag}
-                            </span>
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
-                  </ItemContent>
-                  <ItemActions className="flex-col items-end">
-                    <Badge
-                      variant="secondary"
-                      className={`capitalize type-${page.type}`}
+                    <EntityIcon type={page.type} size={14} />
+                    {page.type}
+                  </span>
+                  <ArrowUpRight
+                    size={15}
+                    className="text-muted-foreground transition-colors group-hover/page:text-foreground"
+                    aria-hidden="true"
+                  />
+                </div>
+                <h3 className="mb-3 wrap-anywhere font-serif text-[25px] leading-[1.25] tracking-[-0.025em]">
+                  {page.title}
+                </h3>
+                {page.summary && (
+                  <p className="mb-6 line-clamp-4 wrap-anywhere text-[13px] leading-[1.75] text-muted-foreground">
+                    {page.summary}
+                  </p>
+                )}
+                <div className="mt-auto flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-t border-border/60 pt-4 text-[10px] text-muted-foreground">
+                  <time dateTime={page.updatedAt}>
+                    {relativeTime(page.updatedAt)}
+                  </time>
+                  {page.tags.length > 0 && (
+                    <span
+                      className="min-w-0 max-w-[60%] truncate"
+                      title={page.tags.join(", ")}
                     >
-                      {page.type}
-                    </Badge>
-                    <time
-                      className="hidden text-xs text-muted-foreground sm:block"
-                      dateTime={page.updatedAt}
-                    >
-                      {relativeTime(page.updatedAt)}
-                    </time>
-                  </ItemActions>
-                </Link>
-              </Item>
+                      {page.tags.slice(0, 2).join(" / ")}
+                    </span>
+                  )}
+                </div>
+              </Link>
             </li>
           ))}
         </ul>
@@ -176,13 +133,13 @@ async function LibraryResults({
           icon={<BookOpen size={31} strokeWidth={1.2} />}
           title={
             filters.query || filters.type
-              ? "Nothing here, yet."
-              : "Begin with something worth remembering."
+              ? "No pages found"
+              : "Your library is empty"
           }
           description={
             filters.query || filters.type
               ? "Try another phrase or a different collection."
-              : "Add your first page, or connect an agent and let useful knowledge emerge from your conversations."
+              : "Create a page or connect an agent to save notes from your conversations."
           }
         >
           {!filters.query && (
@@ -260,17 +217,12 @@ export function Library({
   type?: PageType | "";
 }) {
   const title =
-    entityTypes.find((item) => item.id === type)?.label ?? "All pages";
+    entityTypes.find((item) => item.id === type)?.label ?? "Library";
   return (
     <div className="group/library">
       <PageHeading
-        eyebrow="THE KNOWLEDGE DESK"
+        eyebrow={type ? "Library / Collection" : "Personal workspace"}
         title={title}
-        description={
-          type
-            ? `Your ${title.toLowerCase()}, with the context that matters.`
-            : "Everything you know. A little more connected."
-        }
       >
         <Button asChild>
           <Link href={type ? `/pages/new?type=${type}` : "/pages/new"}>
@@ -279,8 +231,16 @@ export function Library({
           </Link>
         </Button>
       </PageHeading>
-      <Suspense fallback={<StatsDisplay />}>
-        <WorkspaceStats />
+      <Suspense
+        fallback={
+          <nav
+            className="mb-7 h-12 border-b"
+            aria-label="Loading collections"
+            aria-busy="true"
+          />
+        }
+      >
+        <WorkspaceCollections type={type} />
       </Suspense>
       <Suspense
         fallback={
@@ -294,10 +254,6 @@ export function Library({
       <Suspense fallback={<LibrarySkeleton />}>
         <LibraryResults searchParams={searchParams} type={type} />
       </Suspense>
-      <div className="mt-8 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-        <span>ONE PAGE PER ENTITY. EVERY CONNECTION COUNTS.</span>
-        <span>Brain</span>
-      </div>
     </div>
   );
 }

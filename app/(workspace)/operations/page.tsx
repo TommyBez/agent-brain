@@ -5,15 +5,15 @@ import { Loading, PageHeading } from "@/components/workspace/primitives";
 import { operationsStatus } from "@/lib/operations";
 import { getWorkspaceUser } from "@/lib/workspace/session";
 
-export const metadata = { title: "Operations — Brain" };
+export const metadata = { title: "Operations · a native brain" };
 
 export default function OperationsPage() {
   return (
     <>
       <PageHeading
-        eyebrow="TAKE CARE OF WHAT YOU KNOW"
+        eyebrow="Settings"
         title="Operations"
-        description="Storage, safeguards, and the work that happens overnight."
+        description="Monitor storage, backups, and scheduled maintenance."
       />
       <Suspense fallback={<Loading />}>
         <LiveOperations />
