@@ -5,7 +5,7 @@ import {
   readPage,
 } from "@/components/page-detail";
 import { PageEditor } from "@/components/workspace/page-editor";
-import { Loading, PageHeading } from "@/components/workspace/primitives";
+import { Loading } from "@/components/workspace/primitives";
 import { getWorkspacePages } from "@/lib/workspace/data";
 import { CONNECTION_PAGE_SIZE } from "@/lib/workspace/urls";
 
@@ -28,11 +28,10 @@ async function Editor({ params }: { params: PageParams }) {
 
 export default function EditPage({ params }: { params: PageParams }) {
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-4xl space-y-6">
       <div className="text-sm">
         <PageBackLink />
       </div>
-      <PageHeading eyebrow="REFINE WHAT YOU KNOW" title="Edit page" />
       <Suspense fallback={<Loading />}>
         <Editor params={params} />
       </Suspense>

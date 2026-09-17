@@ -1,10 +1,10 @@
-# Agent Brain
+# a native brain
 
-A private, agent-native second brain. One canonical Markdown page per person, client, project, article, decision or note, connected by typed links. Postgres is the source of truth. Conversations happen in your agent; this application stores, validates, organizes and retrieves knowledge.
+A private, agent-native second brain. The “a” also stands for “agent”. One canonical Markdown page per person, client, project, article, decision or note, connected by typed links. Postgres is the source of truth. Conversations happen in your agent; this application stores, validates, organizes and retrieves knowledge.
 
 The MCP request path exposes validated storage and retrieval primitives, with automatic query embeddings. Vercel Cron starts a durable Vercel Workflow for consolidation, page embeddings and Git export. Remote MCP is the primary interface. The browser provides a knowledge desk for reading, editing, graph navigation, revisions, credentials and operational status.
 
-Using Brain from an agent? [Connect through MCP](#connect-an-agent) and install the [Agent Brain skill](#agent-skill).
+Using a native brain from an agent? [Connect through MCP](#connect-an-agent) and install the [a native brain skill](#agent-skill).
 
 ## Local setup
 
@@ -52,7 +52,7 @@ Use standard Tailwind spacing, typography and responsive layout utilities. Custo
 
 ## Connect an agent
 
-Connect to `https://YOUR_DOMAIN/mcp` using Streamable HTTP and **OAuth 2.1**. Add the URL in your agent, choose OAuth if prompted, sign in to Brain, and approve the requested permissions. The agent discovers the authorization server and obtains its own access token using authorization code + PKCE. No manually generated token or client secret is needed for interactive clients.
+Connect to `https://YOUR_DOMAIN/mcp` using Streamable HTTP and **OAuth 2.1**. Add the URL in your agent, choose OAuth if prompted, sign in to a native brain, and approve the requested permissions. The agent discovers the authorization server and obtains its own access token using authorization code + PKCE. No manually generated token or client secret is needed for interactive clients.
 
 For clients that use this configuration format:
 
@@ -89,7 +89,7 @@ All tools scope data to the authenticated owner. Foreign keys prevent cross-owne
 
 ## Agent skill
 
-The portable [`brain-memory` skill](skills/brain-memory/SKILL.md) guides agents using Brain: retrieve context, resolve identities, preserve durable knowledge and verify saves. Its [writing reference](skills/brain-memory/references/writing-pages.md) explains full replacements, link payloads and conflict handling. The live MCP instructions, prompts and tool schemas remain authoritative; clients that expose only tools can follow the skill's workflow directly.
+The portable [`brain-memory` skill](skills/brain-memory/SKILL.md) guides agents using a native brain: retrieve context, resolve identities, preserve durable knowledge and verify saves. Its [writing reference](skills/brain-memory/references/writing-pages.md) explains full replacements, link payloads and conflict handling. The live MCP instructions, prompts and tool schemas remain authoritative; clients that expose only tools can follow the skill's workflow directly.
 
 Install it in a project using the [Skills CLI](https://github.com/vercel-labs/skills):
 
@@ -101,9 +101,9 @@ From a local checkout, use `npx skills add ./skills/brain-memory`. Alternatively
 
 Example requests after connecting:
 
-- “Use Agent Brain to recover the context and open decisions for this project.”
-- “Save the decisions from this conversation in Agent Brain, preserving their rationale and sources.”
-- “Review possible duplicates in Agent Brain and show me the uncertain cases.”
+- “Use a native brain to recover the context and open decisions for this project.”
+- “Save the decisions from this conversation in a native brain, preserving their rationale and sources.”
+- “Review possible duplicates in a native brain and show me the uncertain cases.”
 
 In clients supporting explicit skill invocation, use `$brain-memory`. No database credentials, Git export access or model provider key is needed for ordinary agent use.
 
@@ -131,7 +131,7 @@ Vercel Workflow retries transient step failures. Completed and partial jobs are 
 
 Configure `AI_GATEWAY_API_KEY` on Vercel for consolidation and section embeddings, and retain the separate `BRAIN_EMBEDDING_API_KEY` for interactive query embeddings. The maintenance key has a $5/month cap and the query key a $1/month cap, without automatic top-up. These are provider-side budgets. Model requests use the AI Gateway REST API.
 
-For exports, set `BRAIN_EXPORT_REPOSITORY` to a **private** `owner/repository`, `BRAIN_EXPORT_BRANCH` to its existing branch, and `BRAIN_EXPORT_GITHUB_TOKEN` to a GitHub credential scoped only to that repository with **Contents: read and write**. Store it as a sensitive Vercel environment variable. No Brain agent token or GitHub Actions secret is required for maintenance.
+For exports, set `BRAIN_EXPORT_REPOSITORY` to a **private** `owner/repository`, `BRAIN_EXPORT_BRANCH` to its existing branch, and `BRAIN_EXPORT_GITHUB_TOKEN` to a GitHub credential scoped only to that repository with **Contents: read and write**. Store it as a sensitive Vercel environment variable. Maintenance does not require an agent token or GitHub Actions secret.
 
 **Database backup runs independently on Neon at 03:00 UTC:** native daily snapshots with seven-day retention cover auth, vectors and database history. Git export provides portable knowledge and daily content history; Neon snapshots protect the database. Snapshot scheduling and restore access remain Neon responsibilities.
 

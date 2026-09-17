@@ -12,7 +12,40 @@ import {
 import { EntityIcon } from "./primitives";
 import { WorkspaceLink as Link } from "./search-navigation";
 
-const navClass = "w-full justify-start";
+const navClass = "h-10 w-full justify-start gap-3 rounded-lg px-3 font-normal";
+
+export function PrimaryNavigation() {
+  const pathname = usePathname();
+  return (
+    <nav
+      aria-label="Main navigation"
+      className="flex h-full items-stretch gap-7 sm:gap-8"
+    >
+      {[
+        { href: "/", label: "Library" },
+        { href: "/graph", label: "Graph" },
+        { href: "/activity", label: "Activity" },
+      ].map(({ href, label }) => {
+        const active =
+          href === "/"
+            ? pathname === "/" ||
+              !!collectionTypeFromPathname(pathname) ||
+              pathname.startsWith("/pages/")
+            : pathname === href;
+        return (
+          <Link
+            key={href}
+            href={href}
+            aria-current={active ? "page" : undefined}
+            className={`inline-flex items-center border-b-2 px-0.5 text-[13px] font-medium transition-colors ${active ? "border-foreground text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+          >
+            {label}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
 
 function ActiveNavigationLink({
   href,
@@ -24,11 +57,7 @@ function ActiveNavigationLink({
   const pathname = usePathname();
   const active = pathname === href;
   return (
-    <Button
-      variant={active ? "secondary" : "ghost"}
-      className={navClass}
-      asChild
-    >
+    <Button variant={active ? "default" : "ghost"} className={navClass} asChild>
       <Link href={href} aria-current={active ? "page" : undefined}>
         {children}
       </Link>
@@ -59,13 +88,13 @@ function NavigationLink({
 export function WorkspaceNavigation({ stats }: { stats?: Stats }) {
   return (
     <nav aria-label="Workspace navigation" className="space-y-1">
-      <span className="mb-2 block px-3 text-xs font-medium text-muted-foreground">
-        WORKSPACE
+      <span className="mb-3 block px-3 text-[11px] font-medium text-muted-foreground">
+        Workspace
       </span>
       <NavigationLink href="/">
         <BookOpen size={17} />
         All pages
-        <span className="ml-auto text-xs text-muted-foreground">
+        <span className="ml-auto text-xs tabular-nums">
           {stats?.pages ?? "—"}
         </span>
       </NavigationLink>
@@ -77,14 +106,18 @@ export function WorkspaceNavigation({ stats }: { stats?: Stats }) {
         <Activity size={17} />
         Activity
       </NavigationLink>
-      <span className="mt-6 mb-2 block px-3 text-xs font-medium text-muted-foreground">
-        COLLECTIONS
+      <span className="mt-7 mb-3 block px-3 text-[11px] font-medium text-muted-foreground">
+        Collections
       </span>
       {entityTypes.map((item) => (
         <NavigationLink key={item.id} href={collectionHref(item.id)}>
-          <EntityIcon type={item.id} />
+          <span
+            className={`entity-${item.id} text-secondary-foreground in-[[aria-current=page]]:text-primary-foreground`}
+          >
+            <EntityIcon type={item.id} />
+          </span>
           {item.label}
-          <span className="ml-auto text-xs text-muted-foreground">
+          <span className="ml-auto text-xs tabular-nums">
             {stats ? (stats.byType[item.id] ?? 0) : "—"}
           </span>
         </NavigationLink>

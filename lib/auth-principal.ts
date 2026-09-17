@@ -47,7 +47,7 @@ export function assertSameOrigin(request: Request) {
   if (request.headers.get("origin") !== appOrigin())
     throw new AuthError(
       "invalid_origin",
-      "This operation must originate from Agent Brain.",
+      "This operation must originate from a native brain.",
       403,
     );
 }

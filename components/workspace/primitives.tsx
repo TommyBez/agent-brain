@@ -1,10 +1,10 @@
 import {
   Building2,
   Check,
-  CircleHelp,
   FileText,
   FolderOpen,
   LoaderCircle,
+  NotebookPen,
   Users,
 } from "lucide-react";
 import type { ReactNode } from "react";
@@ -23,7 +23,7 @@ export const typeIcons = {
   project: FolderOpen,
   article: FileText,
   decision: Check,
-  note: CircleHelp,
+  note: NotebookPen,
 };
 
 export function EntityIcon({
@@ -49,19 +49,19 @@ export function PageHeading({
   children?: ReactNode;
 }) {
   return (
-    <header className="mb-8 flex flex-wrap items-start justify-between gap-4">
-      <div className="min-w-0 space-y-2">
-        <p className="text-xs font-medium tracking-widest text-primary">
-          {eyebrow}
-        </p>
-        <h1 className="font-serif text-3xl tracking-tight sm:text-4xl">
-          {title}
-        </h1>
-        {description && (
-          <p className="text-sm text-muted-foreground">{description}</p>
-        )}
-      </div>
+    <header className="mb-9 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-4 sm:mb-12">
+      <p className="col-span-2 text-[10px] font-medium tracking-[0.16em] uppercase text-muted-foreground">
+        {eyebrow}
+      </p>
+      <h1 className="min-w-0 font-serif text-4xl font-normal tracking-[-0.045em] sm:text-5xl sm:leading-tight lg:text-[3.5rem]">
+        {title}
+      </h1>
       {children}
+      {description && (
+        <p className="col-span-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
+          {description}
+        </p>
+      )}
     </header>
   );
 }
@@ -94,9 +94,14 @@ export function Empty({
   children?: ReactNode;
 }) {
   return (
-    <EmptyRoot>
+    <EmptyRoot className="rounded-2xl border border-dashed bg-card px-6 py-16">
       <EmptyHeader>
-        <EmptyMedia variant="icon">{icon}</EmptyMedia>
+        <EmptyMedia
+          variant="icon"
+          className="mb-3 size-14 rounded-2xl bg-secondary text-primary"
+        >
+          {icon}
+        </EmptyMedia>
         <EmptyTitle role="heading" aria-level={2}>
           {title}
         </EmptyTitle>

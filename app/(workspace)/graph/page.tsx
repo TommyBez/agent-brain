@@ -14,7 +14,7 @@ import {
   type RouteSearchParams,
 } from "@/lib/workspace/urls";
 
-export const metadata = { title: "Knowledge graph · Brain" };
+export const metadata = { title: "Knowledge graph · a native brain" };
 
 function FilterChip({
   href,
@@ -150,9 +150,9 @@ export default function GraphPage({
   return (
     <>
       <PageHeading
-        eyebrow="THE SPACE BETWEEN IDEAS"
+        eyebrow="Explore"
         title="Knowledge graph"
-        description="Follow the connections. See a bigger picture."
+        description="Explore how your pages connect. Select a page to see its relationships."
       >
         <RefreshButton />
       </PageHeading>

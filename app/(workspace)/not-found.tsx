@@ -6,8 +6,8 @@ export default function PageNotFound() {
   return (
     <>
       <PageHeading
-        eyebrow="PAGE NOT FOUND"
-        title="This page isn't here"
+        eyebrow="Workspace"
+        title="Page not found"
         description="It may have been merged into another page, or the link may be incorrect."
       />
       <Button asChild variant="outline">

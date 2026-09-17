@@ -9,7 +9,7 @@ import { AuthError, type Principal, requireScope } from "@/lib/auth-principal";
 import * as schemas from "@/lib/brain/schemas";
 import * as brain from "@/lib/brain/service";
 
-export const BRAIN_INSTRUCTIONS = `Agent Brain is the owner's private, page-based second brain. The database is authoritative. The server generates query embeddings for retrieval; interactive reasoning belongs to calling agents; scheduled consolidation runs in Vercel Workflow.
+export const BRAIN_INSTRUCTIONS = `a native brain is the owner's private, page-based second brain. The database is authoritative. The server generates query embeddings for retrieval; interactive reasoning belongs to calling agents; scheduled consolidation runs in Vercel Workflow.
 Before work: call context for the task; resolve each person, client, project, article, or decision before creating a page. Read the full current page before changing it. Existing slugs and aliases identify canonical entities; similarity alone is not proof of identity.
 After a conversation: retain durable facts, decisions, rationale, sources, and open questions in the relevant entity pages. Preserve useful existing information. Do not store passwords, credentials, or unnecessary sensitive data. Distinguish confirmed facts from inference and date time-sensitive information.
 Write with expectedVersion=0 only when creating. Updates require the page id and the exact version from read. Write replaces the page, including aliases, tags, and outgoing typed links: preserve those unless intentionally changing them. Append also requires the current version. A version conflict requires read, reconciliation, and a fresh write; never retry by blindly overwriting.
@@ -91,7 +91,7 @@ export function createBrainServer(
   onMutation: () => void = () => {},
 ) {
   const server = new McpServer(
-    { name: "agent-brain", version: "1.0.0", title: "Agent Brain" },
+    { name: "agent-brain", version: "1.0.0", title: "a native brain" },
     { instructions: BRAIN_INSTRUCTIONS },
   );
   const guarded =

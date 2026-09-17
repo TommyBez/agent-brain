@@ -22,7 +22,7 @@ import {
 } from "@/lib/workspace/pagination";
 import { pageHref } from "@/lib/workspace/urls";
 
-export const metadata = { title: "Activity · Brain" };
+export const metadata = { title: "Activity · a native brain" };
 
 async function ActivityFeed({
   searchParams,
@@ -35,15 +35,19 @@ async function ActivityFeed({
     return (
       <Empty
         icon={<Activity size={31} />}
-        title="Every change has a story."
+        title="No activity yet"
         description="Your first saved page will appear here, with its source and version."
       />
     );
   return (
     <>
-      <ItemGroup>
+      <ItemGroup className="overflow-hidden rounded-xl border bg-card">
         {activity.slice(0, WORKSPACE_PAGE_SIZE).map((item) => (
-          <Item key={item.id} asChild>
+          <Item
+            key={item.id}
+            className="rounded-none border-0 border-b px-5 py-5 last:border-b-0"
+            asChild
+          >
             <Link href={pageHref(item.pageId)}>
               <ItemMedia variant="icon">
                 <FileText />
@@ -89,9 +93,9 @@ export default function ActivityPage({
   return (
     <>
       <PageHeading
-        eyebrow="A RECORD OF CHANGE"
+        eyebrow="Workspace"
         title="Activity"
-        description="The small additions that make a lasting memory."
+        description="Recent changes to your pages, with their sources and versions."
       >
         <RefreshButton />
       </PageHeading>

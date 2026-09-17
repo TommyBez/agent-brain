@@ -18,8 +18,8 @@ export function AgentConnection({ endpoint }: { endpoint: string }) {
           <CardTitle>Connect with OAuth</CardTitle>
           <CardDescription>
             Add this URL as a remote MCP server and choose OAuth when your agent
-            asks for authentication. Sign in to Brain, review the requested
-            permissions, and approve the connection.
+            asks for authentication. Sign in to a native brain, review the
+            requested permissions, and approve the connection.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

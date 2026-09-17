@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Wordmark } from "@/components/wordmark";
 import { getAuth, getSession } from "@/lib/auth";
 import { consentSignInHref } from "@/lib/auth-navigation";
 import { ConsentActions } from "./consent-form";
@@ -139,7 +140,9 @@ export default function ConsentPage({
     <main className="min-h-dvh grid place-items-center p-8">
       <Card className="w-full max-w-xl">
         <CardHeader>
-          <Link href="/">◈ Agent Brain</Link>
+          <Link href="/" aria-label="a native brain home">
+            <Wordmark />
+          </Link>
           <CardDescription>AGENT CONNECTION</CardDescription>
           <CardTitle role="heading" aria-level={1}>
             Give this agent access?
