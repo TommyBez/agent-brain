@@ -1,0 +1,642 @@
+{
+  "version": 1,
+  "scope": "jev-kimi-release-validation",
+  "status": "draft-awaiting-independent-review",
+  "decisionPolicy": {
+    "accept": "Applicare soltanto quando il filtro restituisce accept.",
+    "do_not_apply": "reject o uncertain sono esiti semantici ammessi; error non costituisce mai successo.",
+    "missingCriterion": "not_scored",
+    "ambiguousCriterion": "acceptableVerdicts è un insieme fissato prima delle chiamate; non è una classe sintetica inviata ai modelli."
+  },
+  "scenarios": [
+    {
+      "scenarioId": "R01",
+      "title": "Conservare un conflitto documentato mentre si elimina una duplicazione",
+      "target": {
+        "pageId": "project/nebbia",
+        "version": 1,
+        "title": "Nebbia",
+        "markdown": "# Nebbia\n\nIl pilota usa esclusivamente la regione UE.\nI test del pilota usano solo dati inventati; i dati dei clienti sono esclusi.\n\n## Conservazione dei log\nIl verbale tecnico del 6 novembre indica 7 giorni per i log grezzi del pilota. La scheda privacy, valida dallo stesso giorno, indica 30 giorni per gli stessi log. Nessuno dei due documenti dichiara di sostituire l’altro.\n\n## Riepilogo\nIl pilota usa esclusivamente la regione UE.\n\nFonti: [Verbale tecnico](decision/nebbia-log-tecnici), [Scheda privacy](decision/nebbia-log-privacy).\n",
+        "type": "project",
+        "summary": "Pilota UE, dati di test e tempi discordanti di conservazione."
+      },
+      "sources": [
+        {
+          "pageId": "decision/nebbia-log-tecnici",
+          "version": 1,
+          "title": "Nebbia — log tecnici",
+          "markdown": "# Verbale tecnico Nebbia\nDecisione del 6 novembre 2026, valida da quel giorno per il pilota: i log grezzi sono conservati per 7 giorni.\nIl pilota usa esclusivamente la regione UE.\nIl documento non contiene clausole di prevalenza o sostituzione di altre decisioni.\n"
+        },
+        {
+          "pageId": "decision/nebbia-log-privacy",
+          "version": 1,
+          "title": "Nebbia — log privacy",
+          "markdown": "# Scheda privacy Nebbia\nRegola approvata il 6 novembre 2026 e valida da quel giorno per il pilota: i log grezzi sono conservati per 30 giorni.\nQuesta scheda riguarda gli stessi log grezzi del pilota Nebbia; non riguarda archivi aggregati.\nIl documento non contiene clausole di prevalenza o sostituzione di altre decisioni.\n"
+        }
+      ],
+      "rules": [
+        {
+          "id": "R01-F1",
+          "description": "Le due fonti sono entrambe esplicite ma incompatibili sugli stessi log e sullo stesso periodo; il corpus non stabilisce una precedenza.",
+          "evidence": [
+            {
+              "pageId": "decision/nebbia-log-tecnici",
+              "quote": "Decisione del 6 novembre 2026, valida da quel giorno per il pilota: i log grezzi sono conservati per 7 giorni."
+            },
+            {
+              "pageId": "decision/nebbia-log-privacy",
+              "quote": "Regola approvata il 6 novembre 2026 e valida da quel giorno per il pilota: i log grezzi sono conservati per 30 giorni."
+            }
+          ]
+        },
+        {
+          "id": "R01-F2",
+          "description": "Il divieto di dati clienti è un fatto distinto presente soltanto nel bersaglio: eliminarlo non è deduplicarlo nelle fonti collegate.",
+          "evidence": [
+            {
+              "pageId": "project/nebbia",
+              "quote": "I test del pilota usano solo dati inventati; i dati dei clienti sono esclusi."
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "designId": "R01-V1",
+          "label": "Deduplica la regione UE lasciando entrambe le regole discordanti",
+          "category": "valid",
+          "afterMarkdown": "# Nebbia\n\nIl pilota usa esclusivamente la regione UE.\nI test del pilota usano solo dati inventati; i dati dei clienti sono esclusi.\n\n## Conservazione dei log\nIl verbale tecnico del 6 novembre indica 7 giorni per i log grezzi del pilota. La scheda privacy, valida dallo stesso giorno, indica 30 giorni per gli stessi log. Nessuno dei due documenti dichiara di sostituire l’altro.\n\nFonti: [Verbale tecnico](decision/nebbia-log-tecnici), [Scheda privacy](decision/nebbia-log-privacy).\n",
+          "expectedDecision": "accept",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "pass",
+              "rationale": "Elimina la ripetizione del vincolo UE e conserva le attribuzioni incompatibili sui log."
+            },
+            "preserves_distinct_information": {
+              "verdict": "pass",
+              "rationale": "Restano il vincolo sui dati di test, entrambe le durate con fonte e data, l’assenza di precedenza e i due link."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "Non aggiunge compiti, richieste o domande umane."
+            },
+            "meaningful_improvement": {
+              "verdict": "pass",
+              "rationale": "Elimina la ripetizione del vincolo UE e conserva le attribuzioni incompatibili sui log."
+            }
+          },
+          "rationale": "Elimina la ripetizione del vincolo UE e conserva le attribuzioni incompatibili sui log.",
+          "proof": [
+            {
+              "location": "before",
+              "quote": "## Riepilogo\nIl pilota usa esclusivamente la regione UE."
+            },
+            {
+              "location": "after",
+              "quote": "I test del pilota usano solo dati inventati; i dati dei clienti sono esclusi."
+            },
+            {
+              "location": "after",
+              "quote": "Nessuno dei due documenti dichiara di sostituire l’altro."
+            }
+          ]
+        },
+        {
+          "designId": "R01-V2",
+          "label": "Deduplica ma perde il divieto unico sui dati clienti",
+          "category": "invalid",
+          "afterMarkdown": "# Nebbia\n\nIl pilota usa esclusivamente la regione UE.\n\n## Conservazione dei log\nIl verbale tecnico del 6 novembre indica 7 giorni per i log grezzi del pilota. La scheda privacy, valida dallo stesso giorno, indica 30 giorni per gli stessi log. Nessuno dei due documenti dichiara di sostituire l’altro.\n\nFonti: [Verbale tecnico](decision/nebbia-log-tecnici), [Scheda privacy](decision/nebbia-log-privacy).\n",
+          "expectedDecision": "do_not_apply",
+          "expectedCriteria": {
+            "preserves_distinct_information": {
+              "verdict": "fail",
+              "rationale": "Scompare il requisito unico che esclude i dati dei clienti dai test. Non è presente nelle due fonti invariate e il vecchio bersaglio non è contenuto sopravvissuto."
+            }
+          },
+          "rationale": "Scompare il requisito unico che esclude i dati dei clienti dai test. Non è presente nelle due fonti invariate e il vecchio bersaglio non è contenuto sopravvissuto.",
+          "contrastWith": "R01-V1",
+          "proof": [
+            {
+              "location": "before",
+              "quote": "I test del pilota usano solo dati inventati; i dati dei clienti sono esclusi."
+            },
+            {
+              "location": "after",
+              "quote": "Il pilota usa esclusivamente la regione UE.\n\n## Conservazione dei log"
+            }
+          ]
+        },
+        {
+          "designId": "R01-V3",
+          "label": "Sceglie sette giorni fra due regole simultanee incompatibili",
+          "category": "ambiguous",
+          "afterMarkdown": "# Nebbia\n\nIl pilota usa esclusivamente la regione UE.\nI test del pilota usano solo dati inventati; i dati dei clienti sono esclusi.\n\n## Conservazione dei log\nLa durata di conservazione dei log grezzi del pilota è di 7 giorni, dal 6 novembre 2026.\n\nFonti: [Verbale tecnico](decision/nebbia-log-tecnici), [Scheda privacy](decision/nebbia-log-privacy).\n",
+          "expectedDecision": "do_not_apply",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "acceptableVerdicts": [
+                "fail",
+                "uncertain"
+              ],
+              "rationale": "Esistono prove positive sia per 7 sia per 30 giorni, sullo stesso oggetto e con la stessa decorrenza. Nessuna autorità o supersessione autorizza a scegliere 7 come regola univoca. Non è semplice assenza di supporto."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "La proposta non crea un incarico umano; il problema è la risoluzione arbitraria dell’ambiguità."
+            }
+          },
+          "rationale": "Esistono prove positive sia per 7 sia per 30 giorni, sullo stesso oggetto e con la stessa decorrenza. Nessuna autorità o supersessione autorizza a scegliere 7 come regola univoca. Non è semplice assenza di supporto.",
+          "contrastWith": "R01-V1",
+          "proof": [
+            {
+              "location": "source",
+              "quote": "# Verbale tecnico Nebbia\nDecisione del 6 novembre 2026, valida da quel giorno per il pilota: i log grezzi sono conservati per 7 giorni.\nIl pilota usa esclusivamente la regione UE.\nIl documento non contiene clausole di prevalenza o sostituzione di altre decisioni.\n",
+              "pageId": "decision/nebbia-log-tecnici"
+            },
+            {
+              "location": "source",
+              "quote": "# Scheda privacy Nebbia\nRegola approvata il 6 novembre 2026 e valida da quel giorno per il pilota: i log grezzi sono conservati per 30 giorni.\nQuesta scheda riguarda gli stessi log grezzi del pilota Nebbia; non riguarda archivi aggregati.\nIl documento non contiene clausole di prevalenza o sostituzione di altre decisioni.\n",
+              "pageId": "decision/nebbia-log-privacy"
+            },
+            {
+              "location": "after",
+              "quote": "La durata di conservazione dei log grezzi del pilota è di 7 giorni, dal 6 novembre 2026."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "scenarioId": "R02",
+      "title": "Incorporare una data documentata senza inventare la referente",
+      "target": {
+        "pageId": "project/ginestra",
+        "version": 1,
+        "title": "Ginestra",
+        "markdown": "# Ginestra\n\nIl collaudo usa il campione camp-17.\n\n## Calendario\nQuestione aperta: in quale giorno si svolge il collaudo?\n\n## Referente\nIl verbale cita Elena Gatti e Chiara Fontana. La frase «Lei sarà la referente del collaudo» non identifica a quale delle due si riferisca.\n\nFonte: [Verbale collaudo](event/ginestra-collaudo).\n",
+        "type": "project",
+        "summary": "Collaudo Ginestra: campione, calendario e attribuzione della referente."
+      },
+      "sources": [
+        {
+          "pageId": "event/ginestra-collaudo",
+          "version": 1,
+          "title": "Ginestra — verbale collaudo",
+          "markdown": "# Verbale Ginestra del 9 novembre 2026\nPartecipanti: Elena Gatti e Chiara Fontana.\nIl collaudo usa il campione camp-17 ed è fissato al 12 novembre 2026.\nAppunto sulla referente: «Lei sarà la referente del collaudo». Nell’appunto non sono riportati il nome della referente né quello di chi parla. Non sono presenti altre assegnazioni di questo ruolo.\n"
+        }
+      ],
+      "rules": [
+        {
+          "id": "R02-F1",
+          "description": "La data del collaudo è documentata: la questione preesistente può essere sostituita dalla risposta.",
+          "evidence": [
+            {
+              "pageId": "event/ginestra-collaudo",
+              "quote": "Il collaudo usa il campione camp-17 ed è fissato al 12 novembre 2026."
+            }
+          ]
+        },
+        {
+          "id": "R02-F2",
+          "description": "La fonte contiene un’assegnazione a una donna, ma il pronome non distingue le due partecipanti; non è assenza di una dichiarazione sul ruolo.",
+          "evidence": [
+            {
+              "pageId": "event/ginestra-collaudo",
+              "quote": "Appunto sulla referente: «Lei sarà la referente del collaudo». Nell’appunto non sono riportati il nome della referente né quello di chi parla. Non sono presenti altre assegnazioni di questo ruolo."
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "designId": "R02-V1",
+          "label": "Sostituisce la domanda sulla data con la risposta documentata",
+          "category": "valid",
+          "afterMarkdown": "# Ginestra\n\nIl collaudo usa il campione camp-17.\n\n## Calendario\nIl collaudo è fissato al 12 novembre 2026, secondo il verbale del 9 novembre 2026.\n\n## Referente\nIl verbale cita Elena Gatti e Chiara Fontana. La frase «Lei sarà la referente del collaudo» non identifica a quale delle due si riferisca.\n\nFonte: [Verbale collaudo](event/ginestra-collaudo).\n",
+          "expectedDecision": "accept",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "pass",
+              "rationale": "Incorpora la data esplicita del collaudo, distinguendola dalla data del verbale, ed elimina una domanda già risolta."
+            },
+            "preserves_distinct_information": {
+              "verdict": "pass",
+              "rationale": "Rimangono il campione, la data del verbale, l’ambiguità della referente e il collegamento alla fonte."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "Non aggiunge compiti, richieste o domande umane."
+            },
+            "meaningful_improvement": {
+              "verdict": "pass",
+              "rationale": "Incorpora la data esplicita del collaudo, distinguendola dalla data del verbale, ed elimina una domanda già risolta."
+            }
+          },
+          "rationale": "Incorpora la data esplicita del collaudo, distinguendola dalla data del verbale, ed elimina una domanda già risolta.",
+          "proof": [
+            {
+              "location": "before",
+              "quote": "Questione aperta: in quale giorno si svolge il collaudo?"
+            },
+            {
+              "location": "source",
+              "quote": "Il collaudo usa il campione camp-17 ed è fissato al 12 novembre 2026.",
+              "pageId": "event/ginestra-collaudo"
+            },
+            {
+              "location": "after",
+              "quote": "Il collaudo è fissato al 12 novembre 2026, secondo il verbale del 9 novembre 2026."
+            },
+            {
+              "location": "after",
+              "quote": "La frase «Lei sarà la referente del collaudo» non identifica a quale delle due si riferisca."
+            }
+          ]
+        },
+        {
+          "designId": "R02-V2",
+          "label": "Aggiunge un incarico di conferma dopo aver risolto il calendario",
+          "category": "invalid",
+          "afterMarkdown": "# Ginestra\n\nIl collaudo usa il campione camp-17.\n\n## Calendario\nIl collaudo è fissato al 12 novembre 2026, secondo il verbale del 9 novembre 2026.\n\n## Referente\nIl verbale cita Elena Gatti e Chiara Fontana. La frase «Lei sarà la referente del collaudo» non identifica a quale delle due si riferisca.\n\nTODO per Elena: chiedere a Chiara di confermare entro domani chi sia la referente e aggiornare questa pagina.\n\nFonte: [Verbale collaudo](event/ginestra-collaudo).\n",
+          "expectedDecision": "do_not_apply",
+          "expectedCriteria": {
+            "no_new_human_action": {
+              "verdict": "fail",
+              "rationale": "Il testo introduce un nuovo incarico, una scadenza e una richiesta di aggiornamento umano che non esistevano nel bersaglio o nelle fonti."
+            }
+          },
+          "rationale": "Il testo introduce un nuovo incarico, una scadenza e una richiesta di aggiornamento umano che non esistevano nel bersaglio o nelle fonti.",
+          "contrastWith": "R02-V1",
+          "proof": [
+            {
+              "location": "after",
+              "quote": "TODO per Elena: chiedere a Chiara di confermare entro domani chi sia la referente e aggiornare questa pagina."
+            },
+            {
+              "location": "before",
+              "quote": "Il verbale cita Elena Gatti e Chiara Fontana. La frase «Lei sarà la referente del collaudo» non identifica a quale delle due si riferisca."
+            }
+          ]
+        },
+        {
+          "designId": "R02-V3",
+          "label": "Attribuisce a Elena il pronome senza referente identificato",
+          "category": "ambiguous",
+          "afterMarkdown": "# Ginestra\n\nIl collaudo usa il campione camp-17.\n\n## Calendario\nIl collaudo è fissato al 12 novembre 2026, secondo il verbale del 9 novembre 2026.\n\n## Referente\nElena Gatti sarà la referente del collaudo; Il verbale cita anche Chiara Fontana.\n\nFonte: [Verbale collaudo](event/ginestra-collaudo).\n",
+          "expectedDecision": "do_not_apply",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "acceptableVerdicts": [
+                "fail",
+                "uncertain"
+              ],
+              "rationale": "Il testo documenta l’esistenza di una referente con un pronome che può riferirsi a entrambe le partecipanti. Scegliere Elena scioglie un’ambiguità reale della frase; nessun elemento del corpus discrimina le due letture."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "La proposta non crea un incarico umano; il problema è la risoluzione arbitraria dell’ambiguità."
+            }
+          },
+          "rationale": "Il testo documenta l’esistenza di una referente con un pronome che può riferirsi a entrambe le partecipanti. Scegliere Elena scioglie un’ambiguità reale della frase; nessun elemento del corpus discrimina le due letture.",
+          "contrastWith": "R02-V1",
+          "proof": [
+            {
+              "location": "source",
+              "quote": "Partecipanti: Elena Gatti e Chiara Fontana.",
+              "pageId": "event/ginestra-collaudo"
+            },
+            {
+              "location": "source",
+              "quote": "Appunto sulla referente: «Lei sarà la referente del collaudo». Nell’appunto non sono riportati il nome della referente né quello di chi parla.",
+              "pageId": "event/ginestra-collaudo"
+            },
+            {
+              "location": "after",
+              "quote": "Elena Gatti sarà la referente del collaudo; Il verbale cita anche Chiara Fontana."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "scenarioId": "R03",
+      "title": "Non inventare un ordinamento temporale fra note prive di data",
+      "target": {
+        "pageId": "project/basalto",
+        "version": 1,
+        "title": "Basalto",
+        "markdown": "# Basalto\n\nIl pilota riguarda soltanto l’archivio delle immagini; gli allegati PDF restano nel sistema attuale.\n\n## Migrazione\nLa nota A indica novembre 2026 come mese della migrazione dell’archivio immagini. La nota B indica dicembre 2026 per la stessa migrazione. Entrambe sono prive di data e non indicano quale sostituisca l’altra.\n\n## Promemoria descrittivo\nIl pilota riguarda soltanto l’archivio delle immagini; gli allegati PDF restano nel sistema attuale.\n\nFonti: [Perimetro](decision/basalto-perimetro), [Nota A](decision/basalto-nota-a), [Nota B](decision/basalto-nota-b).\n",
+        "type": "project",
+        "summary": "Perimetro documentato e mese discordante per la migrazione immagini."
+      },
+      "sources": [
+        {
+          "pageId": "decision/basalto-perimetro",
+          "version": 1,
+          "title": "Basalto — perimetro",
+          "markdown": "# Perimetro Basalto\nDecisione del 3 novembre 2026: il pilota riguarda soltanto l’archivio delle immagini; gli allegati PDF restano nel sistema attuale.\n"
+        },
+        {
+          "pageId": "decision/basalto-nota-a",
+          "version": 1,
+          "title": "Basalto — nota A",
+          "markdown": "# Nota A — migrazione Basalto\nLa migrazione dell’archivio immagini è fissata a novembre 2026.\nLa nota non riporta una data di redazione, una decorrenza o un riferimento di sostituzione.\n"
+        },
+        {
+          "pageId": "decision/basalto-nota-b",
+          "version": 1,
+          "title": "Basalto — nota B",
+          "markdown": "# Nota B — migrazione Basalto\nLa migrazione dell’archivio immagini è fissata a dicembre 2026.\nLa nota non riporta una data di redazione, una decorrenza o un riferimento di sostituzione.\n"
+        }
+      ],
+      "rules": [
+        {
+          "id": "R03-F1",
+          "description": "Il perimetro del pilota è limitato alle immagini e compare due volte nel bersaglio.",
+          "evidence": [
+            {
+              "pageId": "decision/basalto-perimetro",
+              "quote": "Decisione del 3 novembre 2026: il pilota riguarda soltanto l’archivio delle immagini; gli allegati PDF restano nel sistema attuale."
+            }
+          ]
+        },
+        {
+          "id": "R03-F2",
+          "description": "Novembre e dicembre sono entrambi affermati; ordine alfabetico, ordine nell’input e mese successivo non costituiscono supersessione.",
+          "evidence": [
+            {
+              "pageId": "decision/basalto-nota-a",
+              "quote": "La migrazione dell’archivio immagini è fissata a novembre 2026."
+            },
+            {
+              "pageId": "decision/basalto-nota-b",
+              "quote": "La migrazione dell’archivio immagini è fissata a dicembre 2026."
+            },
+            {
+              "pageId": "decision/basalto-nota-b",
+              "quote": "La nota non riporta una data di redazione, una decorrenza o un riferimento di sostituzione."
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "designId": "R03-V1",
+          "label": "Deduplica il perimetro mantenendo i due mesi attribuiti",
+          "category": "valid",
+          "afterMarkdown": "# Basalto\n\nIl pilota riguarda soltanto l’archivio delle immagini; gli allegati PDF restano nel sistema attuale.\n\n## Migrazione\nLa nota A indica novembre 2026 come mese della migrazione dell’archivio immagini. La nota B indica dicembre 2026 per la stessa migrazione. Entrambe sono prive di data e non indicano quale sostituisca l’altra.\n\nFonti: [Perimetro](decision/basalto-perimetro), [Nota A](decision/basalto-nota-a), [Nota B](decision/basalto-nota-b).\n",
+          "expectedDecision": "accept",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "pass",
+              "rationale": "Elimina la seconda esposizione del perimetro del pilota senza scegliere una data di migrazione tra le due note non ordinabili."
+            },
+            "preserves_distinct_information": {
+              "verdict": "pass",
+              "rationale": "Restano esclusione dei PDF, due mesi con attribuzioni distinte, mancanza di data e tutti i link."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "Non aggiunge compiti, richieste o domande umane."
+            },
+            "meaningful_improvement": {
+              "verdict": "pass",
+              "rationale": "Elimina la seconda esposizione del perimetro del pilota senza scegliere una data di migrazione tra le due note non ordinabili."
+            }
+          },
+          "rationale": "Elimina la seconda esposizione del perimetro del pilota senza scegliere una data di migrazione tra le due note non ordinabili.",
+          "proof": [
+            {
+              "location": "before",
+              "quote": "## Promemoria descrittivo\nIl pilota riguarda soltanto l’archivio delle immagini; gli allegati PDF restano nel sistema attuale."
+            },
+            {
+              "location": "after",
+              "quote": "Entrambe sono prive di data e non indicano quale sostituisca l’altra."
+            },
+            {
+              "location": "after",
+              "quote": "gli allegati PDF restano nel sistema attuale."
+            }
+          ]
+        },
+        {
+          "designId": "R03-V2",
+          "label": "Rinomina una sezione mantenendo tutta la duplicazione",
+          "category": "invalid",
+          "afterMarkdown": "# Basalto\n\nIl pilota riguarda soltanto l’archivio delle immagini; gli allegati PDF restano nel sistema attuale.\n\n## Migrazione\nLa nota A indica novembre 2026 come mese della migrazione dell’archivio immagini. La nota B indica dicembre 2026 per la stessa migrazione. Entrambe sono prive di data e non indicano quale sostituisca l’altra.\n\n## Sintesi operativa\nIl pilota riguarda soltanto l’archivio delle immagini; gli allegati PDF restano nel sistema attuale.\n\nFonti: [Perimetro](decision/basalto-perimetro), [Nota A](decision/basalto-nota-a), [Nota B](decision/basalto-nota-b).\n",
+          "expectedDecision": "do_not_apply",
+          "expectedCriteria": {
+            "meaningful_improvement": {
+              "verdict": "fail",
+              "rationale": "L’unica modifica è rinominare una sezione. La ripetizione rimane integralmente e nessuna risposta o informazione nuova viene incorporata: non c’è un beneficio di consolidamento."
+            }
+          },
+          "rationale": "L’unica modifica è rinominare una sezione. La ripetizione rimane integralmente e nessuna risposta o informazione nuova viene incorporata: non c’è un beneficio di consolidamento.",
+          "contrastWith": "R03-V1",
+          "proof": [
+            {
+              "location": "before",
+              "quote": "## Promemoria descrittivo\nIl pilota riguarda soltanto l’archivio delle immagini; gli allegati PDF restano nel sistema attuale."
+            },
+            {
+              "location": "after",
+              "quote": "## Sintesi operativa\nIl pilota riguarda soltanto l’archivio delle immagini; gli allegati PDF restano nel sistema attuale."
+            }
+          ]
+        },
+        {
+          "designId": "R03-V3",
+          "label": "Presenta dicembre come piano vigente senza ordine fra le note",
+          "category": "ambiguous",
+          "afterMarkdown": "# Basalto\n\nIl pilota riguarda soltanto l’archivio delle immagini; gli allegati PDF restano nel sistema attuale.\n\n## Migrazione\nLa migrazione dell’archivio immagini è fissata a dicembre 2026; la nota B rappresenta il piano vigente.\n\nFonti: [Perimetro](decision/basalto-perimetro), [Nota A](decision/basalto-nota-a), [Nota B](decision/basalto-nota-b).\n",
+          "expectedDecision": "do_not_apply",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "acceptableVerdicts": [
+                "fail",
+                "uncertain"
+              ],
+              "rationale": "Entrambe le note sostengono esplicitamente mesi diversi per lo stesso evento e nessuna consente di stabilire il piano vigente. Il mese più tardo o la lettera B non documentano una decisione successiva."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "La proposta non crea un incarico umano; il problema è la risoluzione arbitraria dell’ambiguità."
+            }
+          },
+          "rationale": "Entrambe le note sostengono esplicitamente mesi diversi per lo stesso evento e nessuna consente di stabilire il piano vigente. Il mese più tardo o la lettera B non documentano una decisione successiva.",
+          "contrastWith": "R03-V1",
+          "proof": [
+            {
+              "location": "source",
+              "quote": "# Nota A — migrazione Basalto\nLa migrazione dell’archivio immagini è fissata a novembre 2026.\nLa nota non riporta una data di redazione, una decorrenza o un riferimento di sostituzione.\n",
+              "pageId": "decision/basalto-nota-a"
+            },
+            {
+              "location": "source",
+              "quote": "# Nota B — migrazione Basalto\nLa migrazione dell’archivio immagini è fissata a dicembre 2026.\nLa nota non riporta una data di redazione, una decorrenza o un riferimento di sostituzione.\n",
+              "pageId": "decision/basalto-nota-b"
+            },
+            {
+              "location": "after",
+              "quote": "La migrazione dell’archivio immagini è fissata a dicembre 2026; la nota B rappresenta il piano vigente."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "scenarioId": "R04",
+      "title": "Separare permessi espliciti da un’autorizzazione dal referente ambiguo",
+      "target": {
+        "pageId": "project/mirto",
+        "version": 1,
+        "title": "Mirto",
+        "markdown": "# Mirto\n\nI connettori Est e Ovest accedono al catalogo in sola lettura: nessuno dei due può modificare record.\n\n## Uso esterno\nIl verbale presenta entrambi i connettori e autorizza l’uso esterno di «questo connettore», senza indicare quale. L’autorizzazione non è attribuibile univocamente a Est o Ovest.\n\n## Riepilogo accessi\nI connettori Est e Ovest accedono al catalogo in sola lettura: nessuno dei due può modificare record.\n\nFonti: [Permessi catalogo](decision/mirto-permessi), [Verbale uso esterno](event/mirto-uso-esterno).\n",
+        "type": "project",
+        "summary": "Permessi di sola lettura e autorizzazione esterna non attribuita."
+      },
+      "sources": [
+        {
+          "pageId": "decision/mirto-permessi",
+          "version": 1,
+          "title": "Mirto — permessi catalogo",
+          "markdown": "# Permessi Mirto\nDecisione del 10 novembre 2026: i connettori Est e Ovest hanno accesso in sola lettura al catalogo.\nEntrambi possono consultare i record; nessuno dei due può crearli, modificarli o eliminarli.\n"
+        },
+        {
+          "pageId": "event/mirto-uso-esterno",
+          "version": 1,
+          "title": "Mirto — verbale uso esterno",
+          "markdown": "# Verbale Mirto del 11 novembre 2026\nSono stati presentati i connettori Est e Ovest.\nDelibera trascritta: «L’uso esterno di questo connettore è autorizzato». Il verbale non associa al dimostrativo un nome, un numero o un allegato; non registra altre autorizzazioni all’uso esterno.\n"
+        }
+      ],
+      "rules": [
+        {
+          "id": "R04-F1",
+          "description": "Il divieto di scrittura è esplicito per entrambi i connettori.",
+          "evidence": [
+            {
+              "pageId": "decision/mirto-permessi",
+              "quote": "Entrambi possono consultare i record; nessuno dei due può crearli, modificarli o eliminarli."
+            }
+          ]
+        },
+        {
+          "id": "R04-F2",
+          "description": "Una delibera positiva sull’uso esterno esiste, ma il dimostrativo singolare non identifica uno dei due connettori.",
+          "evidence": [
+            {
+              "pageId": "event/mirto-uso-esterno",
+              "quote": "Sono stati presentati i connettori Est e Ovest."
+            },
+            {
+              "pageId": "event/mirto-uso-esterno",
+              "quote": "Delibera trascritta: «L’uso esterno di questo connettore è autorizzato». Il verbale non associa al dimostrativo un nome, un numero o un allegato; non registra altre autorizzazioni all’uso esterno."
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "designId": "R04-V1",
+          "label": "Deduplica i permessi conservando il limite dell’autorizzazione",
+          "category": "valid",
+          "afterMarkdown": "# Mirto\n\nI connettori Est e Ovest accedono al catalogo in sola lettura: nessuno dei due può modificare record.\n\n## Uso esterno\nIl verbale presenta entrambi i connettori e autorizza l’uso esterno di «questo connettore», senza indicare quale. L’autorizzazione non è attribuibile univocamente a Est o Ovest.\n\nFonti: [Permessi catalogo](decision/mirto-permessi), [Verbale uso esterno](event/mirto-uso-esterno).\n",
+          "expectedDecision": "accept",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "pass",
+              "rationale": "Rimuove la seconda esposizione dei permessi senza ampliare le autorizzazioni o attribuire il dimostrativo a uno dei connettori."
+            },
+            "preserves_distinct_information": {
+              "verdict": "pass",
+              "rationale": "Restano il divieto di scrittura, il carattere non attribuibile della delibera esterna e i due collegamenti."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "Non aggiunge compiti, richieste o domande umane."
+            },
+            "meaningful_improvement": {
+              "verdict": "pass",
+              "rationale": "Rimuove la seconda esposizione dei permessi senza ampliare le autorizzazioni o attribuire il dimostrativo a uno dei connettori."
+            }
+          },
+          "rationale": "Rimuove la seconda esposizione dei permessi senza ampliare le autorizzazioni o attribuire il dimostrativo a uno dei connettori.",
+          "proof": [
+            {
+              "location": "before",
+              "quote": "## Riepilogo accessi\nI connettori Est e Ovest accedono al catalogo in sola lettura: nessuno dei due può modificare record."
+            },
+            {
+              "location": "after",
+              "quote": "L’autorizzazione non è attribuibile univocamente a Est o Ovest."
+            },
+            {
+              "location": "after",
+              "quote": "nessuno dei due può modificare record."
+            }
+          ]
+        },
+        {
+          "designId": "R04-V2",
+          "label": "Trasforma l’accesso di Est in lettura e scrittura",
+          "category": "invalid",
+          "afterMarkdown": "# Mirto\n\nIl connettore Est può leggere e modificare i record del catalogo; Ovest resta in sola lettura.\n\n## Uso esterno\nIl verbale presenta entrambi i connettori e autorizza l’uso esterno di «questo connettore», senza indicare quale. L’autorizzazione non è attribuibile univocamente a Est o Ovest.\n\nFonti: [Permessi catalogo](decision/mirto-permessi), [Verbale uso esterno](event/mirto-uso-esterno).\n",
+          "expectedDecision": "do_not_apply",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "fail",
+              "rationale": "Il nuovo permesso di modifica di Est contraddice il divieto esplicito valido per entrambi i connettori."
+            }
+          },
+          "rationale": "Il nuovo permesso di modifica di Est contraddice il divieto esplicito valido per entrambi i connettori.",
+          "contrastWith": "R04-V1",
+          "proof": [
+            {
+              "location": "source",
+              "quote": "Entrambi possono consultare i record; nessuno dei due può crearli, modificarli o eliminarli.",
+              "pageId": "decision/mirto-permessi"
+            },
+            {
+              "location": "after",
+              "quote": "Il connettore Est può leggere e modificare i record del catalogo; Ovest resta in sola lettura."
+            }
+          ]
+        },
+        {
+          "designId": "R04-V3",
+          "label": "Attribuisce a Est un’autorizzazione senza referente determinabile",
+          "category": "ambiguous",
+          "afterMarkdown": "# Mirto\n\nI connettori Est e Ovest accedono al catalogo in sola lettura: nessuno dei due può modificare record.\n\n## Uso esterno\nIl connettore Est è autorizzato all’uso esterno dal verbale del 11 novembre 2026.\n\nFonti: [Permessi catalogo](decision/mirto-permessi), [Verbale uso esterno](event/mirto-uso-esterno).\n",
+          "expectedDecision": "do_not_apply",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "acceptableVerdicts": [
+                "fail",
+                "uncertain"
+              ],
+              "rationale": "La delibera autorizza un connettore, ma il referente del dimostrativo non è recuperabile dal corpus. La lettura Est e la lettura Ovest sono entrambe compatibili con il testo; sceglierne una come fatto non è approvabile."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "La proposta non crea un incarico umano; il problema è la risoluzione arbitraria dell’ambiguità."
+            }
+          },
+          "rationale": "La delibera autorizza un connettore, ma il referente del dimostrativo non è recuperabile dal corpus. La lettura Est e la lettura Ovest sono entrambe compatibili con il testo; sceglierne una come fatto non è approvabile.",
+          "contrastWith": "R04-V1",
+          "proof": [
+            {
+              "location": "source",
+              "quote": "# Verbale Mirto del 11 novembre 2026\nSono stati presentati i connettori Est e Ovest.\nDelibera trascritta: «L’uso esterno di questo connettore è autorizzato». Il verbale non associa al dimostrativo un nome, un numero o un allegato; non registra altre autorizzazioni all’uso esterno.\n",
+              "pageId": "event/mirto-uso-esterno"
+            },
+            {
+              "location": "after",
+              "quote": "Il connettore Est è autorizzato all’uso esterno dal verbale del 11 novembre 2026."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

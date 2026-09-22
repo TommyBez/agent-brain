@@ -202,17 +202,91 @@ export async function write(
   input: unknown,
   options: WriteOptions = {},
 ): Promise<BrainPage> {
+  return writePage(ownerId, input, options, "expected-version");
+}
+
+interface ConsolidationWriteOptions {
+  operationKey: string;
+  reason?: string;
+}
+
+/** Internal writer for an evaluated snapshot. Concurrent edits may be overwritten. */
+export async function applyConsolidationSnapshot(
+  ownerId: string,
+  page: BrainPage,
+  options: ConsolidationWriteOptions,
+): Promise<BrainPage> {
+  if (options.operationKey === undefined)
+    throw new BrainError(
+      "INVALID_OPERATION_KEY",
+      "Consolidation writes require an internal operation key.",
+    );
+  return writePage(
+    ownerId,
+    {
+      id: page.id,
+      // The shared write schema requires a positive value for existing pages.
+      // This internal path never compares it with the current page version.
+      expectedVersion: 1,
+      slug: page.slug,
+      type: page.type,
+      title: page.title,
+      summary: page.summary,
+      markdown: page.markdown,
+      aliases: page.aliases,
+      tags: page.tags,
+      links: page.links.map((edge) => ({
+        targetRef: edge.targetId,
+        type: edge.type,
+        label: edge.label,
+      })),
+      reason: options.reason ?? "Applied an evaluated consolidation snapshot",
+      source: "nightly-consolidation",
+    },
+    options,
+    "consolidation-snapshot",
+  );
+}
+
+/** Restore an existing revision as a new revision, with the same retry receipt. */
+export async function restoreConsolidationRevision(
+  ownerId: string,
+  input: unknown,
+  options: ConsolidationWriteOptions,
+): Promise<BrainPage> {
+  const revision = await readRevision(ownerId, input);
+  return applyConsolidationSnapshot(ownerId, revision.snapshot, {
+    ...options,
+    reason: options.reason ?? `Restored revision ${revision.version}`,
+  });
+}
+
+async function writePage(
+  ownerId: string,
+  input: unknown,
+  options: WriteOptions,
+  mode: "expected-version" | "consolidation-snapshot",
+): Promise<BrainPage> {
   assertOwner(ownerId);
   validateOperationKey(options.operationKey);
   const data = schemas.writeSchema.parse(input);
   try {
     return await transaction(async (db) => {
       const replay = await replayOperation(db, ownerId, options.operationKey);
-      if (replay) return replay;
+      if (replay) {
+        if (mode === "consolidation-snapshot" && replay.id !== data.id)
+          throw new BrainError(
+            "OPERATION_KEY_CONFLICT",
+            "This consolidation operation key already belongs to another page.",
+            409,
+          );
+        return replay;
+      }
       const existing = data.id
         ? await rowForRef(db, ownerId, data.id, true)
         : null;
-      if (existing) assertVersion(existing.version, data.expectedVersion);
+      if (existing && mode === "expected-version")
+        assertVersion(existing.version, data.expectedVersion);
       const id = existing?.id ?? randomUUID();
       const slug =
         data.slug ??

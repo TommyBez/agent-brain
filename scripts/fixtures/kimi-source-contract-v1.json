@@ -1,0 +1,1016 @@
+{
+  "version": 1,
+  "scope": "kimi-source-support-prompt-comparison",
+  "criterion": "supported_by_evidence",
+  "provenance": "Twelve fictional, deterministic source-support proposals prepared independently of candidate prompt text and model responses. Labels concern only supported_by_evidence, not the full four-criterion cascade.",
+  "cases": [
+    {
+      "caseId": "N01",
+      "pairId": "P04",
+      "category": "condition_vs_completed_event",
+      "expectedVerdict": "fail",
+      "rationale": "La fonte stabilisce una condizione e descrive un collaudo previsto; non documenta l’esecuzione o il suo esito. La frase aggiunta presenta come avvenuto il superamento del collaudo.",
+      "proof": [
+        {
+          "location": "evidence",
+          "pageId": "procedure/abilitazione-iride",
+          "quote": "Procedura di abilitazione Iride. L’abilitazione in produzione del modulo di esportazione richiede il superamento del collaudo sul cluster di prova D. Il collaudo previsto comprende la verifica dei formati CSV e JSON.\n",
+          "establishes": "Fonte completa dei fatti e delle qualifiche utilizzati nella coppia; non contiene altri eventi, ruoli, garanzie, esiti o approvazioni."
+        },
+        {
+          "location": "after",
+          "quote": "Il collaudo è stato superato.",
+          "establishes": "La fonte stabilisce una condizione e descrive un collaudo previsto; non documenta l’esecuzione o il suo esito. La frase aggiunta presenta come avvenuto il superamento del collaudo."
+        }
+      ],
+      "contrastWith": "N08",
+      "inputHash": "b0f56fc5bdb1833f64a05fa03f4bd50614a4de665456998140c7e6f1bb5eccb5",
+      "input": {
+        "before": {
+          "title": "Iride",
+          "type": "project",
+          "summary": "Condizioni di abilitazione delle esportazioni Iride.",
+          "markdown": "# Iride\n\nL’abilitazione in produzione del modulo di esportazione richiede il superamento del collaudo.\nIl collaudo deve svolgersi sul cluster di prova D.\nLa procedura prevede verifiche dei formati CSV e JSON.\n\nFonte: [Abilitazione esportazioni Iride](procedure/abilitazione-iride).\n"
+        },
+        "after": {
+          "title": "Iride",
+          "type": "project",
+          "summary": "Condizioni di abilitazione delle esportazioni Iride.",
+          "markdown": "# Iride\n\nL’abilitazione in produzione del modulo di esportazione è subordinata al superamento del collaudo sul cluster di prova D, che prevede la verifica dei formati CSV e JSON. Il collaudo è stato superato.\n\nFonte: [Abilitazione esportazioni Iride](procedure/abilitazione-iride).\n"
+        },
+        "evidence": {
+          "sources": [
+            {
+              "pageId": "project/iride",
+              "version": 1,
+              "title": "Iride",
+              "markdown": "# Iride\n\nL’abilitazione in produzione del modulo di esportazione richiede il superamento del collaudo.\nIl collaudo deve svolgersi sul cluster di prova D.\nLa procedura prevede verifiche dei formati CSV e JSON.\n\nFonte: [Abilitazione esportazioni Iride](procedure/abilitazione-iride).\n"
+            },
+            {
+              "pageId": "procedure/abilitazione-iride",
+              "version": 1,
+              "title": "Abilitazione esportazioni Iride",
+              "markdown": "Procedura di abilitazione Iride. L’abilitazione in produzione del modulo di esportazione richiede il superamento del collaudo sul cluster di prova D. Il collaudo previsto comprende la verifica dei formati CSV e JSON.\n"
+            }
+          ],
+          "citations": [
+            {
+              "pageId": "project/iride",
+              "version": 1,
+              "quote": "# Iride\n\nL’abilitazione in produzione del modulo di esportazione richiede il superamento del collaudo.\nIl collaudo deve svolgersi sul cluster di prova D.\nLa procedura prevede verifiche dei formati CSV e JSON.\n\nFonte: [Abilitazione esportazioni Iride](procedure/abilitazione-iride).\n"
+            },
+            {
+              "pageId": "procedure/abilitazione-iride",
+              "version": 1,
+              "quote": "Procedura di abilitazione Iride. L’abilitazione in produzione del modulo di esportazione richiede il superamento del collaudo sul cluster di prova D. Il collaudo previsto comprende la verifica dei formati CSV e JSON.\n"
+            }
+          ]
+        },
+        "operation": {
+          "pageId": "project/iride",
+          "expectedVersion": 1,
+          "reason": "Consolidamento dei contenuti della pagina.",
+          "evidence": [
+            {
+              "pageId": "project/iride",
+              "version": 1,
+              "quote": "# Iride\n\nL’abilitazione in produzione del modulo di esportazione richiede il superamento del collaudo.\nIl collaudo deve svolgersi sul cluster di prova D.\nLa procedura prevede verifiche dei formati CSV e JSON.\n\nFonte: [Abilitazione esportazioni Iride](procedure/abilitazione-iride).\n"
+            },
+            {
+              "pageId": "procedure/abilitazione-iride",
+              "version": 1,
+              "quote": "Procedura di abilitazione Iride. L’abilitazione in produzione del modulo di esportazione richiede il superamento del collaudo sul cluster di prova D. Il collaudo previsto comprende la verifica dei formati CSV e JSON.\n"
+            }
+          ],
+          "before": "# Iride\n\nL’abilitazione in produzione del modulo di esportazione richiede il superamento del collaudo.\nIl collaudo deve svolgersi sul cluster di prova D.\nLa procedura prevede verifiche dei formati CSV e JSON.\n\nFonte: [Abilitazione esportazioni Iride](procedure/abilitazione-iride).\n",
+          "after": "# Iride\n\nL’abilitazione in produzione del modulo di esportazione è subordinata al superamento del collaudo sul cluster di prova D, che prevede la verifica dei formati CSV e JSON. Il collaudo è stato superato.\n\nFonte: [Abilitazione esportazioni Iride](procedure/abilitazione-iride).\n",
+          "operation": "consolidate_passage"
+        }
+      }
+    },
+    {
+      "caseId": "N02",
+      "pairId": "P01",
+      "category": "report_date_vs_event_date",
+      "expectedVerdict": "pass",
+      "rationale": "La riformulazione mantiene il 12 novembre come data della nota e combina i due fatti documentati: incarico di Irene e perimetro operativo.",
+      "proof": [
+        {
+          "location": "evidence",
+          "pageId": "note/assetto-lince",
+          "quote": "Nota del 12 novembre 2026: Irene Sala è responsabile operativa del progetto Lince. Il suo perimetro operativo comprende il servizio di importazione dei cataloghi.\n",
+          "establishes": "Fonte completa dei fatti e delle qualifiche utilizzati nella coppia; non contiene altri eventi, ruoli, garanzie, esiti o approvazioni."
+        },
+        {
+          "location": "after",
+          "quote": "La nota del 12 novembre 2026 indica Irene Sala come responsabile operativa del progetto Lince, con un perimetro che comprende il servizio di importazione dei cataloghi.",
+          "establishes": "La riformulazione mantiene il 12 novembre come data della nota e combina i due fatti documentati: incarico di Irene e perimetro operativo."
+        }
+      ],
+      "contrastWith": "N07",
+      "inputHash": "86293ad68581ca755cf5a6f2c431540add3c11e6dd296916d722958ad4db35c8",
+      "input": {
+        "before": {
+          "title": "Lince",
+          "type": "project",
+          "summary": "Responsabilità operativa del progetto Lince.",
+          "markdown": "# Lince\n\nIrene Sala è responsabile operativa del progetto Lince.\nLa nota di assetto riporta questa informazione il 12 novembre 2026.\nIl perimetro operativo comprende il servizio di importazione dei cataloghi.\n\nFonte: [Nota di assetto Lince](note/assetto-lince).\n"
+        },
+        "after": {
+          "title": "Lince",
+          "type": "project",
+          "summary": "Responsabilità operativa del progetto Lince.",
+          "markdown": "# Lince\n\nLa nota del 12 novembre 2026 indica Irene Sala come responsabile operativa del progetto Lince, con un perimetro che comprende il servizio di importazione dei cataloghi.\n\nFonte: [Nota di assetto Lince](note/assetto-lince).\n"
+        },
+        "evidence": {
+          "sources": [
+            {
+              "pageId": "project/lince",
+              "version": 1,
+              "title": "Lince",
+              "markdown": "# Lince\n\nIrene Sala è responsabile operativa del progetto Lince.\nLa nota di assetto riporta questa informazione il 12 novembre 2026.\nIl perimetro operativo comprende il servizio di importazione dei cataloghi.\n\nFonte: [Nota di assetto Lince](note/assetto-lince).\n"
+            },
+            {
+              "pageId": "note/assetto-lince",
+              "version": 1,
+              "title": "Nota di assetto Lince",
+              "markdown": "Nota del 12 novembre 2026: Irene Sala è responsabile operativa del progetto Lince. Il suo perimetro operativo comprende il servizio di importazione dei cataloghi.\n"
+            }
+          ],
+          "citations": [
+            {
+              "pageId": "project/lince",
+              "version": 1,
+              "quote": "# Lince\n\nIrene Sala è responsabile operativa del progetto Lince.\nLa nota di assetto riporta questa informazione il 12 novembre 2026.\nIl perimetro operativo comprende il servizio di importazione dei cataloghi.\n\nFonte: [Nota di assetto Lince](note/assetto-lince).\n"
+            },
+            {
+              "pageId": "note/assetto-lince",
+              "version": 1,
+              "quote": "Nota del 12 novembre 2026: Irene Sala è responsabile operativa del progetto Lince. Il suo perimetro operativo comprende il servizio di importazione dei cataloghi.\n"
+            }
+          ]
+        },
+        "operation": {
+          "pageId": "project/lince",
+          "expectedVersion": 1,
+          "reason": "Consolidamento dei contenuti della pagina.",
+          "evidence": [
+            {
+              "pageId": "project/lince",
+              "version": 1,
+              "quote": "# Lince\n\nIrene Sala è responsabile operativa del progetto Lince.\nLa nota di assetto riporta questa informazione il 12 novembre 2026.\nIl perimetro operativo comprende il servizio di importazione dei cataloghi.\n\nFonte: [Nota di assetto Lince](note/assetto-lince).\n"
+            },
+            {
+              "pageId": "note/assetto-lince",
+              "version": 1,
+              "quote": "Nota del 12 novembre 2026: Irene Sala è responsabile operativa del progetto Lince. Il suo perimetro operativo comprende il servizio di importazione dei cataloghi.\n"
+            }
+          ],
+          "before": "# Lince\n\nIrene Sala è responsabile operativa del progetto Lince.\nLa nota di assetto riporta questa informazione il 12 novembre 2026.\nIl perimetro operativo comprende il servizio di importazione dei cataloghi.\n\nFonte: [Nota di assetto Lince](note/assetto-lince).\n",
+          "after": "# Lince\n\nLa nota del 12 novembre 2026 indica Irene Sala come responsabile operativa del progetto Lince, con un perimetro che comprende il servizio di importazione dei cataloghi.\n\nFonte: [Nota di assetto Lince](note/assetto-lince).\n",
+          "operation": "consolidate_passage"
+        }
+      }
+    },
+    {
+      "caseId": "N03",
+      "pairId": "P06",
+      "category": "proposal_vs_approval_attribution",
+      "expectedVerdict": "pass",
+      "rationale": "La frase mantiene Daria come proponente, conserva la data della riunione e combina i due tipi di documenti inclusi nella proposta.",
+      "proof": [
+        {
+          "location": "evidence",
+          "pageId": "minutes/archivio-vela",
+          "quote": "Verbale della riunione Vela del 19 novembre 2026. Durante la riunione, Daria Riva ha proposto di usare l’archivio Orma per i documenti del progetto. La proposta comprende il trasferimento delle specifiche tecniche e dei verbali di riunione.\n",
+          "establishes": "Fonte completa dei fatti e delle qualifiche utilizzati nella coppia; non contiene altri eventi, ruoli, garanzie, esiti o approvazioni."
+        },
+        {
+          "location": "after",
+          "quote": "Nella riunione del 19 novembre 2026, Daria Riva ha proposto di archiviare su Orma i documenti di Vela, comprese le specifiche tecniche e i verbali di riunione.",
+          "establishes": "La frase mantiene Daria come proponente, conserva la data della riunione e combina i due tipi di documenti inclusi nella proposta."
+        }
+      ],
+      "contrastWith": "N10",
+      "inputHash": "219e01f6248ec96645d12d09c4cc8de63bc1689c9256a95ea3a7aad0b401afc2",
+      "input": {
+        "before": {
+          "title": "Vela",
+          "type": "project",
+          "summary": "Proposta di archiviazione per il progetto Vela.",
+          "markdown": "# Vela\n\nNella riunione Vela del 19 novembre 2026, Daria Riva ha proposto di usare l’archivio Orma.\nLa proposta riguarda i documenti del progetto.\nSono comprese le specifiche tecniche.\nSono compresi anche i verbali di riunione.\n\nFonte: [Verbale archivio Vela](minutes/archivio-vela).\n"
+        },
+        "after": {
+          "title": "Vela",
+          "type": "project",
+          "summary": "Proposta di archiviazione per il progetto Vela.",
+          "markdown": "# Vela\n\nNella riunione del 19 novembre 2026, Daria Riva ha proposto di archiviare su Orma i documenti di Vela, comprese le specifiche tecniche e i verbali di riunione.\n\nFonte: [Verbale archivio Vela](minutes/archivio-vela).\n"
+        },
+        "evidence": {
+          "sources": [
+            {
+              "pageId": "project/vela",
+              "version": 1,
+              "title": "Vela",
+              "markdown": "# Vela\n\nNella riunione Vela del 19 novembre 2026, Daria Riva ha proposto di usare l’archivio Orma.\nLa proposta riguarda i documenti del progetto.\nSono comprese le specifiche tecniche.\nSono compresi anche i verbali di riunione.\n\nFonte: [Verbale archivio Vela](minutes/archivio-vela).\n"
+            },
+            {
+              "pageId": "minutes/archivio-vela",
+              "version": 1,
+              "title": "Verbale archivio Vela",
+              "markdown": "Verbale della riunione Vela del 19 novembre 2026. Durante la riunione, Daria Riva ha proposto di usare l’archivio Orma per i documenti del progetto. La proposta comprende il trasferimento delle specifiche tecniche e dei verbali di riunione.\n"
+            }
+          ],
+          "citations": [
+            {
+              "pageId": "project/vela",
+              "version": 1,
+              "quote": "# Vela\n\nNella riunione Vela del 19 novembre 2026, Daria Riva ha proposto di usare l’archivio Orma.\nLa proposta riguarda i documenti del progetto.\nSono comprese le specifiche tecniche.\nSono compresi anche i verbali di riunione.\n\nFonte: [Verbale archivio Vela](minutes/archivio-vela).\n"
+            },
+            {
+              "pageId": "minutes/archivio-vela",
+              "version": 1,
+              "quote": "Verbale della riunione Vela del 19 novembre 2026. Durante la riunione, Daria Riva ha proposto di usare l’archivio Orma per i documenti del progetto. La proposta comprende il trasferimento delle specifiche tecniche e dei verbali di riunione.\n"
+            }
+          ]
+        },
+        "operation": {
+          "pageId": "project/vela",
+          "expectedVersion": 1,
+          "reason": "Consolidamento dei contenuti della pagina.",
+          "evidence": [
+            {
+              "pageId": "project/vela",
+              "version": 1,
+              "quote": "# Vela\n\nNella riunione Vela del 19 novembre 2026, Daria Riva ha proposto di usare l’archivio Orma.\nLa proposta riguarda i documenti del progetto.\nSono comprese le specifiche tecniche.\nSono compresi anche i verbali di riunione.\n\nFonte: [Verbale archivio Vela](minutes/archivio-vela).\n"
+            },
+            {
+              "pageId": "minutes/archivio-vela",
+              "version": 1,
+              "quote": "Verbale della riunione Vela del 19 novembre 2026. Durante la riunione, Daria Riva ha proposto di usare l’archivio Orma per i documenti del progetto. La proposta comprende il trasferimento delle specifiche tecniche e dei verbali di riunione.\n"
+            }
+          ],
+          "before": "# Vela\n\nNella riunione Vela del 19 novembre 2026, Daria Riva ha proposto di usare l’archivio Orma.\nLa proposta riguarda i documenti del progetto.\nSono comprese le specifiche tecniche.\nSono compresi anche i verbali di riunione.\n\nFonte: [Verbale archivio Vela](minutes/archivio-vela).\n",
+          "after": "# Vela\n\nNella riunione del 19 novembre 2026, Daria Riva ha proposto di archiviare su Orma i documenti di Vela, comprese le specifiche tecniche e i verbali di riunione.\n\nFonte: [Verbale archivio Vela](minutes/archivio-vela).\n",
+          "operation": "consolidate_passage"
+        }
+      }
+    },
+    {
+      "caseId": "N04",
+      "pairId": "P02",
+      "category": "authorship_vs_responsibility",
+      "expectedVerdict": "fail",
+      "rationale": "La modifica aggiunge una responsabilità di progetto a Paolo. Le fonti attestano esclusivamente la paternità del dossier e i suoi contenuti; essere autore non documenta anche la responsabilità del progetto.",
+      "proof": [
+        {
+          "location": "evidence",
+          "pageId": "document/dossier-selce",
+          "quote": "Il dossier del progetto Selce è stato redatto da Paolo Gatti. Il dossier elenca i quattro connettori del progetto e i rispettivi formati di esportazione.\n",
+          "establishes": "Fonte completa dei fatti e delle qualifiche utilizzati nella coppia; non contiene altri eventi, ruoli, garanzie, esiti o approvazioni."
+        },
+        {
+          "location": "after",
+          "quote": "Paolo Gatti è responsabile del progetto Selce.",
+          "establishes": "La modifica aggiunge una responsabilità di progetto a Paolo. Le fonti attestano esclusivamente la paternità del dossier e i suoi contenuti; essere autore non documenta anche la responsabilità del progetto."
+        }
+      ],
+      "contrastWith": "N09",
+      "inputHash": "dc82f6d2fe252f06b85bcbb2c6935b33e1e96b882756285b2aa72814d96f6998",
+      "input": {
+        "before": {
+          "title": "Selce",
+          "type": "project",
+          "summary": "Dossier documentale del progetto Selce.",
+          "markdown": "# Selce\n\nPaolo Gatti ha redatto il dossier del progetto Selce.\nNel dossier sono elencati i quattro connettori del progetto.\nIl dossier riporta anche il formato di esportazione di ciascuno dei quattro connettori.\n\nFonte: [Dossier Selce](document/dossier-selce).\n"
+        },
+        "after": {
+          "title": "Selce",
+          "type": "project",
+          "summary": "Dossier documentale del progetto Selce.",
+          "markdown": "# Selce\n\nIl dossier del progetto Selce, redatto da Paolo Gatti, elenca i quattro connettori e il formato di esportazione di ciascuno. Paolo Gatti è responsabile del progetto Selce.\n\nFonte: [Dossier Selce](document/dossier-selce).\n"
+        },
+        "evidence": {
+          "sources": [
+            {
+              "pageId": "project/selce",
+              "version": 1,
+              "title": "Selce",
+              "markdown": "# Selce\n\nPaolo Gatti ha redatto il dossier del progetto Selce.\nNel dossier sono elencati i quattro connettori del progetto.\nIl dossier riporta anche il formato di esportazione di ciascuno dei quattro connettori.\n\nFonte: [Dossier Selce](document/dossier-selce).\n"
+            },
+            {
+              "pageId": "document/dossier-selce",
+              "version": 1,
+              "title": "Dossier Selce",
+              "markdown": "Il dossier del progetto Selce è stato redatto da Paolo Gatti. Il dossier elenca i quattro connettori del progetto e i rispettivi formati di esportazione.\n"
+            }
+          ],
+          "citations": [
+            {
+              "pageId": "project/selce",
+              "version": 1,
+              "quote": "# Selce\n\nPaolo Gatti ha redatto il dossier del progetto Selce.\nNel dossier sono elencati i quattro connettori del progetto.\nIl dossier riporta anche il formato di esportazione di ciascuno dei quattro connettori.\n\nFonte: [Dossier Selce](document/dossier-selce).\n"
+            },
+            {
+              "pageId": "document/dossier-selce",
+              "version": 1,
+              "quote": "Il dossier del progetto Selce è stato redatto da Paolo Gatti. Il dossier elenca i quattro connettori del progetto e i rispettivi formati di esportazione.\n"
+            }
+          ]
+        },
+        "operation": {
+          "pageId": "project/selce",
+          "expectedVersion": 1,
+          "reason": "Consolidamento dei contenuti della pagina.",
+          "evidence": [
+            {
+              "pageId": "project/selce",
+              "version": 1,
+              "quote": "# Selce\n\nPaolo Gatti ha redatto il dossier del progetto Selce.\nNel dossier sono elencati i quattro connettori del progetto.\nIl dossier riporta anche il formato di esportazione di ciascuno dei quattro connettori.\n\nFonte: [Dossier Selce](document/dossier-selce).\n"
+            },
+            {
+              "pageId": "document/dossier-selce",
+              "version": 1,
+              "quote": "Il dossier del progetto Selce è stato redatto da Paolo Gatti. Il dossier elenca i quattro connettori del progetto e i rispettivi formati di esportazione.\n"
+            }
+          ],
+          "before": "# Selce\n\nPaolo Gatti ha redatto il dossier del progetto Selce.\nNel dossier sono elencati i quattro connettori del progetto.\nIl dossier riporta anche il formato di esportazione di ciascuno dei quattro connettori.\n\nFonte: [Dossier Selce](document/dossier-selce).\n",
+          "after": "# Selce\n\nIl dossier del progetto Selce, redatto da Paolo Gatti, elenca i quattro connettori e il formato di esportazione di ciascuno. Paolo Gatti è responsabile del progetto Selce.\n\nFonte: [Dossier Selce](document/dossier-selce).\n",
+          "operation": "consolidate_passage"
+        }
+      }
+    },
+    {
+      "caseId": "N05",
+      "pairId": "P05",
+      "category": "observed_scope_vs_generalization",
+      "expectedVerdict": "pass",
+      "rationale": "La riformulazione conserva il numero delle notifiche, l’esito osservato e il perimetro della singola prova sul cluster di collaudo E.",
+      "proof": [
+        {
+          "location": "evidence",
+          "pageId": "test/notifiche-radura",
+          "quote": "Rapporto della prova Radura eseguita sul cluster di collaudo E. Durante questa prova sono state inviate dodici notifiche. Tutte le dodici notifiche sono state consegnate entro trenta secondi.\n",
+          "establishes": "Fonte completa dei fatti e delle qualifiche utilizzati nella coppia; non contiene altri eventi, ruoli, garanzie, esiti o approvazioni."
+        },
+        {
+          "location": "after",
+          "quote": "Nella prova Radura sul cluster di collaudo E, tutte le dodici notifiche inviate sono state consegnate entro trenta secondi.",
+          "establishes": "La riformulazione conserva il numero delle notifiche, l’esito osservato e il perimetro della singola prova sul cluster di collaudo E."
+        }
+      ],
+      "contrastWith": "N12",
+      "inputHash": "8f86073a2abba94f1ddc5d3b3c3507b3d5972b2be20dc9e5015f173bc8d18726",
+      "input": {
+        "before": {
+          "title": "Radura",
+          "type": "project",
+          "summary": "Esito della prova delle notifiche Radura.",
+          "markdown": "# Radura\n\nLa prova Radura si è svolta sul cluster di collaudo E.\nDurante la prova sono state inviate dodici notifiche.\nLe dodici notifiche inviate in questa prova sono state consegnate entro trenta secondi.\n\nFonte: [Prova notifiche Radura](test/notifiche-radura).\n"
+        },
+        "after": {
+          "title": "Radura",
+          "type": "project",
+          "summary": "Esito della prova delle notifiche Radura.",
+          "markdown": "# Radura\n\nNella prova Radura sul cluster di collaudo E, tutte le dodici notifiche inviate sono state consegnate entro trenta secondi.\n\nFonte: [Prova notifiche Radura](test/notifiche-radura).\n"
+        },
+        "evidence": {
+          "sources": [
+            {
+              "pageId": "project/radura",
+              "version": 1,
+              "title": "Radura",
+              "markdown": "# Radura\n\nLa prova Radura si è svolta sul cluster di collaudo E.\nDurante la prova sono state inviate dodici notifiche.\nLe dodici notifiche inviate in questa prova sono state consegnate entro trenta secondi.\n\nFonte: [Prova notifiche Radura](test/notifiche-radura).\n"
+            },
+            {
+              "pageId": "test/notifiche-radura",
+              "version": 1,
+              "title": "Prova notifiche Radura",
+              "markdown": "Rapporto della prova Radura eseguita sul cluster di collaudo E. Durante questa prova sono state inviate dodici notifiche. Tutte le dodici notifiche sono state consegnate entro trenta secondi.\n"
+            }
+          ],
+          "citations": [
+            {
+              "pageId": "project/radura",
+              "version": 1,
+              "quote": "# Radura\n\nLa prova Radura si è svolta sul cluster di collaudo E.\nDurante la prova sono state inviate dodici notifiche.\nLe dodici notifiche inviate in questa prova sono state consegnate entro trenta secondi.\n\nFonte: [Prova notifiche Radura](test/notifiche-radura).\n"
+            },
+            {
+              "pageId": "test/notifiche-radura",
+              "version": 1,
+              "quote": "Rapporto della prova Radura eseguita sul cluster di collaudo E. Durante questa prova sono state inviate dodici notifiche. Tutte le dodici notifiche sono state consegnate entro trenta secondi.\n"
+            }
+          ]
+        },
+        "operation": {
+          "pageId": "project/radura",
+          "expectedVersion": 1,
+          "reason": "Consolidamento dei contenuti della pagina.",
+          "evidence": [
+            {
+              "pageId": "project/radura",
+              "version": 1,
+              "quote": "# Radura\n\nLa prova Radura si è svolta sul cluster di collaudo E.\nDurante la prova sono state inviate dodici notifiche.\nLe dodici notifiche inviate in questa prova sono state consegnate entro trenta secondi.\n\nFonte: [Prova notifiche Radura](test/notifiche-radura).\n"
+            },
+            {
+              "pageId": "test/notifiche-radura",
+              "version": 1,
+              "quote": "Rapporto della prova Radura eseguita sul cluster di collaudo E. Durante questa prova sono state inviate dodici notifiche. Tutte le dodici notifiche sono state consegnate entro trenta secondi.\n"
+            }
+          ],
+          "before": "# Radura\n\nLa prova Radura si è svolta sul cluster di collaudo E.\nDurante la prova sono state inviate dodici notifiche.\nLe dodici notifiche inviate in questa prova sono state consegnate entro trenta secondi.\n\nFonte: [Prova notifiche Radura](test/notifiche-radura).\n",
+          "after": "# Radura\n\nNella prova Radura sul cluster di collaudo E, tutte le dodici notifiche inviate sono state consegnate entro trenta secondi.\n\nFonte: [Prova notifiche Radura](test/notifiche-radura).\n",
+          "operation": "consolidate_passage"
+        }
+      }
+    },
+    {
+      "caseId": "N06",
+      "pairId": "P03",
+      "category": "estimate_vs_guarantee",
+      "expectedVerdict": "fail",
+      "rationale": "La garanzia di completamento entro otto ore è una nuova affermazione più certa della stima fornita. Nessuna fonte documenta una garanzia o un limite temporale assicurato.",
+      "proof": [
+        {
+          "location": "evidence",
+          "pageId": "planning/migrazione-nimbo",
+          "quote": "Stima di pianificazione della migrazione Nimbo. Per il lotto di 800 cataloghi, il gruppo tecnico stima una durata compresa tra sei e otto ore. La stima si riferisce all’esecuzione sul cluster di prova C.\n",
+          "establishes": "Fonte completa dei fatti e delle qualifiche utilizzati nella coppia; non contiene altri eventi, ruoli, garanzie, esiti o approvazioni."
+        },
+        {
+          "location": "after",
+          "quote": "Il completamento entro otto ore è garantito.",
+          "establishes": "La garanzia di completamento entro otto ore è una nuova affermazione più certa della stima fornita. Nessuna fonte documenta una garanzia o un limite temporale assicurato."
+        }
+      ],
+      "contrastWith": "N11",
+      "inputHash": "e64a6103504a9c267f9d03072df43766d3ab596a17b090d4b3e3ac0efb9cf46e",
+      "input": {
+        "before": {
+          "title": "Nimbo",
+          "type": "project",
+          "summary": "Stima dei tempi di migrazione del progetto Nimbo.",
+          "markdown": "# Nimbo\n\nIl gruppo tecnico stima che la migrazione degli 800 cataloghi richieda tra sei e otto ore.\nAmbiente della stima: cluster di prova C.\nLotto della stima: 800 cataloghi.\n\nFonte: [Pianificazione migrazione Nimbo](planning/migrazione-nimbo).\n"
+        },
+        "after": {
+          "title": "Nimbo",
+          "type": "project",
+          "summary": "Stima dei tempi di migrazione del progetto Nimbo.",
+          "markdown": "# Nimbo\n\nPer migrare il lotto di 800 cataloghi sul cluster di prova C, il gruppo tecnico stima una durata di sei-otto ore. Il completamento entro otto ore è garantito.\n\nFonte: [Pianificazione migrazione Nimbo](planning/migrazione-nimbo).\n"
+        },
+        "evidence": {
+          "sources": [
+            {
+              "pageId": "project/nimbo",
+              "version": 1,
+              "title": "Nimbo",
+              "markdown": "# Nimbo\n\nIl gruppo tecnico stima che la migrazione degli 800 cataloghi richieda tra sei e otto ore.\nAmbiente della stima: cluster di prova C.\nLotto della stima: 800 cataloghi.\n\nFonte: [Pianificazione migrazione Nimbo](planning/migrazione-nimbo).\n"
+            },
+            {
+              "pageId": "planning/migrazione-nimbo",
+              "version": 1,
+              "title": "Pianificazione migrazione Nimbo",
+              "markdown": "Stima di pianificazione della migrazione Nimbo. Per il lotto di 800 cataloghi, il gruppo tecnico stima una durata compresa tra sei e otto ore. La stima si riferisce all’esecuzione sul cluster di prova C.\n"
+            }
+          ],
+          "citations": [
+            {
+              "pageId": "project/nimbo",
+              "version": 1,
+              "quote": "# Nimbo\n\nIl gruppo tecnico stima che la migrazione degli 800 cataloghi richieda tra sei e otto ore.\nAmbiente della stima: cluster di prova C.\nLotto della stima: 800 cataloghi.\n\nFonte: [Pianificazione migrazione Nimbo](planning/migrazione-nimbo).\n"
+            },
+            {
+              "pageId": "planning/migrazione-nimbo",
+              "version": 1,
+              "quote": "Stima di pianificazione della migrazione Nimbo. Per il lotto di 800 cataloghi, il gruppo tecnico stima una durata compresa tra sei e otto ore. La stima si riferisce all’esecuzione sul cluster di prova C.\n"
+            }
+          ]
+        },
+        "operation": {
+          "pageId": "project/nimbo",
+          "expectedVersion": 1,
+          "reason": "Consolidamento dei contenuti della pagina.",
+          "evidence": [
+            {
+              "pageId": "project/nimbo",
+              "version": 1,
+              "quote": "# Nimbo\n\nIl gruppo tecnico stima che la migrazione degli 800 cataloghi richieda tra sei e otto ore.\nAmbiente della stima: cluster di prova C.\nLotto della stima: 800 cataloghi.\n\nFonte: [Pianificazione migrazione Nimbo](planning/migrazione-nimbo).\n"
+            },
+            {
+              "pageId": "planning/migrazione-nimbo",
+              "version": 1,
+              "quote": "Stima di pianificazione della migrazione Nimbo. Per il lotto di 800 cataloghi, il gruppo tecnico stima una durata compresa tra sei e otto ore. La stima si riferisce all’esecuzione sul cluster di prova C.\n"
+            }
+          ],
+          "before": "# Nimbo\n\nIl gruppo tecnico stima che la migrazione degli 800 cataloghi richieda tra sei e otto ore.\nAmbiente della stima: cluster di prova C.\nLotto della stima: 800 cataloghi.\n\nFonte: [Pianificazione migrazione Nimbo](planning/migrazione-nimbo).\n",
+          "after": "# Nimbo\n\nPer migrare il lotto di 800 cataloghi sul cluster di prova C, il gruppo tecnico stima una durata di sei-otto ore. Il completamento entro otto ore è garantito.\n\nFonte: [Pianificazione migrazione Nimbo](planning/migrazione-nimbo).\n",
+          "operation": "consolidate_passage"
+        }
+      }
+    },
+    {
+      "caseId": "N07",
+      "pairId": "P01",
+      "category": "report_date_vs_event_date",
+      "expectedVerdict": "fail",
+      "rationale": "La modifica aggiunge che Irene abbia assunto l’incarico il 12 novembre. La fonte attesta chi ricopre l’incarico nella nota datata 12 novembre, senza datare l’assunzione dell’incarico.",
+      "proof": [
+        {
+          "location": "evidence",
+          "pageId": "note/assetto-lince",
+          "quote": "Nota del 12 novembre 2026: Irene Sala è responsabile operativa del progetto Lince. Il suo perimetro operativo comprende il servizio di importazione dei cataloghi.\n",
+          "establishes": "Fonte completa dei fatti e delle qualifiche utilizzati nella coppia; non contiene altri eventi, ruoli, garanzie, esiti o approvazioni."
+        },
+        {
+          "location": "after",
+          "quote": "Irene ha assunto questo incarico il 12 novembre 2026.",
+          "establishes": "La modifica aggiunge che Irene abbia assunto l’incarico il 12 novembre. La fonte attesta chi ricopre l’incarico nella nota datata 12 novembre, senza datare l’assunzione dell’incarico."
+        }
+      ],
+      "contrastWith": "N02",
+      "inputHash": "51f2f3f44f616ba3e435cae49d3fbe891f36ac470c19cf159627600e94dabdc3",
+      "input": {
+        "before": {
+          "title": "Lince",
+          "type": "project",
+          "summary": "Responsabilità operativa del progetto Lince.",
+          "markdown": "# Lince\n\nIrene Sala è responsabile operativa del progetto Lince.\nLa nota di assetto riporta questa informazione il 12 novembre 2026.\nIl perimetro operativo comprende il servizio di importazione dei cataloghi.\n\nFonte: [Nota di assetto Lince](note/assetto-lince).\n"
+        },
+        "after": {
+          "title": "Lince",
+          "type": "project",
+          "summary": "Responsabilità operativa del progetto Lince.",
+          "markdown": "# Lince\n\nLa nota del 12 novembre 2026 indica Irene Sala come responsabile operativa del progetto Lince, con un perimetro che comprende il servizio di importazione dei cataloghi. Irene ha assunto questo incarico il 12 novembre 2026.\n\nFonte: [Nota di assetto Lince](note/assetto-lince).\n"
+        },
+        "evidence": {
+          "sources": [
+            {
+              "pageId": "project/lince",
+              "version": 1,
+              "title": "Lince",
+              "markdown": "# Lince\n\nIrene Sala è responsabile operativa del progetto Lince.\nLa nota di assetto riporta questa informazione il 12 novembre 2026.\nIl perimetro operativo comprende il servizio di importazione dei cataloghi.\n\nFonte: [Nota di assetto Lince](note/assetto-lince).\n"
+            },
+            {
+              "pageId": "note/assetto-lince",
+              "version": 1,
+              "title": "Nota di assetto Lince",
+              "markdown": "Nota del 12 novembre 2026: Irene Sala è responsabile operativa del progetto Lince. Il suo perimetro operativo comprende il servizio di importazione dei cataloghi.\n"
+            }
+          ],
+          "citations": [
+            {
+              "pageId": "project/lince",
+              "version": 1,
+              "quote": "# Lince\n\nIrene Sala è responsabile operativa del progetto Lince.\nLa nota di assetto riporta questa informazione il 12 novembre 2026.\nIl perimetro operativo comprende il servizio di importazione dei cataloghi.\n\nFonte: [Nota di assetto Lince](note/assetto-lince).\n"
+            },
+            {
+              "pageId": "note/assetto-lince",
+              "version": 1,
+              "quote": "Nota del 12 novembre 2026: Irene Sala è responsabile operativa del progetto Lince. Il suo perimetro operativo comprende il servizio di importazione dei cataloghi.\n"
+            }
+          ]
+        },
+        "operation": {
+          "pageId": "project/lince",
+          "expectedVersion": 1,
+          "reason": "Consolidamento dei contenuti della pagina.",
+          "evidence": [
+            {
+              "pageId": "project/lince",
+              "version": 1,
+              "quote": "# Lince\n\nIrene Sala è responsabile operativa del progetto Lince.\nLa nota di assetto riporta questa informazione il 12 novembre 2026.\nIl perimetro operativo comprende il servizio di importazione dei cataloghi.\n\nFonte: [Nota di assetto Lince](note/assetto-lince).\n"
+            },
+            {
+              "pageId": "note/assetto-lince",
+              "version": 1,
+              "quote": "Nota del 12 novembre 2026: Irene Sala è responsabile operativa del progetto Lince. Il suo perimetro operativo comprende il servizio di importazione dei cataloghi.\n"
+            }
+          ],
+          "before": "# Lince\n\nIrene Sala è responsabile operativa del progetto Lince.\nLa nota di assetto riporta questa informazione il 12 novembre 2026.\nIl perimetro operativo comprende il servizio di importazione dei cataloghi.\n\nFonte: [Nota di assetto Lince](note/assetto-lince).\n",
+          "after": "# Lince\n\nLa nota del 12 novembre 2026 indica Irene Sala come responsabile operativa del progetto Lince, con un perimetro che comprende il servizio di importazione dei cataloghi. Irene ha assunto questo incarico il 12 novembre 2026.\n\nFonte: [Nota di assetto Lince](note/assetto-lince).\n",
+          "operation": "consolidate_passage"
+        }
+      }
+    },
+    {
+      "caseId": "N08",
+      "pairId": "P04",
+      "category": "condition_vs_completed_event",
+      "expectedVerdict": "pass",
+      "rationale": "La modifica combina condizione, ambiente e contenuto previsto del collaudo senza affermare che il collaudo sia avvenuto.",
+      "proof": [
+        {
+          "location": "evidence",
+          "pageId": "procedure/abilitazione-iride",
+          "quote": "Procedura di abilitazione Iride. L’abilitazione in produzione del modulo di esportazione richiede il superamento del collaudo sul cluster di prova D. Il collaudo previsto comprende la verifica dei formati CSV e JSON.\n",
+          "establishes": "Fonte completa dei fatti e delle qualifiche utilizzati nella coppia; non contiene altri eventi, ruoli, garanzie, esiti o approvazioni."
+        },
+        {
+          "location": "after",
+          "quote": "L’abilitazione in produzione del modulo di esportazione è subordinata al superamento del collaudo sul cluster di prova D, che prevede la verifica dei formati CSV e JSON.",
+          "establishes": "La modifica combina condizione, ambiente e contenuto previsto del collaudo senza affermare che il collaudo sia avvenuto."
+        }
+      ],
+      "contrastWith": "N01",
+      "inputHash": "1ff92b0032c4633c486cfb2744777bb8cfafd126574a390e0d61769d14aee489",
+      "input": {
+        "before": {
+          "title": "Iride",
+          "type": "project",
+          "summary": "Condizioni di abilitazione delle esportazioni Iride.",
+          "markdown": "# Iride\n\nL’abilitazione in produzione del modulo di esportazione richiede il superamento del collaudo.\nIl collaudo deve svolgersi sul cluster di prova D.\nLa procedura prevede verifiche dei formati CSV e JSON.\n\nFonte: [Abilitazione esportazioni Iride](procedure/abilitazione-iride).\n"
+        },
+        "after": {
+          "title": "Iride",
+          "type": "project",
+          "summary": "Condizioni di abilitazione delle esportazioni Iride.",
+          "markdown": "# Iride\n\nL’abilitazione in produzione del modulo di esportazione è subordinata al superamento del collaudo sul cluster di prova D, che prevede la verifica dei formati CSV e JSON.\n\nFonte: [Abilitazione esportazioni Iride](procedure/abilitazione-iride).\n"
+        },
+        "evidence": {
+          "sources": [
+            {
+              "pageId": "project/iride",
+              "version": 1,
+              "title": "Iride",
+              "markdown": "# Iride\n\nL’abilitazione in produzione del modulo di esportazione richiede il superamento del collaudo.\nIl collaudo deve svolgersi sul cluster di prova D.\nLa procedura prevede verifiche dei formati CSV e JSON.\n\nFonte: [Abilitazione esportazioni Iride](procedure/abilitazione-iride).\n"
+            },
+            {
+              "pageId": "procedure/abilitazione-iride",
+              "version": 1,
+              "title": "Abilitazione esportazioni Iride",
+              "markdown": "Procedura di abilitazione Iride. L’abilitazione in produzione del modulo di esportazione richiede il superamento del collaudo sul cluster di prova D. Il collaudo previsto comprende la verifica dei formati CSV e JSON.\n"
+            }
+          ],
+          "citations": [
+            {
+              "pageId": "project/iride",
+              "version": 1,
+              "quote": "# Iride\n\nL’abilitazione in produzione del modulo di esportazione richiede il superamento del collaudo.\nIl collaudo deve svolgersi sul cluster di prova D.\nLa procedura prevede verifiche dei formati CSV e JSON.\n\nFonte: [Abilitazione esportazioni Iride](procedure/abilitazione-iride).\n"
+            },
+            {
+              "pageId": "procedure/abilitazione-iride",
+              "version": 1,
+              "quote": "Procedura di abilitazione Iride. L’abilitazione in produzione del modulo di esportazione richiede il superamento del collaudo sul cluster di prova D. Il collaudo previsto comprende la verifica dei formati CSV e JSON.\n"
+            }
+          ]
+        },
+        "operation": {
+          "pageId": "project/iride",
+          "expectedVersion": 1,
+          "reason": "Consolidamento dei contenuti della pagina.",
+          "evidence": [
+            {
+              "pageId": "project/iride",
+              "version": 1,
+              "quote": "# Iride\n\nL’abilitazione in produzione del modulo di esportazione richiede il superamento del collaudo.\nIl collaudo deve svolgersi sul cluster di prova D.\nLa procedura prevede verifiche dei formati CSV e JSON.\n\nFonte: [Abilitazione esportazioni Iride](procedure/abilitazione-iride).\n"
+            },
+            {
+              "pageId": "procedure/abilitazione-iride",
+              "version": 1,
+              "quote": "Procedura di abilitazione Iride. L’abilitazione in produzione del modulo di esportazione richiede il superamento del collaudo sul cluster di prova D. Il collaudo previsto comprende la verifica dei formati CSV e JSON.\n"
+            }
+          ],
+          "before": "# Iride\n\nL’abilitazione in produzione del modulo di esportazione richiede il superamento del collaudo.\nIl collaudo deve svolgersi sul cluster di prova D.\nLa procedura prevede verifiche dei formati CSV e JSON.\n\nFonte: [Abilitazione esportazioni Iride](procedure/abilitazione-iride).\n",
+          "after": "# Iride\n\nL’abilitazione in produzione del modulo di esportazione è subordinata al superamento del collaudo sul cluster di prova D, che prevede la verifica dei formati CSV e JSON.\n\nFonte: [Abilitazione esportazioni Iride](procedure/abilitazione-iride).\n",
+          "operation": "consolidate_passage"
+        }
+      }
+    },
+    {
+      "caseId": "N09",
+      "pairId": "P02",
+      "category": "authorship_vs_responsibility",
+      "expectedVerdict": "pass",
+      "rationale": "La frase combina l’autore del dossier e i contenuti documentati, mantenendo il collegamento tra ogni connettore e il proprio formato.",
+      "proof": [
+        {
+          "location": "evidence",
+          "pageId": "document/dossier-selce",
+          "quote": "Il dossier del progetto Selce è stato redatto da Paolo Gatti. Il dossier elenca i quattro connettori del progetto e i rispettivi formati di esportazione.\n",
+          "establishes": "Fonte completa dei fatti e delle qualifiche utilizzati nella coppia; non contiene altri eventi, ruoli, garanzie, esiti o approvazioni."
+        },
+        {
+          "location": "after",
+          "quote": "Il dossier del progetto Selce, redatto da Paolo Gatti, elenca i quattro connettori e il formato di esportazione di ciascuno.",
+          "establishes": "La frase combina l’autore del dossier e i contenuti documentati, mantenendo il collegamento tra ogni connettore e il proprio formato."
+        }
+      ],
+      "contrastWith": "N04",
+      "inputHash": "e799afa63008441efdee6cb3c2424ecc978c1bc97be182557fe71142ad9e4ea4",
+      "input": {
+        "before": {
+          "title": "Selce",
+          "type": "project",
+          "summary": "Dossier documentale del progetto Selce.",
+          "markdown": "# Selce\n\nPaolo Gatti ha redatto il dossier del progetto Selce.\nNel dossier sono elencati i quattro connettori del progetto.\nIl dossier riporta anche il formato di esportazione di ciascuno dei quattro connettori.\n\nFonte: [Dossier Selce](document/dossier-selce).\n"
+        },
+        "after": {
+          "title": "Selce",
+          "type": "project",
+          "summary": "Dossier documentale del progetto Selce.",
+          "markdown": "# Selce\n\nIl dossier del progetto Selce, redatto da Paolo Gatti, elenca i quattro connettori e il formato di esportazione di ciascuno.\n\nFonte: [Dossier Selce](document/dossier-selce).\n"
+        },
+        "evidence": {
+          "sources": [
+            {
+              "pageId": "project/selce",
+              "version": 1,
+              "title": "Selce",
+              "markdown": "# Selce\n\nPaolo Gatti ha redatto il dossier del progetto Selce.\nNel dossier sono elencati i quattro connettori del progetto.\nIl dossier riporta anche il formato di esportazione di ciascuno dei quattro connettori.\n\nFonte: [Dossier Selce](document/dossier-selce).\n"
+            },
+            {
+              "pageId": "document/dossier-selce",
+              "version": 1,
+              "title": "Dossier Selce",
+              "markdown": "Il dossier del progetto Selce è stato redatto da Paolo Gatti. Il dossier elenca i quattro connettori del progetto e i rispettivi formati di esportazione.\n"
+            }
+          ],
+          "citations": [
+            {
+              "pageId": "project/selce",
+              "version": 1,
+              "quote": "# Selce\n\nPaolo Gatti ha redatto il dossier del progetto Selce.\nNel dossier sono elencati i quattro connettori del progetto.\nIl dossier riporta anche il formato di esportazione di ciascuno dei quattro connettori.\n\nFonte: [Dossier Selce](document/dossier-selce).\n"
+            },
+            {
+              "pageId": "document/dossier-selce",
+              "version": 1,
+              "quote": "Il dossier del progetto Selce è stato redatto da Paolo Gatti. Il dossier elenca i quattro connettori del progetto e i rispettivi formati di esportazione.\n"
+            }
+          ]
+        },
+        "operation": {
+          "pageId": "project/selce",
+          "expectedVersion": 1,
+          "reason": "Consolidamento dei contenuti della pagina.",
+          "evidence": [
+            {
+              "pageId": "project/selce",
+              "version": 1,
+              "quote": "# Selce\n\nPaolo Gatti ha redatto il dossier del progetto Selce.\nNel dossier sono elencati i quattro connettori del progetto.\nIl dossier riporta anche il formato di esportazione di ciascuno dei quattro connettori.\n\nFonte: [Dossier Selce](document/dossier-selce).\n"
+            },
+            {
+              "pageId": "document/dossier-selce",
+              "version": 1,
+              "quote": "Il dossier del progetto Selce è stato redatto da Paolo Gatti. Il dossier elenca i quattro connettori del progetto e i rispettivi formati di esportazione.\n"
+            }
+          ],
+          "before": "# Selce\n\nPaolo Gatti ha redatto il dossier del progetto Selce.\nNel dossier sono elencati i quattro connettori del progetto.\nIl dossier riporta anche il formato di esportazione di ciascuno dei quattro connettori.\n\nFonte: [Dossier Selce](document/dossier-selce).\n",
+          "after": "# Selce\n\nIl dossier del progetto Selce, redatto da Paolo Gatti, elenca i quattro connettori e il formato di esportazione di ciascuno.\n\nFonte: [Dossier Selce](document/dossier-selce).\n",
+          "operation": "consolidate_passage"
+        }
+      }
+    },
+    {
+      "caseId": "N10",
+      "pairId": "P06",
+      "category": "proposal_vs_approval_attribution",
+      "expectedVerdict": "fail",
+      "rationale": "La modifica attribuisce a Daria anche un’approvazione. Il verbale documenta chi ha formulato la proposta e il suo contenuto, senza documentare un’approvazione o un approvatore.",
+      "proof": [
+        {
+          "location": "evidence",
+          "pageId": "minutes/archivio-vela",
+          "quote": "Verbale della riunione Vela del 19 novembre 2026. Durante la riunione, Daria Riva ha proposto di usare l’archivio Orma per i documenti del progetto. La proposta comprende il trasferimento delle specifiche tecniche e dei verbali di riunione.\n",
+          "establishes": "Fonte completa dei fatti e delle qualifiche utilizzati nella coppia; non contiene altri eventi, ruoli, garanzie, esiti o approvazioni."
+        },
+        {
+          "location": "after",
+          "quote": "Daria Riva ha approvato questa proposta.",
+          "establishes": "La modifica attribuisce a Daria anche un’approvazione. Il verbale documenta chi ha formulato la proposta e il suo contenuto, senza documentare un’approvazione o un approvatore."
+        }
+      ],
+      "contrastWith": "N03",
+      "inputHash": "f18319d1bca80551a59750b81bf1f390e67efb48e0cab1a68db22f18b506bf78",
+      "input": {
+        "before": {
+          "title": "Vela",
+          "type": "project",
+          "summary": "Proposta di archiviazione per il progetto Vela.",
+          "markdown": "# Vela\n\nNella riunione Vela del 19 novembre 2026, Daria Riva ha proposto di usare l’archivio Orma.\nLa proposta riguarda i documenti del progetto.\nSono comprese le specifiche tecniche.\nSono compresi anche i verbali di riunione.\n\nFonte: [Verbale archivio Vela](minutes/archivio-vela).\n"
+        },
+        "after": {
+          "title": "Vela",
+          "type": "project",
+          "summary": "Proposta di archiviazione per il progetto Vela.",
+          "markdown": "# Vela\n\nNella riunione del 19 novembre 2026, Daria Riva ha proposto di archiviare su Orma i documenti di Vela, comprese le specifiche tecniche e i verbali di riunione. Daria Riva ha approvato questa proposta.\n\nFonte: [Verbale archivio Vela](minutes/archivio-vela).\n"
+        },
+        "evidence": {
+          "sources": [
+            {
+              "pageId": "project/vela",
+              "version": 1,
+              "title": "Vela",
+              "markdown": "# Vela\n\nNella riunione Vela del 19 novembre 2026, Daria Riva ha proposto di usare l’archivio Orma.\nLa proposta riguarda i documenti del progetto.\nSono comprese le specifiche tecniche.\nSono compresi anche i verbali di riunione.\n\nFonte: [Verbale archivio Vela](minutes/archivio-vela).\n"
+            },
+            {
+              "pageId": "minutes/archivio-vela",
+              "version": 1,
+              "title": "Verbale archivio Vela",
+              "markdown": "Verbale della riunione Vela del 19 novembre 2026. Durante la riunione, Daria Riva ha proposto di usare l’archivio Orma per i documenti del progetto. La proposta comprende il trasferimento delle specifiche tecniche e dei verbali di riunione.\n"
+            }
+          ],
+          "citations": [
+            {
+              "pageId": "project/vela",
+              "version": 1,
+              "quote": "# Vela\n\nNella riunione Vela del 19 novembre 2026, Daria Riva ha proposto di usare l’archivio Orma.\nLa proposta riguarda i documenti del progetto.\nSono comprese le specifiche tecniche.\nSono compresi anche i verbali di riunione.\n\nFonte: [Verbale archivio Vela](minutes/archivio-vela).\n"
+            },
+            {
+              "pageId": "minutes/archivio-vela",
+              "version": 1,
+              "quote": "Verbale della riunione Vela del 19 novembre 2026. Durante la riunione, Daria Riva ha proposto di usare l’archivio Orma per i documenti del progetto. La proposta comprende il trasferimento delle specifiche tecniche e dei verbali di riunione.\n"
+            }
+          ]
+        },
+        "operation": {
+          "pageId": "project/vela",
+          "expectedVersion": 1,
+          "reason": "Consolidamento dei contenuti della pagina.",
+          "evidence": [
+            {
+              "pageId": "project/vela",
+              "version": 1,
+              "quote": "# Vela\n\nNella riunione Vela del 19 novembre 2026, Daria Riva ha proposto di usare l’archivio Orma.\nLa proposta riguarda i documenti del progetto.\nSono comprese le specifiche tecniche.\nSono compresi anche i verbali di riunione.\n\nFonte: [Verbale archivio Vela](minutes/archivio-vela).\n"
+            },
+            {
+              "pageId": "minutes/archivio-vela",
+              "version": 1,
+              "quote": "Verbale della riunione Vela del 19 novembre 2026. Durante la riunione, Daria Riva ha proposto di usare l’archivio Orma per i documenti del progetto. La proposta comprende il trasferimento delle specifiche tecniche e dei verbali di riunione.\n"
+            }
+          ],
+          "before": "# Vela\n\nNella riunione Vela del 19 novembre 2026, Daria Riva ha proposto di usare l’archivio Orma.\nLa proposta riguarda i documenti del progetto.\nSono comprese le specifiche tecniche.\nSono compresi anche i verbali di riunione.\n\nFonte: [Verbale archivio Vela](minutes/archivio-vela).\n",
+          "after": "# Vela\n\nNella riunione del 19 novembre 2026, Daria Riva ha proposto di archiviare su Orma i documenti di Vela, comprese le specifiche tecniche e i verbali di riunione. Daria Riva ha approvato questa proposta.\n\nFonte: [Verbale archivio Vela](minutes/archivio-vela).\n",
+          "operation": "consolidate_passage"
+        }
+      }
+    },
+    {
+      "caseId": "N11",
+      "pairId": "P03",
+      "category": "estimate_vs_guarantee",
+      "expectedVerdict": "pass",
+      "rationale": "La riformulazione conserva natura estimativa, durata, numerosità del lotto e ambiente, unificando le informazioni ripetute.",
+      "proof": [
+        {
+          "location": "evidence",
+          "pageId": "planning/migrazione-nimbo",
+          "quote": "Stima di pianificazione della migrazione Nimbo. Per il lotto di 800 cataloghi, il gruppo tecnico stima una durata compresa tra sei e otto ore. La stima si riferisce all’esecuzione sul cluster di prova C.\n",
+          "establishes": "Fonte completa dei fatti e delle qualifiche utilizzati nella coppia; non contiene altri eventi, ruoli, garanzie, esiti o approvazioni."
+        },
+        {
+          "location": "after",
+          "quote": "Per migrare il lotto di 800 cataloghi sul cluster di prova C, il gruppo tecnico stima una durata di sei-otto ore.",
+          "establishes": "La riformulazione conserva natura estimativa, durata, numerosità del lotto e ambiente, unificando le informazioni ripetute."
+        }
+      ],
+      "contrastWith": "N06",
+      "inputHash": "8d8fb57ddc25ef0329da1a23fda5eb5528022233dd1c13f07e236a12feb0c8bc",
+      "input": {
+        "before": {
+          "title": "Nimbo",
+          "type": "project",
+          "summary": "Stima dei tempi di migrazione del progetto Nimbo.",
+          "markdown": "# Nimbo\n\nIl gruppo tecnico stima che la migrazione degli 800 cataloghi richieda tra sei e otto ore.\nAmbiente della stima: cluster di prova C.\nLotto della stima: 800 cataloghi.\n\nFonte: [Pianificazione migrazione Nimbo](planning/migrazione-nimbo).\n"
+        },
+        "after": {
+          "title": "Nimbo",
+          "type": "project",
+          "summary": "Stima dei tempi di migrazione del progetto Nimbo.",
+          "markdown": "# Nimbo\n\nPer migrare il lotto di 800 cataloghi sul cluster di prova C, il gruppo tecnico stima una durata di sei-otto ore.\n\nFonte: [Pianificazione migrazione Nimbo](planning/migrazione-nimbo).\n"
+        },
+        "evidence": {
+          "sources": [
+            {
+              "pageId": "project/nimbo",
+              "version": 1,
+              "title": "Nimbo",
+              "markdown": "# Nimbo\n\nIl gruppo tecnico stima che la migrazione degli 800 cataloghi richieda tra sei e otto ore.\nAmbiente della stima: cluster di prova C.\nLotto della stima: 800 cataloghi.\n\nFonte: [Pianificazione migrazione Nimbo](planning/migrazione-nimbo).\n"
+            },
+            {
+              "pageId": "planning/migrazione-nimbo",
+              "version": 1,
+              "title": "Pianificazione migrazione Nimbo",
+              "markdown": "Stima di pianificazione della migrazione Nimbo. Per il lotto di 800 cataloghi, il gruppo tecnico stima una durata compresa tra sei e otto ore. La stima si riferisce all’esecuzione sul cluster di prova C.\n"
+            }
+          ],
+          "citations": [
+            {
+              "pageId": "project/nimbo",
+              "version": 1,
+              "quote": "# Nimbo\n\nIl gruppo tecnico stima che la migrazione degli 800 cataloghi richieda tra sei e otto ore.\nAmbiente della stima: cluster di prova C.\nLotto della stima: 800 cataloghi.\n\nFonte: [Pianificazione migrazione Nimbo](planning/migrazione-nimbo).\n"
+            },
+            {
+              "pageId": "planning/migrazione-nimbo",
+              "version": 1,
+              "quote": "Stima di pianificazione della migrazione Nimbo. Per il lotto di 800 cataloghi, il gruppo tecnico stima una durata compresa tra sei e otto ore. La stima si riferisce all’esecuzione sul cluster di prova C.\n"
+            }
+          ]
+        },
+        "operation": {
+          "pageId": "project/nimbo",
+          "expectedVersion": 1,
+          "reason": "Consolidamento dei contenuti della pagina.",
+          "evidence": [
+            {
+              "pageId": "project/nimbo",
+              "version": 1,
+              "quote": "# Nimbo\n\nIl gruppo tecnico stima che la migrazione degli 800 cataloghi richieda tra sei e otto ore.\nAmbiente della stima: cluster di prova C.\nLotto della stima: 800 cataloghi.\n\nFonte: [Pianificazione migrazione Nimbo](planning/migrazione-nimbo).\n"
+            },
+            {
+              "pageId": "planning/migrazione-nimbo",
+              "version": 1,
+              "quote": "Stima di pianificazione della migrazione Nimbo. Per il lotto di 800 cataloghi, il gruppo tecnico stima una durata compresa tra sei e otto ore. La stima si riferisce all’esecuzione sul cluster di prova C.\n"
+            }
+          ],
+          "before": "# Nimbo\n\nIl gruppo tecnico stima che la migrazione degli 800 cataloghi richieda tra sei e otto ore.\nAmbiente della stima: cluster di prova C.\nLotto della stima: 800 cataloghi.\n\nFonte: [Pianificazione migrazione Nimbo](planning/migrazione-nimbo).\n",
+          "after": "# Nimbo\n\nPer migrare il lotto di 800 cataloghi sul cluster di prova C, il gruppo tecnico stima una durata di sei-otto ore.\n\nFonte: [Pianificazione migrazione Nimbo](planning/migrazione-nimbo).\n",
+          "operation": "consolidate_passage"
+        }
+      }
+    },
+    {
+      "caseId": "N12",
+      "pairId": "P05",
+      "category": "observed_scope_vs_generalization",
+      "expectedVerdict": "fail",
+      "rationale": "La modifica estende il risultato di dodici notifiche in un singolo ambiente a tutte le notifiche e a ogni ambiente. Le fonti fornite non sostengono questa generalizzazione.",
+      "proof": [
+        {
+          "location": "evidence",
+          "pageId": "test/notifiche-radura",
+          "quote": "Rapporto della prova Radura eseguita sul cluster di collaudo E. Durante questa prova sono state inviate dodici notifiche. Tutte le dodici notifiche sono state consegnate entro trenta secondi.\n",
+          "establishes": "Fonte completa dei fatti e delle qualifiche utilizzati nella coppia; non contiene altri eventi, ruoli, garanzie, esiti o approvazioni."
+        },
+        {
+          "location": "after",
+          "quote": "Radura consegna tutte le notifiche entro trenta secondi in ogni ambiente.",
+          "establishes": "La modifica estende il risultato di dodici notifiche in un singolo ambiente a tutte le notifiche e a ogni ambiente. Le fonti fornite non sostengono questa generalizzazione."
+        }
+      ],
+      "contrastWith": "N05",
+      "inputHash": "cd5aa6d19e9dba3241888e38a2503a1d514eb0a09cb4b78f3c20c09247d1eb8b",
+      "input": {
+        "before": {
+          "title": "Radura",
+          "type": "project",
+          "summary": "Esito della prova delle notifiche Radura.",
+          "markdown": "# Radura\n\nLa prova Radura si è svolta sul cluster di collaudo E.\nDurante la prova sono state inviate dodici notifiche.\nLe dodici notifiche inviate in questa prova sono state consegnate entro trenta secondi.\n\nFonte: [Prova notifiche Radura](test/notifiche-radura).\n"
+        },
+        "after": {
+          "title": "Radura",
+          "type": "project",
+          "summary": "Esito della prova delle notifiche Radura.",
+          "markdown": "# Radura\n\nNella prova Radura sul cluster di collaudo E, tutte le dodici notifiche inviate sono state consegnate entro trenta secondi. Radura consegna tutte le notifiche entro trenta secondi in ogni ambiente.\n\nFonte: [Prova notifiche Radura](test/notifiche-radura).\n"
+        },
+        "evidence": {
+          "sources": [
+            {
+              "pageId": "project/radura",
+              "version": 1,
+              "title": "Radura",
+              "markdown": "# Radura\n\nLa prova Radura si è svolta sul cluster di collaudo E.\nDurante la prova sono state inviate dodici notifiche.\nLe dodici notifiche inviate in questa prova sono state consegnate entro trenta secondi.\n\nFonte: [Prova notifiche Radura](test/notifiche-radura).\n"
+            },
+            {
+              "pageId": "test/notifiche-radura",
+              "version": 1,
+              "title": "Prova notifiche Radura",
+              "markdown": "Rapporto della prova Radura eseguita sul cluster di collaudo E. Durante questa prova sono state inviate dodici notifiche. Tutte le dodici notifiche sono state consegnate entro trenta secondi.\n"
+            }
+          ],
+          "citations": [
+            {
+              "pageId": "project/radura",
+              "version": 1,
+              "quote": "# Radura\n\nLa prova Radura si è svolta sul cluster di collaudo E.\nDurante la prova sono state inviate dodici notifiche.\nLe dodici notifiche inviate in questa prova sono state consegnate entro trenta secondi.\n\nFonte: [Prova notifiche Radura](test/notifiche-radura).\n"
+            },
+            {
+              "pageId": "test/notifiche-radura",
+              "version": 1,
+              "quote": "Rapporto della prova Radura eseguita sul cluster di collaudo E. Durante questa prova sono state inviate dodici notifiche. Tutte le dodici notifiche sono state consegnate entro trenta secondi.\n"
+            }
+          ]
+        },
+        "operation": {
+          "pageId": "project/radura",
+          "expectedVersion": 1,
+          "reason": "Consolidamento dei contenuti della pagina.",
+          "evidence": [
+            {
+              "pageId": "project/radura",
+              "version": 1,
+              "quote": "# Radura\n\nLa prova Radura si è svolta sul cluster di collaudo E.\nDurante la prova sono state inviate dodici notifiche.\nLe dodici notifiche inviate in questa prova sono state consegnate entro trenta secondi.\n\nFonte: [Prova notifiche Radura](test/notifiche-radura).\n"
+            },
+            {
+              "pageId": "test/notifiche-radura",
+              "version": 1,
+              "quote": "Rapporto della prova Radura eseguita sul cluster di collaudo E. Durante questa prova sono state inviate dodici notifiche. Tutte le dodici notifiche sono state consegnate entro trenta secondi.\n"
+            }
+          ],
+          "before": "# Radura\n\nLa prova Radura si è svolta sul cluster di collaudo E.\nDurante la prova sono state inviate dodici notifiche.\nLe dodici notifiche inviate in questa prova sono state consegnate entro trenta secondi.\n\nFonte: [Prova notifiche Radura](test/notifiche-radura).\n",
+          "after": "# Radura\n\nNella prova Radura sul cluster di collaudo E, tutte le dodici notifiche inviate sono state consegnate entro trenta secondi. Radura consegna tutte le notifiche entro trenta secondi in ogni ambiente.\n\nFonte: [Prova notifiche Radura](test/notifiche-radura).\n",
+          "operation": "consolidate_passage"
+        }
+      }
+    }
+  ]
+}
