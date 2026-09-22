@@ -1,28 +1,53 @@
 import type { ConsolidationCriterion } from "./consolidation-rubric";
 import { GatewayRequestError } from "./gateway";
 import type { ConsolidationEvaluationInput } from "./jev";
-import { evaluateWithKimi, type KimiEvaluation } from "./kimi-evaluator";
+import {
+  evaluateWithKimi,
+  type KimiEvaluation,
+  KimiResponseError,
+  type KimiReviewReceipt,
+  type KimiTechnicalCause,
+  type KimiUsage,
+} from "./kimi-evaluator";
+import { KIMI_SOURCE_CHALLENGE_CONTRACT } from "./kimi-source-challenge";
 
 export const KIMI_SOURCE_CONTRACT_ARMS = ["baseline", "clarified"] as const;
 export type KimiSourceContractArm = (typeof KIMI_SOURCE_CONTRACT_ARMS)[number];
 
-/** Frozen experimental clarification; no case-specific examples or labels. */
-export const KIMI_SOURCE_CONTRACT_CLARIFICATION = [
-  "Precisazione applicabile esclusivamente al criterio supported_by_evidence:",
-  "Valuta se ogni affermazione fattuale aggiunta o corretta dalla modifica è giustificata da before o dalle evidenze fornite. Non devi stabilire la verità nel mondo esterno: non cercare informazioni esterne e non richiedere nuove prove per affermazioni rimaste invariate.",
-  "Assegna fail se anche una sola aggiunta o correzione fattuale non è sostenuta dalle fonti fornite, è contraddetta, aggiunge una data o un'attribuzione non documentata, oppure esprime maggiore certezza della fonte. L'affermazione potrebbe essere vera nella realtà: questo non la rende supportata e non giustifica uncertain. Non serve dimostrarla falsa.",
-  "Assegna pass quando tutte le aggiunte o correzioni fattuali sono sostenute dai passaggi forniti, comprese le parafrasi fedeli e le conseguenze direttamente implicate, senza introdurre fatti o assunzioni ulteriori. Non richiedere una citazione testuale identica. La sola rimozione di un duplicato, senza nuove affermazioni, non introduce un difetto di supporto.",
-  "Riserva uncertain a un'ambiguità effettiva nell'interpretazione delle evidenze che impedisce di decidere se sostengano l'affermazione modificata. La semplice assenza di supporto per un'informazione aggiunta richiede fail, non uncertain.",
-  "Nella rationale identifica l'affermazione modificata e il passaggio che la sostiene, la contraddice o rimane ambiguo; se manca il supporto, specifica quale informazione la modifica aggiunge senza documentarla. Non includere il ragionamento interno.",
-  "Questa precisazione non modifica gli altri criteri, i criteri selezionati o lo schema JSON della risposta.",
-].join("\n\n");
+export const KIMI_SOURCE_CONTRACT = {
+  version: "source-single-review-v1",
+  physicalCalls: 1,
+  sourceChallenge: KIMI_SOURCE_CHALLENGE_CONTRACT,
+  decision:
+    "One request for selected criteria only; derive support from validated associations; other criteria retain verdict/rationale; malformed evidence is an error, never a semantic fail.",
+} as const;
+
+/** Compatibility export for historical runners; one authoritative instruction text. */
+export const KIMI_SOURCE_CONTRACT_CLARIFICATION =
+  KIMI_SOURCE_CHALLENGE_CONTRACT.instructions;
 
 type KimiOptions = NonNullable<Parameters<typeof evaluateWithKimi>[2]>;
 
-/**
- * Isolated experiment: keep the existing adapter, settings and response parser.
- * Baseline and selections without source support use the adapter unmodified.
- */
+function singleUsage(usage: KimiUsage): KimiUsage {
+  return {
+    ...usage,
+    physicalCalls: 1,
+    unknownCostCalls: usage.costUsd === null ? 1 : 0,
+    unknownTokenCalls:
+      usage.inputTokens === null || usage.outputTokens === null ? 1 : 0,
+  };
+}
+
+const noUsage: KimiUsage = {
+  inputTokens: null,
+  outputTokens: null,
+  totalTokens: null,
+  reasoningTokens: null,
+  cachedInputTokens: null,
+  costUsd: null,
+};
+
+/** One mixed review. Only selected support uses the association contract. */
 export async function evaluateWithKimiSourceContract(
   input: ConsolidationEvaluationInput,
   criteria: ConsolidationCriterion[],
@@ -34,28 +59,78 @@ export async function evaluateWithKimiSourceContract(
       retryable: false,
     });
   }
-  if (
-    arm === "baseline" ||
-    !Array.isArray(criteria) ||
-    !criteria.includes("supported_by_evidence")
-  ) {
-    return evaluateWithKimi(input, criteria, options);
-  }
+  if (arm === "baseline") return evaluateWithKimi(input, criteria, options);
 
   const send = options.fetch ?? fetch;
-  return evaluateWithKimi(input, criteria, {
-    ...options,
-    fetch: async (url, init) => {
-      // This body is created by evaluateWithKimi, not caller/provider data.
-      const body = JSON.parse(String(init?.body)) as {
-        messages: { role: string; content: string }[];
-      };
-      const system = body.messages[0];
-      if (system?.role !== "system" || typeof system.content !== "string") {
-        throw new Error("Kimi system prompt is unavailable.");
-      }
-      system.content += `\n\n${KIMI_SOURCE_CONTRACT_CLARIFICATION}`;
-      return send(url, { ...init, body: JSON.stringify(body) });
-    },
-  });
+  let requested = false;
+  const started = performance.now();
+  try {
+    const result = await evaluateWithKimi(input, criteria, {
+      ...options,
+      sourceReview: "counterexample",
+      auditSourceSupport: true,
+      auditPreservation: true,
+      fetch: async (url, init) => {
+        requested = true;
+        return send(url, init);
+      },
+    });
+    const usage = singleUsage(result.usage);
+    return {
+      ...result,
+      usage,
+      reviewReceipts: [
+        {
+          review: "single",
+          outcome: "success",
+          ...(result.judgments.supported_by_evidence
+            ? { judgment: result.judgments.supported_by_evidence }
+            : {}),
+          usage,
+          responseId: result.responseId,
+          responseModel: result.responseModel,
+          latencyMs: result.latencyMs,
+        },
+      ],
+    };
+  } catch (error) {
+    // Local invalid input is not a provider attempt and must not invent usage.
+    if (!requested) throw error;
+    const parsed = error instanceof KimiResponseError ? error : null;
+    const gateway = error instanceof GatewayRequestError ? error : null;
+    const technicalCause: KimiTechnicalCause = {
+      kind: parsed
+        ? "invalid_response"
+        : gateway?.status != null
+          ? "http"
+          : gateway
+            ? "transport_or_configuration"
+            : "unexpected",
+      status: gateway?.status ?? null,
+      retryable: gateway?.retryable ?? false,
+      retryAfterMs: gateway?.retryAfterMs ?? null,
+    };
+    const usage = singleUsage(parsed?.usage ?? noUsage);
+    const failedReceipt: KimiReviewReceipt = {
+      review: "single",
+      outcome: "error",
+      usage,
+      responseId: parsed?.responseId ?? null,
+      responseModel: parsed?.responseModel ?? null,
+      latencyMs: parsed?.latencyMs ?? performance.now() - started,
+      stage: parsed?.stage ?? "request",
+      reasonCode: parsed?.reasonCode ?? "request_unavailable",
+      technicalCause,
+    };
+    const failure = new KimiResponseError(
+      failedReceipt.stage ?? "request",
+      failedReceipt.reasonCode ?? "request_unavailable",
+      { id: failedReceipt.responseId, model: failedReceipt.responseModel },
+      failedReceipt.latencyMs,
+      usage,
+    );
+    failure.reviewReceipts = [failedReceipt];
+    failure.technicalCause = technicalCause;
+    throw failure;
+  }
 }

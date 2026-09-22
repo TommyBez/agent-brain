@@ -1,6 +1,10 @@
 import { createHash } from "node:crypto";
 import { z } from "zod";
 import { type BrainLink, type BrainPage, LINK_TYPES } from "../brain/types";
+import {
+  type ProducerStage,
+  proposeIndexedConsolidation,
+} from "./consolidation-producer";
 import { gatewayRequest } from "./gateway";
 
 export const PROPOSAL_LIMITS = {
@@ -95,6 +99,9 @@ export async function proposeConsolidation(
     costUsd?: number | null;
     inputTokensReported?: boolean;
     outputTokensReported?: boolean;
+    physicalCalls?: number;
+    unknownCostCalls?: number;
+    unknownTokenCalls?: number;
   };
   model: string;
   rejectedProposals: Array<{
@@ -110,9 +117,10 @@ export async function proposeConsolidation(
   };
   /** Private audit content only; never contains the separate reasoning field. */
   completionContent?: string;
+  generationStages?: ProducerStage[];
 }> {
-  const corpus = JSON.stringify(pages);
-  if (corpus.length > PROPOSAL_LIMITS.corpusCharacters) {
+  const snapshot = JSON.stringify(pages);
+  if (snapshot.length > PROPOSAL_LIMITS.corpusCharacters) {
     throw new Error(
       "Consolidation snapshot exceeds the complete-corpus input limit.",
     );
@@ -121,19 +129,19 @@ export async function proposeConsolidation(
     options.model ||
     process.env.CONSOLIDATION_MODEL ||
     "deepseek/deepseek-v4.1-flash";
-  const prompt =
-    options.scope === "candidate-v1"
-      ? AUTONOMOUS_CONSOLIDATION_PROMPT.replace(
-          "; refresh a stale summary from documented facts; add an explicitly supported typed relationship",
-          "",
-        )
-          .replace(
-            / For refresh_summary include[\s\S]*?Never recreate an existing link\./,
-            " Only deduplicate_passage, consolidate_passage and resolve_answered_question are permitted. Preserve summaries and structured links unchanged.",
-          )
-          .replace("an array of at most 8", "an array of at most 2") +
-        "\n\nEach before, after and evidence quote must contain at most 6000 characters, including whitespace. Choose a short, self-contained contiguous passage that fits this limit; never copy a whole long maintenance diary into before. If a diary is longer, consolidate one bounded portion and leave the rest for a later run. Preserve its unique facts, dates, attributions, uncertainty and links. Return at most two proposals, each for a different target page."
-      : AUTONOMOUS_CONSOLIDATION_PROMPT;
+  if (options.scope === "candidate-v1") {
+    return proposeIndexedConsolidation(
+      pages,
+      model,
+      PROPOSAL_LIMITS,
+      AUTONOMOUS_CONSOLIDATION_PROMPT.split("Return a JSON object")[0].replace(
+        "; refresh a stale summary from documented facts; add an explicitly supported typed relationship",
+        "",
+      ),
+    );
+  }
+  const corpus = snapshot;
+  const prompt = AUTONOMOUS_CONSOLIDATION_PROMPT;
   const raw = await gatewayRequest<unknown>("chat/completions", {
     model,
     messages: [
@@ -144,10 +152,7 @@ export async function proposeConsolidation(
       },
     ],
     response_format: { type: "json_object" },
-    // The release corpus exhausted 16k tokens in thinking before finishing JSON.
-    // V4.1 Flash exposes none/high/max in the Gateway catalog; the bounded
-    // candidate producer uses none, leaving semantic review to Jev and Kimi.
-    reasoning: { effort: options.scope === "candidate-v1" ? "none" : "low" },
+    reasoning: { effort: "low" },
     max_tokens: PROPOSAL_LIMITS.outputTokens,
   });
   // A paid completion is accounted for even when its output cannot be applied.
@@ -168,10 +173,6 @@ export async function proposeConsolidation(
     ? usage.completion_tokens_details
     : {};
   const reasoningTokens = tokens(completionDetails.reasoning_tokens, -1);
-  const reportedCost =
-    typeof usage.cost === "string" && /^\d+(?:\.\d+)?$/.test(usage.cost)
-      ? Number(usage.cost)
-      : usage.cost;
   const accounting = {
     usage: {
       inputTokens: tokens(
@@ -182,18 +183,6 @@ export async function proposeConsolidation(
         usage.completion_tokens,
         PROPOSAL_LIMITS.outputTokens,
       ),
-      ...(options.scope === "candidate-v1"
-        ? {
-            costUsd:
-              typeof reportedCost === "number" &&
-              Number.isFinite(reportedCost) &&
-              reportedCost >= 0
-                ? reportedCost
-                : null,
-            inputTokensReported: tokens(usage.prompt_tokens, -1) >= 0,
-            outputTokensReported: tokens(usage.completion_tokens, -1) >= 0,
-          }
-        : {}),
     },
     model,
     responseDiagnostics: {
@@ -234,25 +223,17 @@ export async function proposeConsolidation(
   }> = [];
   parsed.data.proposals.forEach((proposal, index) => {
     const item = consolidationProposalSchema.safeParse(proposal);
-    if (
-      item.success &&
-      (options.scope !== "candidate-v1" ||
-        CANDIDATE_OPERATIONS.some(
-          (operation) => operation === item.data.operation,
-        ))
-    ) {
+    if (item.success) {
       proposals.push(item.data);
     } else {
       rejectedProposals.push({
         index,
         // Zod's message may echo unknown property names. Paths here contain only
         // schema fields and indexes; retain codes, never the raw error object.
-        issues: item.success
-          ? ["operation outside candidate scope"]
-          : item.error.issues.map(
-              (issue) =>
-                `${issue.code} at ${issue.path.map(String).join(".") || "proposal"}`,
-            ),
+        issues: item.error.issues.map(
+          (issue) =>
+            `${issue.code} at ${issue.path.map(String).join(".") || "proposal"}`,
+        ),
         proposal,
       });
     }

@@ -38,7 +38,11 @@
   },
   "overrides": [
     {
-      "includes": ["scripts/fixtures/consolidation-release-v1.json"],
+      "includes": [
+        "scripts/fixtures/consolidation-release-v1.json",
+        "scripts/fixtures/consolidation-release-v2.json",
+        "scripts/fixtures/consolidation-release-v3.json"
+      ],
       "formatter": { "enabled": false }
     },
     {

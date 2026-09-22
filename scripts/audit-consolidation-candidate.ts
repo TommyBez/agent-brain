@@ -62,6 +62,65 @@ async function exists(path: string) {
   }
 }
 
+/** Count physical Kimi requests from their receipts, independently of the runtime totals. */
+export function auditKimiAccounting(outcome: NonNullable<Evaluation["kimi"]>) {
+  const recorded =
+    outcome.status === "success" ? outcome.result : outcome.error.diagnostic;
+  const usage = recorded?.usage;
+  const reviews = recorded?.reviewReceipts;
+  const composite =
+    reviews !== undefined ||
+    usage?.physicalCalls !== undefined ||
+    usage?.unknownCostCalls !== undefined ||
+    usage?.unknownTokenCalls !== undefined;
+  const usages = composite ? reviews?.map((review) => review.usage) : [usage];
+  assert.ok(usages?.length, "Composite Kimi usage requires physical receipts.");
+  const totals = {
+    physicalCalls: usages.length,
+    inputTokens: 0,
+    outputTokens: 0,
+    costPico: 0,
+    unknownCostCalls: 0,
+    unknownTokenCalls: 0,
+  };
+  for (const item of usages) {
+    for (const value of [item?.inputTokens, item?.outputTokens, item?.costUsd])
+      assert.ok(
+        value == null || (Number.isFinite(value) && value >= 0),
+        "Kimi receipt usage must contain finite nonnegative values or null.",
+      );
+    if (composite) {
+      assert.equal(item?.physicalCalls ?? 1, 1);
+      assert.equal(
+        item?.unknownCostCalls ?? Number(item?.costUsd == null),
+        Number(item?.costUsd == null),
+      );
+      assert.equal(
+        item?.unknownTokenCalls ??
+          Number(item?.inputTokens == null || item?.outputTokens == null),
+        Number(item?.inputTokens == null || item?.outputTokens == null),
+      );
+    }
+    totals.inputTokens += item?.inputTokens ?? 0;
+    totals.outputTokens += item?.outputTokens ?? 0;
+    totals.costPico += Math.round((item?.costUsd ?? 0) * 1e12);
+    totals.unknownCostCalls += Number(item?.costUsd == null);
+    totals.unknownTokenCalls += Number(
+      item?.inputTokens == null || item?.outputTokens == null,
+    );
+  }
+  if (composite) {
+    assert.ok(usage);
+    assert.equal(usage.physicalCalls, totals.physicalCalls);
+    assert.equal(usage.unknownCostCalls, totals.unknownCostCalls);
+    assert.equal(usage.unknownTokenCalls, totals.unknownTokenCalls);
+    assert.equal(usage.inputTokens ?? 0, totals.inputTokens);
+    assert.equal(usage.outputTokens ?? 0, totals.outputTokens);
+    assert.equal(Math.round((usage.costUsd ?? 0) * 1e12), totals.costPico);
+  }
+  return totals;
+}
+
 /** Recompute the policy from saved raw answers with network adapters replaced completely. */
 async function verifyEvaluation(
   input: Parameters<typeof evaluateCandidate>[0],
@@ -304,7 +363,53 @@ export async function auditCandidateArtifacts(
         generated.usage.outputTokens,
         generated.usage.costUsd,
       );
-      if (
+      if (generated.usage.physicalCalls !== undefined) {
+        unknownCost +=
+          (generated.usage.unknownCostCalls ?? 0) -
+          (generated.usage.costUsd == null ? 1 : 0);
+        unknownToken += generated.usage.unknownTokenCalls ?? 0;
+        assert.equal(
+          generated.generationStages?.length,
+          generated.usage.physicalCalls,
+        );
+        const stages = generated.generationStages ?? [];
+        assert.equal(
+          generated.usage.unknownCostCalls,
+          stages.filter((stage) => stage.usage.costUsd === null).length,
+        );
+        assert.equal(
+          generated.usage.unknownTokenCalls,
+          stages.filter(
+            (stage) =>
+              stage.usage.inputTokens === null ||
+              stage.usage.outputTokens === null,
+          ).length,
+        );
+        assert.equal(
+          generated.usage.inputTokens,
+          stages.reduce(
+            (sum, stage) => sum + (stage.usage.inputTokens ?? 0),
+            0,
+          ),
+        );
+        assert.equal(
+          generated.usage.outputTokens,
+          stages.reduce(
+            (sum, stage) => sum + (stage.usage.outputTokens ?? 0),
+            0,
+          ),
+        );
+        const costs = stages.flatMap((stage) =>
+          stage.usage.costUsd === null ? [] : [stage.usage.costUsd],
+        );
+        assert.equal(
+          generated.usage.costUsd,
+          costs.length
+            ? costs.reduce((sum, cost) => sum + Math.round(cost * 1e12), 0) /
+                1e12
+            : null,
+        );
+      } else if (
         generated.usage.inputTokensReported === false ||
         generated.usage.outputTokensReported === false
       )
@@ -432,20 +537,29 @@ export async function auditCandidateArtifacts(
       assert.deepEqual(entry.assessment, saved);
       assert.equal(entry.decision, saved.finalDecision);
       jevCalls++;
-      if (saved.jev.status === "success")
+      if (saved.jev.status === "success") {
         account(
           saved.jev.result.usage.inputTokens,
           saved.jev.result.usage.outputTokens,
           saved.jev.result.usage.gateway?.cost,
         );
-      else account(null, null, null);
+        for (const _failure of saved.jev.result.transportFailures ?? []) {
+          account(null, null, null);
+          jevCalls++;
+        }
+      } else {
+        const attempts = saved.jev.error.transportFailures?.length || 1;
+        for (let i = 0; i < attempts; i++) account(null, null, null);
+        jevCalls += attempts - 1;
+      }
       if (saved.kimi) {
-        kimiCalls++;
-        const usage =
-          saved.kimi.status === "success"
-            ? saved.kimi.result.usage
-            : saved.kimi.error.diagnostic?.usage;
-        account(usage?.inputTokens, usage?.outputTokens, usage?.costUsd);
+        const counted = auditKimiAccounting(saved.kimi);
+        kimiCalls += counted.physicalCalls;
+        inputTokens += counted.inputTokens;
+        outputTokens += counted.outputTokens;
+        costPico += counted.costPico;
+        unknownCost += counted.unknownCostCalls;
+        unknownToken += counted.unknownTokenCalls;
       }
       if (entry.decision === "accept") {
         accepted++;

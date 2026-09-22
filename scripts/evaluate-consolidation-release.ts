@@ -28,11 +28,18 @@ import {
   JEV_MODEL,
 } from "../lib/maintenance/jev";
 import {
+  JEV_RECOVERY,
+  recoverJevTransport,
+} from "../lib/maintenance/jev-recovery";
+import {
   KIMI_EVALUATOR_SETTINGS,
   type KimiEvaluation,
 } from "../lib/maintenance/kimi-evaluator";
+import { KIMI_SOURCE_AUDIT_CONTRACT } from "../lib/maintenance/kimi-source-audit";
+import { KIMI_SOURCE_CHALLENGE_CONTRACT } from "../lib/maintenance/kimi-source-challenge";
 import {
   evaluateWithKimiSourceContract,
+  KIMI_SOURCE_CONTRACT,
   KIMI_SOURCE_CONTRACT_CLARIFICATION,
 } from "../lib/maintenance/kimi-source-contract";
 import { buildFilterContract } from "./prepare-filter-contract";
@@ -57,7 +64,7 @@ type Reference = {
   caseId: string;
   inputHash: string;
   originId: string;
-  cohort: "existing" | "new" | "source-only";
+  cohort: "existing" | "new" | "heldout" | "source-only";
   category: string;
   label: string;
   expectedDecision?: "accept" | "reject" | "do_not_apply";
@@ -91,7 +98,7 @@ type ReleaseFixture = {
       label: string;
       category: "valid" | "invalid" | "ambiguous";
       afterMarkdown: string;
-      expectedDecision: "accept" | "do_not_apply";
+      expectedDecision: "accept" | "reject" | "do_not_apply";
       expectedCriteria: Reference["expectedCriteria"];
       rationale: string;
       proof: {
@@ -136,7 +143,10 @@ function allowed(judgment: Judgment | undefined): string[] {
 }
 
 /** Builds the same four-field model input as the approved benchmark, with all reference data separate. */
-export function buildReleaseCases(fixture: ReleaseFixture) {
+export function buildReleaseCases(
+  fixture: ReleaseFixture,
+  expectedCounts = { valid: 4, invalid: 4, ambiguous: 4 },
+) {
   const inputs: InputCase[] = [],
     references: Reference[] = [],
     counts = { valid: 0, invalid: 0, ambiguous: 0 };
@@ -233,7 +243,7 @@ export function buildReleaseCases(fixture: ReleaseFixture) {
       });
     }
   }
-  assert.deepEqual(counts, { valid: 4, invalid: 4, ambiguous: 4 });
+  assert.deepEqual(counts, expectedCounts);
   assert.equal(new Set(inputs.map((row) => row.inputHash)).size, 12);
   return { inputs, references };
 }
@@ -343,6 +353,7 @@ export type ReceiptIdentity = {
   kind: "jev" | "kimi" | "source-kimi";
   inputHash: string;
   selected: Criterion[];
+  attempt?: number;
 };
 type Receipt<T> = {
   identity: ReceiptIdentity;
@@ -403,6 +414,37 @@ function resultOrThrow<T>(outcome: CandidateOutcome<T>): T {
   if (outcome.status === "success") return outcome.result;
   throw new CandidateRecordedError(outcome.error);
 }
+
+/** Replay the original elapsed request times, including when a late 503 exhausted the budget. */
+export async function recoverRecordedJevTransport(
+  request: (
+    attempt: number,
+    timeoutMs: number,
+  ) => Promise<Receipt<ConsolidationEvaluation>>,
+  mode: "run" | "verify",
+) {
+  let elapsed = 0;
+  let firstStartedAt: number | null = null;
+  return recoverJevTransport(
+    async (attempt, timeoutMs) => {
+      const receipt = await request(attempt, timeoutMs);
+      const start = Date.parse(receipt.startedAt),
+        end = Date.parse(receipt.endedAt);
+      assert.ok(Number.isFinite(start) && Number.isFinite(end) && end >= start);
+      firstStartedAt ??= start;
+      elapsed = Math.max(elapsed, end - firstStartedAt);
+      return resultOrThrow(receipt.outcome);
+    },
+    {
+      now: () => elapsed,
+      wait: async (ms) => {
+        if (mode === "run")
+          await new Promise((resolve) => setTimeout(resolve, ms));
+        elapsed += ms;
+      },
+    },
+  );
+}
 function receiptUsage(
   receipt: Receipt<ConsolidationEvaluation | KimiEvaluation>,
 ) {
@@ -416,7 +458,28 @@ function receiptUsage(
       : usage && "gateway" in usage
         ? usage.gateway?.cost
         : null;
+  const reviews =
+    receipt.outcome.status === "success"
+      ? "reviewReceipts" in receipt.outcome.result
+        ? receipt.outcome.result.reviewReceipts
+        : undefined
+      : receipt.outcome.error.diagnostic?.reviewReceipts;
+  const physicalCalls =
+    usage && "physicalCalls" in usage ? (usage.physicalCalls ?? 1) : 1;
   return {
+    physicalCalls,
+    missingCosts:
+      usage && "unknownCostCalls" in usage
+        ? (usage.unknownCostCalls ?? (cost == null ? 1 : 0))
+        : cost == null
+          ? 1
+          : 0,
+    missingInputTokens:
+      reviews?.filter((r) => r.usage.inputTokens == null).length ??
+      (usage?.inputTokens == null ? 1 : 0),
+    missingOutputTokens:
+      reviews?.filter((r) => r.usage.outputTokens == null).length ??
+      (usage?.outputTokens == null ? 1 : 0),
     inputTokens: usage?.inputTokens ?? null,
     outputTokens: usage?.outputTokens ?? null,
     costUsd:
@@ -430,7 +493,7 @@ function accounting(
 ) {
   const values = receipts.map(receiptUsage);
   return {
-    calls: receipts.length,
+    calls: values.reduce((sum, v) => sum + v.physicalCalls, 0),
     errors: receipts.filter((r) => r.outcome.status === "error").length,
     knownCostUsd:
       Number(
@@ -439,14 +502,20 @@ function accounting(
           BigInt(0),
         ),
       ) / 1e12,
-    missingCosts: values.filter((v) => v.costUsd === null).length,
+    missingCosts: values.reduce((sum, v) => sum + v.missingCosts, 0),
     knownInputTokens: values.reduce((sum, v) => sum + (v.inputTokens ?? 0), 0),
-    missingInputTokens: values.filter((v) => v.inputTokens === null).length,
+    missingInputTokens: values.reduce(
+      (sum, v) => sum + v.missingInputTokens,
+      0,
+    ),
     knownOutputTokens: values.reduce(
       (sum, v) => sum + (v.outputTokens ?? 0),
       0,
     ),
-    missingOutputTokens: values.filter((v) => v.outputTokens === null).length,
+    missingOutputTokens: values.reduce(
+      (sum, v) => sum + v.missingOutputTokens,
+      0,
+    ),
   };
 }
 
@@ -463,6 +532,8 @@ async function main() {
           "artifacts/consolidation/release-v1/validation-prep/independent-fixture-review.json",
       },
       mode: { type: "string", default: "prepare" },
+      heldout: { type: "string" },
+      "heldout-review": { type: "string" },
     },
   });
   assert.ok(["prepare", "run", "verify"].includes(values.mode));
@@ -489,6 +560,28 @@ async function main() {
     "Review refers to another fixture",
   );
   const built = buildReleaseCases(fixture);
+  let heldout: ReturnType<typeof buildReleaseCases> | null = null;
+  let heldoutReviewHash: string | null = null;
+  if (values.heldout) {
+    assert.ok(values["heldout-review"], "Independent heldout review required");
+    const text = await tracked(values.heldout);
+    const reviewText = await readFile(
+      resolve(values["heldout-review"]),
+      "utf8",
+    );
+    const review = JSON.parse(reviewText);
+    assert.equal(review.approved, true);
+    assert.equal(review.fixtureHash, hash(text));
+    heldout = buildReleaseCases(JSON.parse(text), {
+      valid: 6,
+      invalid: 4,
+      ambiguous: 2,
+    });
+    heldout.references.forEach((row) => {
+      row.cohort = "heldout";
+    });
+    heldoutReviewHash = hash(reviewText);
+  }
   const oldInputs = JSON.parse(await tracked(`${DATASET}/inputs.json`)) as {
     cases: InputCase[];
   };
@@ -512,9 +605,11 @@ async function main() {
     })[];
   };
   assert.equal(sourceFixture.cases.length, 12);
-  const allInput = [...oldInputs.cases, ...built.inputs].sort((a, b) =>
-    hash(a.inputHash).localeCompare(hash(b.inputHash)),
-  );
+  const allInput = [
+    ...oldInputs.cases,
+    ...built.inputs,
+    ...(heldout?.inputs ?? []),
+  ].sort((a, b) => hash(a.inputHash).localeCompare(hash(b.inputHash)));
   const allReference: Reference[] = [
     ...oldReference.cases.map((r) => ({
       ...r,
@@ -523,6 +618,7 @@ async function main() {
       category: r.expectedDecision === "accept" ? "valid" : "invalid",
     })),
     ...built.references,
+    ...(heldout?.references ?? []),
   ];
   const inputs = allInput.map((row, i) => ({
     ...row,
@@ -572,7 +668,7 @@ async function main() {
   }
   assert.equal(
     new Set([...inputs, ...supportInputs].map((i) => i.inputHash)).size,
-    48,
+    48 + (heldout?.inputs.length ?? 0),
   );
   const frozenInputs = { cases: inputs, sourceOnly: supportInputs },
     frozenReference = {
@@ -585,12 +681,17 @@ async function main() {
     "scripts/evaluate-consolidation-release.ts",
     "scripts/prepare-filter-contract.ts",
     "lib/maintenance/consolidation-candidate.ts",
+    "lib/maintenance/consolidation-links.ts",
     "lib/maintenance/consolidation-proposals.ts",
+    "lib/maintenance/consolidation-producer.ts",
     "lib/maintenance/consolidation-defect-questions.ts",
     "lib/maintenance/consolidation-rubric.ts",
     "lib/maintenance/jev.ts",
+    "lib/maintenance/jev-recovery.ts",
     "lib/maintenance/kimi-evaluator.ts",
     "lib/maintenance/kimi-source-contract.ts",
+    "lib/maintenance/kimi-source-audit.ts",
+    "lib/maintenance/kimi-source-challenge.ts",
     "lib/maintenance/gateway.ts",
     "package.json",
     "pnpm-lock.yaml",
@@ -601,6 +702,7 @@ async function main() {
     inputHashes,
     codeHashes,
     reviewHash: hash(reviewText),
+    heldoutReviewHash,
     inputsHash: hash(json(frozenInputs)),
     referenceHash: hash(json(frozenReference)),
     policyVersion: CANDIDATE_POLICY_VERSION,
@@ -609,27 +711,35 @@ async function main() {
     questions: DEFECT_CONSOLIDATION_QUESTIONS,
     rubric: CONSOLIDATION_QUESTIONS_V2,
     jevModel: JEV_MODEL,
+    jevRecovery: JEV_RECOVERY,
     kimiSettings: KIMI_EVALUATOR_SETTINGS,
     clarification: KIMI_SOURCE_CONTRACT_CLARIFICATION,
-    globalCases: 36,
+    sourceReview: KIMI_SOURCE_CONTRACT,
+    sourceAudit: KIMI_SOURCE_AUDIT_CONTRACT,
+    sourceChallenge: KIMI_SOURCE_CHALLENGE_CONTRACT,
+    globalCases: inputs.length,
     sourceOnlyCases: 12,
     repetitions: 3,
-    expectedFreshJevCalls: 108,
-    fixedSourceOnlyKimiCalls: 36,
-    maximumCalls: 252,
+    expectedFreshJevCalls: inputs.length * 3,
+    fixedSourceOnlyKimiEvaluations: 36,
+    maximumCallsPerKimiEvaluation: KIMI_SOURCE_CONTRACT.physicalCalls,
+    maximumCalls:
+      inputs.length *
+        3 *
+        (JEV_RECOVERY.maxAttempts + KIMI_SOURCE_CONTRACT.physicalCalls) +
+      36 * KIMI_SOURCE_CONTRACT.physicalCalls,
     concurrency: 3,
-    maximumAttemptsPerCall: 1,
+    maximumAttemptsPerJevEvaluation: JEV_RECOVERY.maxAttempts,
     budget: {
       maxRecordedUsdBeforeStartingAnotherCall: 5,
       maxRuntimeMs: 90 * 60_000,
-      note: "Recorded USD cap is checked before each fresh call; at most 3 already-running calls may finish above it. Missing costs remain unknown, never zero; call and output limits still bound work. No SDK/provider retries requested by runner.",
+      note: "Recorded USD cap is checked before each fresh call; at most 3 already-running evaluations (one Kimi call each) may finish above it. Missing costs remain unknown, never zero. Each explicit transient Jev HTTP failure may be retried within the frozen limit; each attempt has a separate receipt. Returned judgments are never retried. A single Kimi response judges the selected gray criteria; source support is derived from its checked association ledger.",
     },
-    design:
-      "108 fresh complete Jev-to-Kimi cascades, no response reuse across repetitions, plus 36 independent clarified Kimi source-only regressions. Blind IDs and fixed deterministic mixed order; only before/after/evidence/operation reach models. Reference labels never enter prompts.",
+    design: `${inputs.length * 3} fresh complete Jev-to-Kimi cascades, no response reuse across repetitions, plus 36 independent clarified Kimi source-only regressions. Blind IDs and fixed deterministic mixed order; only before/after/evidence/operation reach models. Reference labels never enter prompts.`,
     success:
-      "All108 global operational decisions correct, no wrong definitive pass/fail on explicitly labeled criteria in Jev/Kimi/cascade, no ambiguous proposal applied, all36 source-only judgments correct, zero technical errors. Criteria not evaluated because another criterion already rejected remain separate and do not count as judgments.",
+      "All global operational decisions correct, no wrong definitive pass/fail on explicitly labeled criteria in Jev/Kimi/cascade, no ambiguous proposal applied, all36 source-only judgments correct, zero unresolved technical errors. Recovered HTTP failures remain counted separately, including unknown costs. Criteria not evaluated because another criterion already rejected remain separate and do not count as judgments.",
     ambiguity:
-      "For4 genuine ambiguous cases fail OR uncertain are both admissible; this tests non-application, not perfect semantic separation of fail versus uncertain or an expected uncertain frequency.",
+      "For genuinely ambiguous cases fail OR uncertain are both admissible; this tests non-application, not perfect semantic separation of fail versus uncertain or an expected uncertain frequency.",
     limitations:
       "Small correlated development corpus, fixed 3 repeats; no post-output tuning and no production reliability estimate. Source-only cases have no invented global acceptance label.",
   };
@@ -655,9 +765,9 @@ async function main() {
       console.log(
         json({
           status: "prepared",
-          globalCalls: 108,
+          globalCalls: contract.expectedFreshJevCalls,
           directKimiCalls: 36,
-          maximumCalls: 252,
+          maximumCalls: contract.maximumCalls,
           protocolHash: hash(json(protocol)),
         }),
       );
@@ -688,7 +798,7 @@ async function main() {
         JSON.parse(await readFile(join(receiptDir, name), "utf8")),
       );
     let freshStarted = 0;
-    const initialCalls = receipts.size,
+    const initialCalls = accounting([...receipts.values()]).calls,
       runStart = Date.now();
     const consumed = new Set<string>(),
       protocolHash = hash(json(protocol));
@@ -721,12 +831,21 @@ async function main() {
       kind: ReceiptIdentity["kind"],
       selected: Criterion[],
       fn: () => Promise<T>,
+      attempt?: number,
+      onReceipt?: (receipt: Receipt<T>) => void,
     ) {
-      const name = `${jobId}-${kind}.json`;
+      const name = `${jobId}-${kind}${attempt === undefined ? "" : `-a${attempt}`}.json`;
       try {
         const receipt = await recordedCall(
           join(receiptDir, name),
-          { protocolHash, jobId, kind, inputHash: item.inputHash, selected },
+          {
+            protocolHash,
+            jobId,
+            kind,
+            inputHash: item.inputHash,
+            selected,
+            ...(attempt === undefined ? {} : { attempt }),
+          },
           mode as "run" | "verify",
           fn,
           () => {
@@ -735,7 +854,10 @@ async function main() {
               "Another worker encountered an integrity/budget failure",
             );
             assert.ok(
-              initialCalls + freshStarted < contract.maximumCalls,
+              initialCalls +
+                freshStarted +
+                (kind === "jev" ? 1 : contract.maximumCallsPerKimiEvaluation) <=
+                contract.maximumCalls,
               "Call budget reached",
             );
             assert.ok(
@@ -747,11 +869,13 @@ async function main() {
                 contract.budget.maxRecordedUsdBeforeStartingAnotherCall,
               "Recorded USD budget reached",
             );
-            freshStarted++;
+            freshStarted +=
+              kind === "jev" ? 1 : contract.maximumCallsPerKimiEvaluation;
           },
         );
         receipts.set(name, receipt);
         consumed.add(name);
+        onReceipt?.(receipt);
         return receipt.outcome;
       } catch (error) {
         fatal = error;
@@ -796,12 +920,28 @@ async function main() {
             const result = await evaluateCandidate(item.input, {
               jev: async (clean) => {
                 assert.deepEqual(clean, item.input);
-                return resultOrThrow(
-                  await call(item, jobId, "jev", [], () =>
-                    evaluateConsolidationProposal(clean, {
-                      questions: DEFECT_CONSOLIDATION_QUESTIONS,
-                    }),
-                  ),
+                return recoverRecordedJevTransport(
+                  async (attempt, timeoutMs) => {
+                    let captured: Receipt<ConsolidationEvaluation> | undefined;
+                    await call(
+                      item,
+                      jobId,
+                      "jev",
+                      [],
+                      () =>
+                        evaluateConsolidationProposal(clean, {
+                          questions: DEFECT_CONSOLIDATION_QUESTIONS,
+                          timeoutMs,
+                        }),
+                      attempt,
+                      (receipt) => {
+                        captured = receipt;
+                      },
+                    );
+                    assert.ok(captured);
+                    return captured;
+                  },
+                  mode as "run" | "verify",
                 );
               },
               kimi: async (clean, selected) => {
@@ -845,7 +985,7 @@ async function main() {
     sourceRows.sort(
       (a, b) => a.caseId.localeCompare(b.caseId) || a.repetition - b.repetition,
     );
-    assert.equal(globalRows.length, 108);
+    assert.equal(globalRows.length, contract.expectedFreshJevCalls);
     assert.equal(sourceRows.length, 36);
     const global = summarizeReleaseRows(globalRows);
     const regressionSummary = (rows: SourceRow[]) => ({
@@ -916,12 +1056,11 @@ async function main() {
         c.cascade.wrongDefinitive > 0,
     );
     const success =
-      global.correct === 108 &&
+      global.correct === contract.expectedFreshJevCalls &&
       global.errors === 0 &&
       !wrongCriterion &&
       sourceOnly.correct === 36 &&
-      sourceOnly.errors === 0 &&
-      costs.total.errors === 0;
+      sourceOnly.errors === 0;
     const result = {
       protocolHash,
       status: "completed",
@@ -930,7 +1069,7 @@ async function main() {
       sourceOnly,
       repetitions,
       cohorts: Object.fromEntries(
-        ["existing", "new"].map((c) => [
+        ["existing", "new", "heldout"].map((c) => [
           c,
           summarizeReleaseRows(globalRows.filter((r) => r.cohort === c)),
         ]),
@@ -963,16 +1102,16 @@ async function main() {
       "",
       `Esito dei criteri congelati: **${success ? "superati" : "NON superati"}**.`,
       "",
-      "108 cascate complete nuove (36 casi × 3) e 36 regressioni Kimi del solo supporto. Nessuna risposta riutilizzata tra ripetizioni. DeepSeek non è in questo test.",
+      `${contract.expectedFreshJevCalls} cascate complete nuove (${inputs.length} casi × 3) e 36 regressioni Kimi del solo supporto. Nessuna risposta riutilizzata tra ripetizioni. DeepSeek non è in questo test.`,
       "",
       "| Ripetizione | Esiti globali corretti | False accettazioni | False bocciature | Incerti | Errori | Deleghe Kimi | Supporto diretto corretto |",
       "|---|---:|---:|---:|---:|---:|---:|---:|",
       ...repetitions.map(
         (r) =>
-          `| ${r.repetition} | ${r.global.correct}/36 | ${r.global.falseAccept} | ${r.global.falseReject} | ${r.global.uncertain} | ${r.global.errors} | ${r.global.kimiCalls} | ${r.sourceOnly.correct}/12 |`,
+          `| ${r.repetition} | ${r.global.correct}/${inputs.length} | ${r.global.falseAccept} | ${r.global.falseReject} | ${r.global.uncertain} | ${r.global.errors} | ${r.global.kimiCalls} | ${r.sourceOnly.correct}/12 |`,
       ),
       "",
-      "I quattro casi ambigui ammettono fail o uncertain: misurano la non-applicazione, non la separazione perfetta fra questi verdetti. Gli errori tecnici non sono mai successi. Criteri privi di etichetta restano not_scored; grigi non interrogati dopo un rosso restano not_evaluated.",
+      "I casi ambigui ammettono fail o uncertain: misurano la non-applicazione, non la separazione perfetta fra questi verdetti. I tentativi tecnici falliti restano conteggiati anche quando il recupero riesce. Criteri privi di etichetta restano not_scored; grigi non interrogati dopo un rosso restano not_evaluated.",
       "",
       "| Criterio / metodo | Etichette | Corretti | Decisioni definitive errate | Delegati | Incerti | Non valutati | Errori |",
       "|---|---:|---:|---:|---:|---:|---:|---:|",
@@ -984,7 +1123,7 @@ async function main() {
         }),
       ),
       "",
-      `Decisione identica nelle tre ripetizioni: ${repeatability.filter((r) => r.stableDecision).length}/36 casi. Percorso Jev identico: ${repeatability.filter((r) => r.stableRoute).length}/36.`,
+      `Decisione identica nelle tre ripetizioni: ${repeatability.filter((r) => r.stableDecision).length}/${inputs.length} casi. Percorso Jev identico: ${repeatability.filter((r) => r.stableRoute).length}/${inputs.length}.`,
       "",
       `Costo comunicato dal provider: $${costs.total.knownCostUsd}; chiamate senza costo disponibile: ${costs.total.missingCosts}/${costs.total.calls}. Sono importi noti, non una stima dei valori mancanti.`,
       "",

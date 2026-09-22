@@ -133,22 +133,54 @@ test("candidate prepares a complete immutable snapshot, retains duplicate relati
     "fetch",
     async (_url: unknown, init: RequestInit) => {
       const request = JSON.parse(String(init.body));
-      assert.deepEqual(request.reasoning, { effort: "none" });
+      assert.deepEqual(request.reasoning, {
+        effort:
+          request.response_format.type === "json_object" ? "high" : "none",
+      });
       assert.equal(request.max_tokens, 16_384);
+      if (request.response_format.type === "json_object") {
+        return Response.json({
+          choices: [
+            {
+              finish_reason: "stop",
+              message: {
+                role: "assistant",
+                content: JSON.stringify({
+                  replacement: prepared.nextPage.markdown,
+                }),
+              },
+            },
+          ],
+          usage: { prompt_tokens: 100, completion_tokens: 20 },
+        });
+      }
       assert.match(
         request.messages[0].content,
-        /Only deduplicate_passage, consolidate_passage and resolve_answered_question/,
+        /operation \(deduplicate_passage, consolidate_passage, resolve_answered_question\)/,
       );
       assert.doesNotMatch(request.messages[0].content, /For refresh_summary/);
-      assert.match(request.messages[0].content, /an array of at most 2/);
-      assert.match(request.messages[0].content, /at most 6000 characters/);
+      assert.match(request.messages[0].content, /at most one proposal/);
+      assert.equal(request.response_format.type, "json_schema");
+      assert.equal(request.response_format.json_schema.strict, true);
+      const indexed = JSON.parse(
+        request.messages[1].content.split("\n").slice(1).join("\n"),
+      );
       return Response.json({
         choices: [
           {
             finish_reason: "stop",
             message: {
               role: "assistant",
-              content: JSON.stringify({ proposals: [proposal] }),
+              content: JSON.stringify({
+                proposals: [
+                  {
+                    operation: proposal.operation,
+                    targetIds: [indexed[0].markdown[0].id],
+                    reason: proposal.reason,
+                    evidenceIds: [indexed[0].summary[0].id],
+                  },
+                ],
+              }),
             },
           },
         ],
@@ -156,9 +188,13 @@ test("candidate prepares a complete immutable snapshot, retains duplicate relati
       });
     },
   );
-  assert.deepEqual(
-    (await proposeConsolidation(sources, { scope: "candidate-v1" })).proposals,
-    [proposal],
+  const generated = (
+    await proposeConsolidation(sources, { scope: "candidate-v1" })
+  ).proposals;
+  assert.equal(generated.length, 1);
+  assert.equal(
+    prepareCandidateProposal(sources, generated[0]).nextPage.markdown,
+    prepared.nextPage.markdown,
   );
 });
 

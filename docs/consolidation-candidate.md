@@ -1,8 +1,49 @@
 # Candidata per il consolidamento notturno
 
-Stato del 22 settembre 2026: **non pronta per attivare le scritture in produzione**. Il percorso candidato è implementato e la modalità predefinita è `preview`. Rimane una falsa accettazione semantica riproducibile nel filtro; le prove complete del generatore e del funzionamento operativo devono essere lette con i limiti indicati sotto.
+Stato del 22 settembre 2026: **validazione della candidata V3 in corso; scritture in produzione non attivate**. Il percorso candidato è implementato e la modalità predefinita è `preview`. I risultati V1 e V2 restano evidenze di configurazioni superate, non risultati della V3. Il lavoro di rilascio rimane aperto finché la candidata non supera anche fedeltà e utilità.
 
 Questo rapporto contiene soltanto aggregati e casi sintetici. Snapshot, documenti reali, diff, risposte dei modelli e ricevute del corpus privato non fanno parte del repository pubblico.
+
+## Iterazioni successive alla V1
+
+La V2 ha introdotto un generatore con selezione tramite identificativi e riscrittura del solo intervallo scelto, il recupero limitato dei guasti HTTP transitori di Jev e un riscontro Kimi delle associazioni fra fatti, date e fonti. Dopo un giudizio positivo sul supporto eseguiva una seconda verifica Kimi. Domande e bande Jev sono rimaste invariate.
+
+Le prove V2 sono concluse e conservate con codice, input, riferimenti e ricevute congelati. **Non hanno superato i criteri di accettazione.**
+
+| Prova V2 | Risultato osservato |
+|---|---|
+| Cascate globali | 82/144 esiti corretti; 61 errori; 1 incerto su un caso da respingere |
+| False decisioni definitive globali | 0 false accettazioni e 0 false bocciature; gli errori restano insuccessi |
+| Supporto Kimi isolato | 13/36 corretti, 23 errori |
+| Chiamate filtro | 216 fisiche; costo noto $1,3603923; 76 costi ignoti |
+| Venti passaggi sequenziali | 2 modifiche applicate; 18 passaggi con errore |
+| Errori del volume | 16 HTTP 402, 1 HTTP 503, 1 output DeepSeek troncato |
+| Audit indipendente delle modifiche | 2/2 fedeli e utili; 29/29 fatti protetti conservati |
+| Opportunità richieste | O01 parziale; O02 non iniziata |
+| Convergenza | Non dimostrata: i passaggi finali invariati erano falliti |
+
+La maggior parte degli errori del filtro deriva dal raggiungimento del limite di spesa della chiave Gateway. Sono presenti anche errori distinti di formato/coerenza Kimi; il blocco di spesa non li spiega. Una risposta formalmente respinta non equivale a un difetto semantico individuato. Nessun risultato è stato rimpiazzato con una ripetizione più favorevole.
+
+Sono passati i controlli di integrità e ricalcolo offline delle ricevute V2, la build, le verifiche database e la prova isolata del workflow compilato con arresto dopo la scrittura e ripresa. Queste prove attestano il comportamento operativo, non compensano il mancato risultato di utilità.
+
+La V3 congelata mantiene modelli, domande e bande Jev. Semplifica Kimi a **una sola chiamata sui criteri intermedi**: il supporto viene derivato dal registro delle associazioni (`unsupported` → `fail`; altrimenti `ambiguous` → `uncertain`; altrimenti `pass`). Gli altri criteri intermedi ricevono il proprio giudizio nella stessa risposta. Output incompleti o prove testuali inesistenti rimangono errori. La V3 richiede nuove prove congelate e nuovi casi esclusi dallo sviluppo; nessun risultato V2 ne certifica la qualità.
+
+### Configurazione e stato V3
+
+- Politica `consolidation-candidate-v3`; supporto Kimi `source-single-review-v1` / `source-counterexample-v4-single-review`.
+- DeepSeek seleziona al massimo una proposta tramite segmenti e riscrive soltanto quell'intervallo: massimo due chiamate, selezione con ragionamento disabilitato e riscrittura con ragionamento alto. Il server conserva i separatori originali ai bordi.
+- Jev mantiene le bande riportate sotto; può recuperare soltanto HTTP transitori, fino a tre tentativi entro 30 secondi. Non ripete un giudizio ricevuto.
+- Kimi riceve soltanto i criteri intermedi in una singola chiamata, entro 120 secondi. La valutazione riserva complessivamente 150 secondi.
+- Massimo una proposta applicabile per run con questo generatore; modalità predefinita `preview`. Il rischio di scritture concorrenti resta accettato, senza nuovi controlli sulle versioni correnti.
+- La coda invariata usata per valutare la convergenza esclude errori tecnici, generazioni invalide e limiti raggiunti. L'esaurimento delle opportunità richiede comunque la revisione semantica separata.
+
+Verifiche V3 concluse: 156 test automatici superati, 15 inizialmente saltati per configurazioni specifiche; successivamente sei verifiche del writer e della pipeline eseguite con successo sul PostgreSQL isolato. TypeScript, lint, migrazioni e build superati. Il workflow compilato ha superato la prova locale di arresto dopo il commit e ripresa: una sola modifica, due revisioni totali, embedding ed export conclusi con provider simulati.
+
+Sono congelati 12 nuovi casi indipendenti dallo sviluppo dei prompt (sei validi, quattro errati, due ambigui), insieme a codice e protocollo per 144 cascate, 36 verifiche isolate del supporto e 20 passaggi sul corpus. **La preparazione non è un risultato di valutazione.** Le chiamate V3 sono in attesa dell'autorizzazione ad aumentare il limite della chiave Gateway; accuratezza semantica, utilità e convergenza V3 non sono ancora misurate. La candidata resta in bozza.
+
+## Evidenze storiche V1
+
+Le sezioni seguenti documentano la configurazione e i risultati V1, prima delle modifiche appena descritte.
 
 ## Comportamento della candidata
 

@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "approved": true,
+  "fixturePath": "scripts/fixtures/consolidation-release-v3.json",
+  "fixtureHash": "40698e29b6d451aa956ae836a72a83fd5b88707ef612e909d66327619fd42e7e",
+  "reviewer": "/root/release_validation_fixture",
+  "reviewType": "Heldout author independent of V3 prompt development; author semantic review and deterministic checks, not a claim of review by a second independent author.",
+  "providerCalls": 0,
+  "checks": 129,
+  "counts": {
+    "valid": 6,
+    "invalid": 4,
+    "ambiguous": 2
+  },
+  "runtimeContractValidated": true,
+  "inputsHash": "09aecc2e4e13aa52b539f4eeee220b32220b6c2cfc4c802fa8b8bde0897b6018",
+  "referenceHash": "e5e7683f60ed6cf8fa7a2923722c67322424a1562adfb4e0eeb2b04b19e96e18",
+  "inputHashMethod": "SHA256(JSON.stringify(buildReleaseCases inputs))",
+  "referenceHashMethod": "SHA256(JSON.stringify(buildReleaseCases references))",
+  "fixtureHashMethod": "SHA256 exact UTF-8 file bytes",
+  "criteria": "Six useful positives labeled on all four criteria; four clear violations require reject; two genuine ambiguity cases require non-application and allow fail or uncertain. Missing criterion labels remain not_scored. Complete source corpus and exact proof excerpts are frozen inside the fixture.",
+  "blindness": {
+    "v3PromptContentsRead": false,
+    "v3ModelOutputsRead": false,
+    "caseContentsSharedWithPromptDeveloper": false
+  },
+  "limit": "Six controlled pairs are correlated. This is a deterministic evaluation set, not a population reliability estimate."
+}

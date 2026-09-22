@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import type { BrainPage } from "../brain/types";
 import { DEFECT_CONSOLIDATION_QUESTIONS } from "./consolidation-defect-questions";
+import { markdownDestinations } from "./consolidation-links";
 import {
   CANDIDATE_OPERATIONS,
   type CandidateProposal,
@@ -19,18 +20,27 @@ import {
   type ConsolidationEvaluationInput,
   evaluateConsolidationProposal,
   JEV_MODEL,
+  type JevTransportFailure,
 } from "./jev";
+import {
+  JEV_RECOVERY,
+  JevRecoveryError,
+  recoverJevTransport,
+} from "./jev-recovery";
 import {
   KIMI_EVALUATOR_SETTINGS,
   type KimiEvaluation,
   KimiResponseError,
 } from "./kimi-evaluator";
+import { KIMI_SOURCE_AUDIT_CONTRACT } from "./kimi-source-audit";
+import { KIMI_SOURCE_CHALLENGE_CONTRACT } from "./kimi-source-challenge";
 import {
   evaluateWithKimiSourceContract,
+  KIMI_SOURCE_CONTRACT,
   KIMI_SOURCE_CONTRACT_CLARIFICATION,
 } from "./kimi-source-contract";
 
-export const CANDIDATE_POLICY_VERSION = "consolidation-candidate-v1";
+export const CANDIDATE_POLICY_VERSION = "consolidation-candidate-v3";
 export const CANDIDATE_INPUT_LIMIT = 250_000;
 export const CANDIDATE_BANDS = Object.freeze({
   supported_by_evidence: Object.freeze({
@@ -60,9 +70,13 @@ export const CANDIDATE_POLICY_HASH = hash({
   questions: DEFECT_CONSOLIDATION_QUESTIONS,
   bands: CANDIDATE_BANDS,
   jevModel: JEV_MODEL,
+  jevRecovery: JEV_RECOVERY,
   kimi: KIMI_EVALUATOR_SETTINGS,
   rubric: CONSOLIDATION_QUESTIONS_V2,
   clarification: KIMI_SOURCE_CONTRACT_CLARIFICATION,
+  sourceReview: KIMI_SOURCE_CONTRACT,
+  sourceAudit: KIMI_SOURCE_AUDIT_CONTRACT,
+  sourceChallenge: KIMI_SOURCE_CHALLENGE_CONTRACT,
   operations: CANDIDATE_OPERATIONS,
   decision:
     "round risk to 12 decimals; red rejects; all green accepts; otherwise Kimi judges gray; only all pass applies",
@@ -85,6 +99,7 @@ export type CandidateError = {
   status: number | null;
   retryable: boolean;
   retryAfterMs: number | null;
+  transportFailures?: JevTransportFailure[];
   diagnostic?: {
     stage: string;
     reasonCode: string;
@@ -92,6 +107,7 @@ export type CandidateError = {
     responseId: string | null;
     responseModel: string | null;
     latencyMs: number;
+    reviewReceipts?: KimiEvaluation["reviewReceipts"];
   };
 };
 export type CandidateOutcome<T> =
@@ -120,9 +136,12 @@ export function candidateError(error: unknown): CandidateError {
   if (error instanceof CandidateRecordedError)
     return structuredClone(error.diagnostic);
   const gateway = error instanceof GatewayRequestError ? error : null;
+  const technicalCause =
+    error instanceof KimiResponseError ? error.technicalCause : undefined;
   return {
     kind:
-      error instanceof KimiResponseError
+      technicalCause?.kind ??
+      (error instanceof KimiResponseError
         ? "invalid_response"
         : gateway?.status !== null && gateway?.status !== undefined
           ? "http"
@@ -130,10 +149,13 @@ export function candidateError(error: unknown): CandidateError {
             ? /invalid/.test(gateway.message)
               ? "invalid_response"
               : "transport_or_configuration"
-            : "unexpected",
-    status: gateway?.status ?? null,
-    retryable: gateway?.retryable ?? false,
-    retryAfterMs: gateway?.retryAfterMs ?? null,
+            : "unexpected"),
+    status: technicalCause?.status ?? gateway?.status ?? null,
+    retryable: technicalCause?.retryable ?? gateway?.retryable ?? false,
+    retryAfterMs: technicalCause?.retryAfterMs ?? gateway?.retryAfterMs ?? null,
+    ...(error instanceof JevRecoveryError
+      ? { transportFailures: error.transportFailures }
+      : {}),
     ...(error instanceof KimiResponseError
       ? {
           diagnostic: {
@@ -143,6 +165,9 @@ export function candidateError(error: unknown): CandidateError {
             responseId: error.responseId,
             responseModel: error.responseModel,
             latencyMs: error.latencyMs,
+            ...(error.reviewReceipts
+              ? { reviewReceipts: error.reviewReceipts }
+              : {}),
           },
         }
       : {}),
@@ -172,9 +197,12 @@ export async function evaluateCandidate(
   input: ConsolidationEvaluationInput,
   deps: CandidateDependencies = {
     jev: (state) =>
-      evaluateConsolidationProposal(state, {
-        questions: DEFECT_CONSOLIDATION_QUESTIONS,
-      }),
+      recoverJevTransport((_attempt, timeoutMs) =>
+        evaluateConsolidationProposal(state, {
+          questions: DEFECT_CONSOLIDATION_QUESTIONS,
+          timeoutMs,
+        }),
+      ),
     kimi: (state, selected) =>
       evaluateWithKimiSourceContract(state, selected, "clarified"),
   },
@@ -295,54 +323,6 @@ function failedCandidate(jev: CandidateOutcome<ConsolidationEvaluation>) {
     finalDecision: "error" as CandidateDecision,
     selected: [] as Criterion[],
   };
-}
-
-/** Markdown destinations, including relative inline/image links and reference-style links. */
-function markdownDestinations(text: string): Set<string> {
-  const destinations = new Set<string>();
-  const definitions = new Map<string, string>();
-  const label = (value: string) =>
-    value.trim().replace(/\s+/g, " ").toLowerCase();
-  for (const match of text.matchAll(
-    /^ {0,3}\[([^\]\n]+)\]:[ \t]*(?:<([^>\n]+)>|((?:\\.|[^\s])+))/gm,
-  )) {
-    definitions.set(label(match[1]), match[2] ?? match[3]);
-  }
-  for (const match of text.matchAll(/\]\(\s*/g)) {
-    let i = match.index + match[0].length;
-    const start = i;
-    if (text[i] === "<") {
-      const end = text.indexOf(">", i + 1);
-      if (end >= 0) destinations.add(text.slice(i + 1, end));
-      continue;
-    }
-    let nesting = 0;
-    while (i < text.length) {
-      if (text[i] === "\\") {
-        i += 2;
-        continue;
-      }
-      if (text[i] === "(") nesting++;
-      else if (text[i] === ")") {
-        if (nesting === 0) break;
-        nesting--;
-      } else if (/\s/.test(text[i]) && nesting === 0) break;
-      i++;
-    }
-    if (i > start) destinations.add(text.slice(start, i));
-  }
-  for (const match of text.matchAll(/\[([^\]\n]+)\](?:\[([^\]\n]*)\])?/g)) {
-    if (
-      text[match.index + match[0].length] === ":" &&
-      /^ {0,3}$/.test(
-        text.slice(text.lastIndexOf("\n", match.index) + 1, match.index),
-      )
-    )
-      continue;
-    const destination = definitions.get(label(match[2] || match[1]));
-    if (destination) destinations.add(destination);
-  }
-  return destinations;
 }
 
 /** Prepare only from the supplied run snapshot; versions are audit/input consistency, never a later concurrency check. */

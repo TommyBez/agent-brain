@@ -18,7 +18,8 @@ export const CANDIDATE_RUN_LIMITS = {
   proposals: PROPOSAL_LIMITS.proposals,
   writes: 2,
   durationMs: 25 * 60_000,
-  maxEvaluationMs: 150_000,
+  maxGenerationMs: 2 * 120_000,
+  maxEvaluationMs: 30_000 + 120_000,
   observedTokens: 1_000_000,
 } as const;
 export type CandidateHistoryEntry = {
@@ -152,7 +153,7 @@ export async function generateCandidateBatch(
 ): Promise<CandidateRunState> {
   const state = structuredClone(previous);
   if (state.halted || state.generation) return state;
-  if (now + 120_000 > state.deadlineAt) {
+  if (now + CANDIDATE_RUN_LIMITS.maxGenerationMs > state.deadlineAt) {
     state.budgetReached = state.halted = true;
     return state;
   }
@@ -170,7 +171,14 @@ export async function generateCandidateBatch(
       generated.usage.outputTokens,
       generated.usage.costUsd,
     );
-    if (
+    if (generated.usage.physicalCalls !== undefined) {
+      // A bounded producer can make selection plus one rewrite call. Totals
+      // contain known usage only; retain every individual unknown explicitly.
+      state.unknownCostCalls +=
+        (generated.usage.unknownCostCalls ?? 0) -
+        (generated.usage.costUsd == null ? 1 : 0);
+      state.unknownTokenCalls += generated.usage.unknownTokenCalls ?? 0;
+    } else if (
       generated.usage.inputTokensReported === false ||
       generated.usage.outputTokensReported === false
     )
@@ -181,10 +189,17 @@ export async function generateCandidateBatch(
       generated.proposals.length > CANDIDATE_RUN_LIMITS.proposals
     ) {
       state.halted = true;
+      const failure = generated.generationStages?.find(
+        (stage) => stage.error,
+      )?.error;
       state.fault = {
-        kind: "invalid_response",
-        status: null,
-        retryable: false,
+        kind: failure
+          ? failure.status === null
+            ? "transport_or_configuration"
+            : "http"
+          : "invalid_response",
+        status: failure?.status ?? null,
+        retryable: failure?.retryable ?? false,
         retryAfterMs: null,
       };
     } else state.proposals = generated.proposals;
@@ -273,16 +288,28 @@ export async function assessCandidateAt(
   if (assessment.jev.status === "success") {
     const usage = assessment.jev.result.usage;
     account(state, usage.inputTokens, usage.outputTokens, usage.gateway?.cost);
+    state.unknownCostCalls +=
+      assessment.jev.result.transportFailures?.length ?? 0;
+    state.unknownTokenCalls +=
+      assessment.jev.result.transportFailures?.length ?? 0;
   } else {
-    state.unknownCostCalls++;
-    state.unknownTokenCalls++;
+    const attempts = assessment.jev.error.transportFailures?.length || 1;
+    state.unknownCostCalls += attempts;
+    state.unknownTokenCalls += attempts;
   }
-  if (assessment.kimi?.status === "success") {
-    const usage = assessment.kimi.result.usage;
-    account(state, usage.inputTokens, usage.outputTokens, usage.costUsd);
-  } else if (assessment.kimi?.status === "error") {
-    const usage = assessment.kimi.error.diagnostic?.usage;
+  if (assessment.kimi) {
+    const usage =
+      assessment.kimi.status === "success"
+        ? assessment.kimi.result.usage
+        : assessment.kimi.error.diagnostic?.usage;
     account(state, usage?.inputTokens, usage?.outputTokens, usage?.costUsd);
+    if (usage?.physicalCalls !== undefined) {
+      state.unknownCostCalls +=
+        (usage.unknownCostCalls ?? 0) - (usage.costUsd == null ? 1 : 0);
+      state.unknownTokenCalls +=
+        (usage.unknownTokenCalls ?? 0) -
+        (usage.inputTokens == null || usage.outputTokens == null ? 1 : 0);
+    }
   }
   if (assessment.finalDecision === "error") {
     state.halted = true;
@@ -358,13 +385,15 @@ export function summarizeCandidateRun(
     fault: state.fault,
     generation: state.generation,
     entries: state.entries,
-    history: state.history.filter((item) =>
-      state.entries.some(
-        (entry) =>
-          (entry.decision === "reject" || entry.decision === "uncertain") &&
-          entry.proposalFingerprint === item.proposalFingerprint &&
-          entry.evidenceFingerprint === item.evidenceFingerprint,
-      ),
+    history: state.history.filter(
+      (item) =>
+        item.policyHash === state.policyHash &&
+        state.entries.some(
+          (entry) =>
+            (entry.decision === "reject" || entry.decision === "uncertain") &&
+            entry.proposalFingerprint === item.proposalFingerprint &&
+            entry.evidenceFingerprint === item.evidenceFingerprint,
+        ),
     ),
     limits: { ...CANDIDATE_RUN_LIMITS, writes: state.maxWrites },
     report: `${state.mode}: ${state.proposals.length} proposte, ${state.accepted} accettate, ${state.writes} applicate; ${state.fault ? "interrotto per errore tecnico" : state.budgetReached ? "limite raggiunto" : "completato"}.`,

@@ -20,12 +20,17 @@ import {
 const files = [
   "lib/maintenance/consolidation-run.ts",
   "lib/maintenance/consolidation-candidate.ts",
+  "lib/maintenance/consolidation-links.ts",
   "lib/maintenance/consolidation-proposals.ts",
+  "lib/maintenance/consolidation-producer.ts",
   "lib/maintenance/consolidation-defect-questions.ts",
   "lib/maintenance/consolidation-rubric.ts",
   "lib/maintenance/jev.ts",
+  "lib/maintenance/jev-recovery.ts",
   "lib/maintenance/kimi-evaluator.ts",
   "lib/maintenance/kimi-source-contract.ts",
+  "lib/maintenance/kimi-source-audit.ts",
+  "lib/maintenance/kimi-source-challenge.ts",
   "lib/maintenance/gateway.ts",
   "scripts/run-consolidation-candidate.ts",
 ];
@@ -114,6 +119,25 @@ type Pass = {
   changed: boolean;
   result: Awaited<ReturnType<typeof runConsolidationSnapshot>>;
 };
+
+/** Failed/invalid passes cannot demonstrate convergence even when content is unchanged. */
+export function healthyUnchangedTail(
+  rows: Array<{
+    changed: boolean;
+    result: {
+      report: { fault: unknown; invalid: number; budgetReached: boolean };
+    };
+  }>,
+) {
+  let count = 0;
+  for (const row of [...rows].reverse()) {
+    const { report } = row.result;
+    if (row.changed || report.fault || report.invalid || report.budgetReached)
+      break;
+    count++;
+  }
+  return count;
+}
 
 /** Receipts are per physical operation. An unanswered started request is never silently retried. */
 async function receipt<T>(
@@ -340,6 +364,7 @@ async function main() {
       [...rows].reverse().findIndex((r) => r.changed) === -1
         ? rows.length
         : [...rows].reverse().findIndex((r) => r.changed),
+    healthyUnchangedTail: healthyUnchangedTail(rows),
     reportedCostUsd:
       rows.reduce(
         (n, r) => n + Math.round(r.result.report.reportedCostUsd * 1e12),

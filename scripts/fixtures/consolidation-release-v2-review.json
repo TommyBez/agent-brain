@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "approved": true,
+  "fixturePath": "scripts/fixtures/consolidation-release-v2.json",
+  "fixtureHash": "0968a8713e99843a673565d8f2458214aef106a24d6630007f5eedd9b8e32b74",
+  "reviewer": "/root/release_validation_fixture",
+  "reviewType": "Heldout author independent of candidate prompt development; author semantic review plus deterministic preflight, not a claim of review by a second independent author.",
+  "providerCalls": 0,
+  "checks": 152,
+  "counts": {
+    "valid": 6,
+    "invalid": 4,
+    "ambiguous": 2
+  },
+  "criteria": "Six fully labeled useful positives, four explicit clear violations, two ambiguity cases requiring non-application. Exact quotes and complete scenario corpus locked before calls.",
+  "blindness": {
+    "author": "/root/release_validation_fixture",
+    "newPromptContentsRead": false,
+    "newModelOutputsRead": false,
+    "sharedWithPromptDeveloper": false
+  }
+}

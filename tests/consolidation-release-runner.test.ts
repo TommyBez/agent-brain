@@ -11,8 +11,78 @@ import {
   buildReleaseCases,
   type ReceiptIdentity,
   recordedCall,
+  recoverRecordedJevTransport,
   summarizeReleaseRows,
 } from "../scripts/evaluate-consolidation-release";
+import { healthyUnchangedTail } from "../scripts/run-consolidation-candidate";
+
+test("quota failures and invalid generation never count as healthy convergence", () => {
+  const unchanged = {
+    changed: false,
+    result: { report: { fault: null, invalid: 0, budgetReached: false } },
+  };
+  const failed = {
+    changed: false,
+    result: {
+      report: { fault: { status: 402 }, invalid: 0, budgetReached: false },
+    },
+  };
+  assert.equal(healthyUnchangedTail([unchanged, ...Array(16).fill(failed)]), 0);
+  assert.equal(
+    healthyUnchangedTail([failed, unchanged, unchanged, unchanged]),
+    3,
+  );
+  assert.equal(
+    healthyUnchangedTail([
+      unchanged,
+      {
+        ...unchanged,
+        result: { report: { ...unchanged.result.report, invalid: 1 } },
+      },
+    ]),
+    0,
+  );
+  assert.equal(
+    healthyUnchangedTail([
+      unchanged,
+      {
+        ...unchanged,
+        result: { report: { ...unchanged.result.report, budgetReached: true } },
+      },
+    ]),
+    0,
+  );
+});
+
+test("a late recorded HTTP failure exhausts the same budget during offline replay", async () => {
+  let attempts = 0;
+  await assert.rejects(
+    recoverRecordedJevTransport(async () => {
+      attempts++;
+      assert.equal(
+        attempts,
+        1,
+        "Replay must not invent a second provider attempt",
+      );
+      return {
+        identity,
+        startedAt: "2026-09-22T00:00:00.000Z",
+        endedAt: "2026-09-22T00:00:29.000Z",
+        outcome: {
+          status: "error",
+          error: {
+            kind: "http",
+            status: 503,
+            retryable: true,
+            retryAfterMs: null,
+          },
+        },
+        outcomeHash: "not-used-by-recovery",
+      };
+    }, "verify"),
+  );
+  assert.equal(attempts, 1);
+});
 
 const identity: ReceiptIdentity = {
   protocolHash: "test-protocol",

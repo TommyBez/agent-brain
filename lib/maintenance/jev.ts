@@ -73,6 +73,12 @@ export type ConsolidationEvaluationInput = {
   operation: unknown;
 };
 
+export type JevTransportFailure = {
+  status: number | null;
+  retryable: boolean;
+  retryAfterMs: number | null;
+};
+
 export type ConsolidationEvaluation = {
   // Probability that each question's true class applies. Policy depends on
   // question polarity and belongs to the caller, never to this adapter.
@@ -84,6 +90,8 @@ export type ConsolidationEvaluation = {
     gateway?: Record<string, number>;
   };
   model: string;
+  /** Previous explicit failures; their unavailable usage must not become zero. */
+  transportFailures?: JevTransportFailure[];
 };
 
 function record(value: unknown): Record<string, unknown> | null {

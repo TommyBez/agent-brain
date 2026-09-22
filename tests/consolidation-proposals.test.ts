@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { type TestContext, test } from "node:test";
 import type { BrainPage } from "../lib/brain/types";
+import { createIndexedProposalContext } from "../lib/maintenance/consolidation-producer";
 import {
   type ConsolidationProposal,
   PROPOSAL_LIMITS,
@@ -355,4 +356,415 @@ test("truncated and malformed completions fail closed while retaining charged us
     });
   }
   assert.equal(requests, outputs.length);
+});
+
+test("indexed input preserves the full corpus, splits on readable boundaries, and creates exact citations", () => {
+  const markdown =
+    "# Diario\r\n\r\n" +
+    "Una frase documentata. ".repeat(140) +
+    "\r\n\r\n" +
+    "🧠".repeat(1700) +
+    "\n\nUltima fonte.";
+  const source = page({ markdown });
+  const original = structuredClone(source);
+  const context = createIndexedProposalContext([source], 6000);
+  assert.equal(
+    context.pages[0].markdown.map((part) => part.text).join(""),
+    markdown,
+  );
+  assert.equal(
+    context.pages[0].summary.map((part) => part.text).join(""),
+    source.summary,
+  );
+  for (const part of context.pages[0].markdown) {
+    assert.ok(part.text.length <= 1200);
+    assert.ok(part.text.isWellFormed());
+  }
+  const last = context.pages[0].markdown.at(-1);
+  assert.ok(last);
+  const evidence = context.pages[0].summary[0];
+  const result = context.materialize({
+    operation: "consolidate_passage",
+    targetIds: [last.id],
+    replacement: "Fonte finale.",
+    reason: "Riduzione documentata.",
+    evidenceIds: [evidence.id],
+  });
+  assert.equal(result.before, last.text);
+  assert.deepEqual(result.evidence, [
+    { pageId: source.id, version: source.version, quote: source.summary },
+  ]);
+  assert.equal(result.expectedVersion, source.version);
+  assert.deepEqual(source, original);
+  assert.doesNotThrow(() => createIndexedProposalContext([], 6000));
+});
+
+test("indexed ranges can edit later duplicate passages while preserving their unchanged unique context", () => {
+  const source = page({
+    markdown: `Primo.\n\n${"Fatto A. ".repeat(90)}\n\n${"Fatto A. ".repeat(90)}\n\n# Secondo\n\nFinale.`,
+  });
+  const context = createIndexedProposalContext([source], 6000);
+  const duplicate = context.pages[0].markdown[1];
+  const result = context.materialize({
+    operation: "deduplicate_passage",
+    targetIds: [duplicate.id],
+    replacement: "",
+    reason: "Elimina un duplicato.",
+    evidenceIds: [context.pages[0].markdown[0].id],
+  });
+  assert.notEqual(
+    result.before,
+    duplicate.text,
+    "context must identify the intended duplicate",
+  );
+  assert.equal(
+    validateAndApplyProposal([source], result).after.markdown,
+    `Primo.\n\n${"Fatto A. ".repeat(90)}\n\n \n\n# Secondo\n\nFinale.`,
+  );
+  assert.ok(result.before.length <= 6000 && result.after.length <= 6000);
+});
+
+test("materialization owns paragraph separators before an unchanged heading", () => {
+  const source = page({
+    markdown:
+      "Prima osservazione. Prima osservazione.\r\n\r\n## Dopo\r\n\r\nFatto distinto.",
+  });
+  const context = createIndexedProposalContext([source], 6000);
+  const target = context.pages[0].markdown[0];
+  const result = context.materialize({
+    operation: "consolidate_passage",
+    targetIds: [target.id],
+    replacement: "Prima osservazione.",
+    reason: "Rimuove la ripetizione.",
+    evidenceIds: [target.id],
+  });
+  assert.equal(
+    validateAndApplyProposal([source], result).after.markdown,
+    "Prima osservazione.\r\n\r\n## Dopo\r\n\r\nFatto distinto.",
+  );
+});
+
+test("materialization preserves the space joining a rewritten segment to a sentence suffix", () => {
+  const source = page({ markdown: `${"parola ".repeat(200)}chiusura.` });
+  const context = createIndexedProposalContext([source], 6000);
+  const target = context.pages[0].markdown[0];
+  assert.ok(target.text.endsWith(" "));
+  const result = context.materialize({
+    operation: "consolidate_passage",
+    targetIds: [target.id],
+    replacement: "Compatto",
+    reason: "Rimuove la ripetizione.",
+    evidenceIds: [target.id],
+  });
+  const next = validateAndApplyProposal([source], result).after.markdown;
+  assert.ok(next.startsWith("Compatto parola "));
+  assert.ok(next.endsWith("chiusura."));
+  assert.ok(!next.includes("Compattoparola"));
+});
+
+test("indexed output rejects invented IDs, fabricated metadata and noncontiguous ranges", () => {
+  const source = page({
+    markdown: ["A", "B", "C", "D", "E", "F"]
+      .map((label) => `${label.repeat(700)}.\n\n`)
+      .join(""),
+  });
+  const context = createIndexedProposalContext(
+    [source, page({ id: "page-b" })],
+    6000,
+  );
+  const parts = context.pages[0].markdown;
+  const selection = {
+    operation: "consolidate_passage",
+    targetIds: [parts[1].id],
+    replacement: "B sintetico.\n\n",
+    reason: "Riduzione documentata.",
+    evidenceIds: [parts[1].id],
+  };
+  for (const malformed of [
+    { ...selection, targetIds: ["invented"] },
+    { ...selection, evidenceIds: ["invented"] },
+    { ...selection, expectedVersion: 800 },
+    { ...selection, evidence: [{ quote: "invented" }] },
+    { ...selection, targetIds: [parts[0].id, parts[2].id] },
+    { ...selection, targetIds: [parts[2].id, parts[1].id] },
+    { ...selection, targetIds: [parts[1].id, parts[1].id] },
+    { ...selection, targetIds: [parts[0].id, context.pages[1].markdown[0].id] },
+    { ...selection, targetIds: parts.slice(0, 5).map((p) => p.id) },
+    { ...selection, replacement: "x".repeat(6001) },
+  ])
+    assert.throws(
+      () => context.materialize(malformed),
+      /Indexed proposal rejected/,
+    );
+  const combined = context.materialize({
+    ...selection,
+    targetIds: [parts[3].id, parts[4].id],
+  });
+  assert.equal(combined.before, parts[3].text + parts[4].text);
+});
+
+test("candidate generation uses constrained passage IDs and materializes exact evidence", async (t) => {
+  installGatewayKey(t);
+  const initial = page({
+    markdown: `${"Fatto mantenuto. ".repeat(50)}\n\n${"Nota ripetuta. ".repeat(55)}\n\n${"Ultima informazione. ".repeat(45)}`,
+  });
+  let calls = 0;
+  t.mock.method(
+    globalThis,
+    "fetch",
+    async (_url: unknown, init: RequestInit) => {
+      calls++;
+      const request = JSON.parse(String(init.body));
+      assert.deepEqual(request.reasoning, {
+        effort:
+          request.response_format.type === "json_object" ? "high" : "none",
+      });
+      if (request.response_format.type === "json_object") {
+        const input = JSON.parse(request.messages[1].content);
+        assert.equal(input.before, `${"Nota ripetuta. ".repeat(55)}\n\n`);
+        assert.deepEqual(Object.keys(input).sort(), ["before", "operation"]);
+        assert.ok(!request.messages[1].content.includes("Ultima informazione"));
+        return Response.json({
+          choices: [
+            {
+              finish_reason: "stop",
+              message: {
+                role: "assistant",
+                content: JSON.stringify({ replacement: "" }),
+              },
+            },
+          ],
+          usage: { prompt_tokens: 200, completion_tokens: 80, cost: "0.0002" },
+        });
+      }
+      assert.equal(request.response_format.type, "json_schema");
+      assert.equal(request.response_format.json_schema.strict, true);
+      const indexed = JSON.parse(
+        request.messages[1].content.split("\n").slice(1).join("\n"),
+      );
+      assert.equal(
+        indexed[0].markdown.map((part: { text: string }) => part.text).join(""),
+        initial.markdown,
+      );
+      const item = {
+        operation: "deduplicate_passage",
+        targetIds: [indexed[0].markdown[1].id],
+        reason: "Riduce la ripetizione.",
+        evidenceIds: [indexed[0].markdown[0].id],
+      };
+      const schema =
+        request.response_format.json_schema.schema.properties.proposals;
+      assert.equal(schema.maxItems, 1);
+      assert.equal(schema.items.properties.targetIds.maxItems, 4);
+      assert.ok(
+        schema.items.properties.evidenceIds.items.enum.includes(
+          item.evidenceIds[0],
+        ),
+      );
+      assert.equal(schema.items.properties.before, undefined);
+      assert.equal(schema.items.properties.replacement, undefined);
+      return Response.json({
+        choices: [
+          {
+            finish_reason: "stop",
+            message: {
+              role: "assistant",
+              content: JSON.stringify({
+                proposals: [item],
+              }),
+            },
+          },
+        ],
+        usage: { prompt_tokens: 200, completion_tokens: 80, cost: "0.0002" },
+      });
+    },
+  );
+  const result = await proposeConsolidation([initial], {
+    scope: "candidate-v1",
+  });
+  assert.equal(calls, 2);
+  assert.equal(result.proposals.length, 1);
+  assert.equal(result.proposals[0].pageId, initial.id);
+  assert.equal(
+    "before" in result.proposals[0] && result.proposals[0].before,
+    `${"Nota ripetuta. ".repeat(55)}\n\n`,
+  );
+  assert.deepEqual(result.proposals[0].evidence, [
+    {
+      pageId: initial.id,
+      version: initial.version,
+      quote: `${"Fatto mantenuto. ".repeat(50)}\n\n`,
+    },
+  ]);
+  assert.equal(result.rejectedProposals.length, 0);
+  assert.equal(result.usage.costUsd, 0.0004);
+  assert.equal(result.usage.physicalCalls, 2);
+  assert.equal(result.usage.unknownCostCalls, 0);
+});
+
+test("a failed rewrite retains the paid selection receipt and counts unknown usage once", async (t) => {
+  installGatewayKey(t);
+  let calls = 0;
+  t.mock.method(
+    globalThis,
+    "fetch",
+    async (_url: unknown, init: RequestInit) => {
+      calls++;
+      if (calls === 2)
+        return new Response("private provider error", { status: 503 });
+      assert.equal(calls, 1);
+      const body = JSON.parse(String(init.body));
+      const input = JSON.parse(
+        body.messages[1].content.split("\n").slice(1).join("\n"),
+      );
+      return Response.json({
+        choices: [
+          {
+            finish_reason: "stop",
+            message: {
+              role: "assistant",
+              content: JSON.stringify({
+                proposals: input
+                  .slice(0, 1)
+                  .map((p: { markdown: { id: string }[] }) => ({
+                    operation: "consolidate_passage",
+                    targetIds: [p.markdown[0].id],
+                    reason: "Compact repetition.",
+                    evidenceIds: [p.markdown[0].id],
+                  })),
+              }),
+              reasoning_content: "Not retained.",
+            },
+          },
+        ],
+        usage: { prompt_tokens: 101, completion_tokens: 50, cost: 0.00011 },
+      });
+    },
+  );
+  const result = await proposeConsolidation([page(), page({ id: "page-b" })], {
+    scope: "candidate-v1",
+  });
+  assert.equal(result.generationFault, "rewrite_request_failed");
+  assert.deepEqual(result.proposals, []);
+  assert.equal(calls, 2);
+  assert.deepEqual(result.usage, {
+    inputTokens: 101,
+    outputTokens: 50,
+    costUsd: 0.00011,
+    inputTokensReported: false,
+    outputTokensReported: false,
+    physicalCalls: 2,
+    unknownCostCalls: 1,
+    unknownTokenCalls: 1,
+  });
+  assert.equal(result.generationStages?.[1].error?.status, 503);
+  assert.ok(!JSON.stringify(result).includes("private provider error"));
+  assert.ok(!JSON.stringify(result).includes("Not retained"));
+});
+
+test("an over-cap paid selection fails closed before any rewrite", async (t) => {
+  installGatewayKey(t);
+  let calls = 0;
+  t.mock.method(
+    globalThis,
+    "fetch",
+    async (_url: unknown, init: RequestInit) => {
+      calls++;
+      const body = JSON.parse(String(init.body));
+      const pages = JSON.parse(
+        body.messages[1].content.split("\n").slice(1).join("\n"),
+      );
+      return Response.json({
+        choices: [
+          {
+            finish_reason: "stop",
+            message: {
+              role: "assistant",
+              content: JSON.stringify({
+                proposals: pages.map((p: { markdown: { id: string }[] }) => ({
+                  operation: "consolidate_passage",
+                  targetIds: [p.markdown[0].id],
+                  reason: "Compact repetition.",
+                  evidenceIds: [p.markdown[0].id],
+                })),
+              }),
+            },
+          },
+        ],
+        usage: { prompt_tokens: 100, completion_tokens: 20, cost: "0.0001" },
+      });
+    },
+  );
+  const result = await proposeConsolidation([page(), page({ id: "page-b" })], {
+    scope: "candidate-v1",
+  });
+  assert.equal(calls, 1);
+  assert.equal(result.generationFault, "selection_invalid_top_level");
+  assert.deepEqual(result.proposals, []);
+  assert.equal(result.usage.physicalCalls, 1);
+  assert.equal(result.usage.costUsd, 0.0001);
+});
+
+test("null and unchanged rewrites abstain while retaining provider identity and paid usage", async (t) => {
+  installGatewayKey(t);
+  let calls = 0;
+  let sameText = false;
+  t.mock.method(
+    globalThis,
+    "fetch",
+    async (_url: unknown, init: RequestInit) => {
+      calls++;
+      const body = JSON.parse(String(init.body));
+      const content =
+        calls % 2 === 1
+          ? {
+              proposals: JSON.parse(
+                body.messages[1].content.split("\n").slice(1).join("\n"),
+              ).map((p: { markdown: { id: string }[] }) => ({
+                operation: "consolidate_passage",
+                targetIds: [p.markdown[0].id],
+                reason: "Compact repetition.",
+                evidenceIds: [p.markdown[0].id],
+              })),
+            }
+          : {
+              replacement: sameText
+                ? JSON.parse(body.messages[1].content).before
+                : null,
+            };
+      return Response.json({
+        model: "provider-returned-model",
+        id: `response-${calls}`,
+        choices: [
+          {
+            finish_reason: "stop",
+            message: { role: "assistant", content: JSON.stringify(content) },
+          },
+        ],
+        usage: { prompt_tokens: 100, completion_tokens: 20, cost: "0.0001" },
+      });
+    },
+  );
+  for (const unchanged of [false, true]) {
+    sameText = unchanged;
+    const result = await proposeConsolidation([page()], {
+      scope: "candidate-v1",
+    });
+    assert.equal(result.generationFault, undefined);
+    assert.deepEqual(result.proposals, []);
+    assert.deepEqual(result.rejectedProposals, []);
+    assert.equal(result.usage.physicalCalls, 2);
+    assert.equal(result.usage.costUsd, 0.0002);
+    assert.deepEqual(
+      result.generationStages?.map((stage) => [
+        stage.responseModel,
+        stage.abstained ?? false,
+      ]),
+      [
+        ["provider-returned-model", false],
+        ["provider-returned-model", true],
+      ],
+    );
+    assert.equal(result.generationStages?.[1].responseId, `response-${calls}`);
+  }
 });
