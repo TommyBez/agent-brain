@@ -12,6 +12,7 @@ import {
   type ConsolidationQuestions,
 } from "./consolidation-rubric";
 import { GatewayRequestError } from "./gateway";
+import { encodeJevState } from "./jev-state";
 
 export const JEV_MODEL = "typesafe-ai/jev";
 
@@ -193,13 +194,15 @@ export async function evaluateConsolidationProposal(
 
   let state: Parameters<typeof evaluate>[0]["state"];
   try {
-    state = JSON.parse(
-      JSON.stringify({
-        before: input.before,
-        after: input.after,
-        evidence: input.evidence,
-        operation: input.operation,
-      }),
+    state = encodeJevState(
+      JSON.parse(
+        JSON.stringify({
+          before: input.before,
+          after: input.after,
+          evidence: input.evidence,
+          operation: input.operation,
+        }),
+      ),
     );
   } catch {
     throw new GatewayRequestError("Jev evaluation input is not serializable.", {

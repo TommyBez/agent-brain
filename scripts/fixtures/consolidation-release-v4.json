@@ -1,0 +1,689 @@
+{
+  "version": 4,
+  "scope": "synthetic-consolidation-evaluation",
+  "status": "frozen-before-model-calls",
+  "decisionPolicy": {
+    "accept": "Applicare soltanto quando il filtro restituisce accept.",
+    "do_not_apply": "reject o uncertain sono esiti semantici ammessi; error non costituisce mai successo.",
+    "missingCriterion": "not_scored",
+    "ambiguousCriterion": "Gli acceptableVerdicts sono fissati prima delle chiamate. Le etichette non fanno parte dell’input dei modelli."
+  },
+  "designProvenance": {
+    "sourceData": "Entirely invented entities, identifiers, sources and dates; no real-corpus passages or identities.",
+    "allowedFormatReferences": [
+      "scripts/fixtures/consolidation-release-v1.json",
+      "scripts/fixtures/consolidation-release-review-v1.json",
+      "ReleaseFixture and buildReleaseCases only from scripts/evaluate-consolidation-release.ts"
+    ],
+    "excluded": "No V2/V3 model output, scores, prompts, rubrics, fixtures or reports used.",
+    "externalCalls": 0
+  },
+  "scenarios": [
+    {
+      "scenarioId": "V4-S01",
+      "title": "Accorpare un diario preservando osservazioni identiche in due date",
+      "target": {
+        "pageId": "project/sestante",
+        "version": 1,
+        "title": "Sestante",
+        "markdown": "# Sestante\n\nIl sensore R-8 misura il volume della vasca di prova; le letture sono espresse in litri.\n\n## Giro del 4 marzo 2028\nLettura del sensore R-8: 18 litri, modalità di attesa.\nIl sensore R-8 misura il volume della vasca di prova.\n\n## Giro del 7 marzo 2028\nLettura del sensore R-8: 18 litri, modalità di attesa.\nIl sensore R-8 misura il volume della vasca di prova.\n\nFonte per funzione e unità: [Scheda R-8](note/sestante-r8). Le due letture sono state annotate direttamente in questa pagina durante i rispettivi giri.\n",
+        "type": "project",
+        "summary": "Sensore R-8 della vasca di prova: funzione, unità e letture registrate."
+      },
+      "sources": [
+        {
+          "pageId": "note/sestante-r8",
+          "version": 1,
+          "title": "Scheda R-8",
+          "markdown": "# Scheda R-8\nIl sensore R-8 misura il volume della vasca di prova. Unità delle letture: litri. Questa scheda non registra letture o date dei giri.\n"
+        }
+      ],
+      "rules": [
+        {
+          "id": "V4-S01-F1",
+          "description": "Le due osservazioni hanno lo stesso valore ma date distinte, registrate solo nel bersaglio.",
+          "evidence": [
+            {
+              "pageId": "project/sestante",
+              "quote": "## Giro del 4 marzo 2028\nLettura del sensore R-8: 18 litri, modalità di attesa."
+            },
+            {
+              "pageId": "project/sestante",
+              "quote": "## Giro del 7 marzo 2028\nLettura del sensore R-8: 18 litri, modalità di attesa."
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "designId": "V4-C01",
+          "label": "Consolida le letture conservando entrambe le date",
+          "category": "valid",
+          "afterMarkdown": "# Sestante\n\nIl sensore R-8 misura il volume della vasca di prova; le letture sono espresse in litri.\n\n## Letture registrate\nNei due giri del 4 e del 7 marzo 2028, il sensore R-8 ha rilevato 18 litri in modalità di attesa. Sono due osservazioni distinte, annotate direttamente in questa pagina durante i rispettivi giri.\n\nFonte per funzione e unità: [Scheda R-8](note/sestante-r8).\n",
+          "expectedDecision": "accept",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "pass",
+              "rationale": "Rimuove due ripetizioni della funzione del sensore e combina le letture identiche mantenendo entrambe le date, modalità, unità e origine."
+            },
+            "preserves_distinct_information": {
+              "verdict": "pass",
+              "rationale": "Rimuove due ripetizioni della funzione del sensore e combina le letture identiche mantenendo entrambe le date, modalità, unità e origine."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "Non introduce compiti, richieste o domande umane."
+            },
+            "meaningful_improvement": {
+              "verdict": "pass",
+              "rationale": "Rimuove due ripetizioni della funzione del sensore e combina le letture identiche mantenendo entrambe le date, modalità, unità e origine."
+            }
+          },
+          "rationale": "Rimuove due ripetizioni della funzione del sensore e combina le letture identiche mantenendo entrambe le date, modalità, unità e origine.",
+          "proof": [
+            {
+              "location": "before",
+              "quote": "Il sensore R-8 misura il volume della vasca di prova."
+            },
+            {
+              "location": "after",
+              "quote": "Nei due giri del 4 e del 7 marzo 2028, il sensore R-8 ha rilevato 18 litri in modalità di attesa."
+            }
+          ]
+        },
+        {
+          "designId": "V4-C02",
+          "label": "Perde una delle due osservazioni dal solo luogo che la conservava",
+          "category": "invalid",
+          "afterMarkdown": "# Sestante\n\nIl sensore R-8 misura il volume della vasca di prova; le letture sono espresse in litri.\n\n## Letture registrate\nNel giro del 7 marzo 2028, il sensore R-8 ha rilevato 18 litri in modalità di attesa. La lettura è stata annotata direttamente in questa pagina durante il giro.\n\nFonte per funzione e unità: [Scheda R-8](note/sestante-r8).\n",
+          "expectedDecision": "do_not_apply",
+          "expectedCriteria": {
+            "preserves_distinct_information": {
+              "verdict": "fail",
+              "rationale": "Perde la distinta osservazione del 4 marzo 2028 anche se il suo valore coincide con quello del 7 marzo."
+            }
+          },
+          "rationale": "La lettura del 4 marzo scompare: la scheda rimasta collegata non contiene né letture né date, e una revisione sostituita del bersaglio non è una fonte sopravvissuta.",
+          "proof": [
+            {
+              "location": "before",
+              "quote": "## Giro del 4 marzo 2028\nLettura del sensore R-8: 18 litri, modalità di attesa."
+            },
+            {
+              "location": "after",
+              "quote": "Nel giro del 7 marzo 2028,"
+            },
+            {
+              "location": "source",
+              "quote": "Questa scheda non registra letture o date dei giri.",
+              "pageId": "note/sestante-r8"
+            }
+          ],
+          "contrastWith": "V4-C01"
+        }
+      ]
+    },
+    {
+      "scenarioId": "V4-S02",
+      "title": "Sostituire una domanda risolta conservando una diversa incertezza",
+      "target": {
+        "pageId": "project/tormalina",
+        "version": 1,
+        "title": "Tormalina",
+        "markdown": "# Tormalina\n\nIl banco dimostrativo usa il lotto LX-24.\n\n## Apertura\nQuestione aperta: quale giorno apre il banco dimostrativo?\n\n## Orientamento\nÈ ancora sconosciuto se il supporto del pannello debba essere verticale o orizzontale; le due configurazioni sono indicate come alternative nella scheda disponibile.\n\nFonte: [Verbale di apertura](decision/tormalina-apertura).\n",
+        "type": "project",
+        "summary": "Banco dimostrativo: lotto, calendario di apertura e orientamento del pannello."
+      },
+      "sources": [
+        {
+          "pageId": "decision/tormalina-apertura",
+          "version": 1,
+          "title": "Verbale di apertura",
+          "markdown": "# Verbale del 18 aprile 2028\nIl banco dimostrativo apre il 22 aprile 2028 e usa il lotto LX-24. Il verbale non modifica la scheda del supporto e non assegna ulteriori attività.\n"
+        }
+      ],
+      "rules": [
+        {
+          "id": "V4-S02-F1",
+          "description": "La data del verbale e quella dell’apertura sono distinte e la risposta è esplicita.",
+          "evidence": [
+            {
+              "pageId": "decision/tormalina-apertura",
+              "quote": "Il banco dimostrativo apre il 22 aprile 2028 e usa il lotto LX-24."
+            }
+          ]
+        },
+        {
+          "id": "V4-S02-F2",
+          "description": "La diversa incertezza sull’orientamento non è risolta dal verbale.",
+          "evidence": [
+            {
+              "pageId": "project/tormalina",
+              "quote": "È ancora sconosciuto se il supporto del pannello debba essere verticale o orizzontale; le due configurazioni sono indicate come alternative nella scheda disponibile."
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "designId": "V4-C03",
+          "label": "Incorpora la risposta documentata e conserva la questione residua",
+          "category": "valid",
+          "afterMarkdown": "# Tormalina\n\nIl banco dimostrativo usa il lotto LX-24.\n\n## Apertura\nIl banco dimostrativo apre il 22 aprile 2028, come stabilito dal verbale del 18 aprile 2028.\n\n## Orientamento\nÈ ancora sconosciuto se il supporto del pannello debba essere verticale o orizzontale; le due configurazioni sono indicate come alternative nella scheda disponibile.\n\nFonte: [Verbale di apertura](decision/tormalina-apertura).\n",
+          "expectedDecision": "accept",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "pass",
+              "rationale": "Sostituisce la domanda sulla data con la risposta esplicita, mantenendo distinte data del verbale e apertura e senza inventare una scelta sull’orientamento."
+            },
+            "preserves_distinct_information": {
+              "verdict": "pass",
+              "rationale": "Sostituisce la domanda sulla data con la risposta esplicita, mantenendo distinte data del verbale e apertura e senza inventare una scelta sull’orientamento."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "Non introduce compiti, richieste o domande umane."
+            },
+            "meaningful_improvement": {
+              "verdict": "pass",
+              "rationale": "Sostituisce la domanda sulla data con la risposta esplicita, mantenendo distinte data del verbale e apertura e senza inventare una scelta sull’orientamento."
+            }
+          },
+          "rationale": "Sostituisce la domanda sulla data con la risposta esplicita, mantenendo distinte data del verbale e apertura e senza inventare una scelta sull’orientamento.",
+          "proof": [
+            {
+              "location": "before",
+              "quote": "Questione aperta: quale giorno apre il banco dimostrativo?"
+            },
+            {
+              "location": "source",
+              "quote": "Il banco dimostrativo apre il 22 aprile 2028",
+              "pageId": "decision/tormalina-apertura"
+            },
+            {
+              "location": "after",
+              "quote": "Il banco dimostrativo apre il 22 aprile 2028, come stabilito dal verbale del 18 aprile 2028."
+            }
+          ]
+        },
+        {
+          "designId": "V4-C04",
+          "label": "Crea un nuovo incarico con scadenza per la questione residua",
+          "category": "invalid",
+          "afterMarkdown": "# Tormalina\n\nIl banco dimostrativo usa il lotto LX-24.\n\n## Apertura\nIl banco dimostrativo apre il 22 aprile 2028, come stabilito dal verbale del 18 aprile 2028.\n\n## Orientamento\nÈ ancora sconosciuto se il supporto del pannello debba essere verticale o orizzontale; le due configurazioni sono indicate come alternative nella scheda disponibile.\n\nIl responsabile del banco deve scegliere entro il 20 aprile 2028 l’orientamento del supporto e registrare la scelta.\n\nFonte: [Verbale di apertura](decision/tormalina-apertura).\n",
+          "expectedDecision": "do_not_apply",
+          "expectedCriteria": {
+            "no_new_human_action": {
+              "verdict": "fail",
+              "rationale": "Aggiunge un’attività umana, un destinatario di ruolo e una scadenza mai assegnati."
+            }
+          },
+          "rationale": "Il consolidamento aggiunge un incarico umano di scelta e registrazione, con una scadenza assente dalle fonti.",
+          "proof": [
+            {
+              "location": "after",
+              "quote": "Il responsabile del banco deve scegliere entro il 20 aprile 2028 l’orientamento del supporto e registrare la scelta."
+            }
+          ],
+          "contrastWith": "V4-C03"
+        }
+      ]
+    },
+    {
+      "scenarioId": "V4-S03",
+      "title": "Parafrasare lo stato documentato senza inventare la data dell’evento",
+      "target": {
+        "pageId": "project/opale",
+        "version": 1,
+        "title": "Opale",
+        "markdown": "# Opale\n\nIl catalogo delle tessere mantiene gli identificatori stabili.\n\n## Interfaccia precedente\nLa verifica di stato del 12 gennaio 2028 riporta che l’interfaccia precedente era già stata dismessa. Non indica il giorno della dismissione.\n\n## Riepilogo\nGli identificatori delle tessere rimangono stabili.\n\nFonte: [Verifica di stato](note/opale-stato).\n",
+        "type": "project",
+        "summary": "Catalogo delle tessere e stato dell’interfaccia precedente."
+      },
+      "sources": [
+        {
+          "pageId": "note/opale-stato",
+          "version": 1,
+          "title": "Verifica di stato",
+          "markdown": "# Verifica di stato del 12 gennaio 2028\nL’interfaccia precedente risulta già dismessa. La data della dismissione non è riportata. Gli identificatori delle tessere restano stabili.\n"
+        }
+      ],
+      "rules": [
+        {
+          "id": "V4-S03-F1",
+          "description": "La data riguarda l’osservazione dello stato; il giorno dell’evento è esplicitamente non riportato.",
+          "evidence": [
+            {
+              "pageId": "note/opale-stato",
+              "quote": "L’interfaccia precedente risulta già dismessa. La data della dismissione non è riportata."
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "designId": "V4-C05",
+          "label": "Deduplica e parafrasa lo stato con il suo limite temporale",
+          "category": "valid",
+          "afterMarkdown": "# Opale\n\nIl catalogo delle tessere mantiene gli identificatori stabili.\n\n## Interfaccia precedente\nSecondo la verifica del 12 gennaio 2028, l’interfaccia precedente risultava già dismessa; la data effettiva della dismissione non è documentata nella verifica.\n\nFonte: [Verifica di stato](note/opale-stato).\n",
+          "expectedDecision": "accept",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "pass",
+              "rationale": "Elimina una ripetizione e conserva tramite parafrasi la distinzione fra data della verifica e data non nota della dismissione."
+            },
+            "preserves_distinct_information": {
+              "verdict": "pass",
+              "rationale": "Elimina una ripetizione e conserva tramite parafrasi la distinzione fra data della verifica e data non nota della dismissione."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "Non introduce compiti, richieste o domande umane."
+            },
+            "meaningful_improvement": {
+              "verdict": "pass",
+              "rationale": "Elimina una ripetizione e conserva tramite parafrasi la distinzione fra data della verifica e data non nota della dismissione."
+            }
+          },
+          "rationale": "Elimina una ripetizione e conserva tramite parafrasi la distinzione fra data della verifica e data non nota della dismissione.",
+          "proof": [
+            {
+              "location": "before",
+              "quote": "## Riepilogo\nGli identificatori delle tessere rimangono stabili."
+            },
+            {
+              "location": "after",
+              "quote": "la data effettiva della dismissione non è documentata nella verifica."
+            }
+          ]
+        },
+        {
+          "designId": "V4-C06",
+          "label": "Usa la data della verifica come data precisa della dismissione",
+          "category": "invalid",
+          "afterMarkdown": "# Opale\n\nIl catalogo delle tessere mantiene gli identificatori stabili.\n\n## Interfaccia precedente\nL’interfaccia precedente è stata dismessa il 12 gennaio 2028, secondo la verifica di stato.\n\nFonte: [Verifica di stato](note/opale-stato).\n",
+          "expectedDecision": "do_not_apply",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "fail",
+              "rationale": "La fonte attesta uno stato già raggiunto al momento della verifica, non il giorno in cui è stato raggiunto."
+            }
+          },
+          "rationale": "Trasforma una data di osservazione in una data dell’evento che il documento dichiara non riportata; il link alla fonte non rende supportata la nuova frase.",
+          "proof": [
+            {
+              "location": "source",
+              "quote": "La data della dismissione non è riportata.",
+              "pageId": "note/opale-stato"
+            },
+            {
+              "location": "after",
+              "quote": "L’interfaccia precedente è stata dismessa il 12 gennaio 2028, secondo la verifica di stato."
+            }
+          ],
+          "contrastWith": "V4-C05"
+        }
+      ]
+    },
+    {
+      "scenarioId": "V4-S04",
+      "title": "Consolidare dettagli raggiungibili nella fonte invariata senza churn cosmetico",
+      "target": {
+        "pageId": "project/corallo",
+        "version": 1,
+        "title": "Corallo",
+        "markdown": "# Corallo\n\nIl registro conserva soltanto i campioni accettati. Per ogni campione registra codice, massa in grammi e classe visiva. La massa usa una cifra decimale.\n\n## Dati registrati\nPer ogni campione accettato il registro conserva codice, massa in grammi con una cifra decimale e classe visiva.\n\nLa lista dei campioni rifiutati resta fuori dal registro.\n\nFonte: [Formato del registro](decision/corallo-campioni).\n",
+        "type": "project",
+        "summary": "Registro dei campioni accettati e relativo formato."
+      },
+      "sources": [
+        {
+          "pageId": "decision/corallo-campioni",
+          "version": 1,
+          "title": "Formato del registro",
+          "markdown": "# Formato del registro\nDecisione del 2 maggio 2028: il registro conserva soltanto campioni accettati. Per ciascuno registra codice, massa espressa in grammi con una cifra decimale e classe visiva.\n"
+        }
+      ],
+      "rules": [
+        {
+          "id": "V4-S04-F1",
+          "description": "I campi e la precisione sopravvivono nella fonte fornita e mantenuta collegata.",
+          "evidence": [
+            {
+              "pageId": "decision/corallo-campioni",
+              "quote": "Per ciascuno registra codice, massa espressa in grammi con una cifra decimale e classe visiva."
+            }
+          ]
+        },
+        {
+          "id": "V4-S04-F2",
+          "description": "L’esclusione della lista dei rifiutati è un fatto distinto presente nel bersaglio.",
+          "evidence": [
+            {
+              "pageId": "project/corallo",
+              "quote": "La lista dei campioni rifiutati resta fuori dal registro."
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "designId": "V4-C07",
+          "label": "Sostituisce dettagli duplicati con un rinvio esplicito alla fonte conservata",
+          "category": "valid",
+          "afterMarkdown": "# Corallo\n\nIl registro conserva soltanto i campioni accettati, secondo il [formato documentato](decision/corallo-campioni), che specifica i campi e la precisione della massa.\n\nLa lista dei campioni rifiutati resta fuori dal registro.\n",
+          "expectedDecision": "accept",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "pass",
+              "rationale": "Elimina due esposizioni degli stessi campi; valori e precisione restano nella fonte fornita invariata e collegata, mentre l’esclusione unica resta nel bersaglio."
+            },
+            "preserves_distinct_information": {
+              "verdict": "pass",
+              "rationale": "Elimina due esposizioni degli stessi campi; valori e precisione restano nella fonte fornita invariata e collegata, mentre l’esclusione unica resta nel bersaglio."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "Non introduce compiti, richieste o domande umane."
+            },
+            "meaningful_improvement": {
+              "verdict": "pass",
+              "rationale": "Elimina due esposizioni degli stessi campi; valori e precisione restano nella fonte fornita invariata e collegata, mentre l’esclusione unica resta nel bersaglio."
+            }
+          },
+          "rationale": "Elimina due esposizioni degli stessi campi; valori e precisione restano nella fonte fornita invariata e collegata, mentre l’esclusione unica resta nel bersaglio.",
+          "proof": [
+            {
+              "location": "source",
+              "quote": "massa espressa in grammi con una cifra decimale",
+              "pageId": "decision/corallo-campioni"
+            },
+            {
+              "location": "after",
+              "quote": "[formato documentato](decision/corallo-campioni)"
+            },
+            {
+              "location": "after",
+              "quote": "La lista dei campioni rifiutati resta fuori dal registro."
+            }
+          ]
+        },
+        {
+          "designId": "V4-C08",
+          "label": "Rinomina la sezione e lascia intatta la duplicazione",
+          "category": "invalid",
+          "afterMarkdown": "# Corallo\n\nIl registro conserva soltanto i campioni accettati. Per ogni campione registra codice, massa in grammi e classe visiva. La massa usa una cifra decimale.\n\n## Schema descrittivo\nPer ogni campione accettato il registro conserva codice, massa in grammi con una cifra decimale e classe visiva.\n\nLa lista dei campioni rifiutati resta fuori dal registro.\n\nFonte: [Formato del registro](decision/corallo-campioni).\n",
+          "expectedDecision": "do_not_apply",
+          "expectedCriteria": {
+            "meaningful_improvement": {
+              "verdict": "fail",
+              "rationale": "L’unico cambiamento è il titolo della sezione; il contenuto duplicato rimane identico."
+            },
+            "supported_by_evidence": {
+              "verdict": "pass",
+              "rationale": "Fatti, attribuzioni, link e assenza di nuove azioni umane rimangono invariati."
+            },
+            "preserves_distinct_information": {
+              "verdict": "pass",
+              "rationale": "Fatti, attribuzioni, link e assenza di nuove azioni umane rimangono invariati."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "Fatti, attribuzioni, link e assenza di nuove azioni umane rimangono invariati."
+            }
+          },
+          "rationale": "Rinomina soltanto una sezione, senza incorporare risposte, rimuovere ripetizioni o rendere esplicita una relazione documentata.",
+          "proof": [
+            {
+              "location": "before",
+              "quote": "## Dati registrati"
+            },
+            {
+              "location": "after",
+              "quote": "## Schema descrittivo"
+            },
+            {
+              "location": "after",
+              "quote": "Per ogni campione accettato il registro conserva codice, massa in grammi con una cifra decimale e classe visiva."
+            }
+          ],
+          "contrastWith": "V4-C07"
+        }
+      ]
+    },
+    {
+      "scenarioId": "V4-S05",
+      "title": "Deduplicare una discordanza senza scegliere fra fonti equivalenti",
+      "target": {
+        "pageId": "project/ametista",
+        "version": 1,
+        "title": "Ametista",
+        "markdown": "# Ametista\n\nIl serbatoio dimostrativo è il contenitore Q-5.\n\n## Capacità riportata\nLa scheda A del 9 giugno 2028 attribuisce a Q-5 una capacità utile di 42 litri. La scheda B, datata anch’essa 9 giugno 2028, gli attribuisce una capacità utile di 48 litri. Entrambe usano la stessa definizione di capacità utile e nessuna dichiara di sostituire l’altra.\n\n## Annotazione ripetuta\nIl contenitore del banco dimostrativo è Q-5. La discordanza tra le schede A e B sulla sua capacità utile resta irrisolta.\n\nFonti: [Scheda A](note/ametista-a), [Scheda B](note/ametista-b).\n",
+        "type": "project",
+        "summary": "Serbatoio dimostrativo Q-5 e relative schede di capacità."
+      },
+      "sources": [
+        {
+          "pageId": "note/ametista-a",
+          "version": 1,
+          "title": "Scheda A",
+          "markdown": "# Scheda A, 9 giugno 2028\nQ-5 ha una capacità utile di 42 litri, intesa come volume massimo impiegabile nel banco. Nessuna clausola di sostituzione è riportata.\n"
+        },
+        {
+          "pageId": "note/ametista-b",
+          "version": 1,
+          "title": "Scheda B",
+          "markdown": "# Scheda B, 9 giugno 2028\nQ-5 ha una capacità utile di 48 litri, intesa come volume massimo impiegabile nel banco. Nessuna clausola di sostituzione è riportata.\n"
+        }
+      ],
+      "rules": [
+        {
+          "id": "V4-S05-F1",
+          "description": "Le fonti attestano valori incompatibili per la stessa grandezza e non sono ordinabili per precedenza.",
+          "evidence": [
+            {
+              "pageId": "note/ametista-a",
+              "quote": "Q-5 ha una capacità utile di 42 litri, intesa come volume massimo impiegabile nel banco."
+            },
+            {
+              "pageId": "note/ametista-b",
+              "quote": "Q-5 ha una capacità utile di 48 litri, intesa come volume massimo impiegabile nel banco."
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "designId": "V4-C09",
+          "label": "Riduce la ripetizione mantenendo conflitto, valori e attribuzioni",
+          "category": "valid",
+          "afterMarkdown": "# Ametista\n\nIl serbatoio dimostrativo è il contenitore Q-5.\n\n## Capacità riportata\nPer la stessa capacità utile di Q-5, le schede del 9 giugno 2028 riportano valori discordanti: 42 litri nella [scheda A](note/ametista-a) e 48 litri nella [scheda B](note/ametista-b). Nessuna dichiara di sostituire l’altra; la discordanza rimane irrisolta.\n",
+          "expectedDecision": "accept",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "pass",
+              "rationale": "Accorpa il vincolo sull’identità del contenitore e la discordanza ripetuta, preservando entrambi i valori con fonte, data e assenza di precedenza."
+            },
+            "preserves_distinct_information": {
+              "verdict": "pass",
+              "rationale": "Accorpa il vincolo sull’identità del contenitore e la discordanza ripetuta, preservando entrambi i valori con fonte, data e assenza di precedenza."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "Non introduce compiti, richieste o domande umane."
+            },
+            "meaningful_improvement": {
+              "verdict": "pass",
+              "rationale": "Accorpa il vincolo sull’identità del contenitore e la discordanza ripetuta, preservando entrambi i valori con fonte, data e assenza di precedenza."
+            }
+          },
+          "rationale": "Accorpa il vincolo sull’identità del contenitore e la discordanza ripetuta, preservando entrambi i valori con fonte, data e assenza di precedenza.",
+          "proof": [
+            {
+              "location": "before",
+              "quote": "## Annotazione ripetuta"
+            },
+            {
+              "location": "after",
+              "quote": "42 litri nella [scheda A](note/ametista-a) e 48 litri nella [scheda B](note/ametista-b)"
+            },
+            {
+              "location": "after",
+              "quote": "la discordanza rimane irrisolta."
+            }
+          ]
+        },
+        {
+          "designId": "V4-C10",
+          "label": "Seleziona un solo valore fra due misure discordanti",
+          "category": "ambiguous",
+          "afterMarkdown": "# Ametista\n\nIl serbatoio dimostrativo è il contenitore Q-5.\n\n## Capacità riportata\nLa capacità utile di Q-5 è di 42 litri, come stabilisce la scheda A del 9 giugno 2028.\n\nFonti: [Scheda A](note/ametista-a), [Scheda B](note/ametista-b).\n",
+          "expectedDecision": "do_not_apply",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "acceptableVerdicts": ["fail", "uncertain"],
+              "rationale": "Due documenti espliciti della stessa data attribuiscono valori diversi allo stesso oggetto e alla stessa grandezza, senza precedenza documentata. Il corpus non discrimina quale valore sia corretto."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "La proposta non aggiunge un incarico umano; seleziona una lettura non discriminata dalle fonti."
+            }
+          },
+          "rationale": "Due documenti espliciti della stessa data attribuiscono valori diversi allo stesso oggetto e alla stessa grandezza, senza precedenza documentata. Il corpus non discrimina quale valore sia corretto.",
+          "proof": [
+            {
+              "location": "source",
+              "quote": "capacità utile di 42 litri",
+              "pageId": "note/ametista-a"
+            },
+            {
+              "location": "source",
+              "quote": "capacità utile di 48 litri",
+              "pageId": "note/ametista-b"
+            },
+            {
+              "location": "after",
+              "quote": "La capacità utile di Q-5 è di 42 litri"
+            }
+          ],
+          "contrastWith": "V4-C09"
+        }
+      ]
+    },
+    {
+      "scenarioId": "V4-S06",
+      "title": "Conservare un’identità ambigua dovuta a un alias condiviso",
+      "target": {
+        "pageId": "project/papiro",
+        "version": 1,
+        "title": "Papiro",
+        "markdown": "# Papiro\n\nLe raccolte RC-11 e RC-19 hanno entrambe il nome visualizzato «Scaffale comune», ma sono raccolte distinte.\n\n## Blocco delle revisioni\nLa delibera del 16 luglio 2028 dispone il blocco delle revisioni di «Scaffale comune», usando il nome visualizzato al singolare e senza un codice raccolta. Il testo disponibile non permette di distinguere RC-11 da RC-19.\n\n## Richiamo identità\nRC-11 e RC-19 sono raccolte distinte, anche se il loro nome visualizzato è uguale.\n\nFonti: [Catalogo delle raccolte](note/papiro-raccolte), [Delibera](decision/papiro-blocco).\n",
+        "type": "project",
+        "summary": "Raccolte del catalogo e delibera sul blocco delle revisioni."
+      },
+      "sources": [
+        {
+          "pageId": "note/papiro-raccolte",
+          "version": 1,
+          "title": "Catalogo delle raccolte",
+          "markdown": "# Catalogo\nRC-11: nome visualizzato «Scaffale comune».\nRC-19: nome visualizzato «Scaffale comune».\nRC-11 e RC-19 sono raccolte distinte; il nome visualizzato non è un identificatore univoco.\n"
+        },
+        {
+          "pageId": "decision/papiro-blocco",
+          "version": 1,
+          "title": "Delibera sulle revisioni",
+          "markdown": "# Delibera del 16 luglio 2028\nSono bloccate le revisioni della raccolta «Scaffale comune».\nLa delibera usa soltanto il nome visualizzato e non contiene codici, riferimenti al catalogo o allegati che identifichino la raccolta.\n"
+        }
+      ],
+      "rules": [
+        {
+          "id": "V4-S06-F1",
+          "description": "Il nome condiviso non consente di risolvere l’identità oggetto della delibera.",
+          "evidence": [
+            {
+              "pageId": "note/papiro-raccolte",
+              "quote": "RC-11 e RC-19 sono raccolte distinte; il nome visualizzato non è un identificatore univoco."
+            },
+            {
+              "pageId": "decision/papiro-blocco",
+              "quote": "Sono bloccate le revisioni della raccolta «Scaffale comune»."
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "designId": "V4-C11",
+          "label": "Deduplica l’identità senza risolvere arbitrariamente la delibera",
+          "category": "valid",
+          "afterMarkdown": "# Papiro\n\nIl [catalogo delle raccolte](note/papiro-raccolte) distingue RC-11 e RC-19, entrambe chiamate «Scaffale comune».\n\n## Blocco delle revisioni\nLa [delibera del 16 luglio 2028](decision/papiro-blocco) dispone il blocco delle revisioni di «Scaffale comune» al singolare senza indicare il codice: rimane indeterminato a quale delle due raccolte si riferisca.\n",
+          "expectedDecision": "accept",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "pass",
+              "rationale": "Elimina il richiamo ripetuto sull’identità e conserva entrambe le raccolte, il nome condiviso, la data e il limite di attribuzione della delibera con i due link."
+            },
+            "preserves_distinct_information": {
+              "verdict": "pass",
+              "rationale": "Elimina il richiamo ripetuto sull’identità e conserva entrambe le raccolte, il nome condiviso, la data e il limite di attribuzione della delibera con i due link."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "Non introduce compiti, richieste o domande umane."
+            },
+            "meaningful_improvement": {
+              "verdict": "pass",
+              "rationale": "Elimina il richiamo ripetuto sull’identità e conserva entrambe le raccolte, il nome condiviso, la data e il limite di attribuzione della delibera con i due link."
+            }
+          },
+          "rationale": "Elimina il richiamo ripetuto sull’identità e conserva entrambe le raccolte, il nome condiviso, la data e il limite di attribuzione della delibera con i due link.",
+          "proof": [
+            {
+              "location": "before",
+              "quote": "## Richiamo identità"
+            },
+            {
+              "location": "after",
+              "quote": "rimane indeterminato a quale delle due raccolte si riferisca."
+            }
+          ]
+        },
+        {
+          "designId": "V4-C12",
+          "label": "Attribuisce il blocco a uno dei due omonimi",
+          "category": "ambiguous",
+          "afterMarkdown": "# Papiro\n\nIl [catalogo delle raccolte](note/papiro-raccolte) distingue RC-11 e RC-19, entrambe chiamate «Scaffale comune».\n\n## Blocco delle revisioni\nLa [delibera del 16 luglio 2028](decision/papiro-blocco) dispone il blocco delle revisioni della raccolta RC-11.\n",
+          "expectedDecision": "do_not_apply",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "acceptableVerdicts": ["fail", "uncertain"],
+              "rationale": "La delibera identifica positivamente una raccolta tramite un nome condiviso da due entità distinte. Sia RC-11 sia RC-19 sono compatibili con quel nome, e nessun codice o altro elemento disambigua il riferimento."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "La proposta non aggiunge un incarico umano; seleziona una lettura non discriminata dalle fonti."
+            }
+          },
+          "rationale": "La delibera identifica positivamente una raccolta tramite un nome condiviso da due entità distinte. Sia RC-11 sia RC-19 sono compatibili con quel nome, e nessun codice o altro elemento disambigua il riferimento.",
+          "proof": [
+            {
+              "location": "source",
+              "quote": "RC-11: nome visualizzato «Scaffale comune».",
+              "pageId": "note/papiro-raccolte"
+            },
+            {
+              "location": "source",
+              "quote": "RC-19: nome visualizzato «Scaffale comune».",
+              "pageId": "note/papiro-raccolte"
+            },
+            {
+              "location": "after",
+              "quote": "dispone il blocco delle revisioni della raccolta RC-11."
+            }
+          ],
+          "contrastWith": "V4-C11"
+        }
+      ]
+    }
+  ]
+}

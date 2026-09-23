@@ -159,7 +159,7 @@ test("candidate prepares a complete immutable snapshot, retains duplicate relati
         /operation \(deduplicate_passage, consolidate_passage, resolve_answered_question\)/,
       );
       assert.doesNotMatch(request.messages[0].content, /For refresh_summary/);
-      assert.match(request.messages[0].content, /at most one proposal/);
+      assert.match(request.messages[0].content, /at most 1 proposal/);
       assert.equal(request.response_format.type, "json_schema");
       assert.equal(request.response_format.json_schema.strict, true);
       const indexed = JSON.parse(

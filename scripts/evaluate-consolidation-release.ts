@@ -31,17 +31,23 @@ import {
   JEV_RECOVERY,
   recoverJevTransport,
 } from "../lib/maintenance/jev-recovery";
+import { JEV_STATE_ENCODING } from "../lib/maintenance/jev-state";
 import {
   KIMI_EVALUATOR_SETTINGS,
   type KimiEvaluation,
 } from "../lib/maintenance/kimi-evaluator";
-import { KIMI_SOURCE_AUDIT_CONTRACT } from "../lib/maintenance/kimi-source-audit";
+import {
+  KIMI_PRESERVATION_INSTRUCTIONS,
+  KIMI_SOURCE_AUDIT_CONTRACT,
+} from "../lib/maintenance/kimi-source-audit";
 import { KIMI_SOURCE_CHALLENGE_CONTRACT } from "../lib/maintenance/kimi-source-challenge";
 import {
   evaluateWithKimiSourceContract,
   KIMI_SOURCE_CONTRACT,
   KIMI_SOURCE_CONTRACT_CLARIFICATION,
 } from "../lib/maintenance/kimi-source-contract";
+import { KIMI_UTILITY_INSTRUCTIONS } from "../lib/maintenance/kimi-utility";
+import { withKimiFailureDiagnostic } from "./consolidation-evaluation-diagnostics";
 import { buildFilterContract } from "./prepare-filter-contract";
 
 const SOURCE = "supported_by_evidence";
@@ -64,7 +70,7 @@ type Reference = {
   caseId: string;
   inputHash: string;
   originId: string;
-  cohort: "existing" | "new" | "heldout" | "source-only";
+  cohort: "existing" | "new" | "heldout" | "regression" | "source-only";
   category: string;
   label: string;
   expectedDecision?: "accept" | "reject" | "do_not_apply";
@@ -532,6 +538,8 @@ async function main() {
           "artifacts/consolidation/release-v1/validation-prep/independent-fixture-review.json",
       },
       mode: { type: "string", default: "prepare" },
+      regression: { type: "string" },
+      "regression-review": { type: "string" },
       heldout: { type: "string" },
       "heldout-review": { type: "string" },
     },
@@ -560,28 +568,34 @@ async function main() {
     "Review refers to another fixture",
   );
   const built = buildReleaseCases(fixture);
-  let heldout: ReturnType<typeof buildReleaseCases> | null = null;
-  let heldoutReviewHash: string | null = null;
-  if (values.heldout) {
-    assert.ok(values["heldout-review"], "Independent heldout review required");
-    const text = await tracked(values.heldout);
-    const reviewText = await readFile(
-      resolve(values["heldout-review"]),
-      "utf8",
-    );
-    const review = JSON.parse(reviewText);
-    assert.equal(review.approved, true);
-    assert.equal(review.fixtureHash, hash(text));
-    heldout = buildReleaseCases(JSON.parse(text), {
+  const extensions: Partial<
+    Record<"heldout" | "regression", ReturnType<typeof buildReleaseCases>>
+  > = {};
+  const extensionReviewHashes: Partial<
+    Record<"heldout" | "regression", string>
+  > = {};
+  for (const cohort of ["regression", "heldout"] as const) {
+    const path = values[cohort];
+    if (!path) continue;
+    const reviewPath = values[`${cohort}-review`];
+    assert.ok(reviewPath, `Independent ${cohort} review required`);
+    const text = await tracked(path);
+    const extraReviewText = await readFile(resolve(reviewPath), "utf8");
+    const extraReview = JSON.parse(extraReviewText);
+    assert.equal(extraReview.approved, true);
+    assert.equal(extraReview.fixtureHash, hash(text));
+    const extra = buildReleaseCases(JSON.parse(text), {
       valid: 6,
       invalid: 4,
       ambiguous: 2,
     });
-    heldout.references.forEach((row) => {
-      row.cohort = "heldout";
+    extra.references.forEach((row) => {
+      row.cohort = cohort;
     });
-    heldoutReviewHash = hash(reviewText);
+    extensions[cohort] = extra;
+    extensionReviewHashes[cohort] = hash(extraReviewText);
   }
+  const { heldout, regression } = extensions;
   const oldInputs = JSON.parse(await tracked(`${DATASET}/inputs.json`)) as {
     cases: InputCase[];
   };
@@ -608,6 +622,7 @@ async function main() {
   const allInput = [
     ...oldInputs.cases,
     ...built.inputs,
+    ...(regression?.inputs ?? []),
     ...(heldout?.inputs ?? []),
   ].sort((a, b) => hash(a.inputHash).localeCompare(hash(b.inputHash)));
   const allReference: Reference[] = [
@@ -618,6 +633,7 @@ async function main() {
       category: r.expectedDecision === "accept" ? "valid" : "invalid",
     })),
     ...built.references,
+    ...(regression?.references ?? []),
     ...(heldout?.references ?? []),
   ];
   const inputs = allInput.map((row, i) => ({
@@ -668,7 +684,7 @@ async function main() {
   }
   assert.equal(
     new Set([...inputs, ...supportInputs].map((i) => i.inputHash)).size,
-    48 + (heldout?.inputs.length ?? 0),
+    48 + (heldout?.inputs.length ?? 0) + (regression?.inputs.length ?? 0),
   );
   const frozenInputs = { cases: inputs, sourceOnly: supportInputs },
     frozenReference = {
@@ -679,6 +695,7 @@ async function main() {
   const codeHashes: Record<string, string> = {};
   for (const file of [
     "scripts/evaluate-consolidation-release.ts",
+    "scripts/consolidation-evaluation-diagnostics.ts",
     "scripts/prepare-filter-contract.ts",
     "lib/maintenance/consolidation-candidate.ts",
     "lib/maintenance/consolidation-links.ts",
@@ -688,10 +705,12 @@ async function main() {
     "lib/maintenance/consolidation-rubric.ts",
     "lib/maintenance/jev.ts",
     "lib/maintenance/jev-recovery.ts",
+    "lib/maintenance/jev-state.ts",
     "lib/maintenance/kimi-evaluator.ts",
     "lib/maintenance/kimi-source-contract.ts",
     "lib/maintenance/kimi-source-audit.ts",
     "lib/maintenance/kimi-source-challenge.ts",
+    "lib/maintenance/kimi-utility.ts",
     "lib/maintenance/gateway.ts",
     "package.json",
     "pnpm-lock.yaml",
@@ -702,7 +721,8 @@ async function main() {
     inputHashes,
     codeHashes,
     reviewHash: hash(reviewText),
-    heldoutReviewHash,
+    heldoutReviewHash: extensionReviewHashes.heldout ?? null,
+    regressionReviewHash: extensionReviewHashes.regression ?? null,
     inputsHash: hash(json(frozenInputs)),
     referenceHash: hash(json(frozenReference)),
     policyVersion: CANDIDATE_POLICY_VERSION,
@@ -712,10 +732,13 @@ async function main() {
     rubric: CONSOLIDATION_QUESTIONS_V2,
     jevModel: JEV_MODEL,
     jevRecovery: JEV_RECOVERY,
+    jevStateEncoding: JEV_STATE_ENCODING,
     kimiSettings: KIMI_EVALUATOR_SETTINGS,
     clarification: KIMI_SOURCE_CONTRACT_CLARIFICATION,
     sourceReview: KIMI_SOURCE_CONTRACT,
     sourceAudit: KIMI_SOURCE_AUDIT_CONTRACT,
+    preservationInstructions: KIMI_PRESERVATION_INSTRUCTIONS,
+    utilityInstructions: KIMI_UTILITY_INSTRUCTIONS,
     sourceChallenge: KIMI_SOURCE_CHALLENGE_CONTRACT,
     globalCases: inputs.length,
     sourceOnlyCases: 12,
@@ -739,7 +762,7 @@ async function main() {
     success:
       "All global operational decisions correct, no wrong definitive pass/fail on explicitly labeled criteria in Jev/Kimi/cascade, no ambiguous proposal applied, all36 source-only judgments correct, zero unresolved technical errors. Recovered HTTP failures remain counted separately, including unknown costs. Criteria not evaluated because another criterion already rejected remain separate and do not count as judgments.",
     ambiguity:
-      "For genuinely ambiguous cases fail OR uncertain are both admissible; this tests non-application, not perfect semantic separation of fail versus uncertain or an expected uncertain frequency.",
+      "Every case explicitly labeled do_not_apply admits reject OR uncertain globally, including invalid cases with that label. This tests non-application, not perfect separation of fail versus uncertain. A criterion labeled fail still records uncertain separately from a correct definitive judgment.",
     limitations:
       "Small correlated development corpus, fixed 3 repeats; no post-output tuning and no production reliability estimate. Source-only cases have no invented global acceptance label.",
   };
@@ -882,6 +905,14 @@ async function main() {
         throw error;
       }
     }
+    const diagnoseKimi = (jobId: string, input: Input, selected: Criterion[]) =>
+      withKimiFailureDiagnostic(
+        join(output, "diagnostics", `${jobId}.json`),
+        (send) =>
+          evaluateWithKimiSourceContract(input, selected, "clarified", {
+            fetch: send,
+          }),
+      );
     const workers = await Promise.allSettled(
       Array.from({ length: 3 }, async () => {
         while (next < jobs.length && !fatal) {
@@ -897,12 +928,7 @@ async function main() {
               jobId,
               "source-kimi",
               [SOURCE],
-              () =>
-                evaluateWithKimiSourceContract(
-                  item.input,
-                  [SOURCE],
-                  "clarified",
-                ),
+              () => diagnoseKimi(jobId, item.input, [SOURCE]),
             );
             sourceRows.push({
               ...reference,
@@ -948,11 +974,7 @@ async function main() {
                 assert.deepEqual(clean, item.input);
                 return resultOrThrow(
                   await call(item, jobId, "kimi", selected, () =>
-                    evaluateWithKimiSourceContract(
-                      clean,
-                      selected,
-                      "clarified",
-                    ),
+                    diagnoseKimi(jobId, clean, selected),
                   ),
                 );
               },
@@ -1069,7 +1091,7 @@ async function main() {
       sourceOnly,
       repetitions,
       cohorts: Object.fromEntries(
-        ["existing", "new", "heldout"].map((c) => [
+        ["existing", "new", "regression", "heldout"].map((c) => [
           c,
           summarizeReleaseRows(globalRows.filter((r) => r.cohort === c)),
         ]),
@@ -1111,7 +1133,7 @@ async function main() {
           `| ${r.repetition} | ${r.global.correct}/${inputs.length} | ${r.global.falseAccept} | ${r.global.falseReject} | ${r.global.uncertain} | ${r.global.errors} | ${r.global.kimiCalls} | ${r.sourceOnly.correct}/12 |`,
       ),
       "",
-      "I casi ambigui ammettono fail o uncertain: misurano la non-applicazione, non la separazione perfetta fra questi verdetti. I tentativi tecnici falliti restano conteggiati anche quando il recupero riesce. Criteri privi di etichetta restano not_scored; grigi non interrogati dopo un rosso restano not_evaluated.",
+      "I casi con etichetta globale do_not_apply ammettono reject o uncertain, anche quando classificati invalidi: misurano la non-applicazione. Sui criteri etichettati fail, uncertain resta distinto da un giudizio definitivo corretto. I tentativi tecnici falliti restano conteggiati anche quando il recupero riesce. Criteri privi di etichetta restano not_scored; grigi non interrogati dopo un rosso restano not_evaluated.",
       "",
       "| Criterio / metodo | Etichette | Corretti | Decisioni definitive errate | Delegati | Incerti | Non valutati | Errori |",
       "|---|---:|---:|---:|---:|---:|---:|---:|",

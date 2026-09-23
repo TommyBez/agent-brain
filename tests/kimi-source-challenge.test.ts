@@ -3,7 +3,11 @@ import test from "node:test";
 import type { ConsolidationCriterion } from "../lib/maintenance/consolidation-rubric";
 import type { ConsolidationEvaluationInput } from "../lib/maintenance/jev";
 import { KimiResponseError } from "../lib/maintenance/kimi-evaluator";
-import { sourceAuditContext } from "../lib/maintenance/kimi-source-audit";
+import {
+  type SourceAuditErrorReason,
+  SourceAuditValidationError,
+  sourceAuditContext,
+} from "../lib/maintenance/kimi-source-audit";
 import { validateSourceChallenge } from "../lib/maintenance/kimi-source-challenge";
 import { evaluateWithKimiSourceContract } from "../lib/maintenance/kimi-source-contract";
 
@@ -181,33 +185,59 @@ test("new facts without dates or named sources are reviewed, and pass/fail/uncer
 });
 
 test("missing units, invented evidence and inconsistent rows remain errors with the paid usage retained", async () => {
-  const rows = [
-    {
-      ...association,
-      evidence: [
-        {
-          source: "/evidence/0/markdown",
-          quote: "Acquisizione avvenuta il 4 ottobre 2026.",
-        },
-      ],
-    },
-    { ...association, evidence: [{ source: "/after", quote: input.after }] },
-    {
-      ...association,
-      status: "entailed",
-      alternative: "Una lettura alternativa esiste.",
-    },
-    { ...association, status: "entailed", alternative: "", evidence: [] },
-    { ...association, alternative: "" },
-    { ...association, dateRole: "" },
-    { ...association, sourceRole: "" },
+  const rows: [Record<string, unknown>, SourceAuditErrorReason][] = [
+    [
+      {
+        ...association,
+        evidence: [
+          {
+            source: "/evidence/0/markdown",
+            quote: "Acquisizione avvenuta il 4 ottobre 2026.",
+          },
+        ],
+      },
+      "source_challenge_literal_quote",
+    ],
+    [
+      { ...association, evidence: [{ source: "/after", quote: input.after }] },
+      "source_challenge_citation",
+    ],
+    [
+      {
+        ...association,
+        status: "entailed",
+        alternative: "Una lettura alternativa esiste.",
+      },
+      "source_challenge_entailed_consistency",
+    ],
+    [
+      { ...association, status: "entailed", alternative: "", evidence: [] },
+      "source_challenge_entailed_consistency",
+    ],
+    [
+      { ...association, alternative: "" },
+      "source_challenge_counterexample_required",
+    ],
+    [{ ...association, dateRole: "" }, "source_challenge_date_role"],
+    [{ ...association, sourceRole: "" }, "source_challenge_source_role"],
+    [{ ...association, fact: "" }, "source_challenge_fact_required"],
+    [{ ...association, status: "PRIVATE_STATUS" }, "source_challenge_status"],
+    [{ ...association, evidence: null }, "source_challenge_evidence"],
+    [{ ...association, extra: "PRIVATE_FIELD" }, "source_challenge_fields"],
   ];
-  const ledgers: unknown[] = [
-    [],
-    [{ unitId: "invented", associations: [association] }],
-    ...rows.map((row) => [{ unitId: "u1", associations: [row] }]),
+  const ledgers: [unknown, SourceAuditErrorReason][] = [
+    [[], "source_challenge_coverage"],
+    [
+      [{ unitId: "invented", associations: [association] }],
+      "source_challenge_unit",
+    ],
+    [[{ unitId: "u1", associations: [] }], "source_challenge_associations"],
+    ...rows.map(([row, reason]): [unknown, SourceAuditErrorReason] => [
+      [{ unitId: "u1", associations: [row] }],
+      reason,
+    ]),
   ];
-  for (const associations of ledgers) {
+  for (const [associations, reasonCode] of ledgers) {
     await assert.rejects(
       evaluateContent({
         supported_by_evidence: { associations, rationale: "PRIVATE_RATIONALE" },
@@ -215,19 +245,17 @@ test("missing units, invented evidence and inconsistent rows remain errors with 
       (error) => {
         assert.ok(error instanceof KimiResponseError);
         assert.equal(error.stage, "source_challenge");
-        assert.equal(error.reasonCode, "invalid_source_challenge");
+        assert.equal(error.reasonCode, reasonCode);
         assert.equal(error.usage.physicalCalls, 1);
         assert.equal(error.usage.costUsd, 0.01);
         assert.equal(error.usage.unknownCostCalls, 0);
         assert.equal(error.responseId, "chatcmpl-single-review");
         assert.equal(error.reviewReceipts?.length, 1);
         assert.equal(error.reviewReceipts?.[0].outcome, "error");
+        assert.equal(error.reviewReceipts?.[0].reasonCode, reasonCode);
         assert.equal(error.reviewReceipts?.[0].judgment, undefined);
         assert.equal(error.technicalCause?.kind, "invalid_response");
-        assert.equal(
-          JSON.stringify(error).includes("PRIVATE_RATIONALE"),
-          false,
-        );
+        assert.equal(JSON.stringify(error).includes("PRIVATE_"), false);
         return true;
       },
     );
@@ -366,7 +394,7 @@ test("a changed heading keeps inherited text in the source review and omitted co
     ),
     (error) => {
       assert.ok(error instanceof KimiResponseError);
-      assert.equal(error.reasonCode, "invalid_source_challenge");
+      assert.equal(error.reasonCode, "source_challenge_coverage");
       return true;
     },
   );
@@ -465,4 +493,28 @@ test("separate passages must be separate literal citations, never joined by inve
       .verdict,
     "pass",
   );
+});
+
+test("a repeated unit id has a different diagnostic from incomplete unit coverage", () => {
+  const context = {
+    ...sourceAuditContext(input),
+    units: [
+      { id: "u1", text: "First changed statement." },
+      { id: "u2", text: "Second changed statement." },
+    ],
+  };
+  const unit = { unitId: "u1", associations: [association] };
+  for (const [raw, reasonCode] of [
+    [[unit], "source_challenge_coverage"],
+    [[unit, unit], "source_challenge_duplicate_unit"],
+  ] as const) {
+    assert.throws(
+      () => validateSourceChallenge(raw, context),
+      (error) => {
+        assert.ok(error instanceof SourceAuditValidationError);
+        assert.equal(error.reasonCode, reasonCode);
+        return true;
+      },
+    );
+  }
 });

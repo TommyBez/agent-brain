@@ -12,6 +12,7 @@ import {
   KIMI_MODEL,
   KimiResponseError,
 } from "../lib/maintenance/kimi-evaluator";
+import { KIMI_UTILITY_INSTRUCTIONS } from "../lib/maintenance/kimi-utility";
 
 const input = {
   before: "Brain usa PostgreSQL. Brain usa PostgreSQL.",
@@ -66,6 +67,35 @@ function validResponse(criteria: ConsolidationCriterion[] = allCriteria) {
     },
   };
 }
+
+test("the current-diff utility check is sent only for selected improvement with the existing schema and one request", async () => {
+  for (const selected of [
+    ["meaningful_improvement"],
+    ["no_new_human_action"],
+  ] as ConsolidationCriterion[][]) {
+    let calls = 0;
+    await evaluateWithKimi(input, selected, {
+      apiKey: "unit-test-key",
+      fetch: async (_url, init) => {
+        calls++;
+        const request = JSON.parse(String(init?.body));
+        assert.equal(
+          request.messages[0].content.includes(KIMI_UTILITY_INSTRUCTIONS),
+          selected.includes("meaningful_improvement"),
+        );
+        assert.deepEqual(JSON.parse(request.messages[1].content), input);
+        const schema = request.response_format.json_schema.schema;
+        assert.deepEqual(schema.required, selected);
+        assert.deepEqual(
+          Object.keys(schema.properties[selected[0]].properties).sort(),
+          ["rationale", "verdict"],
+        );
+        return Response.json(validResponse(selected));
+      },
+    });
+    assert.equal(calls, 1);
+  }
+});
 
 test("Kimi requests the selected judgments with the same full input and V2 rubric", async () => {
   for (const criteria of [

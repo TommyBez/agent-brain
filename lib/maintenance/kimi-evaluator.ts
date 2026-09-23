@@ -24,6 +24,7 @@ import {
   sourceChallengeSchema,
   validateSourceChallenge,
 } from "./kimi-source-challenge";
+import { KIMI_UTILITY_INSTRUCTIONS } from "./kimi-utility";
 
 export const KIMI_MODEL = "moonshotai/kimi-k3";
 
@@ -556,6 +557,9 @@ export async function evaluateWithKimi(
                 ]
               : []),
             ...(preservationContext ? [KIMI_PRESERVATION_INSTRUCTIONS] : []),
+            ...(selected.includes("meaningful_improvement")
+              ? [KIMI_UTILITY_INSTRUCTIONS]
+              : []),
             `Rubrica V2 completa:\n${JSON.stringify(CONSOLIDATION_QUESTIONS_V2)}`,
           ].join("\n\n"),
         },

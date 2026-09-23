@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import { type TestContext, test } from "node:test";
 import type { BrainPage } from "../lib/brain/types";
-import { createIndexedProposalContext } from "../lib/maintenance/consolidation-producer";
+import {
+  createIndexedProposalContext,
+  INDEXED_PRODUCER_LIMITS,
+} from "../lib/maintenance/consolidation-producer";
 import {
   type ConsolidationProposal,
   PROPOSAL_LIMITS,
@@ -464,7 +467,7 @@ test("materialization preserves the space joining a rewritten segment to a sente
 
 test("indexed output rejects invented IDs, fabricated metadata and noncontiguous ranges", () => {
   const source = page({
-    markdown: ["A", "B", "C", "D", "E", "F"]
+    markdown: ["A", "B", "C", "D", "E", "F", "G", "H", "I"]
       .map((label) => `${label.repeat(700)}.\n\n`)
       .join(""),
   });
@@ -489,7 +492,7 @@ test("indexed output rejects invented IDs, fabricated metadata and noncontiguous
     { ...selection, targetIds: [parts[2].id, parts[1].id] },
     { ...selection, targetIds: [parts[1].id, parts[1].id] },
     { ...selection, targetIds: [parts[0].id, context.pages[1].markdown[0].id] },
-    { ...selection, targetIds: parts.slice(0, 5).map((p) => p.id) },
+    { ...selection, targetIds: parts.slice(0, 9).map((p) => p.id) },
     { ...selection, replacement: "x".repeat(6001) },
   ])
     assert.throws(
@@ -501,6 +504,60 @@ test("indexed output rejects invented IDs, fabricated metadata and noncontiguous
     targetIds: [parts[3].id, parts[4].id],
   });
   assert.equal(combined.before, parts[3].text + parts[4].text);
+});
+
+test("complete repeated blocks beyond four segments fit the new bound while passages over 8000 remain invalid", () => {
+  const block = (heading: string) =>
+    `## ${heading}\n\n${Array.from({ length: 4 }, () => `${"Fatto comune documentato. ".repeat(34)}\n\n`).join("")}`;
+  const source = page({ markdown: block("Blocco A") + block("Blocco B") });
+  const context = createIndexedProposalContext(
+    [source],
+    PROPOSAL_LIMITS.passageCharacters,
+  );
+  const parts = context.pages[0].markdown;
+  assert.equal(parts.length, 8);
+  assert.ok(source.markdown.length > 6000);
+  const selection = {
+    operation: "consolidate_passage",
+    targetIds: parts.map((part) => part.id),
+    evidenceIds: parts.map((part) => part.id),
+    reason: "Rimuove le ripetizioni comprese in entrambi i blocchi.",
+  };
+  assert.equal(context.rewriteInput(selection).before, source.markdown);
+  const proposal = context.materialize({
+    ...selection,
+    replacement: "Fatto comune documentato.",
+  });
+  assert.equal(proposal.before, source.markdown);
+  assert.equal(
+    validateAndApplyProposal([source], proposal).after.markdown.trim(),
+    "Fatto comune documentato.",
+  );
+  assert.throws(
+    () =>
+      context.materialize({
+        ...selection,
+        replacement: "x".repeat(8001),
+      }),
+    /invalid selection schema/,
+  );
+  const oversized = createIndexedProposalContext(
+    [page({ markdown: "x".repeat(8001) })],
+    PROPOSAL_LIMITS.passageCharacters,
+  );
+  assert.ok(
+    oversized.pages[0].markdown.length <=
+      INDEXED_PRODUCER_LIMITS.targetSegments,
+  );
+  assert.throws(
+    () =>
+      oversized.rewriteInput({
+        ...selection,
+        targetIds: oversized.pages[0].markdown.map((part) => part.id),
+        evidenceIds: [oversized.pages[0].markdown[0].id],
+      }),
+    /target or replacement exceeds passage limit/,
+  );
 });
 
 test("candidate generation uses constrained passage IDs and materializes exact evidence", async (t) => {
@@ -555,7 +612,9 @@ test("candidate generation uses constrained passage IDs and materializes exact e
       const schema =
         request.response_format.json_schema.schema.properties.proposals;
       assert.equal(schema.maxItems, 1);
-      assert.equal(schema.items.properties.targetIds.maxItems, 4);
+      assert.equal(schema.items.properties.targetIds.maxItems, 8);
+      assert.match(request.messages[0].content, /1–8 consecutive/);
+      assert.match(request.messages[0].content, /at most 8000 characters/);
       assert.ok(
         schema.items.properties.evidenceIds.items.enum.includes(
           item.evidenceIds[0],

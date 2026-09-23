@@ -27,10 +27,12 @@ const files = [
   "lib/maintenance/consolidation-rubric.ts",
   "lib/maintenance/jev.ts",
   "lib/maintenance/jev-recovery.ts",
+  "lib/maintenance/jev-state.ts",
   "lib/maintenance/kimi-evaluator.ts",
   "lib/maintenance/kimi-source-contract.ts",
   "lib/maintenance/kimi-source-audit.ts",
   "lib/maintenance/kimi-source-challenge.ts",
+  "lib/maintenance/kimi-utility.ts",
   "lib/maintenance/gateway.ts",
   "scripts/run-consolidation-candidate.ts",
 ];

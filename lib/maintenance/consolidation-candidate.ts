@@ -27,20 +27,25 @@ import {
   JevRecoveryError,
   recoverJevTransport,
 } from "./jev-recovery";
+import { JEV_STATE_ENCODING } from "./jev-state";
 import {
   KIMI_EVALUATOR_SETTINGS,
   type KimiEvaluation,
   KimiResponseError,
 } from "./kimi-evaluator";
-import { KIMI_SOURCE_AUDIT_CONTRACT } from "./kimi-source-audit";
+import {
+  KIMI_PRESERVATION_INSTRUCTIONS,
+  KIMI_SOURCE_AUDIT_CONTRACT,
+} from "./kimi-source-audit";
 import { KIMI_SOURCE_CHALLENGE_CONTRACT } from "./kimi-source-challenge";
 import {
   evaluateWithKimiSourceContract,
   KIMI_SOURCE_CONTRACT,
   KIMI_SOURCE_CONTRACT_CLARIFICATION,
 } from "./kimi-source-contract";
+import { KIMI_UTILITY_INSTRUCTIONS } from "./kimi-utility";
 
-export const CANDIDATE_POLICY_VERSION = "consolidation-candidate-v3";
+export const CANDIDATE_POLICY_VERSION = "consolidation-candidate-v4";
 export const CANDIDATE_INPUT_LIMIT = 250_000;
 export const CANDIDATE_BANDS = Object.freeze({
   supported_by_evidence: Object.freeze({
@@ -71,11 +76,14 @@ export const CANDIDATE_POLICY_HASH = hash({
   bands: CANDIDATE_BANDS,
   jevModel: JEV_MODEL,
   jevRecovery: JEV_RECOVERY,
+  jevStateEncoding: JEV_STATE_ENCODING,
   kimi: KIMI_EVALUATOR_SETTINGS,
   rubric: CONSOLIDATION_QUESTIONS_V2,
   clarification: KIMI_SOURCE_CONTRACT_CLARIFICATION,
   sourceReview: KIMI_SOURCE_CONTRACT,
   sourceAudit: KIMI_SOURCE_AUDIT_CONTRACT,
+  preservationInstructions: KIMI_PRESERVATION_INSTRUCTIONS,
+  utilityInstructions: KIMI_UTILITY_INSTRUCTIONS,
   sourceChallenge: KIMI_SOURCE_CHALLENGE_CONTRACT,
   operations: CANDIDATE_OPERATIONS,
   decision:

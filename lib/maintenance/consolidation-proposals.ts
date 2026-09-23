@@ -10,7 +10,7 @@ import { gatewayRequest } from "./gateway";
 export const PROPOSAL_LIMITS = {
   corpusCharacters: 100_000,
   proposals: 8,
-  passageCharacters: 6_000,
+  passageCharacters: 8_000,
   outputTokens: 16_384,
 } as const;
 

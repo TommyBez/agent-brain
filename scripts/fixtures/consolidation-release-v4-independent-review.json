@@ -1,0 +1,49 @@
+{
+  "version": 4,
+  "approved": true,
+  "fixturePath": "scripts/fixtures/consolidation-release-v4.json",
+  "fixtureHash": "f208332e7c8840c3a96c2288089b402765b3698bef06818b774670f7ed019793",
+  "reviewer": "/root/v3_filter_run",
+  "reviewType": "Independent semantic review before model calls, separate from dataset author and informed by the complete synthetic sources and candidate diffs.",
+  "authorReviewHash": "eb96d407d5621a68f56a431e2b5c9e161f46ce5047dbb8a6c7d23e56f304b730",
+  "checks": {
+    "cases": 12,
+    "caseCounts": {
+      "valid": 6,
+      "invalid": 4,
+      "ambiguous": 2
+    },
+    "quotedPassages": 41,
+    "labeledCriteria": 35,
+    "labelsConsistent": true,
+    "quotedPassagesPresent": true,
+    "modelVisibleMetadataNeutral": true,
+    "realBuildReleaseCasesPassed": true,
+    "externalCalls": 0
+  },
+  "correctionBeforeCalls": "Methodological summaries were replaced with neutral domain summaries. Expected labels and source/diff text were unchanged; the neutral metadata and updated hashes were independently checked.",
+  "limitations": [
+    "All four invalid cases deliberately expect do_not_apply globally, so either reject or uncertain prevents application and satisfies that global label. Their labeled defective criteria still expect fail.",
+    "Small paired synthetic corpus; approval of the fixture is not evidence that the pipeline or production release has passed."
+  ],
+  "cases": {
+    "C01": "Both dated readings and their equal values are preserved while repeated sensor text is removed.",
+    "C02": "The earlier reading is removed from the only supplied document retaining it.",
+    "C03": "The source answers the opening-date question while leaving the unrelated uncertainty intact.",
+    "C04": "The rewrite introduces a new human assignment and deadline.",
+    "C05": "Verification date remains separate from the undocumented decommission date.",
+    "C06": "The rewrite incorrectly equates verification date with the event date.",
+    "C07": "The linked supplied source preserves omitted details and the target retains the rejection scope.",
+    "C08": "Only a heading changes; duplication remains.",
+    "C09": "Both conflicting values retain their sources and shared date without invented precedence.",
+    "C10": "Conflicting sources do not justify selecting one unique value.",
+    "C11": "Two collections retain distinct identity, a shared alias, and unresolved decision attribution.",
+    "C12": "The shared alias does not identify one collection uniquely."
+  },
+  "formatNormalization": {
+    "verifiedBy": "/root",
+    "previousFixtureHash": "5f823745b2a98ac6d8fc0d157781d6db0e629072f74be354aa52e0fa290eb56f",
+    "parsedFixtureUnchanged": true,
+    "reason": "Biome formatting required before protocol freeze; exact parsed JSON equality checked against archived pre-format fixture. No model calls on V4 have occurred."
+  }
+}

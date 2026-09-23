@@ -4,6 +4,7 @@ import type { ConsolidationEvaluationInput } from "./jev";
 export const KIMI_SOURCE_AUDIT_VERSION = "source-tuples-v4-contiguous";
 
 export const KIMI_PRESERVATION_INSTRUCTIONS = [
+  "L'eccezione della rubrica per il diario di manutenzione consente di eliminare narrativa ripetuta o superata, non osservazioni distinte per data, fonte o ambito, anche quando riportano gli stessi valori. Puoi compattare tali osservazioni in una formulazione comune soltanto mantenendo quali fatti appartengono a ciascuna data, fonte e ambito.",
   "Per preserves_distinct_information distingui il materiale consultabile per valutare (evidence) dal contenuto che il lettore potrà raggiungere dopo la scrittura (after e fonti collegate da after). La presenza di una fonte in evidence, la sua citazione in before o un vecchio snapshot della pagina non dimostrano che la fonte rimanga raggiungibile dal documento finale.",
   "preservationLinks è il riscontro deterministico delle destinazioni Markdown prima/dopo. Se removed contiene una destinazione, il collegamento preesistente è stato rimosso: assegna fail a preserves_distinct_information, anche quando la fonte è ancora fornita in evidence e il fatto principale è riportato in after. Una citazione senza il precedente link non preserva lo stesso accesso alla fonte. Non richiedere nuovi link che non esistevano in before; rimuovere copie duplicate dello stesso link è consentito se almeno una copia della destinazione sopravvive. Un elenco removed vuoto non prova da solo la conservazione di fatti, qualificazioni, date o attribuzioni: valuta anche queste dimensioni.",
 ].join("\n\n");
@@ -49,6 +50,20 @@ export type SourceAuditErrorReason =
   | "incomplete_source_audit"
   | "invalid_source_citation"
   | "invalid_source_challenge"
+  | "source_challenge_coverage"
+  | "source_challenge_unit"
+  | "source_challenge_duplicate_unit"
+  | "source_challenge_associations"
+  | "source_challenge_fields"
+  | "source_challenge_status"
+  | "source_challenge_evidence"
+  | "source_challenge_citation"
+  | "source_challenge_literal_quote"
+  | "source_challenge_entailed_consistency"
+  | "source_challenge_counterexample_required"
+  | "source_challenge_fact_required"
+  | "source_challenge_date_role"
+  | "source_challenge_source_role"
   | "inconsistent_source_verdict";
 
 export type PreservationLinkAudit = {

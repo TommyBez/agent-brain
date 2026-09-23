@@ -1,0 +1,102 @@
+{
+  "version": 4,
+  "approved": true,
+  "fixturePath": "scripts/fixtures/consolidation-release-v4.json",
+  "fixtureHash": "f208332e7c8840c3a96c2288089b402765b3698bef06818b774670f7ed019793",
+  "reviewedAt": "2026-09-23T19:37:19.489259+00:00",
+  "reviewer": "/root/v3_blind_semantic_audit",
+  "reviewType": "Dataset-author semantic review and real buildReleaseCases deterministic preflight before model calls; independently designed without pipeline-result exposure.",
+  "independentSecondAuthorReview": false,
+  "checks": {
+    "quotedPassages": 41,
+    "cases": 12,
+    "caseCounts": {
+      "valid": 6,
+      "invalid": 4,
+      "ambiguous": 2
+    },
+    "labeledCriteria": 35,
+    "allQuotesPresent": true,
+    "allContrastsResolved": true,
+    "labelsConsistent": true,
+    "realBuildReleaseCasesPassed": true,
+    "uniqueInputHashes": 12,
+    "allFourCriteriaCovered": true,
+    "allLinkTargetsResolveInSuppliedCorpus": true,
+    "externalCalls": 0,
+    "modelVisibleMetadataNeutral": true
+  },
+  "semanticFindings": [
+    "Six valid candidates demonstrate substantive deduplication, incorporation of a documented answer, faithful paraphrase, or useful linked-source retention.",
+    "The four invalid candidates target distinct loss of a dated observation, new human action, invented event timing, and cosmetic-only churn respectively.",
+    "The two ambiguous candidates select between explicitly conflicting positive records or two distinct identities sharing one alias. Both require do_not_apply with supported_by_evidence in fail/uncertain.",
+    "Source dates, observed-state dates and event dates remain separate. Identical readings at different times stay distinct evidence.",
+    "The linked-source case allows facts to survive in a supplied retained source; it does not require all original wording to remain in the target."
+  ],
+  "caseReview": [
+    {
+      "caseId": "V4-C01",
+      "conclusion": "Valid: removes repeated description and combines equal readings while retaining both observation dates."
+    },
+    {
+      "caseId": "V4-C02",
+      "conclusion": "Invalid preservation: drops one dated reading that survives in no linked source."
+    },
+    {
+      "caseId": "V4-C03",
+      "conclusion": "Valid: replaces a answered scheduling question, preserves a different unresolved question and original source link."
+    },
+    {
+      "caseId": "V4-C04",
+      "conclusion": "Invalid human burden: assigns a new decision, role, deadline and recording task."
+    },
+    {
+      "caseId": "V4-C05",
+      "conclusion": "Valid: faithful paraphrase distinguishes recorded state from unknown event date, with actual deduplication."
+    },
+    {
+      "caseId": "V4-C06",
+      "conclusion": "Invalid support: invents a precise event date from the date of a state check."
+    },
+    {
+      "caseId": "V4-C07",
+      "conclusion": "Valid: repeated detail survives in unchanged supplied linked source; target-only exclusion survives directly."
+    },
+    {
+      "caseId": "V4-C08",
+      "conclusion": "Invalid improvement: the only change is a heading rename with duplication fully retained."
+    },
+    {
+      "caseId": "V4-C09",
+      "conclusion": "Valid: preserves opposing values, date, source identities and lack of precedence while consolidating repetition."
+    },
+    {
+      "caseId": "V4-C10",
+      "conclusion": "Ambiguous evidence: positive incompatible same-scope sources, no authority to choose a unique value."
+    },
+    {
+      "caseId": "V4-C11",
+      "conclusion": "Valid: removes repeated identity information while retaining alias collision and unresolved decision referent."
+    },
+    {
+      "caseId": "V4-C12",
+      "conclusion": "Ambiguous identity: a shared alias supports either distinct collection, without discriminating identifier."
+    }
+  ],
+  "interpretationLimits": [
+    "This is dataset preparation, not model evaluation, pipeline approval, or evidence of convergence.",
+    "The author performed semantic review; a separate-author independent review is not asserted.",
+    "Only listed criterion labels are scored. Missing criteria remain not_scored.",
+    "Acceptable fail/uncertain verdicts measure appropriate non-approval, not calibrated discrimination between failure and uncertainty.",
+    "Six invented scenarios do not establish safety across all consolidation domains."
+  ],
+  "errors": [],
+  "priorReviewedHash": "8fc769bbc2937b02458727e9a5cac6b9c344f4f1769ca66b6677c35503798ac0",
+  "verifiedCorrection": {
+    "description": "Replaced only six target.summary fields with neutral domain descriptions after a separate review identified methodological hints in model-visible summaries. Target and source titles were inspected and are domain-neutral; no title changes were necessary.",
+    "changedFields": ["target.summary for V4-S01 through V4-S06"],
+    "beforeAfterSourcesExpectationsProofsUnchanged": true,
+    "modelVisibleMetadataNeutral": true,
+    "realBuildReleaseCasesRechecked": true
+  }
+}

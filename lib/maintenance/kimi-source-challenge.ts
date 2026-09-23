@@ -1,5 +1,6 @@
 import {
   type SourceAuditContext,
+  type SourceAuditErrorReason,
   SourceAuditValidationError,
 } from "./kimi-source-audit";
 
@@ -110,8 +111,8 @@ export function validateSourceChallenge(
   verdict: "pass" | "fail" | "uncertain";
   associations: KimiSourceChallenge;
 } {
-  const fail = (): never => {
-    throw new SourceAuditValidationError("invalid_source_challenge");
+  const fail = (reason: SourceAuditErrorReason): never => {
+    throw new SourceAuditValidationError(reason);
   };
   const record = (value: unknown): Record<string, unknown> | null =>
     value !== null && typeof value === "object" && !Array.isArray(value)
@@ -120,7 +121,8 @@ export function validateSourceChallenge(
   const exact = (value: Record<string, unknown>, keys: string[]) =>
     Object.keys(value).length === keys.length &&
     keys.every((key) => Object.hasOwn(value, key));
-  if (!Array.isArray(raw) || raw.length !== context.units.length) return fail();
+  if (!Array.isArray(raw) || raw.length !== context.units.length)
+    return fail("source_challenge_coverage");
   const seen = new Set<string>();
   const statuses: Association["status"][] = [];
   for (const item of raw) {
@@ -130,16 +132,17 @@ export function validateSourceChallenge(
       !exact(unit, ["unitId", "associations"]) ||
       typeof unit.unitId !== "string"
     )
-      return fail();
+      return fail("source_challenge_unit");
     const target = context.units.find(({ id }) => id === unit.unitId);
-    if (!target || seen.has(target.id)) return fail();
+    if (!target) return fail("source_challenge_unit");
+    if (seen.has(target.id)) return fail("source_challenge_duplicate_unit");
     seen.add(target.id);
     if (
       !Array.isArray(unit.associations) ||
       !unit.associations.length ||
       unit.associations.length > 60
     )
-      return fail();
+      return fail("source_challenge_associations");
     for (const value of unit.associations) {
       const row = record(value);
       const texts = [
@@ -159,15 +162,15 @@ export function validateSourceChallenge(
             typeof row[key] !== "string" || (row[key] as string).length > 1500,
         )
       )
-        return fail();
+        return fail("source_challenge_fields");
       if (
         !["entailed", "unsupported", "ambiguous", "not_applicable"].includes(
           String(row.status),
         )
       )
-        return fail();
+        return fail("source_challenge_status");
       if (!Array.isArray(row.evidence) || row.evidence.length > 20)
-        return fail();
+        return fail("source_challenge_evidence");
       for (const value of row.evidence) {
         const citation = record(value);
         if (
@@ -177,31 +180,32 @@ export function validateSourceChallenge(
           typeof citation.quote !== "string" ||
           !citation.quote.trim() ||
           citation.quote.length > 12_000 ||
-          !Object.hasOwn(context.sources, citation.source) ||
-          !context.sources[citation.source].includes(citation.quote)
+          !Object.hasOwn(context.sources, citation.source)
         )
-          return fail();
+          return fail("source_challenge_citation");
+        if (!context.sources[citation.source].includes(citation.quote))
+          return fail("source_challenge_literal_quote");
       }
       const alternative = (row.alternative as string).trim();
       if (row.status === "entailed" && (!row.evidence.length || alternative))
-        return fail();
+        return fail("source_challenge_entailed_consistency");
       if (
         (row.status === "unsupported" || row.status === "ambiguous") &&
         !alternative
       )
-        return fail();
+        return fail("source_challenge_counterexample_required");
       if (row.status !== "not_applicable" && !(row.fact as string).trim())
-        return fail();
+        return fail("source_challenge_fact_required");
       if (
         Boolean((row.date as string).trim()) !==
         Boolean((row.dateRole as string).trim())
       )
-        return fail();
+        return fail("source_challenge_date_role");
       if (
         Boolean((row.source as string).trim()) !==
         Boolean((row.sourceRole as string).trim())
       )
-        return fail();
+        return fail("source_challenge_source_role");
       statuses.push(row.status as Association["status"]);
     }
   }
