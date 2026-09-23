@@ -48,7 +48,7 @@ import {
 } from "./kimi-source-contract";
 import { KIMI_UTILITY_INSTRUCTIONS } from "./kimi-utility";
 
-export const CANDIDATE_POLICY_VERSION = "consolidation-candidate-v5";
+export const CANDIDATE_POLICY_VERSION = "consolidation-candidate-v6";
 export const CANDIDATE_INPUT_LIMIT = 250_000;
 export const CANDIDATE_BANDS = Object.freeze({
   supported_by_evidence: Object.freeze({

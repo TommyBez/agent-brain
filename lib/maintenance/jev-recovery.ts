@@ -2,9 +2,9 @@ import { GatewayRequestError } from "./gateway";
 import type { ConsolidationEvaluation, JevTransportFailure } from "./jev";
 
 export const JEV_RECOVERY = {
-  maxAttempts: 3,
+  maxAttempts: 5,
   totalTimeoutMs: 30_000,
-  backoffMs: [500, 1_500],
+  backoffMs: [500, 1_500, 3_000, 6_000],
   retry: "explicit HTTP 408, 429 or 5xx only; never a model judgment",
 } as const;
 

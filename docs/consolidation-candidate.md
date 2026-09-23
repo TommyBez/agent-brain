@@ -1,13 +1,13 @@
-# Consolidamento notturno: candidata V5
+# Consolidamento notturno: candidata V6
 
-Stato del 23 settembre 2026: **V5 in validazione, produzione non attivata**. Il filtro V4 ha ottenuto 180/180 decisioni globali corrette; le quattro modifiche applicate nel volume V4 sono tutte fedeli e utili secondo l’audit indipendente. La V5 corregge gli ostacoli tecnici osservati. La prova sequenziale finale e le tre anteprime sono ancora da completare. La modalità predefinita resta `preview`.
+Stato del 23 settembre 2026: **V6 in preparazione, nessuna chiamata ai modelli V6 e produzione non attivata**. La prova sequenziale V5 è conclusa ma non soddisfacente: l’audit rileva una modifica cosmetica tra le dodici applicate e la coda sana finale è di due giri, contro i tre richiesti. Le tre conferme V5 non sono avviabili perché l’audit non è superato. La V6 chiarisce il criterio di utilità di Kimi e porta Jev a cinque tentativi complessivi nella stessa finestra di 30 secondi, mantenendo invariate le soglie. La modalità predefinita resta `preview`.
 
 Qui sono pubblicati soltanto configurazione, fixture sintetiche e aggregati. Snapshot reali, identificativi delle fonti, diff, risposte e ricevute restano negli artefatti privati esclusi da Git. La [storia delle candidate](consolidation-candidate-history.md) conserva i risultati precedenti.
 
 ## Percorso della proposta
 
 1. **DeepSeek** legge lo snapshot completo e seleziona al massimo un intervallo tramite `targetStartId` e `targetEndId`. Il server include tutti i segmenti intermedi. Una seconda chiamata riscrive soltanto quel passaggio; può restituire `null` quando manca un miglioramento fedele.
-2. **Controlli deterministici** ricostruiscono testo, citazioni e sostituzione dallo snapshot. Verificano identificativi, pagina e ordine degli estremi, limiti, unicità del passaggio, citazioni letterali e conservazione delle destinazioni Markdown. Deduplicazione e consolidamento devono accorciare il passaggio; l’output troppo lungo non viene tagliato.
+2. **Controlli deterministici** ricostruiscono testo, citazioni e sostituzione dallo snapshot. Verificano identificativi, pagina e ordine degli estremi, limiti, unicità del passaggio, citazioni letterali e conservazione delle destinazioni Markdown. La preparazione e validazione dell’output del generatore impone che deduplicazione e consolidamento accorcino il passaggio; l’output troppo lungo non viene tagliato. Il validatore delle proposte materializzate non impone autonomamente questo limite del generatore.
 3. **Jev** cerca quattro difetti: contenuto non supportato, perdita di informazione distinta, nuovi incarichi umani, assenza di miglioramento concreto. Un rosso respinge; tutti verdi accettano; soltanto i criteri intermedi passano a Kimi.
 4. **Kimi K3** giudica i criteri intermedi in una sola chiamata. Per le fonti produce un registro di associazioni fatto/data/fonte/ambito con citazioni verificabili: `unsupported → fail`, altrimenti `ambiguous → uncertain`, altrimenti `pass`. La proposta passa soltanto con tutti i giudizi finali `pass`.
 5. **Il writer del server** applica esclusivamente proposte accettate, tramite transazione, revisione e ricevuta idempotente. Il generatore non dispone di strumenti di scrittura. In `preview` conserva i giudizi e i diff senza applicarli.
@@ -18,7 +18,7 @@ Una proposta respinta o incerta non viene rivalutata con proposta, evidenze e po
 
 ## Bande e limiti congelati
 
-Le bande usano **P(difetto)** delle quattro domande binarie Jev, arrotondata a 12 decimali. Non usano la confidenza di una classificazione a categorie. Domande e bande sono immutate rispetto alla V4.
+Le bande usano **P(difetto)** delle quattro domande binarie Jev, arrotondata a 12 decimali. Non usano la confidenza di una classificazione a categorie. Le domande Jev e le bande sono immutate rispetto alla V4.
 
 | Criterio | Verde se P(difetto) < | Rosso se P(difetto) ≥ | Altri valori |
 |---|---:|---:|---|
@@ -29,26 +29,28 @@ Le bande usano **P(difetto)** delle quattro domande binarie Jev, arrotondata a 1
 
 Kimi non riceve punteggi Jev, soglie o etichette del benchmark. I criteri saltati perché un altro criterio ha già respinto la proposta restano `not_evaluated`.
 
-| Voce | V5 |
+| Voce | V6 |
 |---|---|
-| Politica | `consolidation-candidate-v5`, hash `0d316ac23f6d757e65df27d14ca6ca51aaa201ff987a511484542f179b996373` |
+| Politica | `consolidation-candidate-v6`, hash `05c4c5aa8a1ecf6a0f96c9e4bc4fdeb36e3f214cca9f3169e1e1fda5d43fc26f` |
 | Generatore | `deepseek/deepseek-v4.1-flash`, massimo una proposta e due chiamate |
 | Intervallo | 1–8 segmenti consecutivi della stessa pagina; segmenti entro 1.200 caratteri; passaggio entro 8.000 |
 | Corpus | Completo, entro 100.000 caratteri; nessun troncamento delle fonti |
 | Selezione DeepSeek | Ragionamento `none`, 16.384 token, 120 secondi |
 | Riscrittura DeepSeek | Ragionamento `high`, 32.768 token, 180 secondi |
-| Jev | `typesafe-ai/jev` tramite AI SDK pubblico; massimo tre tentativi entro 30 secondi |
+| Jev | `typesafe-ai/jev` tramite AI SDK pubblico; massimo cinque tentativi complessivi entro 30 secondi |
 | Kimi | `moonshotai/kimi-k3`, una chiamata, `high`, 8.192 token, 180 secondi |
 | Budget del run | 25 minuti; prenotazione 300 secondi per generazione e 210 per valutazione; 1.000.000 token osservati |
 | Scritture | Limite generale due; il generatore attuale può produrre una sola proposta applicabile |
 
 Jev ritenta soltanto HTTP 408, 429 o 5xx, mai giudizi ricevuti. Kimi non ritenta il giudizio. Costi o token mancanti restano ignoti. Il budget della chiave Gateway è separato dai limiti del singolo run.
 
+La precisazione V6 di Kimi distingue stati storici differenti da vere duplicazioni: riordinare due stati con date diverse non elimina una proposizione ripetuta. Una risposta già presente nel before non diventa una nuova risoluzione cambiando titolo o sinonimi. Restano utili la rimozione effettiva di una richiesta manutentiva superata con soluzione e fonte preservate, la deduplicazione di una proposizione realmente ripetuta e l’incorporazione di una risposta documentata prima assente. Il beneficio deve essere concreto e conservare fatti, fonti e associazioni cronologiche; le soglie non cambiano.
+
 L’input Jev conserva `before`, `after`, `evidence` e `operation`. Soltanto duplicazioni testuali dimostrate diventano riferimenti reversibili; before/after completi, fonti e metadati rimangono ricostruibili esattamente. Kimi riceve l’input completo originale. L’audit delle fonti non inventa date: se `date` è vuoto, un’eventuale annotazione `dateRole` rimane nel raw ma non ha significato cronologico; una data presente senza ruolo resta un errore. Copertura, tipi, citazioni, stati e controesempi mantengono gli stessi controlli.
 
 **Rischio di concorrenza accettato:** prima della scrittura non vengono ricontrollate le versioni correnti delle fonti o della pagina bersaglio. Una modifica intervenuta dopo lo snapshot può essere sovrascritta. Le versioni lette sono metadati di audit, non condizioni di scrittura.
 
-## Evidenze V4 e correzioni V5
+## Evidenze storiche V4 e correzioni V5
 
 Le etichette V4 erano congelate prima delle chiamate: 60 casi globali per tre ripetizioni, più 12 casi del solo supporto per tre ripetizioni.
 
@@ -70,14 +72,35 @@ Il **replay offline V5**, distinto da una nuova prova LLM, ricostruisce 180/180 
 
 Nel volume V4, i selettori non validi contenevano ID reali e ordinati ma saltavano segmenti intermedi: il contratto V5 per estremi elimina quella possibilità. Due riscritture erano troncate al limite di 16.384 token: la V5 mantiene `high` e aumenta lo spazio di output. Un timeout Kimi motiva il limite locale più lungo. Giudizi, numero di chiamate, soglie e criteri di qualità restano immutati.
 
-## Verifiche della configurazione finale
+## Consuntivo V5
 
-- 170 test automatici superati, 15 inizialmente saltati per configurazioni specifiche; sei verifiche writer/pipeline poi superate su PostgreSQL isolato.
-- TypeScript, controllo Biome dei file cambiati e build Webpack superati.
-- Workflow compilato verificato con provider simulati: arresto dopo il commit, riavvio, nessuna doppia scrittura; consolidamento, embedding ed export completati. È una prova del motore locale con bootstrap esplicito, non del recupero su Vercel World.
-- V5 sequenziale: protocollo e codice congelati, prova in corso. Tre anteprime su snapshot aggiornati ancora da completare.
+La V5 ha completato i 20 giri sequenziali sulla copia isolata. L’audit indipendente cieco è sigillato nell’archivio privato `artifacts/consolidation/release-v5/blind-audit`; qui ne sono pubblicati soltanto gli aggregati.
 
-Il volume usa copie sequenziali: ogni giro legge il risultato precedente. Stabilità significa tre giri finali consecutivi senza modifiche, errori, selezioni invalide o budget esaurito, dopo il raggiungimento delle opportunità. Un nuovo subagent prepara e sigilla i riferimenti prima di vedere gli output; giudica ciascun diff rispetto al suo before effettivo e sigilla l’audit prima di vedere i dati operativi.
+| Prova V5 | Risultato |
+|---|---|
+| Giri completati e proposte strutturalmente valide | 20 giri, 20 proposte valide |
+| Esiti del filtro | 12 applicazioni, 5 rifiuti, 3 errori |
+| Errori tecnici | Jev HTTP 503 ai giri 10 e 15; timeout Kimi al giro 13 |
+| Preservazione nell’audit | 29/29 fatti preservati; 12/12 modifiche fedeli |
+| Utilità nell’audit | 11/12 modifiche utili; la modifica del giro 18 è cosmetica |
+| Coda finale sana e invariata | 2 giri; requisito di 3 non dimostrato |
+| Dimensione del corpus | Da 19.317 a 12.584 caratteri |
+| Costo noto | $2,620150328; 19 chiamate con costo ignoto |
+| Tre conferme V5 | Non avviabili: audit di utilità non superato |
+
+**La V5 non soddisfa i criteri di accettazione.** Fedeltà, fatti preservati e compressione non compensano l’applicazione cosmetica. Le ricevute originali e l’audit restano conservati; non vengono reinterpretati come una validazione V6.
+
+## Preparazione e verifiche pendenti V6
+
+Il piano selettivo viene preparato in `artifacts/consolidation/release-v6/selective-preparation`, separatamente dai risultati storici. La preparazione delle fixture e il congelamento dei metadati non sono risultati di valutazione. Al momento non sono state eseguite chiamate ai modelli V6.
+
+- 174 test automatici superati e 15 saltati per configurazioni specifiche; i test saltati non contano come copertura ottenuta.
+- TypeScript, lint e build Webpack della configurazione V6 superati. Gli artefatti privati degli esperimenti sono esclusi dal progetto TypeScript; i controlli sul codice applicativo restano attivi.
+- Verifica con trasporto simulato: 237 richieste benchmark immutate, 72 diverse soltanto nell’istruzione di utilità; anche i 12 input reali restano identici. Nessuna chiamata provider.
+- Verifiche selettive previste: 12 regressioni reali, con due repliche aggiuntive del caso cosmetico; otto fixture sintetiche di sola utilità per tre ripetizioni; 72 richieste Kimi del benchmark interessate dalla modifica. Ogni stadio deve passare prima di avviare il successivo. Le fixture sintetiche verificano il criterio in isolamento, non la producibilità delle operazioni del generatore.
+- Nuovo volume di 20 giri e tre anteprime su snapshot aggiornati ancora pendenti, subordinati al superamento dei controlli selettivi. Nessuna verifica con modelli V6 è ancora stata eseguita.
+
+Il volume usa copie sequenziali: ogni giro legge il risultato precedente. Stabilità significa tre giri finali consecutivi senza modifiche, errori, selezioni invalide o budget esaurito, dopo il raggiungimento delle opportunità. L’audit semantico resta separato: riferimenti sigillati prima degli output, ciascun diff giudicato rispetto al suo before effettivo e audit sigillato prima dei dati operativi. La coda di due giri V5 non viene estesa o riutilizzata come prova della V6.
 
 ## Rilascio e ripristino
 

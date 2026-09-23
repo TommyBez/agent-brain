@@ -72,6 +72,7 @@ test("the current-diff utility check is sent only for selected improvement with 
   for (const selected of [
     ["meaningful_improvement"],
     ["no_new_human_action"],
+    ["meaningful_improvement", "no_new_human_action"],
   ] as ConsolidationCriterion[][]) {
     let calls = 0;
     await evaluateWithKimi(input, selected, {
@@ -83,13 +84,19 @@ test("the current-diff utility check is sent only for selected improvement with 
           request.messages[0].content.includes(KIMI_UTILITY_INSTRUCTIONS),
           selected.includes("meaningful_improvement"),
         );
+        assert.equal(
+          request.messages[0].content.split(KIMI_UTILITY_INSTRUCTIONS).length -
+            1,
+          selected.includes("meaningful_improvement") ? 1 : 0,
+        );
         assert.deepEqual(JSON.parse(request.messages[1].content), input);
         const schema = request.response_format.json_schema.schema;
         assert.deepEqual(schema.required, selected);
-        assert.deepEqual(
-          Object.keys(schema.properties[selected[0]].properties).sort(),
-          ["rationale", "verdict"],
-        );
+        for (const criterion of selected)
+          assert.deepEqual(
+            Object.keys(schema.properties[criterion].properties).sort(),
+            ["rationale", "verdict"],
+          );
         return Response.json(validResponse(selected));
       },
     });
