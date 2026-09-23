@@ -388,7 +388,8 @@ test("indexed input preserves the full corpus, splits on readable boundaries, an
   const evidence = context.pages[0].summary[0];
   const result = context.materialize({
     operation: "consolidate_passage",
-    targetIds: [last.id],
+    targetStartId: last.id,
+    targetEndId: last.id,
     replacement: "Fonte finale.",
     reason: "Riduzione documentata.",
     evidenceIds: [evidence.id],
@@ -410,7 +411,8 @@ test("indexed ranges can edit later duplicate passages while preserving their un
   const duplicate = context.pages[0].markdown[1];
   const result = context.materialize({
     operation: "deduplicate_passage",
-    targetIds: [duplicate.id],
+    targetStartId: duplicate.id,
+    targetEndId: duplicate.id,
     replacement: "",
     reason: "Elimina un duplicato.",
     evidenceIds: [context.pages[0].markdown[0].id],
@@ -436,7 +438,8 @@ test("materialization owns paragraph separators before an unchanged heading", ()
   const target = context.pages[0].markdown[0];
   const result = context.materialize({
     operation: "consolidate_passage",
-    targetIds: [target.id],
+    targetStartId: target.id,
+    targetEndId: target.id,
     replacement: "Prima osservazione.",
     reason: "Rimuove la ripetizione.",
     evidenceIds: [target.id],
@@ -454,7 +457,8 @@ test("materialization preserves the space joining a rewritten segment to a sente
   assert.ok(target.text.endsWith(" "));
   const result = context.materialize({
     operation: "consolidate_passage",
-    targetIds: [target.id],
+    targetStartId: target.id,
+    targetEndId: target.id,
     replacement: "Compatto",
     reason: "Rimuove la ripetizione.",
     evidenceIds: [target.id],
@@ -465,7 +469,7 @@ test("materialization preserves the space joining a rewritten segment to a sente
   assert.ok(!next.includes("Compattoparola"));
 });
 
-test("indexed output rejects invented IDs, fabricated metadata and noncontiguous ranges", () => {
+test("indexed endpoints reject invalid ranges and include every interior segment", () => {
   const source = page({
     markdown: ["A", "B", "C", "D", "E", "F", "G", "H", "I"]
       .map((label) => `${label.repeat(700)}.\n\n`)
@@ -478,32 +482,73 @@ test("indexed output rejects invented IDs, fabricated metadata and noncontiguous
   const parts = context.pages[0].markdown;
   const selection = {
     operation: "consolidate_passage",
-    targetIds: [parts[1].id],
+    targetStartId: parts[1].id,
+    targetEndId: parts[1].id,
     replacement: "B sintetico.\n\n",
     reason: "Riduzione documentata.",
     evidenceIds: [parts[1].id],
   };
   for (const malformed of [
-    { ...selection, targetIds: ["invented"] },
+    { ...selection, targetStartId: "invented" },
+    { ...selection, targetEndId: "invented" },
+    { ...selection, targetStartId: context.pages[0].summary[0].id },
+    { ...selection, targetEndId: context.pages[0].summary[0].id },
     { ...selection, evidenceIds: ["invented"] },
     { ...selection, expectedVersion: 800 },
     { ...selection, evidence: [{ quote: "invented" }] },
+    { ...selection, targetStartId: parts[2].id, targetEndId: parts[1].id },
+    { ...selection, targetEndId: context.pages[1].markdown[0].id },
+    { ...selection, targetStartId: parts[0].id, targetEndId: parts[8].id },
     { ...selection, targetIds: [parts[0].id, parts[2].id] },
-    { ...selection, targetIds: [parts[2].id, parts[1].id] },
-    { ...selection, targetIds: [parts[1].id, parts[1].id] },
-    { ...selection, targetIds: [parts[0].id, context.pages[1].markdown[0].id] },
-    { ...selection, targetIds: parts.slice(0, 9).map((p) => p.id) },
+    {
+      operation: selection.operation,
+      targetIds: [parts[0].id, parts[2].id],
+      replacement: selection.replacement,
+      reason: selection.reason,
+      evidenceIds: selection.evidenceIds,
+    },
     { ...selection, replacement: "x".repeat(6001) },
   ])
     assert.throws(
       () => context.materialize(malformed),
       /Indexed proposal rejected/,
     );
-  const combined = context.materialize({
+  const original = structuredClone(source);
+  const inclusive = {
     ...selection,
-    targetIds: [parts[3].id, parts[4].id],
-  });
-  assert.equal(combined.before, parts[3].text + parts[4].text);
+    targetStartId: parts[3].id,
+    targetEndId: parts[5].id,
+  };
+  const { replacement: _replacement, ...rewriteSelection } = inclusive;
+  const rewrite = context.rewriteInput(rewriteSelection);
+  assert.equal(
+    rewrite.before,
+    parts
+      .slice(3, 6)
+      .map((part) => part.text)
+      .join(""),
+  );
+  assert.equal(
+    rewrite.immutableContext.prefix +
+      rewrite.before +
+      rewrite.immutableContext.suffix,
+    source.markdown,
+  );
+  const combined = context.materialize(inclusive);
+  assert.deepEqual(source, original);
+  assert.equal(combined.before, parts[3].text + parts[4].text + parts[5].text);
+  assert.equal(
+    validateAndApplyProposal([source], combined).after.markdown,
+    parts
+      .slice(0, 3)
+      .map((part) => part.text)
+      .join("") +
+      combined.after +
+      parts
+        .slice(6)
+        .map((part) => part.text)
+        .join(""),
+  );
 });
 
 test("complete repeated blocks beyond four segments fit the new bound while passages over 8000 remain invalid", () => {
@@ -519,7 +564,8 @@ test("complete repeated blocks beyond four segments fit the new bound while pass
   assert.ok(source.markdown.length > 6000);
   const selection = {
     operation: "consolidate_passage",
-    targetIds: parts.map((part) => part.id),
+    targetStartId: parts[0].id,
+    targetEndId: parts[parts.length - 1].id,
     evidenceIds: parts.map((part) => part.id),
     reason: "Rimuove le ripetizioni comprese in entrambi i blocchi.",
   };
@@ -553,7 +599,10 @@ test("complete repeated blocks beyond four segments fit the new bound while pass
     () =>
       oversized.rewriteInput({
         ...selection,
-        targetIds: oversized.pages[0].markdown.map((part) => part.id),
+        targetStartId: oversized.pages[0].markdown[0].id,
+        targetEndId:
+          oversized.pages[0].markdown[oversized.pages[0].markdown.length - 1]
+            .id,
         evidenceIds: [oversized.pages[0].markdown[0].id],
       }),
     /target or replacement exceeds passage limit/,
@@ -562,6 +611,11 @@ test("complete repeated blocks beyond four segments fit the new bound while pass
 
 test("candidate generation uses constrained passage IDs and materializes exact evidence", async (t) => {
   installGatewayKey(t);
+  const deadlines: number[] = [];
+  t.mock.method(AbortSignal, "timeout", (milliseconds: number) => {
+    deadlines.push(milliseconds);
+    return new AbortController().signal;
+  });
   const initial = page({
     markdown: `${"Fatto mantenuto. ".repeat(50)}\n\n${"Nota ripetuta. ".repeat(55)}\n\n${"Ultima informazione. ".repeat(45)}`,
   });
@@ -576,6 +630,10 @@ test("candidate generation uses constrained passage IDs and materializes exact e
         effort:
           request.response_format.type === "json_object" ? "high" : "none",
       });
+      assert.equal(
+        request.max_tokens,
+        request.response_format.type === "json_object" ? 32_768 : 16_384,
+      );
       if (request.response_format.type === "json_object") {
         const input = JSON.parse(request.messages[1].content);
         assert.equal(input.before, `${"Nota ripetuta. ".repeat(55)}\n\n`);
@@ -605,15 +663,28 @@ test("candidate generation uses constrained passage IDs and materializes exact e
       );
       const item = {
         operation: "deduplicate_passage",
-        targetIds: [indexed[0].markdown[1].id],
+        targetStartId: indexed[0].markdown[1].id,
+        targetEndId: indexed[0].markdown[1].id,
         reason: "Riduce la ripetizione.",
         evidenceIds: [indexed[0].markdown[0].id],
       };
       const schema =
         request.response_format.json_schema.schema.properties.proposals;
       assert.equal(schema.maxItems, 1);
-      assert.equal(schema.items.properties.targetIds.maxItems, 8);
-      assert.match(request.messages[0].content, /1–8 consecutive/);
+      assert.equal(schema.items.properties.targetIds, undefined);
+      assert.ok(
+        schema.items.properties.targetStartId.enum.includes(item.targetStartId),
+      );
+      assert.ok(
+        schema.items.properties.targetEndId.enum.includes(item.targetEndId),
+      );
+      assert.deepEqual(
+        schema.items.properties.targetStartId.enum,
+        schema.items.properties.targetEndId.enum,
+      );
+      assert.ok(schema.items.required.includes("targetStartId"));
+      assert.ok(schema.items.required.includes("targetEndId"));
+      assert.match(request.messages[0].content, /1–8 consecutive segments/);
       assert.match(request.messages[0].content, /at most 8000 characters/);
       assert.ok(
         schema.items.properties.evidenceIds.items.enum.includes(
@@ -658,6 +729,7 @@ test("candidate generation uses constrained passage IDs and materializes exact e
   assert.equal(result.rejectedProposals.length, 0);
   assert.equal(result.usage.costUsd, 0.0004);
   assert.equal(result.usage.physicalCalls, 2);
+  assert.deepEqual(deadlines, [120_000, 180_000]);
   assert.equal(result.usage.unknownCostCalls, 0);
 });
 
@@ -687,7 +759,8 @@ test("a failed rewrite retains the paid selection receipt and counts unknown usa
                   .slice(0, 1)
                   .map((p: { markdown: { id: string }[] }) => ({
                     operation: "consolidate_passage",
-                    targetIds: [p.markdown[0].id],
+                    targetStartId: p.markdown[0].id,
+                    targetEndId: p.markdown[0].id,
                     reason: "Compact repetition.",
                     evidenceIds: [p.markdown[0].id],
                   })),
@@ -742,7 +815,8 @@ test("an over-cap paid selection fails closed before any rewrite", async (t) => 
               content: JSON.stringify({
                 proposals: pages.map((p: { markdown: { id: string }[] }) => ({
                   operation: "consolidate_passage",
-                  targetIds: [p.markdown[0].id],
+                  targetStartId: p.markdown[0].id,
+                  targetEndId: p.markdown[0].id,
                   reason: "Compact repetition.",
                   evidenceIds: [p.markdown[0].id],
                 })),
@@ -781,7 +855,8 @@ test("null and unchanged rewrites abstain while retaining provider identity and 
                 body.messages[1].content.split("\n").slice(1).join("\n"),
               ).map((p: { markdown: { id: string }[] }) => ({
                 operation: "consolidate_passage",
-                targetIds: [p.markdown[0].id],
+                targetStartId: p.markdown[0].id,
+                targetEndId: p.markdown[0].id,
                 reason: "Compact repetition.",
                 evidenceIds: [p.markdown[0].id],
               })),

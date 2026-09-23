@@ -40,7 +40,10 @@ import {
   KIMI_PRESERVATION_INSTRUCTIONS,
   KIMI_SOURCE_AUDIT_CONTRACT,
 } from "../lib/maintenance/kimi-source-audit";
-import { KIMI_SOURCE_CHALLENGE_CONTRACT } from "../lib/maintenance/kimi-source-challenge";
+import {
+  KIMI_SOURCE_CHALLENGE_CONTRACT,
+  KIMI_SOURCE_CHALLENGE_VALIDATION_VERSION,
+} from "../lib/maintenance/kimi-source-challenge";
 import {
   evaluateWithKimiSourceContract,
   KIMI_SOURCE_CONTRACT,
@@ -740,6 +743,7 @@ async function main() {
     preservationInstructions: KIMI_PRESERVATION_INSTRUCTIONS,
     utilityInstructions: KIMI_UTILITY_INSTRUCTIONS,
     sourceChallenge: KIMI_SOURCE_CHALLENGE_CONTRACT,
+    sourceChallengeValidationVersion: KIMI_SOURCE_CHALLENGE_VALIDATION_VERSION,
     globalCases: inputs.length,
     sourceOnlyCases: 12,
     repetitions: 3,

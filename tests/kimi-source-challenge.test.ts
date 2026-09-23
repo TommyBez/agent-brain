@@ -518,3 +518,188 @@ test("a repeated unit id has a different diagnostic from incomplete unit coverag
     );
   }
 });
+
+test("an orphan date role is retained without changing ledger verdicts or inventing dates", () => {
+  const state = {
+    before: "La procedura richiede un collaudo.",
+    after: "Il collaudo è stato superato.",
+    evidence: [],
+    operation: "consolidate_passage",
+  };
+  const context = sourceAuditContext(state);
+  for (const [status, verdict] of [
+    ["entailed", "pass"],
+    ["unsupported", "fail"],
+    ["ambiguous", "uncertain"],
+    ["not_applicable", "pass"],
+  ] as const) {
+    for (const date of ["", "  ", "22 aprile 2028"]) {
+      for (const dateRole of ["", "  ", "evento"]) {
+        const raw = [
+          {
+            unitId: "u1",
+            associations: [
+              {
+                fact: state.after,
+                date,
+                dateRole,
+                source: "",
+                sourceRole: "",
+                quantifier: "",
+                evidence: [{ source: "/before", quote: state.before }],
+                status,
+                alternative:
+                  status === "entailed"
+                    ? ""
+                    : "Il collaudo può non essere ancora avvenuto.",
+              },
+            ],
+          },
+        ];
+        const original = JSON.stringify(raw);
+        if (date.trim() && !dateRole.trim()) {
+          assert.throws(
+            () => validateSourceChallenge(raw, context),
+            (error) => {
+              assert.ok(error instanceof SourceAuditValidationError);
+              assert.equal(error.reasonCode, "source_challenge_date_role");
+              return true;
+            },
+          );
+        } else {
+          const checked = validateSourceChallenge(raw, context);
+          assert.equal(checked.verdict, verdict);
+          assert.strictEqual(checked.associations, raw);
+          assert.equal(JSON.stringify(checked.associations), original);
+        }
+        assert.equal(JSON.stringify(raw), original);
+      }
+    }
+  }
+});
+
+test("orphan date annotations do not bypass citation, counterexample, source-role or type checks", () => {
+  const context = sourceAuditContext(input);
+  const base = { ...association, date: "", dateRole: "evento" };
+  const invalidRows: [Record<string, unknown>, SourceAuditErrorReason][] = [
+    [
+      {
+        ...base,
+        evidence: [
+          { source: "/evidence/0/markdown", quote: "Fatto inventato." },
+        ],
+      },
+      "source_challenge_literal_quote",
+    ],
+    [
+      { ...base, evidence: [{ source: "/after", quote: input.after }] },
+      "source_challenge_citation",
+    ],
+    [{ ...base, alternative: "" }, "source_challenge_counterexample_required"],
+    [
+      { ...base, status: "ambiguous", alternative: "" },
+      "source_challenge_counterexample_required",
+    ],
+    [
+      { ...base, status: "entailed", alternative: "", evidence: [] },
+      "source_challenge_entailed_consistency",
+    ],
+    [
+      { ...base, status: "entailed", alternative: "Altra lettura." },
+      "source_challenge_entailed_consistency",
+    ],
+    [
+      { ...base, source: "", sourceRole: "documentato" },
+      "source_challenge_source_role",
+    ],
+    [{ ...base, sourceRole: "" }, "source_challenge_source_role"],
+    [{ ...base, fact: "" }, "source_challenge_fact_required"],
+    [{ ...base, date: null }, "source_challenge_fields"],
+    [{ ...base, dateRole: 1 }, "source_challenge_fields"],
+    [{ ...base, dateRole: "x".repeat(1501) }, "source_challenge_fields"],
+    [{ ...base, extra: true }, "source_challenge_fields"],
+    [{ ...base, status: "invented" }, "source_challenge_status"],
+  ];
+  for (const [row, reason] of invalidRows) {
+    assert.throws(
+      () =>
+        validateSourceChallenge(
+          [{ unitId: "u1", associations: [row] }],
+          context,
+        ),
+      (error) => {
+        assert.ok(error instanceof SourceAuditValidationError);
+        assert.equal(error.reasonCode, reason);
+        return true;
+      },
+    );
+  }
+  const unit = { unitId: "u1", associations: [base] };
+  const twoUnits = {
+    ...context,
+    units: [
+      { id: "u1", text: "Prima associazione." },
+      { id: "u2", text: "Seconda associazione." },
+    ],
+  };
+  for (const [raw, reason] of [
+    [[unit], "source_challenge_coverage"],
+    [[unit, unit], "source_challenge_duplicate_unit"],
+  ] as const) {
+    assert.throws(
+      () => validateSourceChallenge(raw, twoUnits),
+      (error) => {
+        assert.ok(error instanceof SourceAuditValidationError);
+        assert.equal(error.reasonCode, reason);
+        return true;
+      },
+    );
+  }
+});
+
+test("a mixed response with orphan date roles still rejects unsupported facts and preserves raw associations", async () => {
+  const state = {
+    before: "La procedura richiede il superamento del collaudo.",
+    after: "Il collaudo è stato superato.",
+    evidence: [],
+    operation: "consolidate_passage",
+  };
+  const raw = [
+    {
+      unitId: "u1",
+      associations: [
+        {
+          ...association,
+          fact: state.after,
+          date: "",
+          dateRole: "evento",
+          source: "",
+          sourceRole: "",
+          evidence: [{ source: "/before", quote: state.before }],
+          alternative:
+            "Il collaudo è richiesto ma potrebbe non essere ancora avvenuto.",
+        },
+      ],
+    },
+  ];
+  const original = JSON.stringify(raw);
+  const result = await evaluateContent(
+    {
+      supported_by_evidence: {
+        associations: raw,
+        rationale:
+          "Un requisito di collaudo non attesta che sia stato superato.",
+      },
+      no_new_human_action: {
+        verdict: "pass",
+        rationale: "Nessun incarico aggiunto.",
+      },
+    },
+    state,
+    ["supported_by_evidence", "no_new_human_action"],
+  );
+  assert.equal(result.judgments.supported_by_evidence?.verdict, "fail");
+  assert.equal(result.judgments.no_new_human_action?.verdict, "pass");
+  assert.equal(JSON.stringify(result.sourceChallenge), original);
+  assert.equal(result.usage.physicalCalls, 1);
+});

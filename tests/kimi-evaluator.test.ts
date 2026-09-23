@@ -499,7 +499,30 @@ test("invalid criteria, missing credentials and unserializable input never send"
   }
 });
 
-test("Kimi snapshots criterion selection and caps timeout to 120 seconds", async (t) => {
+test("Kimi timeout changes only the signal and preserves the full request body", async (t) => {
+  const deadlines: number[] = [];
+  const bodies: string[] = [];
+  t.mock.method(AbortSignal, "timeout", (milliseconds: number) => {
+    deadlines.push(milliseconds);
+    return new AbortController().signal;
+  });
+  for (const timeoutMs of [120_000, 180_000]) {
+    await evaluateWithKimi(input, allCriteria, {
+      apiKey: "test-key",
+      timeoutMs,
+      fetch: async (_url, init) => {
+        bodies.push(String(init?.body));
+        return Response.json(validResponse());
+      },
+    });
+  }
+  assert.deepEqual(deadlines, [120_000, 180_000]);
+  assert.equal(bodies.length, 2);
+  assert.equal(bodies[0], bodies[1]);
+  assert.equal(JSON.parse(bodies[0]).max_tokens, 8192);
+});
+
+test("Kimi snapshots criterion selection and caps timeout to 180 seconds", async (t) => {
   const deadlines: number[] = [];
   t.mock.method(AbortSignal, "timeout", (milliseconds: number) => {
     deadlines.push(milliseconds);
@@ -516,7 +539,7 @@ test("Kimi snapshots criterion selection and caps timeout to 120 seconds", async
     },
   });
   assert.deepEqual(Object.keys(result.judgments), [allCriteria[0]]);
-  assert.deepEqual(deadlines, [120_000]);
+  assert.deepEqual(deadlines, [180_000]);
   for (const timeoutMs of [0, -1, 1.5, Number.NaN, Number.POSITIVE_INFINITY]) {
     await assert.rejects(
       evaluateWithKimi(input, allCriteria, {

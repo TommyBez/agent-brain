@@ -37,7 +37,10 @@ import {
   KIMI_PRESERVATION_INSTRUCTIONS,
   KIMI_SOURCE_AUDIT_CONTRACT,
 } from "./kimi-source-audit";
-import { KIMI_SOURCE_CHALLENGE_CONTRACT } from "./kimi-source-challenge";
+import {
+  KIMI_SOURCE_CHALLENGE_CONTRACT,
+  KIMI_SOURCE_CHALLENGE_VALIDATION_VERSION,
+} from "./kimi-source-challenge";
 import {
   evaluateWithKimiSourceContract,
   KIMI_SOURCE_CONTRACT,
@@ -45,7 +48,7 @@ import {
 } from "./kimi-source-contract";
 import { KIMI_UTILITY_INSTRUCTIONS } from "./kimi-utility";
 
-export const CANDIDATE_POLICY_VERSION = "consolidation-candidate-v4";
+export const CANDIDATE_POLICY_VERSION = "consolidation-candidate-v5";
 export const CANDIDATE_INPUT_LIMIT = 250_000;
 export const CANDIDATE_BANDS = Object.freeze({
   supported_by_evidence: Object.freeze({
@@ -85,6 +88,7 @@ export const CANDIDATE_POLICY_HASH = hash({
   preservationInstructions: KIMI_PRESERVATION_INSTRUCTIONS,
   utilityInstructions: KIMI_UTILITY_INSTRUCTIONS,
   sourceChallenge: KIMI_SOURCE_CHALLENGE_CONTRACT,
+  sourceChallengeValidationVersion: KIMI_SOURCE_CHALLENGE_VALIDATION_VERSION,
   operations: CANDIDATE_OPERATIONS,
   decision:
     "round risk to 12 decimals; red rejects; all green accepts; otherwise Kimi judges gray; only all pass applies",

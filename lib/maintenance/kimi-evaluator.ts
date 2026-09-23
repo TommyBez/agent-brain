@@ -32,7 +32,7 @@ export const KIMI_EVALUATOR_SETTINGS = {
   model: KIMI_MODEL,
   endpoint: "https://ai-gateway.vercel.sh/v1/chat/completions",
   maxOutputTokens: 8192,
-  maxTimeoutMs: 120_000,
+  maxTimeoutMs: 180_000,
   responseFormat: "json_schema",
   rubric: "V2",
   thinking: "always-on",

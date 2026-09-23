@@ -18,8 +18,8 @@ export const CANDIDATE_RUN_LIMITS = {
   proposals: PROPOSAL_LIMITS.proposals,
   writes: 2,
   durationMs: 25 * 60_000,
-  maxGenerationMs: 2 * 120_000,
-  maxEvaluationMs: 30_000 + 120_000,
+  maxGenerationMs: 120_000 + 180_000,
+  maxEvaluationMs: 30_000 + 180_000,
   observedTokens: 1_000_000,
 } as const;
 export type CandidateHistoryEntry = {

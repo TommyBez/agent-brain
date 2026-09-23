@@ -248,3 +248,29 @@ L’intera directory `artifacts/consolidation/` è esclusa da Git. Nel repositor
 **Mantenere `preview`; non attivare `apply`.** La protezione deterministica dei link gestisce Q11, ma Q02 dimostra una falsa accettazione residua di Kimi su una modifica non supportata. La prova di volume aggiunge un problema dello stesso ambito: un’associazione generalizzata fra date e fonti approvata da Kimi, oltre alla pulizia principale non completata e ai difetti di formato del generatore. Il successo del precedente test singolo non era sufficiente a garantire stabilità nelle ripetizioni.
 
 La proposta finale conserva quindi le scritture disabilitate e registra come blocchi i difetti semantici e di generazione osservati. Non è previsto un cambio di soglie per far passare retroattivamente questo benchmark. Un eventuale rilascio successivo deve indicare la configurazione effettivamente verificata, il limite iniziale di due scritture per notte e le procedure di disattivazione e ripristino.
+
+
+---
+
+# V3: consuntivo precedente alla V4
+
+## Risultati V3 conclusi
+
+La V3 ha eseguito tre ripetizioni dei 48 casi globali e dei 12 casi con etichetta del solo supporto. Le etichette erano congelate prima delle chiamate. Una risposta invalida è un errore del filtro, non un difetto semantico correttamente individuato.
+
+| Prova V3 | Risultato |
+|---|---|
+| Decisioni globali corrette | 143/144 |
+| False accettazioni | 1: eliminazione di un'osservazione distinta per data |
+| Supporto Kimi isolato | 34/36 corretti; 2 errori di formato |
+| Volume su copia sequenziale | 20 giri, 18 proposte, 8 modifiche applicate, 4 rifiuti |
+| Errori del volume | 6 valutazioni Jev HTTP 503; 1 riscrittura oltre il limite di lunghezza |
+| Astensioni del volume | 1 giro senza proposta |
+| Coda finale invariata e senza errori | 0 giri |
+| Audit semantico indipendente | 5 modifiche utili; 3 cosmetiche; entrambe le opportunità richieste completate soltanto in parte |
+
+Nel volume ogni giro legge la copia risultante dal precedente. L'ultima applicazione è avvenuta al giro 19 e il giro 20 è terminato con HTTP 503: **la convergenza non è dimostrata**. La riscrittura invalida aveva 1.940 caratteri contro il massimo di 1.850. È stata scartata, senza tagliarla o applicarla parzialmente.
+
+La verifica offline delle ricevute e l'audit strutturale del volume V3 sono superati. La revisione semantica separata distingue cinque modifiche utili da tre cosmetiche e rileva entrambe le opportunità richieste soltanto parzialmente completate. Queste evidenze non soddisfano ancora il criterio di utilità ed esaurimento delle opportunità.
+
+Le verifiche operative V3 già concluse sono evidenze storiche: 156 test automatici superati, 15 inizialmente saltati per configurazioni specifiche e sei successive verifiche del writer/pipeline superate su PostgreSQL isolato; TypeScript, lint, migrazioni e build superati. Anche la prova locale del workflow compilato con arresto dopo il commit e ripresa è riuscita con provider simulati, una sola scrittura e due revisioni complessive. Il bootstrap della coda era esplicito: non costituisce prova del recupero su Vercel World, né validazione operativa della V4.

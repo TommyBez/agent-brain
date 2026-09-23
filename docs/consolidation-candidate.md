@@ -1,110 +1,88 @@
-# Consolidamento notturno: candidata V4
+# Consolidamento notturno: candidata V5
 
-Stato del 23 settembre 2026: **V4 in preparazione, non validata; scritture in produzione non attivate**. La modalità predefinita resta `preview`. Il rilascio richiede ancora prove complete di fedeltà, utilità e comportamento operativo della configurazione finale. I risultati V3 riportati qui non ne certificano il superamento.
+Stato del 23 settembre 2026: **V5 in validazione, produzione non attivata**. Il filtro V4 ha ottenuto 180/180 decisioni globali corrette; le quattro modifiche applicate nel volume V4 sono tutte fedeli e utili secondo l’audit indipendente. La V5 corregge gli ostacoli tecnici osservati. La prova sequenziale finale e le tre anteprime sono ancora da completare. La modalità predefinita resta `preview`.
 
-Questo documento contiene soltanto configurazione e aggregati. Documenti reali, identificativi del corpus, diff e risposte grezze restano negli artefatti privati esclusi da Git. La [storia delle candidate](consolidation-candidate-history.md) conserva integralmente il rapporto precedente, compresi dettagli V1/V2 e verifiche operative storiche; le sue indicazioni di stato sono riferite a quel momento.
+Qui sono pubblicati soltanto configurazione, fixture sintetiche e aggregati. Snapshot reali, identificativi delle fonti, diff, risposte e ricevute restano negli artefatti privati esclusi da Git. La [storia delle candidate](consolidation-candidate-history.md) conserva i risultati precedenti.
 
-## Flusso attuale
+## Percorso della proposta
 
-1. **Snapshot e DeepSeek.** Il server legge tutte le pagine e i collegamenti. `deepseek/deepseek-v4.1-flash` seleziona al massimo una proposta usando gli identificativi dei segmenti, poi riscrive soltanto l'intervallo scelto. La selezione usa ragionamento disabilitato; la riscrittura usa ragionamento alto. Il modello può astenersi.
-2. **Controlli deterministici.** Il server ricostruisce testo iniziale, citazioni e sostituzione dallo snapshot. Verifica struttura, presenza letterale delle evidenze, unicità del passaggio e conservazione delle destinazioni dei link Markdown. Una deduplicazione o un consolidamento devono produrre un passaggio più corto. Una proposta non valida viene fermata prima della valutazione semantica.
-3. **Jev.** Quattro domande binarie cercano difetti: contenuto non supportato, perdita di informazioni distinte, nuove azioni richieste a persone, assenza di miglioramento concreto. Lo stato inviato a Jev conserva i quattro campi `before`, `after`, `evidence`, `operation` e sostituisce soltanto duplicazioni testuali provate con riferimenti reversibili. Un criterio rosso respinge la proposta; tutti verdi la accettano; altrimenti si passa a Kimi.
-4. **Kimi K3.** `moonshotai/kimi-k3` giudica soltanto i criteri intermedi, in **una sola chiamata**. Per il supporto delle fonti restituisce un registro verificabile delle associazioni fra fatti, date, fonti e qualificazioni: `unsupported` determina `fail`; altrimenti `ambiguous` determina `uncertain`; altrimenti `pass`. Gli altri criteri ricevono il proprio giudizio nella stessa risposta. Evidenze inesistenti, unità mancanti o output incoerenti restano errori, non bocciature semantiche. La proposta passa soltanto se tutti i criteri finali sono `pass`.
-5. **Writer del server.** Il generatore non può scrivere. In `apply`, il server applica esclusivamente una proposta accettata tramite `applyConsolidationSnapshot`, con chiave operativa stabile e ricevuta di revisione. Ripetere lo stesso passo non duplica la scrittura. In `preview` si producono e valutano proposte senza applicarle.
+1. **DeepSeek** legge lo snapshot completo e seleziona al massimo un intervallo tramite `targetStartId` e `targetEndId`. Il server include tutti i segmenti intermedi. Una seconda chiamata riscrive soltanto quel passaggio; può restituire `null` quando manca un miglioramento fedele.
+2. **Controlli deterministici** ricostruiscono testo, citazioni e sostituzione dallo snapshot. Verificano identificativi, pagina e ordine degli estremi, limiti, unicità del passaggio, citazioni letterali e conservazione delle destinazioni Markdown. Deduplicazione e consolidamento devono accorciare il passaggio; l’output troppo lungo non viene tagliato.
+3. **Jev** cerca quattro difetti: contenuto non supportato, perdita di informazione distinta, nuovi incarichi umani, assenza di miglioramento concreto. Un rosso respinge; tutti verdi accettano; soltanto i criteri intermedi passano a Kimi.
+4. **Kimi K3** giudica i criteri intermedi in una sola chiamata. Per le fonti produce un registro di associazioni fatto/data/fonte/ambito con citazioni verificabili: `unsupported → fail`, altrimenti `ambiguous → uncertain`, altrimenti `pass`. La proposta passa soltanto con tutti i giudizi finali `pass`.
+5. **Il writer del server** applica esclusivamente proposte accettate, tramite transazione, revisione e ricevuta idempotente. Il generatore non dispone di strumenti di scrittura. In `preview` conserva i giudizi e i diff senza applicarli.
 
-Sono ammesse deduplicazione, consolidamento di un passaggio e risoluzione di una domanda già esplicitamente risposta dalle fonti. Non sono previste creazione o cancellazione di pagine, nuove relazioni strutturate o aggiornamenti autonomi dei riassunti. Rifiuti, incertezze ed errori rimangono nel registro del job: non diventano domande, TODO o incarichi nei documenti. Le questioni irrisolte già presenti devono essere conservate.
+Sono ammesse deduplicazione, consolidamento di passaggi e incorporazione di risposte già esplicitamente documentate. Creazione/cancellazione di pagine, nuovi link strutturati e aggiornamenti autonomi dei riassunti restano fuori da questa versione. Rifiuti, incertezze ed errori rimangono nel job; non generano domande, diari o TODO nei documenti. Le vere questioni irrisolte già presenti restano rappresentate.
 
-Una proposta già respinta o incerta non viene rivalutata con proposta, evidenze e politica immutate. Gli errori tecnici restano distinti. Embedding ed export sono fasi separate e possono proseguire anche quando il consolidamento fallisce; output non validi, errori e limiti raggiunti impediscono di presentare il job come pienamente riuscito.
+Una proposta respinta o incerta non viene rivalutata con proposta, evidenze e politica immutate. Gli errori tecnici sono separati e non diventano rifiuti memorizzati. Embedding ed export restano fasi distinte; possono proseguire dopo un problema di consolidamento. Un errore, un output invalido o un budget esaurito impediscono di dichiarare il job pienamente riuscito.
 
-## Bande e limiti
+## Bande e limiti congelati
 
-Le bande usano **P(difetto)** della domanda binaria di Jev, arrotondata a 12 decimali. Non usano la confidenza di una classificazione a categorie. Domande e bande non sono cambiate fra V3 e V4.
+Le bande usano **P(difetto)** delle quattro domande binarie Jev, arrotondata a 12 decimali. Non usano la confidenza di una classificazione a categorie. Domande e bande sono immutate rispetto alla V4.
 
-| Criterio | Verde se P(difetto) < | Rosso se P(difetto) ≥ | Intervallo restante |
+| Criterio | Verde se P(difetto) < | Rosso se P(difetto) ≥ | Altri valori |
 |---|---:|---:|---|
 | Supporto delle fonti | 0,12 | 0,94 | Kimi |
 | Conservazione delle informazioni | 0,23 | 0,79 | Kimi |
 | Nessuna nuova azione umana | 0,49 | 0,90 | Kimi |
 | Miglioramento concreto | 0,09 | 0,72 | Kimi |
 
-Kimi non riceve punteggi Jev, soglie o risultati attesi del benchmark. Un solo rosso evita la chiamata Kimi; un criterio intermedio che non viene interrogato per questo motivo resta `not_evaluated`.
+Kimi non riceve punteggi Jev, soglie o etichette del benchmark. I criteri saltati perché un altro criterio ha già respinto la proposta restano `not_evaluated`.
 
-| Voce | Configurazione attuale |
+| Voce | V5 |
 |---|---|
-| Politica | `consolidation-candidate-v4`, con hash delle istruzioni e della configurazione |
-| Modalità predefinita | `BRAIN_CONSOLIDATION_MODE=preview` |
-| Proposte effettive | Massimo 1 per run; massimo 2 chiamate DeepSeek |
-| Intervallo selezionato | Da 1 a 8 segmenti consecutivi della stessa pagina, ciascuno entro 1.200 caratteri |
-| Limiti strutturali generali | 8 proposte e 2 scritture; il generatore attuale limita comunque a 1 proposta applicabile |
-| Dimensioni | Corpus completo entro 100.000 caratteri; passaggi e citazioni entro 8.000 |
-| DeepSeek | Massimo 16.384 token di output per chiamata; generazione entro 240 secondi complessivi |
-| Jev | `typesafe-ai/jev` tramite AI SDK pubblico; massimo 3 tentativi entro 30 secondi per HTTP transitori espliciti |
-| Kimi | Una chiamata, ragionamento `high`, massimo 8.192 token di output e 120 secondi |
-| Budget del run | 25 minuti; valutazione entro 150 secondi; limite di 1.000.000 token osservati |
+| Politica | `consolidation-candidate-v5`, hash `0d316ac23f6d757e65df27d14ca6ca51aaa201ff987a511484542f179b996373` |
+| Generatore | `deepseek/deepseek-v4.1-flash`, massimo una proposta e due chiamate |
+| Intervallo | 1–8 segmenti consecutivi della stessa pagina; segmenti entro 1.200 caratteri; passaggio entro 8.000 |
+| Corpus | Completo, entro 100.000 caratteri; nessun troncamento delle fonti |
+| Selezione DeepSeek | Ragionamento `none`, 16.384 token, 120 secondi |
+| Riscrittura DeepSeek | Ragionamento `high`, 32.768 token, 180 secondi |
+| Jev | `typesafe-ai/jev` tramite AI SDK pubblico; massimo tre tentativi entro 30 secondi |
+| Kimi | `moonshotai/kimi-k3`, una chiamata, `high`, 8.192 token, 180 secondi |
+| Budget del run | 25 minuti; prenotazione 300 secondi per generazione e 210 per valutazione; 1.000.000 token osservati |
+| Scritture | Limite generale due; il generatore attuale può produrre una sola proposta applicabile |
 
-Jev può ritentare soltanto HTTP 408, 429 o 5xx; non ripete giudizi ricevuti. Kimi non ritenta una valutazione. Costo e token mancanti restano segnalati come ignoti. Il limite di spesa della chiave Gateway è configurato separatamente dal budget del benchmark.
+Jev ritenta soltanto HTTP 408, 429 o 5xx, mai giudizi ricevuti. Kimi non ritenta il giudizio. Costi o token mancanti restano ignoti. Il budget della chiave Gateway è separato dai limiti del singolo run.
 
-**Rischio di concorrenza accettato:** prima della scrittura non si ricontrollano le versioni correnti delle fonti né della pagina bersaglio. Una modifica intervenuta dopo lo snapshot può essere sovrascritta. Le versioni lette servono alla coerenza dell'input e all'audit, non sono condizioni di scrittura. Non si aggiungono controlli di freschezza.
+L’input Jev conserva `before`, `after`, `evidence` e `operation`. Soltanto duplicazioni testuali dimostrate diventano riferimenti reversibili; before/after completi, fonti e metadati rimangono ricostruibili esattamente. Kimi riceve l’input completo originale. L’audit delle fonti non inventa date: se `date` è vuoto, un’eventuale annotazione `dateRole` rimane nel raw ma non ha significato cronologico; una data presente senza ruolo resta un errore. Copertura, tipi, citazioni, stati e controesempi mantengono gli stessi controlli.
 
-## Risultati V3 conclusi
+**Rischio di concorrenza accettato:** prima della scrittura non vengono ricontrollate le versioni correnti delle fonti o della pagina bersaglio. Una modifica intervenuta dopo lo snapshot può essere sovrascritta. Le versioni lette sono metadati di audit, non condizioni di scrittura.
 
-La V3 ha eseguito tre ripetizioni dei 48 casi globali e dei 12 casi con etichetta del solo supporto. Le etichette erano congelate prima delle chiamate. Una risposta invalida è un errore del filtro, non un difetto semantico correttamente individuato.
+## Evidenze V4 e correzioni V5
 
-| Prova V3 | Risultato |
+Le etichette V4 erano congelate prima delle chiamate: 60 casi globali per tre ripetizioni, più 12 casi del solo supporto per tre ripetizioni.
+
+| Prova V4 | Risultato |
 |---|---|
-| Decisioni globali corrette | 143/144 |
-| False accettazioni | 1: eliminazione di un'osservazione distinta per data |
-| Supporto Kimi isolato | 34/36 corretti; 2 errori di formato |
-| Volume su copia sequenziale | 20 giri, 18 proposte, 8 modifiche applicate, 4 rifiuti |
-| Errori del volume | 6 valutazioni Jev HTTP 503; 1 riscrittura oltre il limite di lunghezza |
-| Astensioni del volume | 1 giro senza proposta |
-| Coda finale invariata e senza errori | 0 giri |
-| Audit semantico indipendente | 5 modifiche utili; 3 cosmetiche; entrambe le opportunità richieste completate soltanto in parte |
+| Cascata completa | 180/180 corrette: 72 valide accettate, 108 non applicabili respinte |
+| Jev e deleghe | 96 decisioni dirette, 84 chiamate Kimi; nove HTTP 503 Jev recuperati dal tentativo previsto |
+| Criteri | Supporto: 113 corretti, 16 non valutati; preservazione 93/93; nessun nuovo incarico 120/120; utilità 84/84 |
+| Kimi sul solo supporto | 35/36; un errore di formato, nessun verdetto semantico errato |
+| Volume | 20 giri, 11 proposte valide, quattro applicazioni e tre rifiuti |
+| Problemi nel volume | Otto errori tecnici e quattro selezioni non valide; una vera astensione |
+| Audit indipendente cieco | Quattro modifiche fedeli e utili; 29/29 fatti e tutti i vincoli preservati; entrambe le opportunità richieste raggiunte |
+| Stabilità finale | Un solo giro sano invariato; requisito di tre ancora non dimostrato |
+| Costo noto | Filtro $2,7777522 con nove costi ignoti; volume $1,450525494 con dieci costi ignoti |
 
-Nel volume ogni giro legge la copia risultante dal precedente. L'ultima applicazione è avvenuta al giro 19 e il giro 20 è terminato con HTTP 503: **la convergenza non è dimostrata**. La riscrittura invalida aveva 1.940 caratteri contro il massimo di 1.850. È stata scartata, senza tagliarla o applicarla parzialmente.
+L’errore source-only aveva un corretto controesempio ma due annotazioni `dateRole: "evento"` senza data. La V5 corregge soltanto questa interpretazione del parser, con una versione di validazione inclusa nell’hash della politica. La V4 originale mantiene `success:false`.
 
-La verifica offline delle ricevute e l'audit strutturale del volume V3 sono superati. La revisione semantica separata distingue cinque modifiche utili da tre cosmetiche e rileva entrambe le opportunità richieste soltanto parzialmente completate. Queste evidenze non soddisfano ancora il criterio di utilità ed esaurimento delle opportunità.
+Il **replay offline V5**, distinto da una nuova prova LLM, ricostruisce 180/180 cascate e 36/36 giudizi source-only. Verifica che 76 registri già validi (274 associazioni) restino identici e che l’unica nuova risposta utilizzabile conduca a `fail`, senza modificare il raw. Le 309 richieste Jev/Kimi sono identiche in URL, metodo, header con chiave fittizia, corpo e cache. Cambia soltanto il limite locale dell’AbortSignal Kimi; nessuna delle 120 chiamate Kimi V4 aveva superato 33,264 secondi. Il replay non effettua chiamate né aggiunge costi, non riscrive le ricevute originali e non prova il comportamento di future risposte più lente.
 
-Le verifiche operative V3 già concluse sono evidenze storiche: 156 test automatici superati, 15 inizialmente saltati per configurazioni specifiche e sei successive verifiche del writer/pipeline superate su PostgreSQL isolato; TypeScript, lint, migrazioni e build superati. Anche la prova locale del workflow compilato con arresto dopo il commit e ripresa è riuscita con provider simulati, una sola scrittura e due revisioni complessive. Il bootstrap della coda era esplicito: non costituisce prova del recupero su Vercel World, né validazione operativa della V4.
+Nel volume V4, i selettori non validi contenevano ID reali e ordinati ma saltavano segmenti intermedi: il contratto V5 per estremi elimina quella possibilità. Due riscritture erano troncate al limite di 16.384 token: la V5 mantiene `high` e aumenta lo spazio di output. Un timeout Kimi motiva il limite locale più lungo. Giudizi, numero di chiamate, soglie e criteri di qualità restano immutati.
 
-## Modifiche e verifica previste per V4
+## Verifiche della configurazione finale
 
-La V4 precisa a Kimi che la rimozione del diario ripetitivo non autorizza a eliminare osservazioni distinte per data, fonte o ambito, anche quando i valori coincidono. Si possono compattare soltanto mantenendo le associazioni originali. Restano invariati modelli, domande e bande Jev, numero di chiamate Kimi e controlli di integrità. Il generatore può ora selezionare fino a otto segmenti consecutivi entro 8.000 caratteri, così da includere due blocchi completi anche quando contengono aggregazioni precedenti. Raggruppa ciascun fatto condiviso conservando le sue osservazioni specifiche per data e fonte; si astiene se non esiste un beneficio ulteriore fedele.
+- 170 test automatici superati, 15 inizialmente saltati per configurazioni specifiche; sei verifiche writer/pipeline poi superate su PostgreSQL isolato.
+- TypeScript, controllo Biome dei file cambiati e build Webpack superati.
+- Workflow compilato verificato con provider simulati: arresto dopo il commit, riavvio, nessuna doppia scrittura; consolidamento, embedding ed export completati. È una prova del motore locale con bootstrap esplicito, non del recupero su Vercel World.
+- V5 sequenziale: protocollo e codice congelati, prova in corso. Tre anteprime su snapshot aggiornati ancora da completare.
 
-Quando è selezionato il criterio di miglioramento, Kimi deve confrontare il diff attuale e indicare un breve riscontro prima/dopo nella motivazione già prevista. Non deve attribuire alla modifica aggregazioni già presenti, né approvare spostamenti di punti elenco, titoli o sinonimi che lasciano intatte le informazioni duplicate. Non è richiesta una percentuale minima di compressione; risposte documentate, correzioni e relazioni utili restano benefici ammessi dalla rubrica. Schema della risposta e numero di chiamate non cambiano.
+Il volume usa copie sequenziali: ogni giro legge il risultato precedente. Stabilità significa tre giri finali consecutivi senza modifiche, errori, selezioni invalide o budget esaurito, dopo il raggiungimento delle opportunità. Un nuovo subagent prepara e sigilla i riferimenti prima di vedere gli output; giudica ciascun diff rispetto al suo before effettivo e sigilla l’audit prima di vedere i dati operativi.
 
-Il validatore del registro Kimi distingue ora le cause degli errori senza allentare i controlli. Il runner sperimentale può salvare, soltanto negli artefatti privati, il contenuto visibile di una risposta Kimi fallita e i metadati d'uso ammessi. Non salva prompt, headers o campi separati di ragionamento; non ritenta la chiamata e non altera l'esito.
+## Rilascio e ripristino
 
-La codifica compatta riguarda soltanto l'input di Jev. Le pagine complete `before` e `after` restano intatte; un duplicato della pagina bersaglio nelle evidenze può diventare un riferimento a `before.markdown`, mentre passaggi e citazioni duplicati nell'operazione possono diventare riferimenti al testo completo con intervalli in unità UTF-16. Ogni valore rimosso è ricostruibile esattamente. Le altre fonti e tutti i metadati restano identici; strutture incompatibili o nomi di riferimento già presenti impediscono la trasformazione interessata, e le collisioni dei nomi riservati annullano l'intera compattazione. Non si troncano testi né si selezionano fonti. Una sonda ha ridotto la richiesta da circa 70.000 a 46.000 caratteri ottenendo una risposta valida. La ricostruibilità è verificata offline; la sonda non dimostra equivalenza dei giudizi, qualità semantica o affidabilità del filtro. API di valutazione, domande e bande restano invariate e la nuova rappresentazione è inclusa negli hash della politica e del protocollo.
+Mantenere `preview` finché le verifiche finali non sono concluse. L’attivazione di `apply` richiede la decisione di rilascio; nessuna approvazione umana è richiesta per le singole proposte notturne. Prima del rilascio impostare esplicitamente il modello verificato: l’attuale variabile Production è sensibile e il suo valore non è leggibile via API.
 
-Il benchmark V4 comprende **60 casi globali × 3 ripetizioni = 180 cascate**, più **12 casi del solo supporto × 3 = 36 valutazioni Kimi**. Distingue 24 casi originali, 12 casi V1, 12 casi di regressione V3 e 12 nuovi casi tenuti separati dallo sviluppo. Input e risultati attesi restano separati; codice, rubriche, bande, fixture e revisioni sono vincolati dagli hash del protocollo. Il campione resta piccolo e correlato: non è una stima dell'affidabilità in produzione.
+`off` disabilita il consolidamento lasciando separate le altre fasi. La modalità viene acquisita all’avvio: una modifica di configurazione si applica al nuovo deployment e non annulla un workflow già preparato in `apply`. Per fermare un incidente occorre gestire anche il cron e i workflow attivi. Il vecchio deployment legacy ignora questa modalità: il rollback del codice, da solo, non disabilita il vecchio consolidatore.
 
-La preparazione delle fixture e il superamento dei test locali non equivalgono al superamento del benchmark. **Non è ancora riportato alcun risultato V4.** Sono necessarie le prove congelate della configurazione finale, la verifica delle opportunità di consolidamento e della fedeltà sul corpus, oltre alle verifiche operative e alle anteprime senza scritture.
-
-## Riproduzione e rilascio
-
-Solo `run` effettua chiamate ai modelli. Preparazione e verifica delle ricevute sono locali. Prima si ricostruiscono i 24 casi originali:
-
-```sh
-node --import tsx scripts/prepare-filter-contract.ts \
-  --output artifacts/consolidation/jev-kimi-fixed-v1
-```
-
-Il comando V4 usa gli stessi argomenti nelle tre modalità `prepare`, `run` e `verify`; sostituire soltanto il valore di `--mode`:
-
-```sh
-node --import tsx scripts/evaluate-consolidation-release.ts \
-  --mode prepare \
-  --review scripts/fixtures/consolidation-release-review-v1.json \
-  --regression scripts/fixtures/consolidation-release-v3.json \
-  --regression-review scripts/fixtures/consolidation-release-v3-review.json \
-  --heldout scripts/fixtures/consolidation-release-v4.json \
-  --heldout-review scripts/fixtures/consolidation-release-v4-independent-review.json \
-  --output artifacts/consolidation/release-v4/filter-validation
-```
-
-Il runner usa la stessa `evaluateCandidate` del runtime. Conserva ogni tentativo Jev, controlla il limite di $5 di costo noto prima di avviare un'altra chiamata e non ripete richieste avviate di cui manca l'esito. Le chiamate già in corso possono terminare oltre il limite; i costi ignoti restano tali. Cambiare il codice congelato richiede un nuovo esperimento, preservando i precedenti.
-
-**Mantenere `preview`; non attivare `apply` finché le verifiche della configurazione finale non dimostrano fedeltà e utilità.** `off` disabilita il consolidamento lasciando separate le altre fasi. La modalità è acquisita all'avvio: cambiarla non annulla un job già partito in `apply`.
-
-Il ripristino esplicito tramite `restoreConsolidationRevision` crea una nuova revisione dalla precedente senza cancellare la storia; anche questa operazione usa una chiave idempotente. Non è una richiesta di intervento umano generata dal processo notturno.
+`restoreConsolidationRevision` ripristina una revisione attraverso una nuova revisione e una chiave idempotente, senza cancellare la storia. Il ripristino non è un incarico generato dal processo notturno. Non sono richieste nuove migrazioni rispetto a main; il build esistente esegue comunque `db:migrate`, da verificare nel deployment finale.

@@ -20,6 +20,10 @@ export const KIMI_SOURCE_CHALLENGE_CONTRACT = {
   ].join("\n\n"),
 } as const;
 
+/** Local response validation only; never included in model instructions or schema. */
+export const KIMI_SOURCE_CHALLENGE_VALIDATION_VERSION =
+  "source-challenge-validation-v2-date-role-annotation";
+
 type Association = {
   fact: string;
   date: string;
@@ -196,9 +200,11 @@ export function validateSourceChallenge(
         return fail("source_challenge_counterexample_required");
       if (row.status !== "not_applicable" && !(row.fact as string).trim())
         return fail("source_challenge_fact_required");
+      // A role annotates a supplied date; without a date it has no chronological
+      // meaning. Retain the raw annotation, but never invent a date from it.
       if (
-        Boolean((row.date as string).trim()) !==
-        Boolean((row.dateRole as string).trim())
+        Boolean((row.date as string).trim()) &&
+        !Boolean((row.dateRole as string).trim())
       )
         return fail("source_challenge_date_role");
       if (

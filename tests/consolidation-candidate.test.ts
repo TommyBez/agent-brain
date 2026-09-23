@@ -137,7 +137,10 @@ test("candidate prepares a complete immutable snapshot, retains duplicate relati
         effort:
           request.response_format.type === "json_object" ? "high" : "none",
       });
-      assert.equal(request.max_tokens, 16_384);
+      assert.equal(
+        request.max_tokens,
+        request.response_format.type === "json_object" ? 32_768 : 16_384,
+      );
       if (request.response_format.type === "json_object") {
         return Response.json({
           choices: [
@@ -175,7 +178,8 @@ test("candidate prepares a complete immutable snapshot, retains duplicate relati
                 proposals: [
                   {
                     operation: proposal.operation,
-                    targetIds: [indexed[0].markdown[0].id],
+                    targetStartId: indexed[0].markdown[0].id,
+                    targetEndId: indexed[0].markdown[0].id,
                     reason: proposal.reason,
                     evidenceIds: [indexed[0].summary[0].id],
                   },
