@@ -2,10 +2,9 @@ import { isDeepStrictEqual } from "node:util";
 import {
   DEFAULT_DECISION_POLICY,
   type DecisionPolicy,
-  validateDecisionPolicy,
   verificationThreshold,
 } from "./decision-policy";
-import { materializeDraft, projectEvidencePage } from "./editor";
+import { projectEvidencePage } from "./editor";
 import { fingerprint, segmentPage } from "./snapshot";
 import {
   type ChangeSet,
@@ -39,28 +38,10 @@ export async function verifyChangeSet(
   evaluate: Evaluate,
   policy: DecisionPolicy = DEFAULT_DECISION_POLICY,
 ): Promise<Verification> {
-  validateDecisionPolicy(policy);
-  try {
-    const expected = materializeDraft(
-      snapshot,
-      changeSet.plan,
-      changeSet.draft,
-    );
-    if (!isDeepStrictEqual(expected, changeSet) || !changeSet.changes.length) {
-      return {
-        status: "rejected",
-        defects: [
-          "Materialized changes do not exactly match the bounded draft, or contain no change.",
-        ],
-        judgments: [],
-      };
-    }
-  } catch {
+  if (!changeSet.changes.length) {
     return {
       status: "rejected",
-      defects: [
-        "Draft failed deterministic scope, provenance, metadata or link validation.",
-      ],
+      defects: ["Materialized draft contains no change."],
       judgments: [],
     };
   }

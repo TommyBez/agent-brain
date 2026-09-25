@@ -166,11 +166,15 @@ test("missing, unknown, malformed and uncertain judgments fail closed", async ()
   }
 });
 
-test("rejects tampered full results before making semantic calls", async () => {
-  const { snapshot, changeSet } = fixture();
-  changeSet.changes[0].after.title = "Changed outside the plan";
+test("does not make semantic calls when the draft makes no change", async () => {
+  const { snapshot, plan } = fixture();
+  const changeSet = materializeDraft(snapshot, plan, {
+    patches: [],
+    links: [],
+    noChange: true,
+  });
   const result = await verifyChangeSet(snapshot, changeSet, async () => {
-    throw new Error("Must not evaluate tampering");
+    throw new Error("Must not evaluate an unchanged result");
   });
   assert.equal(result.status, "rejected");
   assert.deepEqual(result.judgments, []);

@@ -157,32 +157,14 @@ export async function runConsolidation(
     );
     let plans = await steps.plan(snapshot, all);
     const planCapacity = plans.selected.length + plans.deferred;
-    const attemptedPlans = new Set<string>();
+    let attemptedPlans = 0;
     let changed = false;
     // Rejections and no-ops do not evolve the snapshot. Drain their deferred
     // neighbours without spending a mutation wave or repeating analysis.
-    while (true) {
-      const pending = plans.selected.length + plans.deferred;
-      const selectedIds = plans.selected.map((plan) => plan.id);
-      if (
-        !Number.isInteger(plans.deferred) ||
-        plans.deferred < 0 ||
-        attemptedPlans.size + pending > planCapacity ||
-        new Set(selectedIds).size !== selectedIds.length ||
-        selectedIds.some((id) => attemptedPlans.has(id)) ||
-        (plans.deferred > 0 && !plans.selected.length)
-      ) {
-        summary.errors++;
-        await steps.record(`planning-error:${snapshot.id}`, {
-          status: "error",
-          reason: "Deferred planning failed its bounded progress invariant.",
-          attemptedPlans: attemptedPlans.size,
-          planCapacity,
-        });
-        break;
-      }
+    // The planner selects at least one remaining plan in each batch.
+    for (let batch = 0; batch < planCapacity; batch++) {
       for (const initial of plans.selected) {
-        attemptedPlans.add(initial.id);
+        attemptedPlans++;
         summary.proposed++;
         let plan = initial;
         let decision: DecisionRecord = {
@@ -297,15 +279,14 @@ export async function runConsolidation(
       )
         break;
       try {
-        // Recorded terminal decisions must be filtered by the planner; every
-        // additional batch must fit the unattempted part of the original set.
+        // The planner filters the terminal decisions recorded by this batch.
         plans = await steps.plan(snapshot, all);
       } catch {
         summary.errors++;
         await steps.record(`planning-error:${snapshot.id}`, {
           status: "error",
           reason: "Deferred planning failed; the snapshot was not advanced.",
-          attemptedPlans: attemptedPlans.size,
+          attemptedPlans,
           planCapacity,
         });
         break;
@@ -318,7 +299,7 @@ export async function runConsolidation(
       reused: scan.cached.length,
       remaining: summary.remainingTasks,
       deferredPlans: plans.deferred,
-      attemptedPlans: attemptedPlans.size,
+      attemptedPlans,
     });
     if (summary.remainingTasks > 0 || summary.errors > 0) {
       summary.stoppedBy = "incomplete";

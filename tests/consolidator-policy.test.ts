@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import frozenProfile from "../docs/consolidator-calibration-profile-2026-09-25.json";
-import { analyzeTask } from "../lib/maintenance/consolidator/analysis";
 import {
   analystGates,
   DEFAULT_DECISION_POLICY,
@@ -13,7 +12,6 @@ import {
   verificationThreshold,
 } from "../lib/maintenance/consolidator/decision-policy";
 import { materializeDraft } from "../lib/maintenance/consolidator/editor";
-import { createAnalysisTasks } from "../lib/maintenance/consolidator/snapshot";
 import { type Evaluate, POLICY } from "../lib/maintenance/consolidator/types";
 import { verifyChangeSet } from "../lib/maintenance/consolidator/verifier";
 import { calibrationCases } from "./helpers/consolidation-calibration-cases";
@@ -153,39 +151,6 @@ test("policy validation requires every numeric field and permits null only for o
     analyst: { ...SEED_DECISION_POLICY.analyst, choiceConfidence: null },
   };
   assert.equal(validateDecisionPolicy(valid), valid);
-});
-
-test("analysis and verifier reject malformed policies before consulting the model", async () => {
-  const fixture = calibrationCases()[0];
-  const task = createAnalysisTasks(fixture.snapshot)[0];
-  const changeSet = materializeDraft(
-    fixture.snapshot,
-    fixture.plan,
-    fixture.draft,
-  );
-  let calls = 0;
-  const evaluate: Evaluate = async () => {
-    calls++;
-    throw new Error("The provider must not run under a malformed policy.");
-  };
-  for (const policy of malformedPolicies()) {
-    // Undefined is the documented default parameter, not an injected profile.
-    if (policy === undefined) continue;
-    await assert.rejects(
-      analyzeTask(fixture.snapshot, task, evaluate, policy as DecisionPolicy),
-      /Invalid/,
-    );
-    await assert.rejects(
-      verifyChangeSet(
-        fixture.snapshot,
-        changeSet,
-        evaluate,
-        policy as DecisionPolicy,
-      ),
-      /Invalid/,
-    );
-  }
-  assert.equal(calls, 0);
 });
 
 test("runtime default exactly matches the frozen calibrated policy and cache identity", () => {

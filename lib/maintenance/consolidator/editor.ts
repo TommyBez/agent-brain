@@ -299,9 +299,8 @@ function validateReferences(
         invalid("undefined Markdown reference");
     }
   }
-  for (const page of afterPages) {
-    const before = snapshot.pages.find((original) => original.id === page.id);
-    if (!before) continue;
+  for (const [index, page] of afterPages.entries()) {
+    const before = snapshot.pages[index];
     for (const reference of references(`${page.markdown}\n${page.summary}`)) {
       if (
         localTarget(reference, before, snapshot.pages) &&
@@ -337,7 +336,7 @@ export function materializeDraft(
     invalid("empty change");
   const changes: ChangeSet["changes"] = [];
   const patchIds = new Set<string>();
-  for (const patch of draft.patches) {
+  const validatedPatches = draft.patches.map((patch) => {
     const unit = units.get(patch.unitId);
     if (
       !unit ||
@@ -356,7 +355,8 @@ export function materializeDraft(
       !patch.after.trim()
     )
       invalid("retained unit cannot be deleted at its final location");
-  }
+    return { patch, unit };
+  });
   const summaryPageIds = new Set<string>();
   for (const patch of summaryPatches) {
     if (
@@ -396,21 +396,16 @@ export function materializeDraft(
     linkKeys.add(key);
   }
   for (const id of plan.targetPageIds) {
-    const before = pages.get(id);
-    if (!before) invalid("missing target page");
-    const patches = draft.patches
-      .filter((patch) => patch.pageId === id)
-      .sort(
-        (a, b) =>
-          (units.get(b.unitId)?.start ?? 0) - (units.get(a.unitId)?.start ?? 0),
-      );
+    const before = pages.get(id) as BrainPage;
+    const patches = validatedPatches
+      .filter(({ patch }) => patch.pageId === id)
+      .sort((a, b) => b.unit.start - a.unit.start);
     const additions = draft.links.filter((link) => link.sourceId === id);
     if (!patches.length && !additions.length) continue;
     let markdown = before.markdown;
     let lastStart = markdown.length;
-    for (const patch of patches) {
-      const unit = units.get(patch.unitId);
-      if (!unit || unit.end > lastStart) invalid("overlapping patch ranges");
+    for (const { patch, unit } of patches) {
+      if (unit.end > lastStart) invalid("overlapping patch ranges");
       markdown =
         markdown.slice(0, unit.start) + patch.after + markdown.slice(unit.end);
       lastStart = unit.start;
@@ -442,19 +437,12 @@ export async function draftChanges(
   plan: OperationPlan,
   feedback: string[] = [],
 ): Promise<Draft> {
-  const { pages } = validatePlan(snapshot, plan);
+  validatePlan(snapshot, plan);
   if (plan.kind === "add_link" && plan.link) {
-    const exists = pages
-      .get(plan.link.sourceId)
-      ?.links.some(
-        (link) =>
-          link.targetId === plan.link?.targetId &&
-          link.type === plan.link?.type,
-      );
     return {
       patches: [],
-      links: exists ? [] : [{ ...plan.link, label: "" }],
-      noChange: Boolean(exists),
+      links: [{ ...plan.link, label: "" }],
+      noChange: false,
     };
   }
   const context = {

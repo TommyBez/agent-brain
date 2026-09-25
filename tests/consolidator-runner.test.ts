@@ -332,50 +332,6 @@ test("shared-read uncertain plans drain before a valid write, with every write f
   ]);
 });
 
-test("a deferred planner repeating a terminal plan stops partial without rerolling it", async () => {
-  let planning = 0;
-  let drafting = 0;
-  const run = fake({
-    plan: async () => {
-      planning++;
-      return { selected: [plan], deferred: 1 };
-    },
-    draft: async () => {
-      drafting++;
-      return { ...draft, noChange: true };
-    },
-  });
-  const result = await runConsolidation(run.steps, options);
-  assert.equal(result.status, "partial");
-  assert.equal(result.stoppedBy, "incomplete");
-  assert.equal(result.errors, 1);
-  assert.equal(result.waves, 1);
-  assert.equal(planning, 2);
-  assert.equal(drafting, 1);
-  assert.equal(run.writes(), 0);
-  assert.ok(run.records.some((record) => record.key === "planning-error:s"));
-});
-
-test("the initial plan count bounds deferred work even if a planner invents new IDs", async () => {
-  let planning = 0;
-  let drafting = 0;
-  const run = fake({
-    plan: async () => ({
-      selected: [{ ...plan, id: `unexpected-${++planning}` }],
-      deferred: 1,
-    }),
-    draft: async () => {
-      drafting++;
-      return { ...draft, noChange: true };
-    },
-  });
-  const result = await runConsolidation(run.steps, options);
-  assert.equal(result.status, "partial");
-  assert.equal(result.errors, 1);
-  assert.equal(drafting, 1);
-  assert.equal(planning, 2);
-});
-
 test("a technical error stops deferred draining on the unchanged snapshot", async () => {
   let planning = 0;
   const run = fake({

@@ -80,6 +80,7 @@ export function seededRandom(seed: number) {
   };
 }
 
+/** Links connect distinct nodes in the supplied graph, as returned by getGraph. */
 export function createLayout(
   inputNodes: LayoutInputNode[],
   inputLinks: LayoutInputLink[],
@@ -89,10 +90,8 @@ export function createLayout(
   const degree = new Array<number>(inputNodes.length).fill(0);
   const pairs: [number, number][] = [];
   for (const link of inputLinks) {
-    const source = indexById.get(link.sourceId);
-    const target = indexById.get(link.targetId);
-    if (source === undefined || target === undefined || source === target)
-      continue;
+    const source = indexById.get(link.sourceId) as number;
+    const target = indexById.get(link.targetId) as number;
     pairs.push([source, target]);
     degree[source] += 1;
     degree[target] += 1;

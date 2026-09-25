@@ -189,7 +189,7 @@ Il readback verifica che lo stato salvato corrisponda al risultato già valutato
 
 Dopo ogni ondata di modifiche, il workflow ricostruisce lo snapshot e riesamina documenti e coppie. L'identità dei task include l'intero snapshot: una terza pagina può contenere evidenze pertinenti anche senza link. Le singole richieste Jev con input esattamente invariato restano riutilizzabili. Questo può far emergere un collegamento o una duplicazione prima nascosti dalla frammentazione.
 
-Se un batch lascia lo snapshot invariato, il runner può elaborare sullo stesso stato le proposte rinviate per un conflitto soltanto potenziale. Il numero iniziale di proposte limita il ciclo e ogni batch deve avanzare senza ripetere un piano già tentato. Una scrittura, un conflitto o un errore interrompono questo svuotamento dei batch; scritture e conflitti richiedono un nuovo snapshot. Gli esiti senza modifiche non consumano inutilmente una nuova wave di analisi.
+Se un batch lascia lo snapshot invariato, il runner può elaborare sullo stesso stato le proposte rinviate per un conflitto soltanto potenziale. Il numero iniziale di proposte limita il numero di batch; il planner esclude le decisioni terminali già registrate e seleziona almeno un piano quando ne rimangono. Una scrittura, un conflitto o un errore interrompono questo svuotamento dei batch; scritture e conflitti richiedono un nuovo snapshot. Gli esiti senza modifiche non consumano inutilmente una nuova wave di analisi.
 
 Il workflow continua finché non ci sono interventi supportati nuovi. Un limite operativo interrompe con stato `partial`, lasciando una copertura precisa da riprendere; non produce un falso esito di corpus consolidato.
 

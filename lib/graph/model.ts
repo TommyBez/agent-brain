@@ -43,23 +43,16 @@ export function buildGraphModel(graph: {
   nodes: PageSummary[];
   links: BrainLink[];
 }): { nodes: GraphNode[]; edges: GraphEdge[] } {
-  const ids = new Set(graph.nodes.map((node) => node.id));
   const degree = new Map<string, number>();
   const lanes = new Map<string, number>();
   const edges: GraphEdge[] = [];
   for (const link of graph.links) {
-    if (
-      !ids.has(link.sourceId) ||
-      !ids.has(link.targetId) ||
-      link.sourceId === link.targetId
-    )
-      continue;
     degree.set(link.sourceId, (degree.get(link.sourceId) ?? 0) + 1);
     degree.set(link.targetId, (degree.get(link.targetId) ?? 0) + 1);
     const pair = [link.sourceId, link.targetId].sort().join("|");
     const lane = lanes.get(pair) ?? 0;
     lanes.set(pair, lane + 1);
-    const style = linkStyles[link.type] ?? { directed: true };
+    const style = linkStyles[link.type];
     edges.push({ ...link, ...style, lane });
   }
   const connected = graph.nodes.filter((node) => degree.has(node.id)).length;

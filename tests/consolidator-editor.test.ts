@@ -276,12 +276,6 @@ test("constructs only planned typed links without calling a provider", async (t)
       }),
     /unplanned link/,
   );
-  snapshot.pages[0].links = changeSet.changes[0].after.links;
-  assert.deepEqual(await draftChanges(snapshot, plan), {
-    patches: [],
-    links: [],
-    noChange: true,
-  });
 });
 
 test("DeepSeek receives strict JSON schema, complete scoped sources and no write tools", async (t) => {

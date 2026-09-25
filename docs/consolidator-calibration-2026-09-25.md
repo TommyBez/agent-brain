@@ -36,15 +36,19 @@ Evidenza salvata: [profilo](./consolidator-calibration-profile-2026-09-25.json),
 
 La prova con analyst Jev, editor DeepSeek V4.1 Flash, verifier Jev e writer in memoria elimina una ripetizione e aggiunge `works_at` verso l'azienda corretta, distinguendola dall'omonima. Conserva esattamente data, orario, eccezione dei festivi e fonte. Nessuna nuova domanda, attività umana o nota di manutenzione viene introdotta.
 
-La prova ha rilevato che le proposte rinviate consumavano nuove wave anche dopo un esito senza scritture. Il runner ora elabora quei batch sul medesimo snapshot, entro il numero iniziale di proposte e con un controllo di progresso. Una scrittura o un conflitto impongono ancora uno snapshot e un esame nuovi. Il limite delle wave e le aspettative della prova non sono stati aumentati o allentati.
+La prova ha rilevato che le proposte rinviate consumavano nuove wave anche dopo un esito senza scritture. Il runner ora elabora quei batch sul medesimo snapshot, con un ciclo limitato dal numero iniziale di proposte e il planner che esclude le decisioni terminali già registrate. Una scrittura o un conflitto impongono ancora uno snapshot e un esame nuovi. Il limite delle wave e le aspettative della prova non sono stati aumentati o allentati.
 
 Con gli stessi giudizi e la stessa bozza già prodotti dai modelli, il flusso finale converge in tre wave, applica due change set e completa un secondo run con zero scritture. Questa verifica della correzione del runner usa zero nuove chiamate ai modelli. Le scritture sono esclusivamente in memoria: questa prova non valida una distribuzione o il database di produzione.
 
 Dopo la rimozione della modalità preview, il replay delle stesse risposte conferma due scritture e un secondo run stabile con zero scritture, senza nuove chiamate ai modelli. Il runtime non espone più un selettore di modalità o una variabile di attivazione: i controlli applicabili autorizzano direttamente il writer.
 
-Controlli finali: `pnpm test` con 176 test passati, zero fallimenti e 14 test di integrazione/runtime non eseguiti per assenza del relativo ambiente; lint e TypeScript passati; `pnpm build` riuscita con **Turbopack**.
+La pulizia successiva elimina la seconda materializzazione del medesimo risultato, la rivalidazione interna delle soglie, i fallback su stati esclusi dal planner e il vecchio replay opzionale di `write`/`append`, ormai privo di chiamanti nel prodotto. I test di stati artificialmente malformati sono stati rimossi o riscritti sul contratto effettivo. I controlli sui dati dei provider, sulle patch e sulle versioni concorrenti restano attivi. Prompt, domande e soglie sono invariati; un nuovo replay con zero chiamate ai modelli conserva esattamente esiti, contatori e modifiche della prova precedente.
 
-La suite di persistenza del consolidatore è stata poi eseguita separatamente su PostgreSQL 17 con pgvector temporaneo e migrazioni native: 12 test passati, zero fallimenti e zero esclusioni. Verifica anche l'inizializzazione senza selettore di modalità e che un record storico di preview non impedisca l'applicazione. Il container è stato rimosso al termine.
+Il manifesto e i report JSON dell'esperimento restano congelati. Il loro fingerprint include l'intero sorgente, quindi identifica la versione precedente alla pulizia; il replay successivo verifica il comportamento della versione ripulita senza riscrivere le evidenze storiche.
+
+Controlli finali: `pnpm test` con 173 test passati, zero fallimenti e 13 test di integrazione/runtime non eseguiti per assenza del relativo ambiente; lint e TypeScript passati; `pnpm build` riuscita con **Turbopack**.
+
+Le suite di persistenza del consolidatore, scrittura delle pagine, paginazione del grafo e autenticazione sono state eseguite separatamente su PostgreSQL 17 con pgvector temporaneo e migrazioni native: 32 test passati, zero fallimenti e un test CIMD live non eseguito. La suite del consolidatore comprende i 12 controlli su inizializzazione, applicazione automatica, transazioni, versioni e ricevute. Il container è stato rimosso al termine.
 
 La seconda raccolta ha effettuato 144 richieste HTTP, di cui 43 fallite con `503` e poi recuperate; ha inoltre riusato 94 risposte identiche della calibrazione precedente. Le risposte semantiche riuscite non sono state ripetute. Richieste, errori e riusi del test del flusso sono contabilizzati separatamente nel report.
 

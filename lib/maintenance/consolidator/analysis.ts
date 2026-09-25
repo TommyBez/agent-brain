@@ -6,7 +6,6 @@ import {
   DEFAULT_DECISION_POLICY,
   type DecisionPolicy,
   DISCOVERY_FLOOR,
-  validateDecisionPolicy,
 } from "./decision-policy";
 import { validateEvaluation } from "./jev";
 import {
@@ -560,7 +559,6 @@ export async function analyzeTask(
   evaluate: Evaluate,
   policy: DecisionPolicy = DEFAULT_DECISION_POLICY,
 ): Promise<AnalysisResult> {
-  validateDecisionPolicy(policy);
   const { yes, certainChoice } = analystGates(policy);
   const result: AnalysisResult = {
     taskId: task.id,

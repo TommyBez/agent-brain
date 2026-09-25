@@ -136,7 +136,7 @@ export function KnowledgeGraph({
       return counts;
     }, {}),
   )
-    .map(([type, count]) => ({ type: type as LinkType, count: count ?? 0 }))
+    .map(([type, count]) => ({ type: type as LinkType, count }))
     .sort((a, b) => b.count - a.count);
   const unlinkedCount = model.nodes.filter((node) => node.isolated).length;
   const unlinkedVisibleCount = model.nodes.filter(

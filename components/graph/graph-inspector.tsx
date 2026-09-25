@@ -106,13 +106,13 @@ function Details({
   const nodeById = new Map(nodes.map((node) => [node.id, node]));
   const outgoing = edges.flatMap((edge) => {
     if (!edge.directed || edge.sourceId !== selected.id) return [];
-    const node = nodeById.get(edge.targetId);
-    return node ? [{ edge, node }] : [];
+    const node = nodeById.get(edge.targetId) as GraphNode;
+    return [{ edge, node }];
   });
   const incoming = edges.flatMap((edge) => {
     if (!edge.directed || edge.targetId !== selected.id) return [];
-    const node = nodeById.get(edge.sourceId);
-    return node ? [{ edge, node }] : [];
+    const node = nodeById.get(edge.sourceId) as GraphNode;
+    return [{ edge, node }];
   });
   // relates_to and collaborates_with have no direction; show them symmetrically.
   const linked = edges.flatMap((edge) => {
@@ -123,8 +123,9 @@ function Details({
         : edge.targetId === selected.id
           ? edge.sourceId
           : null;
-    const node = otherId ? nodeById.get(otherId) : undefined;
-    return node ? [{ edge, node }] : [];
+    if (!otherId) return [];
+    const node = nodeById.get(otherId) as GraphNode;
+    return [{ edge, node }];
   });
   const total = outgoing.length + incoming.length + linked.length;
   return (
