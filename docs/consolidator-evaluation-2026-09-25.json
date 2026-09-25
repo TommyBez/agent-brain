@@ -1,0 +1,695 @@
+{
+  "syntheticOnly": true,
+  "writesPerformed": false,
+  "fixtureSource": "tests/helpers/consolidation-fixtures.ts",
+  "interpretation": "Development observations, not a calibrated quality score. Unattempted and technical failures are separate from semantic outcomes. Current policy is nightly-consolidation-3; earlier runs have changed prompts or isolated stages.",
+  "runs": [
+    {
+      "sourceReport": "consolidator-synthetic-20260925-first.json",
+      "startedAt": "2026-09-25T16:09:10.081Z",
+      "policyVersion": "development-before-v3",
+      "mode": "end_to_end",
+      "elapsedMs": 2179,
+      "limits": {
+        "maxRequests": 60,
+        "timeoutSeconds": 240,
+        "oneOperationPerFixture": true,
+        "retries": 0,
+        "repairs": 0
+      },
+      "requestedCases": [
+        "duplicate",
+        "complementary",
+        "typed-link",
+        "correction",
+        "unresolved-conflict",
+        "no-op"
+      ],
+      "skippedCases": [
+        "typed-link",
+        "correction",
+        "unresolved-conflict",
+        "no-op"
+      ],
+      "totals": {
+        "requests": 5,
+        "inputTokens": 8076,
+        "outputTokens": 1069,
+        "unknownUsageRequests": 1
+      },
+      "cases": [
+        {
+          "id": "duplicate",
+          "description": "Duplicato esatto con data, eccezione e fonte da preservare.",
+          "expected": {
+            "kind": "deduplicate",
+            "preserve": ["3 febbraio 2026", "09:00", "esclusi i festivi", "R-7"]
+          },
+          "mode": "end_to_end",
+          "outcome": "unresolved",
+          "expectationMet": false,
+          "error": null,
+          "operationKinds": [],
+          "draft": null,
+          "verificationDefects": null,
+          "verificationAnswers": {}
+        },
+        {
+          "id": "complementary",
+          "description": "Sovrapposizione tra pagine con dettagli complementari da riunire senza perdita.",
+          "expected": {
+            "kind": "centralize",
+            "preserve": ["4.500", "30 novembre 2026", "Ada Sereni", "P-2"]
+          },
+          "mode": "end_to_end",
+          "outcome": "error",
+          "expectationMet": null,
+          "error": "gateway_http_503_retryable",
+          "operationKinds": [],
+          "draft": null,
+          "verificationDefects": null,
+          "verificationAnswers": {}
+        }
+      ],
+      "httpOutcomes": [
+        {
+          "caseId": "complementary",
+          "phase": "analysis",
+          "status": 503,
+          "error": null
+        }
+      ]
+    },
+    {
+      "sourceReport": "consolidator-synthetic-20260925-remaining.json",
+      "startedAt": "2026-09-25T16:09:57.400Z",
+      "policyVersion": "development-before-v3",
+      "mode": "end_to_end",
+      "elapsedMs": 8005,
+      "limits": {
+        "maxRequests": 40,
+        "timeoutSeconds": 180,
+        "oneOperationPerFixture": true,
+        "retries": 0,
+        "repairs": 0
+      },
+      "requestedCases": [
+        "typed-link",
+        "correction",
+        "unresolved-conflict",
+        "no-op"
+      ],
+      "skippedCases": ["unresolved-conflict", "no-op"],
+      "totals": {
+        "requests": 22,
+        "inputTokens": 28684,
+        "outputTokens": 2659,
+        "unknownUsageRequests": 1
+      },
+      "cases": [
+        {
+          "id": "typed-link",
+          "description": "Relazione works_at dalla persona all'organizzazione, nella direzione documentata.",
+          "expected": {
+            "kind": "add_link",
+            "linkType": "works_at",
+            "preserve": ["1 marzo 2026", "C-4"]
+          },
+          "mode": "end_to_end",
+          "outcome": "unresolved",
+          "expectationMet": false,
+          "error": null,
+          "operationKinds": [],
+          "draft": null,
+          "verificationDefects": null,
+          "verificationAnswers": {}
+        },
+        {
+          "id": "correction",
+          "description": "Correzione autorizzata da una fonte originale in una terza pagina senza link.",
+          "expected": {
+            "kind": "reconcile",
+            "preserve": ["4.500", "2026", "V-12"]
+          },
+          "mode": "end_to_end",
+          "outcome": "error",
+          "expectationMet": null,
+          "error": "gateway_http_503_retryable",
+          "operationKinds": [],
+          "draft": null,
+          "verificationDefects": null,
+          "verificationAnswers": {}
+        }
+      ],
+      "httpOutcomes": [
+        {
+          "caseId": "correction",
+          "phase": "analysis",
+          "status": 503,
+          "error": null
+        }
+      ]
+    },
+    {
+      "sourceReport": "consolidator-synthetic-20260925-final-cases.json",
+      "startedAt": "2026-09-25T16:10:14.386Z",
+      "policyVersion": "development-before-v3",
+      "mode": "end_to_end",
+      "elapsedMs": 4297,
+      "limits": {
+        "maxRequests": 20,
+        "timeoutSeconds": 120,
+        "oneOperationPerFixture": true,
+        "retries": 0,
+        "repairs": 0
+      },
+      "requestedCases": ["unresolved-conflict", "no-op"],
+      "skippedCases": [],
+      "totals": {
+        "requests": 9,
+        "inputTokens": 17118,
+        "outputTokens": 2068,
+        "unknownUsageRequests": 0
+      },
+      "cases": [
+        {
+          "id": "unresolved-conflict",
+          "description": "Fonti discordanti senza prova per scegliere una versione: nessuna correzione.",
+          "expected": {
+            "unresolved": true
+          },
+          "mode": "end_to_end",
+          "outcome": "unresolved",
+          "expectationMet": true,
+          "error": null,
+          "operationKinds": [],
+          "draft": null,
+          "verificationDefects": null,
+          "verificationAnswers": {}
+        },
+        {
+          "id": "no-op",
+          "description": "Una singola informazione coerente: nessun intervento.",
+          "expected": {},
+          "mode": "end_to_end",
+          "outcome": "no_change",
+          "expectationMet": true,
+          "error": null,
+          "operationKinds": [],
+          "draft": null,
+          "verificationDefects": null,
+          "verificationAnswers": {}
+        }
+      ],
+      "httpOutcomes": []
+    },
+    {
+      "sourceReport": "consolidator-synthetic-20260925-stages.json",
+      "startedAt": "2026-09-25T16:11:06.167Z",
+      "policyVersion": "development-before-v3",
+      "mode": "fixture_ground_truth_stages",
+      "elapsedMs": 8034,
+      "limits": {
+        "maxRequests": 10,
+        "timeoutSeconds": 120,
+        "oneOperationPerFixture": true,
+        "retries": 0,
+        "repairs": 0
+      },
+      "requestedCases": ["duplicate"],
+      "skippedCases": [],
+      "totals": {
+        "requests": 2,
+        "inputTokens": 1405,
+        "outputTokens": 583,
+        "unknownUsageRequests": 1
+      },
+      "cases": [
+        {
+          "id": "duplicate",
+          "description": "Duplicato esatto con data, eccezione e fonte da preservare.",
+          "expected": {
+            "kind": "deduplicate",
+            "preserve": ["3 febbraio 2026", "09:00", "esclusi i festivi", "R-7"]
+          },
+          "mode": "fixture_ground_truth_stages",
+          "outcome": "error",
+          "expectationMet": null,
+          "error": "gateway_http_503_retryable",
+          "operationKinds": ["deduplicate"],
+          "draft": {
+            "patches": [
+              {
+                "pageId": "fixture-duplicate",
+                "unitId": "fixture-duplicate:1:158:a00adc5d11f9",
+                "before": "Dal 3 febbraio 2026 il laboratorio fittizio Aurora apre alle 09:00 nei giorni feriali, esclusi i festivi. Fonte: regolamento Aurora R-7 del 20 gennaio 2026.",
+                "after": ""
+              }
+            ],
+            "links": [],
+            "noChange": false
+          },
+          "verificationDefects": null,
+          "verificationAnswers": {}
+        }
+      ],
+      "httpOutcomes": [
+        {
+          "caseId": "duplicate",
+          "phase": "verifier",
+          "status": 503,
+          "error": null
+        }
+      ]
+    },
+    {
+      "sourceReport": "consolidator-synthetic-20260925-context-v2.json",
+      "startedAt": "2026-09-25T16:13:29.522Z",
+      "policyVersion": "development-before-v3",
+      "mode": "end_to_end",
+      "elapsedMs": 9378,
+      "limits": {
+        "maxRequests": 35,
+        "timeoutSeconds": 180,
+        "oneOperationPerFixture": true,
+        "retries": 0,
+        "repairs": 0
+      },
+      "requestedCases": ["duplicate", "typed-link"],
+      "skippedCases": [],
+      "totals": {
+        "requests": 24,
+        "inputTokens": 46000,
+        "outputTokens": 4145,
+        "unknownUsageRequests": 0
+      },
+      "cases": [
+        {
+          "id": "duplicate",
+          "description": "Duplicato esatto con data, eccezione e fonte da preservare.",
+          "expected": {
+            "kind": "deduplicate",
+            "preserve": ["3 febbraio 2026", "09:00", "esclusi i festivi", "R-7"]
+          },
+          "mode": "end_to_end",
+          "outcome": "unresolved",
+          "expectationMet": false,
+          "error": null,
+          "operationKinds": [],
+          "draft": null,
+          "verificationDefects": null,
+          "verificationAnswers": {}
+        },
+        {
+          "id": "typed-link",
+          "description": "Relazione works_at dalla persona all'organizzazione, nella direzione documentata.",
+          "expected": {
+            "kind": "add_link",
+            "linkType": "works_at",
+            "preserve": ["1 marzo 2026", "C-4"]
+          },
+          "mode": "end_to_end",
+          "outcome": "uncertain",
+          "expectationMet": false,
+          "error": null,
+          "operationKinds": ["add_link"],
+          "draft": {
+            "patches": [],
+            "links": [
+              {
+                "sourceId": "fixture-link-person",
+                "targetId": "fixture-link-company",
+                "type": "works_at",
+                "label": ""
+              }
+            ],
+            "noChange": false
+          },
+          "verificationDefects": [
+            "Uncertain criterion: no_human_work.",
+            "Uncertain criterion: time:fixture-link-company:1:0:77408e34cb84.",
+            "Uncertain criterion: link:target_identity:fixture-link-person:fixture-link-company:works_at.",
+            "Uncertain criterion: link:relation:fixture-link-person:fixture-link-company:works_at."
+          ],
+          "verificationAnswers": {
+            "objective": {
+              "type": "boolean",
+              "probability": 0.91
+            },
+            "coherence": {
+              "type": "boolean",
+              "probability": 0.92
+            },
+            "no_human_work": {
+              "type": "boolean",
+              "probability": 0.86
+            },
+            "no_diary": {
+              "type": "boolean",
+              "probability": 0.93
+            },
+            "preservation_0": {
+              "type": "boolean",
+              "probability": 0.94
+            },
+            "preservation_1": {
+              "type": "boolean",
+              "probability": 0.93
+            },
+            "support_0": {
+              "type": "boolean",
+              "probability": 0.97
+            },
+            "provenance_0": {
+              "type": "boolean",
+              "probability": 0.95
+            },
+            "time_0": {
+              "type": "boolean",
+              "probability": 0.85
+            },
+            "scope_0": {
+              "type": "boolean",
+              "probability": 0.96
+            },
+            "conditions_0": {
+              "type": "boolean",
+              "probability": 0.96
+            },
+            "exceptions_0": {
+              "type": "boolean",
+              "probability": 0.95
+            },
+            "negations_0": {
+              "type": "boolean",
+              "probability": 0.95
+            },
+            "quantities_0": {
+              "type": "boolean",
+              "probability": 0.95
+            },
+            "certainty_0": {
+              "type": "boolean",
+              "probability": 0.96
+            },
+            "support_1": {
+              "type": "boolean",
+              "probability": 0.95
+            },
+            "provenance_1": {
+              "type": "boolean",
+              "probability": 0.95
+            },
+            "time_1": {
+              "type": "boolean",
+              "probability": 0.95
+            },
+            "scope_1": {
+              "type": "boolean",
+              "probability": 0.93
+            },
+            "conditions_1": {
+              "type": "boolean",
+              "probability": 0.93
+            },
+            "exceptions_1": {
+              "type": "boolean",
+              "probability": 0.94
+            },
+            "negations_1": {
+              "type": "boolean",
+              "probability": 0.95
+            },
+            "quantities_1": {
+              "type": "boolean",
+              "probability": 0.96
+            },
+            "certainty_1": {
+              "type": "boolean",
+              "probability": 0.93
+            },
+            "link_source_identity_0": {
+              "type": "boolean",
+              "probability": 0.92
+            },
+            "link_target_identity_0": {
+              "type": "boolean",
+              "probability": 0.89
+            },
+            "link_relation_0": {
+              "type": "boolean",
+              "probability": 0.87
+            },
+            "link_direction_0": {
+              "type": "boolean",
+              "probability": 0.94
+            }
+          }
+        }
+      ],
+      "httpOutcomes": []
+    },
+    {
+      "sourceReport": "consolidator-synthetic-20260925-final-v3.json",
+      "startedAt": "2026-09-25T16:17:35.597Z",
+      "policyVersion": "nightly-consolidation-3",
+      "mode": "end_to_end",
+      "elapsedMs": 24350,
+      "limits": {
+        "maxRequests": 60,
+        "timeoutSeconds": 240,
+        "oneOperationPerFixture": true,
+        "technicalRetriesPerRequest": 1,
+        "semanticRetries": 0,
+        "repairs": 0
+      },
+      "requestedCases": ["duplicate", "typed-link"],
+      "skippedCases": [],
+      "totals": {
+        "requests": 29,
+        "inputTokens": 49822,
+        "outputTokens": 5506,
+        "unknownUsageRequests": 1
+      },
+      "cases": [
+        {
+          "id": "duplicate",
+          "description": "Duplicato esatto con data, eccezione e fonte da preservare.",
+          "expected": {
+            "kind": "deduplicate",
+            "preserve": ["3 febbraio 2026", "09:00", "esclusi i festivi", "R-7"]
+          },
+          "mode": "end_to_end",
+          "outcome": "uncertain",
+          "expectationMet": false,
+          "error": null,
+          "operationKinds": ["deduplicate"],
+          "draft": {
+            "patches": [
+              {
+                "pageId": "fixture-duplicate",
+                "unitId": "fixture-duplicate:1:158:a00adc5d11f9",
+                "before": "Dal 3 febbraio 2026 il laboratorio fittizio Aurora apre alle 09:00 nei giorni feriali, esclusi i festivi. Fonte: regolamento Aurora R-7 del 20 gennaio 2026.",
+                "after": ""
+              }
+            ],
+            "links": [],
+            "noChange": false,
+            "summaryPatches": []
+          },
+          "verificationDefects": ["Uncertain criterion: objective."],
+          "verificationAnswers": {
+            "objective": {
+              "type": "boolean",
+              "probability": 0.89
+            },
+            "coherence": {
+              "type": "boolean",
+              "probability": 0.96
+            },
+            "no_human_work": {
+              "type": "boolean",
+              "probability": 0.93
+            },
+            "no_diary": {
+              "type": "boolean",
+              "probability": 0.95
+            },
+            "keeper": {
+              "type": "boolean",
+              "probability": 0.96
+            },
+            "preservation_0": {
+              "type": "boolean",
+              "probability": 0.94
+            },
+            "preservation_1": {
+              "type": "boolean",
+              "probability": 0.93
+            },
+            "support_0": {
+              "type": "boolean",
+              "probability": 0.94
+            },
+            "provenance_0": {
+              "type": "boolean",
+              "probability": 0.95
+            },
+            "time_0": {
+              "type": "boolean",
+              "probability": 0.92
+            },
+            "scope_0": {
+              "type": "boolean",
+              "probability": 0.91
+            },
+            "conditions_0": {
+              "type": "boolean",
+              "probability": 0.91
+            },
+            "exceptions_0": {
+              "type": "boolean",
+              "probability": 0.92
+            },
+            "negations_0": {
+              "type": "boolean",
+              "probability": 0.94
+            },
+            "quantities_0": {
+              "type": "boolean",
+              "probability": 0.95
+            },
+            "certainty_0": {
+              "type": "boolean",
+              "probability": 0.91
+            }
+          }
+        },
+        {
+          "id": "typed-link",
+          "description": "Relazione works_at dalla persona all'organizzazione, nella direzione documentata.",
+          "expected": {
+            "kind": "add_link",
+            "linkType": "works_at",
+            "preserve": ["1 marzo 2026", "C-4"]
+          },
+          "mode": "end_to_end",
+          "outcome": "uncertain",
+          "expectationMet": false,
+          "error": null,
+          "operationKinds": ["add_link"],
+          "draft": {
+            "patches": [],
+            "links": [
+              {
+                "sourceId": "fixture-link-person",
+                "targetId": "fixture-link-company",
+                "type": "works_at",
+                "label": ""
+              }
+            ],
+            "noChange": false
+          },
+          "verificationDefects": [
+            "Uncertain criterion: link:target_identity:fixture-link-person:fixture-link-company:works_at.",
+            "Uncertain criterion: link:relation:fixture-link-person:fixture-link-company:works_at."
+          ],
+          "verificationAnswers": {
+            "objective": {
+              "type": "boolean",
+              "probability": 0.92
+            },
+            "coherence": {
+              "type": "boolean",
+              "probability": 0.93
+            },
+            "link_source_identity_0": {
+              "type": "boolean",
+              "probability": 0.9
+            },
+            "link_target_identity_0": {
+              "type": "boolean",
+              "probability": 0.87
+            },
+            "link_relation_0": {
+              "type": "boolean",
+              "probability": 0.88
+            },
+            "link_direction_0": {
+              "type": "boolean",
+              "probability": 0.94
+            }
+          }
+        }
+      ],
+      "httpOutcomes": [
+        {
+          "caseId": "duplicate",
+          "phase": "verifier",
+          "status": 503,
+          "error": null
+        }
+      ]
+    },
+    {
+      "sourceReport": "consolidator-synthetic-20260925-final-v3-remaining.json",
+      "startedAt": "2026-09-25T16:18:45.876Z",
+      "policyVersion": "nightly-consolidation-3",
+      "mode": "end_to_end",
+      "elapsedMs": 2096,
+      "limits": {
+        "maxRequests": 80,
+        "timeoutSeconds": 240,
+        "oneOperationPerFixture": true,
+        "technicalRetriesPerRequest": 1,
+        "semanticRetries": 0,
+        "repairs": 0
+      },
+      "requestedCases": [
+        "complementary",
+        "correction",
+        "unresolved-conflict",
+        "no-op"
+      ],
+      "skippedCases": ["correction", "unresolved-conflict", "no-op"],
+      "totals": {
+        "requests": 3,
+        "inputTokens": 1051,
+        "outputTokens": 55,
+        "unknownUsageRequests": 2
+      },
+      "cases": [
+        {
+          "id": "complementary",
+          "description": "Sovrapposizione tra pagine con dettagli complementari da riunire senza perdita.",
+          "expected": {
+            "kind": "centralize",
+            "preserve": ["4.500", "30 novembre 2026", "Ada Sereni", "P-2"]
+          },
+          "mode": "end_to_end",
+          "outcome": "error",
+          "expectationMet": null,
+          "error": "gateway_http_503_retryable",
+          "operationKinds": [],
+          "draft": null,
+          "verificationDefects": null,
+          "verificationAnswers": {}
+        }
+      ],
+      "httpOutcomes": [
+        {
+          "caseId": "complementary",
+          "phase": "analysis",
+          "status": 503,
+          "error": null
+        },
+        {
+          "caseId": "complementary",
+          "phase": "analysis",
+          "status": 503,
+          "error": null
+        }
+      ]
+    }
+  ]
+}

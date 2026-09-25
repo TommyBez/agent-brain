@@ -15,6 +15,13 @@
       "when": 1789545066940,
       "tag": "0001_remove_retired_storage",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790351941760,
+      "tag": "0002_consolidation_records",
+      "breakpoints": true
     }
   ]
 }

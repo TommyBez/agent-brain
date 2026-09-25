@@ -1,0 +1,75 @@
+{
+  "protocol": "consolidator-calibration-1",
+  "corpusHash": "61f272b8b822549912cb35cac091f20819a0b12153ac6810a84092b606527a18",
+  "manifestHash": "e91a102383bf25c5d226ddc6c708466c541a822b98887bfadbd07a76491d8a18",
+  "calibrationReportHash": "c5d1ae52a263731715e44cec356c255c21e1404e606d1859fcc21630c11978e1",
+  "policy": {
+    "id": "consolidator-calibrated-4541df1d389a34d0",
+    "analyst": {
+      "yes": 0.8,
+      "no": 0.2,
+      "choiceProbability": 0.8,
+      "choiceConfidence": null
+    },
+    "verifier": {
+      "objective": 0.8,
+      "integrity": 0.65,
+      "link": 0.9,
+      "conduct": 0.8,
+      "reject": 0.1
+    }
+  },
+  "profileHash": "efa3768a0b74943dfbdc232c9b95adbe000f5ccb2177b59c37003655d7c84e4a",
+  "frozenAt": "2026-09-25T19:43:53.706Z",
+  "baselineSeedMetrics": {
+    "analyst": {
+      "total": 12,
+      "eligible": 12,
+      "errors": 0,
+      "structuralRejected": 0,
+      "trueAccept": 1,
+      "falseAccept": 0,
+      "missedPositive": 5,
+      "safeNegative": 6,
+      "uncertain": 9
+    },
+    "verifier": {
+      "total": 26,
+      "eligible": 26,
+      "errors": 0,
+      "structuralRejected": 0,
+      "trueAccept": 2,
+      "falseAccept": 0,
+      "missedPositive": 11,
+      "safeNegative": 13,
+      "uncertain": 14
+    }
+  },
+  "selection": {
+    "analyst": {
+      "total": 12,
+      "eligible": 12,
+      "errors": 0,
+      "structuralRejected": 0,
+      "trueAccept": 5,
+      "falseAccept": 0,
+      "missedPositive": 1,
+      "safeNegative": 6,
+      "uncertain": 6
+    },
+    "verifier": {
+      "total": 26,
+      "eligible": 26,
+      "errors": 0,
+      "structuralRejected": 0,
+      "trueAccept": 13,
+      "falseAccept": 0,
+      "missedPositive": 0,
+      "safeNegative": 13,
+      "uncertain": 3
+    },
+    "analystCandidates": 16,
+    "verifierCandidates": 4096,
+    "objective": "Fit calibration only. Independently maximize completely correct positive analyst cases and accepted valid edits, subject to zero false accepts. Analyst tie: no confidence gate, then higher probability threshold. Verifier tie: higher integrity, conduct, link, objective thresholds. Reject boundary fixed to seed, not calibrated."
+  }
+}

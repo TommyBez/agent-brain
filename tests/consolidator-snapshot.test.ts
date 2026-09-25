@@ -1,0 +1,141 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import type { BrainPage } from "../lib/brain/types";
+import {
+  buildSnapshot,
+  createAnalysisTasks,
+  segmentPage,
+} from "../lib/maintenance/consolidator/snapshot";
+import { POLICY } from "../lib/maintenance/consolidator/types";
+
+function page(id: string, markdown: string): BrainPage {
+  return {
+    id,
+    slug: id,
+    title: id,
+    type: "note",
+    summary: "",
+    aliases: [],
+    tags: [],
+    version: 1,
+    createdAt: "2026-09-25T00:00:00Z",
+    updatedAt: "2026-09-25T00:00:00Z",
+    embeddedAt: null,
+    markdown,
+    links: [],
+    backlinks: [],
+  };
+}
+
+test("segmentation preserves every source character, Unicode, fences and table headers", () => {
+  const markdown = `### Premessa\n\n${"Testo 🧠 con condizioni. ".repeat(240)}\n\n\`\`\`ts\n${"const esempio = 'test';\n".repeat(220)}\`\`\`\n\n| Data | Decisione |\n| --- | --- |\n${"| 2026-09-25 | Mantieni la fonte |\n".repeat(180)}`;
+  const units = segmentPage(page("a", markdown));
+  assert.equal(units.map((unit) => unit.text).join(""), markdown);
+  for (let index = 0; index < units.length; index++) {
+    const unit = units[index];
+    assert.equal(unit.start, index ? units[index - 1].end : 0);
+    assert.equal(unit.text, markdown.slice(unit.start, unit.end));
+    assert.ok(unit.text.length <= POLICY.maxUnitCharacters);
+    assert.ok(!/^[\uDC00-\uDFFF]/.test(unit.text));
+    assert.ok(unit.headings.every((heading) => typeof heading === "string"));
+  }
+  assert.ok(
+    units.some(
+      (unit) => unit.text.startsWith("const") && unit.context.includes("```ts"),
+    ),
+  );
+  assert.ok(
+    units.some(
+      (unit) =>
+        unit.text.startsWith("| 2026") &&
+        unit.context.includes("| Data | Decisione |"),
+    ),
+  );
+});
+
+test("every unit pair is covered, including distant windows within long pages", () => {
+  const snapshot = buildSnapshot([
+    page(
+      "a",
+      Array.from(
+        { length: 18 },
+        (_, i) => `${i}: ${"a".repeat(2200)}\n\n`,
+      ).join(""),
+    ),
+    page("b", "Testo distinto."),
+    page("c", "Altra pagina."),
+  ]);
+  const tasks = createAnalysisTasks(snapshot);
+  for (let i = 0; i < snapshot.units.length; i++) {
+    assert.ok(
+      tasks.some((task) => task.unitIds.includes(snapshot.units[i].id)),
+    );
+    for (let j = i + 1; j < snapshot.units.length; j++) {
+      assert.ok(
+        tasks.some(
+          (task) =>
+            task.unitIds.includes(snapshot.units[i].id) &&
+            task.unitIds.includes(snapshot.units[j].id),
+        ),
+        `missing ${i},${j}`,
+      );
+    }
+  }
+  assert.equal(new Set(tasks.map((task) => task.id)).size, tasks.length);
+  assert.ok(
+    tasks.some((task) => task.kind === "pair" && task.pageIds.join() === "b,c"),
+  );
+});
+
+test("skipped heading levels preserve scope without treating siblings as parents", () => {
+  const units = segmentPage(
+    page(
+      "a",
+      "### Primo\n\nUno.\n\n### Secondo\n\nDue.\n\n# Radice\n\n### Figlio\n\nTre.\n\n## Fratello\n\nQuattro.",
+    ),
+  );
+  assert.deepEqual(units.find((unit) => unit.text.includes("Due."))?.headings, [
+    "Secondo",
+  ]);
+  assert.deepEqual(units.find((unit) => unit.text.includes("Tre."))?.headings, [
+    "Radice",
+    "Figlio",
+  ]);
+  assert.deepEqual(
+    units.find((unit) => unit.text.includes("Quattro."))?.headings,
+    ["Radice", "Fratello"],
+  );
+});
+
+test("snapshot identity ignores read ordering and new wall-clock timestamps but protects expanded evidence", () => {
+  const a = page("a", "Primo.");
+  const b = page("b", "Secondo.");
+  const c = page("c", "Fonte originale.");
+  const first = buildSnapshot([a, b, c], "2026-09-25");
+  assert.equal(first.id, buildSnapshot([c, b, a], "2026-09-26").id);
+  const second = buildSnapshot([
+    a,
+    b,
+    { ...c, version: 2, markdown: "Fonte corretta." },
+  ]);
+  const pairId = (snapshot: typeof first) =>
+    createAnalysisTasks(snapshot).find((task) => task.pageIds.join() === "a,b")
+      ?.id;
+  assert.notEqual(pairId(first), pairId(second));
+  assert.equal(a.markdown, "Primo.");
+});
+
+test("embedding completion does not invalidate unchanged evidence and judgments", () => {
+  const original = page("a", "Informazione invariata.");
+  const first = buildSnapshot([original]);
+  const indexed = buildSnapshot([
+    { ...original, embeddedAt: "2026-09-25T23:00:00Z" },
+  ]);
+  assert.equal(indexed.id, first.id);
+  assert.deepEqual(createAnalysisTasks(indexed), createAnalysisTasks(first));
+  assert.notEqual(
+    buildSnapshot([{ ...original, summary: "Riassunto diverso.", version: 2 }])
+      .id,
+    first.id,
+  );
+});

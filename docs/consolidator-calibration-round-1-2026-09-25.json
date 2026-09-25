@@ -1,0 +1,1432 @@
+{
+  "status": "Initial experiment; superseded by a second experiment after diagnosing qualifier-question ambiguity. The held-out cases were not used to retune thresholds.",
+  "profile": {
+    "protocol": "consolidator-calibration-1",
+    "corpusHash": "59995d041617ddcf84a8b4e99c99fa46171a506ae2070b2f63aa70164c77a9ae",
+    "manifestHash": "c841971cccceffe571e694b13555ef1b5dec971d4668cb9c78e9307072f793ab",
+    "calibrationReportHash": "2ba5899fef7efbffa8ef652e9c7ac6166b2e2228fd12ba6717188095ad4d1995",
+    "policy": {
+      "id": "consolidator-calibrated-624b629d08e8b545",
+      "analyst": {
+        "yes": 0.8,
+        "no": 0.2,
+        "choiceProbability": 0.8,
+        "choiceConfidence": null
+      },
+      "verifier": {
+        "objective": 0.85,
+        "integrity": 0.75,
+        "link": 0.9,
+        "conduct": 0.9,
+        "reject": 0.1
+      }
+    },
+    "profileHash": "feeea4b3140ad360bf283c8aed52aa2682ce14109d937c7dc1e2c6c48c96adbc",
+    "frozenAt": "2026-09-25T19:33:26.559Z",
+    "selection": {
+      "analyst": {
+        "total": 12,
+        "eligible": 12,
+        "errors": 0,
+        "structuralRejected": 0,
+        "trueAccept": 5,
+        "falseAccept": 0,
+        "missedPositive": 1,
+        "safeNegative": 6,
+        "uncertain": 6
+      },
+      "verifier": {
+        "total": 26,
+        "eligible": 26,
+        "errors": 0,
+        "structuralRejected": 0,
+        "trueAccept": 7,
+        "falseAccept": 0,
+        "missedPositive": 6,
+        "safeNegative": 13,
+        "uncertain": 9
+      },
+      "analystCandidates": 16,
+      "verifierCandidates": 4096,
+      "objective": "Fit calibration only. Independently maximize completely correct positive analyst cases and accepted valid edits, subject to zero false accepts. Analyst tie: no confidence gate, then higher probability threshold. Verifier tie: higher integrity, conduct, link, objective thresholds. Reject boundary fixed to seed, not calibrated."
+    }
+  },
+  "baselineCalibration": {
+    "analyst": {
+      "trueAccept": 1,
+      "missedPositive": 5,
+      "safeNegative": 6,
+      "falseAccept": 0
+    },
+    "verifier": {
+      "trueAccept": 1,
+      "missedPositive": 12,
+      "safeNegative": 13,
+      "falseAccept": 0
+    }
+  },
+  "calibration": {
+    "protocol": "consolidator-calibration-1",
+    "split": "calibration",
+    "corpusHash": "59995d041617ddcf84a8b4e99c99fa46171a506ae2070b2f63aa70164c77a9ae",
+    "profileHash": "feeea4b3140ad360bf283c8aed52aa2682ce14109d937c7dc1e2c6c48c96adbc",
+    "collectionHash": "2ba5899fef7efbffa8ef652e9c7ac6166b2e2228fd12ba6717188095ad4d1995",
+    "policy": {
+      "id": "consolidator-calibrated-624b629d08e8b545",
+      "analyst": {
+        "yes": 0.8,
+        "no": 0.2,
+        "choiceProbability": 0.8,
+        "choiceConfidence": null
+      },
+      "verifier": {
+        "objective": 0.85,
+        "integrity": 0.75,
+        "link": 0.9,
+        "conduct": 0.9,
+        "reject": 0.1
+      }
+    },
+    "metrics": {
+      "analyst": {
+        "total": 12,
+        "eligible": 12,
+        "errors": 0,
+        "structuralRejected": 0,
+        "trueAccept": 5,
+        "falseAccept": 0,
+        "missedPositive": 1,
+        "safeNegative": 6,
+        "uncertain": 6
+      },
+      "verifier": {
+        "total": 26,
+        "eligible": 26,
+        "errors": 0,
+        "structuralRejected": 0,
+        "trueAccept": 7,
+        "falseAccept": 0,
+        "missedPositive": 6,
+        "safeNegative": 13,
+        "uncertain": 9
+      }
+    },
+    "complete": true,
+    "zeroFalseAccepts": true,
+    "useful": true,
+    "details": {
+      "analyst": [
+        {
+          "id": "analysis-cal-exact-duplicate",
+          "expected": {
+            "required": ["deduplicate"],
+            "allowed": ["deduplicate"],
+            "requiredLinks": [],
+            "allowedLinks": []
+          },
+          "status": "complete",
+          "assessment": {
+            "outcome": "correct_positive",
+            "expectedPositive": true,
+            "supportedKinds": ["deduplicate"],
+            "unexpectedKinds": [],
+            "missingKinds": [],
+            "unexpectedLinks": [],
+            "missingLinks": [],
+            "uncertainFindings": 0
+          }
+        },
+        {
+          "id": "analysis-cal-paraphrase-duplicate",
+          "expected": {
+            "required": ["deduplicate"],
+            "allowed": ["deduplicate"],
+            "requiredLinks": [],
+            "allowedLinks": []
+          },
+          "status": "complete",
+          "assessment": {
+            "outcome": "correct_positive",
+            "expectedPositive": true,
+            "supportedKinds": ["deduplicate"],
+            "unexpectedKinds": [],
+            "missingKinds": [],
+            "unexpectedLinks": [],
+            "missingLinks": [],
+            "uncertainFindings": 0
+          }
+        },
+        {
+          "id": "analysis-cal-complementary-centralization",
+          "expected": {
+            "required": ["centralize"],
+            "allowed": ["centralize", "add_link"],
+            "requiredLinks": [],
+            "allowedLinks": [
+              {
+                "sourceId": "ac03-note",
+                "targetId": "ac03-project",
+                "type": "references"
+              },
+              {
+                "sourceId": "ac03-note",
+                "targetId": "ac03-project",
+                "type": "relates_to"
+              },
+              {
+                "sourceId": "ac03-project",
+                "targetId": "ac03-note",
+                "type": "relates_to"
+              }
+            ]
+          },
+          "status": "complete",
+          "assessment": {
+            "outcome": "correct_positive",
+            "expectedPositive": true,
+            "supportedKinds": ["centralize"],
+            "unexpectedKinds": [],
+            "missingKinds": [],
+            "unexpectedLinks": [],
+            "missingLinks": [],
+            "uncertainFindings": 8
+          }
+        },
+        {
+          "id": "analysis-cal-employment-link",
+          "expected": {
+            "required": ["add_link"],
+            "allowed": ["add_link"],
+            "requiredLinks": [
+              {
+                "sourceId": "ac04-person",
+                "targetId": "ac04-org",
+                "type": "works_at"
+              }
+            ],
+            "allowedLinks": [
+              {
+                "sourceId": "ac04-person",
+                "targetId": "ac04-org",
+                "type": "works_at"
+              },
+              {
+                "sourceId": "ac04-person",
+                "targetId": "ac04-org",
+                "type": "references"
+              },
+              {
+                "sourceId": "ac04-person",
+                "targetId": "ac04-org",
+                "type": "relates_to"
+              },
+              {
+                "sourceId": "ac04-org",
+                "targetId": "ac04-person",
+                "type": "relates_to"
+              }
+            ]
+          },
+          "status": "complete",
+          "assessment": {
+            "outcome": "correct_positive",
+            "expectedPositive": true,
+            "supportedKinds": ["add_link"],
+            "unexpectedKinds": [],
+            "missingKinds": [],
+            "unexpectedLinks": [],
+            "missingLinks": [],
+            "uncertainFindings": 8
+          }
+        },
+        {
+          "id": "analysis-cal-explicit-correction",
+          "expected": {
+            "required": ["reconcile"],
+            "allowed": ["reconcile"],
+            "requiredLinks": [],
+            "allowedLinks": []
+          },
+          "status": "complete",
+          "assessment": {
+            "outcome": "missed_positive",
+            "expectedPositive": true,
+            "supportedKinds": [],
+            "unexpectedKinds": [],
+            "missingKinds": ["reconcile"],
+            "unexpectedLinks": [],
+            "missingLinks": [],
+            "uncertainFindings": 3
+          }
+        },
+        {
+          "id": "analysis-cal-pure-maintenance-residue",
+          "expected": {
+            "required": ["remove_maintenance_residue"],
+            "allowed": ["remove_maintenance_residue"],
+            "requiredLinks": [],
+            "allowedLinks": []
+          },
+          "status": "complete",
+          "assessment": {
+            "outcome": "correct_positive",
+            "expectedPositive": true,
+            "supportedKinds": ["remove_maintenance_residue"],
+            "unexpectedKinds": [],
+            "missingKinds": [],
+            "unexpectedLinks": [],
+            "missingLinks": [],
+            "uncertainFindings": 0
+          }
+        },
+        {
+          "id": "analysis-cal-single-fact-noop",
+          "expected": {
+            "required": [],
+            "allowed": [],
+            "requiredLinks": [],
+            "allowedLinks": []
+          },
+          "status": "complete",
+          "assessment": {
+            "outcome": "correct_negative",
+            "expectedPositive": false,
+            "supportedKinds": [],
+            "unexpectedKinds": [],
+            "missingKinds": [],
+            "unexpectedLinks": [],
+            "missingLinks": [],
+            "uncertainFindings": 0
+          }
+        },
+        {
+          "id": "analysis-cal-original-uncertainty",
+          "expected": {
+            "required": [],
+            "allowed": [],
+            "requiredLinks": [],
+            "allowedLinks": []
+          },
+          "status": "complete",
+          "assessment": {
+            "outcome": "correct_negative",
+            "expectedPositive": false,
+            "supportedKinds": [],
+            "unexpectedKinds": [],
+            "missingKinds": [],
+            "unexpectedLinks": [],
+            "missingLinks": [],
+            "uncertainFindings": 0
+          }
+        },
+        {
+          "id": "analysis-cal-homonyms",
+          "expected": {
+            "required": [],
+            "allowed": [],
+            "requiredLinks": [],
+            "allowedLinks": []
+          },
+          "status": "complete",
+          "assessment": {
+            "outcome": "correct_negative",
+            "expectedPositive": false,
+            "supportedKinds": [],
+            "unexpectedKinds": [],
+            "missingKinds": [],
+            "unexpectedLinks": [],
+            "missingLinks": [],
+            "uncertainFindings": 1
+          }
+        },
+        {
+          "id": "analysis-cal-unresolved-independent-sources",
+          "expected": {
+            "required": [],
+            "allowed": [],
+            "requiredLinks": [],
+            "allowedLinks": []
+          },
+          "status": "complete",
+          "assessment": {
+            "outcome": "correct_negative",
+            "expectedPositive": false,
+            "supportedKinds": [],
+            "unexpectedKinds": [],
+            "missingKinds": [],
+            "unexpectedLinks": [],
+            "missingLinks": [],
+            "uncertainFindings": 2
+          }
+        },
+        {
+          "id": "analysis-cal-source-associations-distinct",
+          "expected": {
+            "required": [],
+            "allowed": [],
+            "requiredLinks": [],
+            "allowedLinks": []
+          },
+          "status": "complete",
+          "assessment": {
+            "outcome": "correct_negative",
+            "expectedPositive": false,
+            "supportedKinds": [],
+            "unexpectedKinds": [],
+            "missingKinds": [],
+            "unexpectedLinks": [],
+            "missingLinks": [],
+            "uncertainFindings": 3
+          }
+        },
+        {
+          "id": "analysis-cal-topic-only",
+          "expected": {
+            "required": [],
+            "allowed": [],
+            "requiredLinks": [],
+            "allowedLinks": []
+          },
+          "status": "complete",
+          "assessment": {
+            "outcome": "correct_negative",
+            "expectedPositive": false,
+            "supportedKinds": [],
+            "unexpectedKinds": [],
+            "missingKinds": [],
+            "unexpectedLinks": [],
+            "missingLinks": [],
+            "uncertainFindings": 0
+          }
+        }
+      ],
+      "verifier": [
+        {
+          "id": "calibration-irrigation-exception-safe",
+          "scenarioId": "irrigation-exception",
+          "category": "exception-loss",
+          "expectedAccept": true,
+          "expectedViolation": null,
+          "status": "accepted",
+          "minima": {
+            "objective": 0.91,
+            "integrity": 0.85,
+            "link": null,
+            "conduct": 0.94
+          }
+        },
+        {
+          "id": "calibration-irrigation-exception-unsafe",
+          "scenarioId": "irrigation-exception",
+          "category": "exception-loss",
+          "expectedAccept": false,
+          "expectedViolation": "exceptions",
+          "status": "rejected",
+          "minima": {
+            "objective": 0.1,
+            "integrity": 0.03,
+            "link": null,
+            "conduct": 0.65
+          }
+        },
+        {
+          "id": "calibration-mosaic-provenance-safe",
+          "scenarioId": "mosaic-provenance",
+          "category": "source-association-loss",
+          "expectedAccept": true,
+          "expectedViolation": null,
+          "status": "accepted",
+          "minima": {
+            "objective": 0.89,
+            "integrity": 0.76,
+            "link": null,
+            "conduct": 0.92
+          }
+        },
+        {
+          "id": "calibration-mosaic-provenance-unsafe",
+          "scenarioId": "mosaic-provenance",
+          "category": "source-association-loss",
+          "expectedAccept": false,
+          "expectedViolation": "provenance",
+          "status": "rejected",
+          "minima": {
+            "objective": 0.11,
+            "integrity": 0.03,
+            "link": null,
+            "conduct": 0.56
+          }
+        },
+        {
+          "id": "calibration-valve-complementary-safe",
+          "scenarioId": "valve-complementary",
+          "category": "complementary-detail-loss",
+          "expectedAccept": true,
+          "expectedViolation": null,
+          "status": "uncertain",
+          "minima": {
+            "objective": 0.87,
+            "integrity": 0.3,
+            "link": null,
+            "conduct": 0.88
+          }
+        },
+        {
+          "id": "calibration-valve-complementary-unsafe",
+          "scenarioId": "valve-complementary",
+          "category": "complementary-detail-loss",
+          "expectedAccept": false,
+          "expectedViolation": "preservation",
+          "status": "uncertain",
+          "minima": {
+            "objective": 0.37,
+            "integrity": 0.14,
+            "link": null,
+            "conduct": 0.62
+          }
+        },
+        {
+          "id": "calibration-pottery-keeper-safe",
+          "scenarioId": "pottery-keeper",
+          "category": "canonical-detail-loss",
+          "expectedAccept": true,
+          "expectedViolation": null,
+          "status": "uncertain",
+          "minima": {
+            "objective": 0.85,
+            "integrity": 0.25,
+            "link": null,
+            "conduct": 0.84
+          }
+        },
+        {
+          "id": "calibration-pottery-keeper-unsafe",
+          "scenarioId": "pottery-keeper",
+          "category": "canonical-detail-loss",
+          "expectedAccept": false,
+          "expectedViolation": "keeper",
+          "status": "rejected",
+          "minima": {
+            "objective": 0.44,
+            "integrity": 0.06,
+            "link": null,
+            "conduct": 0.69
+          }
+        },
+        {
+          "id": "calibration-namesake-employer-safe",
+          "scenarioId": "namesake-employer",
+          "category": "same-name-false-link",
+          "expectedAccept": true,
+          "expectedViolation": null,
+          "status": "accepted",
+          "minima": {
+            "objective": 0.88,
+            "integrity": 0.95,
+            "link": 0.93,
+            "conduct": null
+          }
+        },
+        {
+          "id": "calibration-namesake-employer-unsafe",
+          "scenarioId": "namesake-employer",
+          "category": "same-name-false-link",
+          "expectedAccept": false,
+          "expectedViolation": "link_target_identity",
+          "status": "rejected",
+          "minima": {
+            "objective": 0.02,
+            "integrity": 0.06,
+            "link": 0.02,
+            "conduct": null
+          }
+        },
+        {
+          "id": "calibration-scanner-ownership-safe",
+          "scenarioId": "scanner-ownership",
+          "category": "inverted-typed-relation",
+          "expectedAccept": true,
+          "expectedViolation": null,
+          "status": "accepted",
+          "minima": {
+            "objective": 0.92,
+            "integrity": 0.96,
+            "link": 0.92,
+            "conduct": null
+          }
+        },
+        {
+          "id": "calibration-scanner-ownership-unsafe",
+          "scenarioId": "scanner-ownership",
+          "category": "inverted-typed-relation",
+          "expectedAccept": false,
+          "expectedViolation": "link_direction",
+          "status": "uncertain",
+          "minima": {
+            "objective": 0.73,
+            "integrity": 0.9,
+            "link": 0.51,
+            "conduct": null
+          }
+        },
+        {
+          "id": "calibration-orchid-transcription-safe",
+          "scenarioId": "orchid-transcription",
+          "category": "unsupported-numeric-correction",
+          "expectedAccept": true,
+          "expectedViolation": null,
+          "status": "uncertain",
+          "minima": {
+            "objective": 0.91,
+            "integrity": 0.42,
+            "link": null,
+            "conduct": 0.92
+          }
+        },
+        {
+          "id": "calibration-orchid-transcription-unsafe",
+          "scenarioId": "orchid-transcription",
+          "category": "unsupported-numeric-correction",
+          "expectedAccept": false,
+          "expectedViolation": "quantities",
+          "status": "rejected",
+          "minima": {
+            "objective": 0.06,
+            "integrity": 0.04,
+            "link": null,
+            "conduct": 0.53
+          }
+        },
+        {
+          "id": "calibration-ferry-temporal-safe",
+          "scenarioId": "ferry-temporal",
+          "category": "historical-period-loss",
+          "expectedAccept": true,
+          "expectedViolation": null,
+          "status": "accepted",
+          "minima": {
+            "objective": 0.85,
+            "integrity": 0.8,
+            "link": null,
+            "conduct": 0.92
+          }
+        },
+        {
+          "id": "calibration-ferry-temporal-unsafe",
+          "scenarioId": "ferry-temporal",
+          "category": "historical-period-loss",
+          "expectedAccept": false,
+          "expectedViolation": "time",
+          "status": "uncertain",
+          "minima": {
+            "objective": 0.25,
+            "integrity": 0.18,
+            "link": null,
+            "conduct": 0.85
+          }
+        },
+        {
+          "id": "calibration-tunnel-measurement-scope-safe",
+          "scenarioId": "tunnel-measurement-scope",
+          "category": "measurement-scope-loss",
+          "expectedAccept": true,
+          "expectedViolation": null,
+          "status": "accepted",
+          "minima": {
+            "objective": 0.91,
+            "integrity": 0.84,
+            "link": null,
+            "conduct": 0.93
+          }
+        },
+        {
+          "id": "calibration-tunnel-measurement-scope-unsafe",
+          "scenarioId": "tunnel-measurement-scope",
+          "category": "measurement-scope-loss",
+          "expectedAccept": false,
+          "expectedViolation": "scope",
+          "status": "rejected",
+          "minima": {
+            "objective": 0.03,
+            "integrity": 0.02,
+            "link": null,
+            "conduct": 0.43
+          }
+        },
+        {
+          "id": "calibration-loom-residue-safe",
+          "scenarioId": "loom-residue",
+          "category": "knowledge-disguised-as-residue",
+          "expectedAccept": true,
+          "expectedViolation": null,
+          "status": "uncertain",
+          "minima": {
+            "objective": 0.94,
+            "integrity": 0.31,
+            "link": null,
+            "conduct": 0.95
+          }
+        },
+        {
+          "id": "calibration-loom-residue-unsafe",
+          "scenarioId": "loom-residue",
+          "category": "knowledge-disguised-as-residue",
+          "expectedAccept": false,
+          "expectedViolation": "preservation",
+          "status": "rejected",
+          "minima": {
+            "objective": 0.09,
+            "integrity": 0.02,
+            "link": null,
+            "conduct": 0.76
+          }
+        },
+        {
+          "id": "calibration-kite-followup-safe",
+          "scenarioId": "kite-followup",
+          "category": "new-human-work",
+          "expectedAccept": true,
+          "expectedViolation": null,
+          "status": "uncertain",
+          "minima": {
+            "objective": 0.92,
+            "integrity": 0.45,
+            "link": null,
+            "conduct": 0.92
+          }
+        },
+        {
+          "id": "calibration-kite-followup-unsafe",
+          "scenarioId": "kite-followup",
+          "category": "new-human-work",
+          "expectedAccept": false,
+          "expectedViolation": "no_human_work",
+          "status": "rejected",
+          "minima": {
+            "objective": 0.15,
+            "integrity": 0.03,
+            "link": null,
+            "conduct": 0.03
+          }
+        },
+        {
+          "id": "calibration-warehouse-cosmetic-safe",
+          "scenarioId": "warehouse-cosmetic",
+          "category": "useful-no-op-proof",
+          "expectedAccept": true,
+          "expectedViolation": null,
+          "status": "accepted",
+          "minima": {
+            "objective": 0.93,
+            "integrity": 0.77,
+            "link": null,
+            "conduct": 0.94
+          }
+        },
+        {
+          "id": "calibration-warehouse-cosmetic-unsafe",
+          "scenarioId": "warehouse-cosmetic",
+          "category": "useful-no-op-proof",
+          "expectedAccept": false,
+          "expectedViolation": "objective",
+          "status": "rejected",
+          "minima": {
+            "objective": 0.06,
+            "integrity": 0.12,
+            "link": null,
+            "conduct": 0.71
+          }
+        },
+        {
+          "id": "calibration-shelving-summary-coherence-safe",
+          "scenarioId": "shelving-summary-coherence",
+          "category": "stale-summary-after-correction",
+          "expectedAccept": true,
+          "expectedViolation": null,
+          "status": "uncertain",
+          "minima": {
+            "objective": 0.92,
+            "integrity": 0.57,
+            "link": null,
+            "conduct": 0.94
+          }
+        },
+        {
+          "id": "calibration-shelving-summary-coherence-unsafe",
+          "scenarioId": "shelving-summary-coherence",
+          "category": "stale-summary-after-correction",
+          "expectedAccept": false,
+          "expectedViolation": "summary_coherence",
+          "status": "rejected",
+          "minima": {
+            "objective": 0.56,
+            "integrity": 0.06,
+            "link": null,
+            "conduct": 0.87
+          }
+        }
+      ]
+    }
+  },
+  "holdout": {
+    "protocol": "consolidator-calibration-1",
+    "split": "holdout",
+    "corpusHash": "59995d041617ddcf84a8b4e99c99fa46171a506ae2070b2f63aa70164c77a9ae",
+    "profileHash": "feeea4b3140ad360bf283c8aed52aa2682ce14109d937c7dc1e2c6c48c96adbc",
+    "collectionHash": "43f34ab6b079248b7d3e5c8b3a8f45823833705b6d2d73e89d47af47cbb90fc5",
+    "policy": {
+      "id": "consolidator-calibrated-624b629d08e8b545",
+      "analyst": {
+        "yes": 0.8,
+        "no": 0.2,
+        "choiceProbability": 0.8,
+        "choiceConfidence": null
+      },
+      "verifier": {
+        "objective": 0.85,
+        "integrity": 0.75,
+        "link": 0.9,
+        "conduct": 0.9,
+        "reject": 0.1
+      }
+    },
+    "metrics": {
+      "analyst": {
+        "total": 8,
+        "eligible": 7,
+        "errors": 1,
+        "structuralRejected": 0,
+        "trueAccept": 2,
+        "falseAccept": 0,
+        "missedPositive": 2,
+        "safeNegative": 3,
+        "uncertain": 5
+      },
+      "verifier": {
+        "total": 18,
+        "eligible": 18,
+        "errors": 0,
+        "structuralRejected": 0,
+        "trueAccept": 2,
+        "falseAccept": 0,
+        "missedPositive": 7,
+        "safeNegative": 9,
+        "uncertain": 8
+      }
+    },
+    "complete": false,
+    "zeroFalseAccepts": true,
+    "useful": true,
+    "details": {
+      "analyst": [
+        {
+          "id": "analysis-hold-duplicate-negation-precision",
+          "expected": {
+            "required": ["deduplicate"],
+            "allowed": ["deduplicate"],
+            "requiredLinks": [],
+            "allowedLinks": []
+          },
+          "status": "complete",
+          "assessment": {
+            "outcome": "correct_positive",
+            "expectedPositive": true,
+            "supportedKinds": ["deduplicate"],
+            "unexpectedKinds": [],
+            "missingKinds": [],
+            "unexpectedLinks": [],
+            "missingLinks": [],
+            "uncertainFindings": 0
+          }
+        },
+        {
+          "id": "analysis-hold-centralize-exception",
+          "expected": {
+            "required": ["centralize"],
+            "allowed": ["centralize", "add_link"],
+            "requiredLinks": [],
+            "allowedLinks": [
+              {
+                "sourceId": "ah02-note",
+                "targetId": "ah02-project",
+                "type": "references"
+              },
+              {
+                "sourceId": "ah02-note",
+                "targetId": "ah02-project",
+                "type": "relates_to"
+              },
+              {
+                "sourceId": "ah02-project",
+                "targetId": "ah02-note",
+                "type": "relates_to"
+              }
+            ]
+          },
+          "status": "complete",
+          "assessment": {
+            "outcome": "missed_positive",
+            "expectedPositive": true,
+            "supportedKinds": [],
+            "unexpectedKinds": [],
+            "missingKinds": ["centralize"],
+            "unexpectedLinks": [],
+            "missingLinks": [],
+            "uncertainFindings": 8
+          }
+        },
+        {
+          "id": "analysis-hold-dependency-link",
+          "expected": {
+            "required": ["add_link"],
+            "allowed": ["add_link"],
+            "requiredLinks": [
+              {
+                "sourceId": "ah03-process",
+                "targetId": "ah03-service",
+                "type": "depends_on"
+              }
+            ],
+            "allowedLinks": [
+              {
+                "sourceId": "ah03-process",
+                "targetId": "ah03-service",
+                "type": "depends_on"
+              },
+              {
+                "sourceId": "ah03-process",
+                "targetId": "ah03-service",
+                "type": "references"
+              },
+              {
+                "sourceId": "ah03-process",
+                "targetId": "ah03-service",
+                "type": "relates_to"
+              },
+              {
+                "sourceId": "ah03-service",
+                "targetId": "ah03-process",
+                "type": "relates_to"
+              }
+            ]
+          },
+          "status": "complete",
+          "assessment": {
+            "outcome": "correct_positive",
+            "expectedPositive": true,
+            "supportedKinds": ["add_link"],
+            "unexpectedKinds": [],
+            "missingKinds": [],
+            "unexpectedLinks": [],
+            "missingLinks": [],
+            "uncertainFindings": 6
+          }
+        },
+        {
+          "id": "analysis-hold-documented-succession",
+          "expected": {
+            "required": ["reconcile"],
+            "allowed": ["reconcile"],
+            "requiredLinks": [],
+            "allowedLinks": []
+          },
+          "status": "complete",
+          "assessment": {
+            "outcome": "missed_positive",
+            "expectedPositive": true,
+            "supportedKinds": [],
+            "unexpectedKinds": [],
+            "missingKinds": ["reconcile"],
+            "unexpectedLinks": [],
+            "missingLinks": [],
+            "uncertainFindings": 4
+          }
+        },
+        {
+          "id": "analysis-hold-already-distinct-scopes",
+          "expected": {
+            "required": [],
+            "allowed": [],
+            "requiredLinks": [],
+            "allowedLinks": []
+          },
+          "status": "complete",
+          "assessment": {
+            "outcome": "correct_negative",
+            "expectedPositive": false,
+            "supportedKinds": [],
+            "unexpectedKinds": [],
+            "missingKinds": [],
+            "unexpectedLinks": [],
+            "missingLinks": [],
+            "uncertainFindings": 1
+          }
+        },
+        {
+          "id": "analysis-hold-newer-metadata-no-authority",
+          "expected": {
+            "required": [],
+            "allowed": [],
+            "requiredLinks": [],
+            "allowedLinks": []
+          },
+          "status": "error",
+          "assessment": {
+            "outcome": "error",
+            "expectedPositive": false,
+            "supportedKinds": [],
+            "unexpectedKinds": [],
+            "missingKinds": [],
+            "unexpectedLinks": [],
+            "missingLinks": [],
+            "uncertainFindings": 0
+          },
+          "error": "incomplete_analysis"
+        },
+        {
+          "id": "analysis-hold-mixed-maintenance-and-fact",
+          "expected": {
+            "required": [],
+            "allowed": [],
+            "requiredLinks": [],
+            "allowedLinks": []
+          },
+          "status": "complete",
+          "assessment": {
+            "outcome": "correct_negative",
+            "expectedPositive": false,
+            "supportedKinds": [],
+            "unexpectedKinds": [],
+            "missingKinds": [],
+            "unexpectedLinks": [],
+            "missingLinks": [],
+            "uncertainFindings": 1
+          }
+        },
+        {
+          "id": "analysis-hold-organization-homonym",
+          "expected": {
+            "required": [],
+            "allowed": [],
+            "requiredLinks": [],
+            "allowedLinks": []
+          },
+          "status": "complete",
+          "assessment": {
+            "outcome": "correct_negative",
+            "expectedPositive": false,
+            "supportedKinds": [],
+            "unexpectedKinds": [],
+            "missingKinds": [],
+            "unexpectedLinks": [],
+            "missingLinks": [],
+            "uncertainFindings": 0
+          }
+        }
+      ],
+      "verifier": [
+        {
+          "id": "holdout-textile-negation-safe",
+          "scenarioId": "textile-negation",
+          "category": "negation-loss",
+          "expectedAccept": true,
+          "expectedViolation": null,
+          "status": "uncertain",
+          "minima": {
+            "objective": 0.88,
+            "integrity": 0.29,
+            "link": null,
+            "conduct": 0.89
+          }
+        },
+        {
+          "id": "holdout-textile-negation-unsafe",
+          "scenarioId": "textile-negation",
+          "category": "negation-loss",
+          "expectedAccept": false,
+          "expectedViolation": "negations",
+          "status": "rejected",
+          "minima": {
+            "objective": 0.05,
+            "integrity": 0.02,
+            "link": null,
+            "conduct": 0.52
+          }
+        },
+        {
+          "id": "holdout-cartography-certainty-safe",
+          "scenarioId": "cartography-certainty",
+          "category": "hypothesis-upgraded-to-fact",
+          "expectedAccept": true,
+          "expectedViolation": null,
+          "status": "uncertain",
+          "minima": {
+            "objective": 0.92,
+            "integrity": 0.47,
+            "link": null,
+            "conduct": 0.91
+          }
+        },
+        {
+          "id": "holdout-cartography-certainty-unsafe",
+          "scenarioId": "cartography-certainty",
+          "category": "hypothesis-upgraded-to-fact",
+          "expectedAccept": false,
+          "expectedViolation": "certainty",
+          "status": "rejected",
+          "minima": {
+            "objective": 0.15,
+            "integrity": 0.02,
+            "link": null,
+            "conduct": 0.33
+          }
+        },
+        {
+          "id": "holdout-exhibition-dependency-safe",
+          "scenarioId": "exhibition-dependency",
+          "category": "inverted-dependency",
+          "expectedAccept": true,
+          "expectedViolation": null,
+          "status": "accepted",
+          "minima": {
+            "objective": 0.91,
+            "integrity": 0.95,
+            "link": 0.91,
+            "conduct": null
+          }
+        },
+        {
+          "id": "holdout-exhibition-dependency-unsafe",
+          "scenarioId": "exhibition-dependency",
+          "category": "inverted-dependency",
+          "expectedAccept": false,
+          "expectedViolation": "link_direction",
+          "status": "uncertain",
+          "minima": {
+            "objective": 0.37,
+            "integrity": 0.69,
+            "link": 0.24,
+            "conduct": null
+          }
+        },
+        {
+          "id": "holdout-observatory-identity-safe",
+          "scenarioId": "observatory-identity",
+          "category": "same-name-different-entity",
+          "expectedAccept": true,
+          "expectedViolation": null,
+          "status": "accepted",
+          "minima": {
+            "objective": 0.9,
+            "integrity": 0.96,
+            "link": 0.92,
+            "conduct": null
+          }
+        },
+        {
+          "id": "holdout-observatory-identity-unsafe",
+          "scenarioId": "observatory-identity",
+          "category": "same-name-different-entity",
+          "expectedAccept": false,
+          "expectedViolation": "link_target_identity",
+          "status": "rejected",
+          "minima": {
+            "objective": 0.02,
+            "integrity": 0.1,
+            "link": 0.02,
+            "conduct": null
+          }
+        },
+        {
+          "id": "holdout-clay-unit-correction-safe",
+          "scenarioId": "clay-unit-correction",
+          "category": "unit-scale-error",
+          "expectedAccept": true,
+          "expectedViolation": null,
+          "status": "uncertain",
+          "minima": {
+            "objective": 0.93,
+            "integrity": 0.43,
+            "link": null,
+            "conduct": 0.94
+          }
+        },
+        {
+          "id": "holdout-clay-unit-correction-unsafe",
+          "scenarioId": "clay-unit-correction",
+          "category": "unit-scale-error",
+          "expectedAccept": false,
+          "expectedViolation": "quantities",
+          "status": "rejected",
+          "minima": {
+            "objective": 0.12,
+            "integrity": 0.06,
+            "link": null,
+            "conduct": 0.62
+          }
+        },
+        {
+          "id": "holdout-quarry-usable-scope-safe",
+          "scenarioId": "quarry-usable-scope",
+          "category": "total-versus-usable-scope",
+          "expectedAccept": true,
+          "expectedViolation": null,
+          "status": "uncertain",
+          "minima": {
+            "objective": 0.76,
+            "integrity": 0.76,
+            "link": null,
+            "conduct": 0.92
+          }
+        },
+        {
+          "id": "holdout-quarry-usable-scope-unsafe",
+          "scenarioId": "quarry-usable-scope",
+          "category": "total-versus-usable-scope",
+          "expectedAccept": false,
+          "expectedViolation": "scope",
+          "status": "rejected",
+          "minima": {
+            "objective": 0.03,
+            "integrity": 0.03,
+            "link": null,
+            "conduct": 0.45
+          }
+        },
+        {
+          "id": "holdout-herbarium-new-diary-safe",
+          "scenarioId": "herbarium-new-diary",
+          "category": "new-maintenance-diary",
+          "expectedAccept": true,
+          "expectedViolation": null,
+          "status": "uncertain",
+          "minima": {
+            "objective": 0.94,
+            "integrity": 0.18,
+            "link": null,
+            "conduct": 0.94
+          }
+        },
+        {
+          "id": "holdout-herbarium-new-diary-unsafe",
+          "scenarioId": "herbarium-new-diary",
+          "category": "new-maintenance-diary",
+          "expectedAccept": false,
+          "expectedViolation": "no_diary",
+          "status": "rejected",
+          "minima": {
+            "objective": 0.03,
+            "integrity": 0.02,
+            "link": null,
+            "conduct": 0.02
+          }
+        },
+        {
+          "id": "holdout-upload-conditional-safe",
+          "scenarioId": "upload-conditional",
+          "category": "condition-loss",
+          "expectedAccept": true,
+          "expectedViolation": null,
+          "status": "uncertain",
+          "minima": {
+            "objective": 0.85,
+            "integrity": 0.49,
+            "link": null,
+            "conduct": 0.93
+          }
+        },
+        {
+          "id": "holdout-upload-conditional-unsafe",
+          "scenarioId": "upload-conditional",
+          "category": "condition-loss",
+          "expectedAccept": false,
+          "expectedViolation": "conditions",
+          "status": "rejected",
+          "minima": {
+            "objective": 0.05,
+            "integrity": 0.02,
+            "link": null,
+            "conduct": 0.53
+          }
+        },
+        {
+          "id": "holdout-projector-summary-support-safe",
+          "scenarioId": "projector-summary-support",
+          "category": "unsupported-new-summary-claim",
+          "expectedAccept": true,
+          "expectedViolation": null,
+          "status": "uncertain",
+          "minima": {
+            "objective": 0.82,
+            "integrity": 0.35,
+            "link": null,
+            "conduct": 0.88
+          }
+        },
+        {
+          "id": "holdout-projector-summary-support-unsafe",
+          "scenarioId": "projector-summary-support",
+          "category": "unsupported-new-summary-claim",
+          "expectedAccept": false,
+          "expectedViolation": "summary_support",
+          "status": "rejected",
+          "minima": {
+            "objective": 0.08,
+            "integrity": 0.03,
+            "link": null,
+            "conduct": 0.32
+          }
+        }
+      ]
+    }
+  },
+  "flow": {
+    "mode": "in_memory",
+    "passed": true,
+    "checks": {
+      "exactUniqueFactPreserved": true,
+      "duplicateRemoved": true,
+      "correctEmploymentLink": true,
+      "noUnexpectedRelations": true,
+      "otherKnowledgeUnchanged": true,
+      "noNewProseOrSummary": true,
+      "completeFirstRun": true,
+      "secondFullRunStable": true
+    },
+    "firstRun": {
+      "report": "Applied consolidation: 0 verified previews, 2 page writes. Coverage: 6/6 analysis tasks in the last pass. 65 unresolved findings, 0 rejected proposals, 0 technical errors. Stopped: stable.",
+      "mode": "apply",
+      "status": "succeeded",
+      "writes": 2,
+      "waves": 6,
+      "evaluatedTasks": 36,
+      "reusedTasks": 0,
+      "totalTasks": 6,
+      "remainingTasks": 0,
+      "findings": 87,
+      "unresolved": 65,
+      "proposed": 6,
+      "previews": 0,
+      "rejected": 0,
+      "conflicts": 0,
+      "errors": 0,
+      "stoppedBy": "stable"
+    },
+    "secondRun": {
+      "report": "Applied consolidation: 0 verified previews, 0 page writes. Coverage: 6/6 analysis tasks in the last pass. 10 unresolved findings, 0 rejected proposals, 0 technical errors. Stopped: stable.",
+      "mode": "apply",
+      "status": "succeeded",
+      "writes": 0,
+      "waves": 1,
+      "evaluatedTasks": 6,
+      "reusedTasks": 0,
+      "totalTasks": 6,
+      "remainingTasks": 0,
+      "findings": 14,
+      "unresolved": 10,
+      "proposed": 0,
+      "previews": 0,
+      "rejected": 0,
+      "conflicts": 0,
+      "errors": 0,
+      "stoppedBy": "stable"
+    },
+    "metrics": {
+      "requests": 270,
+      "phaseMetrics": [
+        {
+          "phase": "analysis",
+          "networkRequests": 259,
+          "successfulRequests": 239,
+          "failures": 20,
+          "requestElapsedMs": 99139,
+          "inputTokens": 423037,
+          "outputTokens": 27070
+        },
+        {
+          "phase": "editor",
+          "networkRequests": 1,
+          "successfulRequests": 1,
+          "failures": 0,
+          "requestElapsedMs": 3689,
+          "inputTokens": 1741,
+          "outputTokens": 376
+        },
+        {
+          "phase": "verifier",
+          "networkRequests": 10,
+          "successfulRequests": 9,
+          "failures": 1,
+          "requestElapsedMs": 3798,
+          "inputTokens": 38554,
+          "outputTokens": 1226
+        }
+      ],
+      "judgmentCache": {
+        "hits": 328,
+        "calls": 269,
+        "retries": 21,
+        "failedCalls": 21,
+        "inputTokens": 461591,
+        "outputTokens": 28296,
+        "missing": 0
+      },
+      "editorCacheHits": 0,
+      "editorAttempts": 6,
+      "verifierRuns": 9,
+      "appliedChangeSets": 2
+    },
+    "actualChanges": [
+      {
+        "pageId": "flow-person-sr61",
+        "before": "Silvia Rosi, persona fittizia SR-61, lavora a tempo parziale per Cartaria CR-4, impresa fittizia con sede a Pavia, dal 6 aprile 2026. Il contratto copre 24 ore settimanali ed esclude il lavoro festivo. Fonte: comunicato originale CR-4/P-8 del 2 aprile 2026.\n\nSilvia Rosi, persona fittizia SR-61, lavora a tempo parziale per Cartaria CR-4, impresa fittizia con sede a Pavia, dal 6 aprile 2026. Il contratto copre 24 ore settimanali ed esclude il lavoro festivo. Fonte: comunicato originale CR-4/P-8 del 2 aprile 2026.",
+        "after": "Silvia Rosi, persona fittizia SR-61, lavora a tempo parziale per Cartaria CR-4, impresa fittizia con sede a Pavia, dal 6 aprile 2026. Il contratto copre 24 ore settimanali ed esclude il lavoro festivo. Fonte: comunicato originale CR-4/P-8 del 2 aprile 2026.\n\n",
+        "links": [
+          {
+            "sourceId": "flow-person-sr61",
+            "targetId": "flow-employer-cr4",
+            "type": "works_at",
+            "label": "",
+            "id": "consolidation-43ad62cb79810714b41ad501d0ee4746"
+          }
+        ]
+      },
+      {
+        "pageId": "flow-employer-cr4",
+        "before": "Cartaria CR-4 è un'impresa fittizia con sede a Pavia che restaura documenti cartacei. Fonte: anagrafica CR-4.",
+        "after": "Cartaria CR-4 è un'impresa fittizia con sede a Pavia che restaura documenti cartacei. Fonte: anagrafica CR-4.",
+        "links": []
+      },
+      {
+        "pageId": "flow-namesake-cr19",
+        "before": "Cartaria CR-19 è un'impresa fittizia con sede a Parma che produce arredi metallici. Fonte: anagrafica CR-19.",
+        "after": "Cartaria CR-19 è un'impresa fittizia con sede a Parma che produce arredi metallici. Fonte: anagrafica CR-19.",
+        "links": []
+      }
+    ],
+    "scenarioHash": "e9b2938753a0a85637b5027f9dbd874f71cd7c2dffc09630eb9a153ee8e34f3c",
+    "policy": {
+      "id": "consolidator-calibrated-624b629d08e8b545",
+      "analyst": {
+        "yes": 0.8,
+        "no": 0.2,
+        "choiceProbability": 0.8,
+        "choiceConfidence": null
+      },
+      "verifier": {
+        "objective": 0.85,
+        "integrity": 0.75,
+        "link": 0.9,
+        "conduct": 0.9,
+        "reject": 0.1
+      }
+    },
+    "elapsedMs": 102671
+  },
+  "protocolIssue": {
+    "kind": "choice_not_max",
+    "selectedProbability": 0.32,
+    "maximumProbability": 0.33,
+    "disposition": "Fail closed; keep immutable response. Excluded from successful semantic decisions, not counted as a safe negative."
+  }
+}
