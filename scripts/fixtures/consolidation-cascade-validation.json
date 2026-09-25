@@ -1,0 +1,933 @@
+{
+  "families": [
+    {
+      "familyId": "N01",
+      "title": "Colle Chiaro — posizioni di ascolto",
+      "category": "osservazioni_e_qualificazioni",
+      "before": {
+        "title": "Colle Chiaro — posizioni di ascolto",
+        "type": "project",
+        "summary": "Due sessioni di ascolto radio, condizioni osservate e collocazione del ricevitore dopo gli incontri.",
+        "markdown": "# Colle Chiaro: posizioni di ascolto\n\nIl gruppo radioamatoriale Colle Chiaro raccoglie prove di ascolto per scegliere dove sistemare la stazione dimostrativa durante gli incontri fra soci. Questa pagina confronta due posizioni del ricevitore portatile, senza descrivere autorizzazioni di trasmissione o misure certificate di sensibilità.\n\nNel [taccuino di ascolto](/documents/cascade-n01-s1), Ada registra il 12 gennaio 2025 sette messaggi comprensibili su dieci dalla terrazza est. Il 19 gennaio 2025 Nico ne registra otto su dieci dalla terrazza ovest. Le prove usano la stessa antenna, ma si svolgono in giornate diverse e non misurano la superiorità generale di una posizione.\n\nIl ricevitore viene riposto dopo l’incontro nell’armadietto B del soppalco.\n\nLe schede separano messaggi comprensibili, incompleti e assenti: il totale di dieci include tutte e tre le categorie. Entrambi gli ascolti avvengono a ricevitore fermo, con alimentazione a batteria. Il taccuino non prova il funzionamento durante lo spostamento fra le terrazze.\n\n## Confronto trascritto per la riunione\n\nAda, il 12 gennaio, ascolta dalla terrazza est sette messaggi comprensibili su dieci. Nico, il 19 gennaio, dalla terrazza ovest ne ascolta otto su dieci. Sono giornate diverse con la stessa antenna: questi numeri non dimostrano che l’ovest sia sempre migliore.\n\nNon è noto come cambi l’ascolto quando piove; nessuna delle due giornate comprende pioggia. Questa incertezza riguarda entrambe le posizioni."
+      },
+      "evidence": {
+        "citations": [
+          {
+            "pageId": "cascade-n01-target",
+            "version": 4,
+            "quote": "Il gruppo radioamatoriale Colle Chiaro raccoglie prove di ascolto per scegliere dove sistemare la stazione dimostrativa durante gli incontri fra soci. Questa pagina confronta due posizioni del ricevitore portatile, senza descrivere autorizzazioni di trasmissione o misure certificate di sensibilità."
+          },
+          {
+            "pageId": "cascade-n01-s1",
+            "version": 2,
+            "quote": "Ada registra il 12 gennaio 2025 sette messaggi comprensibili su dieci dalla terrazza est."
+          },
+          {
+            "pageId": "cascade-n01-s1",
+            "version": 2,
+            "quote": "Nico registra il 19 gennaio 2025 otto messaggi comprensibili su dieci dalla terrazza ovest."
+          }
+        ],
+        "sources": [
+          {
+            "pageId": "cascade-n01-target",
+            "version": 4,
+            "title": "Colle Chiaro — posizioni di ascolto",
+            "summary": "Due sessioni di ascolto radio, condizioni osservate e collocazione del ricevitore dopo gli incontri.",
+            "markdown": "# Colle Chiaro: posizioni di ascolto\n\nIl gruppo radioamatoriale Colle Chiaro raccoglie prove di ascolto per scegliere dove sistemare la stazione dimostrativa durante gli incontri fra soci. Questa pagina confronta due posizioni del ricevitore portatile, senza descrivere autorizzazioni di trasmissione o misure certificate di sensibilità.\n\nNel [taccuino di ascolto](/documents/cascade-n01-s1), Ada registra il 12 gennaio 2025 sette messaggi comprensibili su dieci dalla terrazza est. Il 19 gennaio 2025 Nico ne registra otto su dieci dalla terrazza ovest. Le prove usano la stessa antenna, ma si svolgono in giornate diverse e non misurano la superiorità generale di una posizione.\n\nIl ricevitore viene riposto dopo l’incontro nell’armadietto B del soppalco.\n\nLe schede separano messaggi comprensibili, incompleti e assenti: il totale di dieci include tutte e tre le categorie. Entrambi gli ascolti avvengono a ricevitore fermo, con alimentazione a batteria. Il taccuino non prova il funzionamento durante lo spostamento fra le terrazze.\n\n## Confronto trascritto per la riunione\n\nAda, il 12 gennaio, ascolta dalla terrazza est sette messaggi comprensibili su dieci. Nico, il 19 gennaio, dalla terrazza ovest ne ascolta otto su dieci. Sono giornate diverse con la stessa antenna: questi numeri non dimostrano che l’ovest sia sempre migliore.\n\nNon è noto come cambi l’ascolto quando piove; nessuna delle due giornate comprende pioggia. Questa incertezza riguarda entrambe le posizioni."
+          },
+          {
+            "pageId": "cascade-n01-s1",
+            "version": 2,
+            "title": "Taccuino di ascolto di Colle Chiaro",
+            "markdown": "# Taccuino di ascolto di Colle Chiaro\n\nAda registra il 12 gennaio 2025 sette messaggi comprensibili su dieci dalla terrazza est. Il foglio è compilato durante un incontro dei soci con il ricevitore portatile alimentato a batteria. Le categorie usate sono comprensibile, incompleto e assente; anche i messaggi assenti entrano nel denominatore. La terrazza è asciutta e il ricevitore rimane appoggiato sul tavolo per tutta la sequenza.\n\nNico registra il 19 gennaio 2025 otto messaggi comprensibili su dieci dalla terrazza ovest. Per la seconda sessione viene riutilizzata la stessa antenna della prima. Anche in questo caso non piove e il ricevitore resta fermo. Il registro non documenta che le condizioni di propagazione siano uguali fra le due giornate, né assegna un punteggio generale alle terrazze.\n\nI due nomi identificano gli autori delle osservazioni, non persone incaricate di approvare una scelta definitiva. Ogni valore riguarda soltanto i dieci messaggi di quella sessione. Non vengono riportate prove durante lo spostamento del ricevitore, con alimentatore di rete o sotto la pioggia. La pagina conserva entrambi i risultati perché sono campioni distinti; nessuna nota dichiara che il secondo annulli il primo. Il confronto nasce per preparare una dimostrazione fra soci, senza attestare prestazioni certificate dell’apparecchio."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "variantId": "good_a",
+          "targetCriterion": null,
+          "after": {
+            "title": "Colle Chiaro — posizioni di ascolto",
+            "type": "project",
+            "summary": "Due sessioni di ascolto radio, condizioni osservate e collocazione del ricevitore dopo gli incontri.",
+            "markdown": "# Colle Chiaro: posizioni di ascolto\n\nIl gruppo radioamatoriale Colle Chiaro raccoglie prove di ascolto per scegliere dove sistemare la stazione dimostrativa durante gli incontri fra soci. Questa pagina confronta due posizioni del ricevitore portatile, senza descrivere autorizzazioni di trasmissione o misure certificate di sensibilità.\n\nLe due sessioni del [taccuino di ascolto](/documents/cascade-n01-s1) mantengono separati autore, data e posizione:\n\n| Data | Autore | Posizione | Messaggi comprensibili |\n| --- | --- | --- | --- |\n| 12 gennaio 2025 | Ada | Terrazza est | 7 su 10 |\n| 19 gennaio 2025 | Nico | Terrazza ovest | 8 su 10 |\n\nLa stessa antenna è stata usata in giornate diverse: le osservazioni non dimostrano la superiorità generale di una posizione.\n\nIl ricevitore viene riposto dopo l’incontro nell’armadietto B del soppalco.\n\nLe schede separano messaggi comprensibili, incompleti e assenti: il totale di dieci include tutte e tre le categorie. Entrambi gli ascolti avvengono a ricevitore fermo, con alimentazione a batteria. Il taccuino non prova il funzionamento durante lo spostamento fra le terrazze.\n\nNon è noto come cambi l’ascolto quando piove; nessuna delle due giornate comprende pioggia. Questa incertezza riguarda entrambe le posizioni."
+          },
+          "mutationDescription": "Riunisce il confronto ripetuto in una tabella mantenendo scopo, limiti, autori, date e collocazione del ricevitore."
+        },
+        {
+          "variantId": "good_b",
+          "targetCriterion": null,
+          "after": {
+            "title": "Colle Chiaro — posizioni di ascolto",
+            "type": "project",
+            "summary": "Due sessioni di ascolto radio, condizioni osservate e collocazione del ricevitore dopo gli incontri.",
+            "markdown": "# Colle Chiaro: posizioni di ascolto\n\nIl gruppo radioamatoriale Colle Chiaro raccoglie prove di ascolto per scegliere dove sistemare la stazione dimostrativa durante gli incontri fra soci. Questa pagina confronta due posizioni del ricevitore portatile, senza descrivere autorizzazioni di trasmissione o misure certificate di sensibilità.\n\nNel [taccuino di ascolto](/documents/cascade-n01-s1), Ada registra il 12 gennaio 2025 sette messaggi comprensibili su dieci dalla terrazza est. Il 19 gennaio 2025 Nico ne registra otto su dieci dalla terrazza ovest. Le prove usano la stessa antenna, ma si svolgono in giornate diverse e non misurano la superiorità generale di una posizione.\n\nIl ricevitore viene riposto dopo l’incontro nell’armadietto B del soppalco.\n\nLe schede separano messaggi comprensibili, incompleti e assenti: il totale di dieci include tutte e tre le categorie. Entrambi gli ascolti avvengono a ricevitore fermo, con alimentazione a batteria. Il taccuino non prova il funzionamento durante lo spostamento fra le terrazze.\n\nNon è noto come cambi l’ascolto quando piove; nessuna delle due giornate comprende pioggia. Questa incertezza riguarda entrambe le posizioni."
+          },
+          "mutationDescription": "Intervento localizzato: elimina soltanto il secondo confronto, già rappresentato integralmente sopra."
+        },
+        {
+          "variantId": "unsupported",
+          "targetCriterion": "supported_by_evidence",
+          "after": {
+            "title": "Colle Chiaro — posizioni di ascolto",
+            "type": "project",
+            "summary": "Due sessioni di ascolto radio, condizioni osservate e collocazione del ricevitore dopo gli incontri.",
+            "markdown": "# Colle Chiaro: posizioni di ascolto\n\nIl gruppo radioamatoriale Colle Chiaro raccoglie prove di ascolto per scegliere dove sistemare la stazione dimostrativa durante gli incontri fra soci. Questa pagina confronta due posizioni del ricevitore portatile, senza descrivere autorizzazioni di trasmissione o misure certificate di sensibilità.\n\nLe due sessioni del [taccuino di ascolto](/documents/cascade-n01-s1) mantengono separati autore, data e posizione:\n\n| Data | Autore | Posizione | Messaggi comprensibili |\n| --- | --- | --- | --- |\n| 12 gennaio 2025 | Ada | Terrazza est | 7 su 10 |\n| 19 gennaio 2025 | Nico | Terrazza ovest | 8 su 10 |\n\nLa stessa antenna è stata usata in giornate diverse: le osservazioni non dimostrano la superiorità generale di una posizione.\n\nIl ricevitore viene riposto dopo l’incontro nell’armadietto B del soppalco.\n\nLe schede separano messaggi comprensibili, incompleti e assenti: il totale di dieci include tutte e tre le categorie. Entrambi gli ascolti avvengono a ricevitore fermo, con alimentazione a batteria. Il taccuino non prova il funzionamento durante lo spostamento fra le terrazze.\n\nNon è noto come cambi l’ascolto quando piove; nessuna delle due giornate comprende pioggia. Questa incertezza riguarda entrambe le posizioni.\n\nPer le due proporzioni registrate, il margine di errore statistico è inferiore a un punto percentuale."
+          },
+          "mutationDescription": "Aggiunta di una singola affermazione oltre il contenuto delle fonti, mantenendo il resto del consolidamento A."
+        },
+        {
+          "variantId": "loss",
+          "targetCriterion": "preserves_distinct_information",
+          "after": {
+            "title": "Colle Chiaro — posizioni di ascolto",
+            "type": "project",
+            "summary": "Due sessioni di ascolto radio, condizioni osservate e collocazione del ricevitore dopo gli incontri.",
+            "markdown": "# Colle Chiaro: posizioni di ascolto\n\nIl gruppo radioamatoriale Colle Chiaro raccoglie prove di ascolto per scegliere dove sistemare la stazione dimostrativa durante gli incontri fra soci. Questa pagina confronta due posizioni del ricevitore portatile, senza descrivere autorizzazioni di trasmissione o misure certificate di sensibilità.\n\nLe due sessioni del [taccuino di ascolto](/documents/cascade-n01-s1) mantengono separati autore, data e posizione:\n\n| Data | Autore | Posizione | Messaggi comprensibili |\n| --- | --- | --- | --- |\n| 12 gennaio 2025 | Ada | Terrazza est | 7 su 10 |\n| 19 gennaio 2025 | Nico | Terrazza ovest | 8 su 10 |\n\nLa stessa antenna è stata usata in giornate diverse: le osservazioni non dimostrano la superiorità generale di una posizione.\n\nLe schede separano messaggi comprensibili, incompleti e assenti: il totale di dieci include tutte e tre le categorie. Entrambi gli ascolti avvengono a ricevitore fermo, con alimentazione a batteria. Il taccuino non prova il funzionamento durante lo spostamento fra le terrazze.\n\nNon è noto come cambi l’ascolto quando piove; nessuna delle due giornate comprende pioggia. Questa incertezza riguarda entrambe le posizioni."
+          },
+          "mutationDescription": "Rimozione di un dettaglio operativo unico della pagina destinazione dal consolidamento A."
+        },
+        {
+          "variantId": "human_action",
+          "targetCriterion": "no_new_human_action",
+          "after": {
+            "title": "Colle Chiaro — posizioni di ascolto",
+            "type": "project",
+            "summary": "Due sessioni di ascolto radio, condizioni osservate e collocazione del ricevitore dopo gli incontri.",
+            "markdown": "# Colle Chiaro: posizioni di ascolto\n\nIl gruppo radioamatoriale Colle Chiaro raccoglie prove di ascolto per scegliere dove sistemare la stazione dimostrativa durante gli incontri fra soci. Questa pagina confronta due posizioni del ricevitore portatile, senza descrivere autorizzazioni di trasmissione o misure certificate di sensibilità.\n\nLe due sessioni del [taccuino di ascolto](/documents/cascade-n01-s1) mantengono separati autore, data e posizione:\n\n| Data | Autore | Posizione | Messaggi comprensibili |\n| --- | --- | --- | --- |\n| 12 gennaio 2025 | Ada | Terrazza est | 7 su 10 |\n| 19 gennaio 2025 | Nico | Terrazza ovest | 8 su 10 |\n\nLa stessa antenna è stata usata in giornate diverse: le osservazioni non dimostrano la superiorità generale di una posizione.\n\nIl ricevitore viene riposto dopo l’incontro nell’armadietto B del soppalco.\n\nLe schede separano messaggi comprensibili, incompleti e assenti: il totale di dieci include tutte e tre le categorie. Entrambi gli ascolti avvengono a ricevitore fermo, con alimentazione a batteria. Il taccuino non prova il funzionamento durante lo spostamento fra le terrazze.\n\nNon è noto come cambi l’ascolto quando piove; nessuna delle due giornate comprende pioggia. Questa incertezza riguarda entrambe le posizioni.\n\nAda deve organizzare una prova sotto la pioggia e riportarne i risultati in questa pagina."
+          },
+          "mutationDescription": "Aggiunta di un nuovo seguito umano al consolidamento A, senza eliminare le incertezze già presenti."
+        },
+        {
+          "variantId": "cosmetic",
+          "targetCriterion": "meaningful_improvement",
+          "after": {
+            "title": "Colle Chiaro — posizioni di ascolto",
+            "type": "project",
+            "summary": "Due sessioni di ascolto radio, condizioni osservate e collocazione del ricevitore dopo gli incontri.",
+            "markdown": "# Colle Chiaro: posizioni di ascolto\n\nIl gruppo radioamatoriale Colle Chiaro raccoglie prove di ascolto per scegliere dove sistemare la stazione dimostrativa durante gli incontri fra soci. Questa pagina confronta due posizioni del ricevitore portatile, senza descrivere autorizzazioni di trasmissione o misure certificate di sensibilità.\n\nNel [taccuino di ascolto](/documents/cascade-n01-s1), Ada registra il 12 gennaio 2025 sette messaggi comprensibili su dieci dalla terrazza est. Il 19 gennaio 2025 Nico ne registra otto su dieci dalla terrazza ovest. Le prove usano la stessa antenna, ma si svolgono in giornate diverse e non misurano la superiorità generale di una posizione.\n\nLe schede separano messaggi comprensibili, incompleti e assenti: il totale di dieci include tutte e tre le categorie. Entrambi gli ascolti avvengono a ricevitore fermo, con alimentazione a batteria. Il taccuino non prova il funzionamento durante lo spostamento fra le terrazze.\n\nIl ricevitore viene riposto dopo l’incontro nell’armadietto B del soppalco.\n\n## Confronto trascritto per la riunione\n\nAda, il 12 gennaio, ascolta dalla terrazza est sette messaggi comprensibili su dieci. Nico, il 19 gennaio, dalla terrazza ovest ne ascolta otto su dieci. Sono giornate diverse con la stessa antenna: questi numeri non dimostrano che l’ovest sia sempre migliore.\n\nNon è noto come cambi l’ascolto quando piove; nessuna delle due giornate comprende pioggia. Questa incertezza riguarda entrambe le posizioni."
+          },
+          "mutationDescription": "Riformulazione del corpo della pagina iniziale senza risolverne ripetizioni, domande o errori documentati."
+        }
+      ]
+    },
+    {
+      "familyId": "N02",
+      "title": "Torre Quieta — orari del corso",
+      "category": "correzione_documentata",
+      "before": {
+        "title": "Torre Quieta — orari del corso",
+        "type": "project",
+        "summary": "Calendario del corso di lettura delle partite e distinzione dall’accesso libero alla sala.",
+        "markdown": "# Torre Quieta: corso di lettura delle partite\n\nIl circolo scacchistico Torre Quieta prepara quattro incontri per adulti che conoscono già il movimento dei pezzi e vogliono imparare a leggere brevi partite commentate. La scheda serve a distinguere l’orario del corso dall’accesso libero alla sala, che usa lo stesso ingresso.\n\nLa bozza del 2 febbraio 2025 indica l’inizio del corso alle 18:30. La bozza prevedeva quattro martedì consecutivi a partire dall’11 marzo 2025, con dodici posti e lezioni di settantacinque minuti. Il [verbale di programmazione del 6 febbraio](/documents/cascade-n02-s1) è allegato alla scheda, ma il riquadro degli orari conserva ancora la prima trascrizione.\n\nLe scacchiere dedicate al corso si riconoscono dal numero viola sotto il bordo e vengono riposte nel secondo cassetto della credenza.\n\nL’accesso libero alla sala comincia alle 18:30 e può sovrapporsi alla preparazione delle scacchiere. I dodici posti riguardano chi segue le lezioni, non tutti i presenti nella sala. Il corso non prevede graduatorie né partite valide per una classifica ufficiale.\n\n## Nota per chi consulta la bozza\n\nSono previsti dodici partecipanti alle lezioni, ciascuna di settantacinque minuti, per quattro martedì dal giorno 11 marzo. L’apertura della sala e l’inizio della lezione sono informazioni diverse. L’accesso libero non assegna automaticamente un posto nel corso.\n\nResta aperta la disponibilità del ripostiglio durante il terzo incontro: nessun documento qui allegato ne assegna l’uso al circolo."
+      },
+      "evidence": {
+        "citations": [
+          {
+            "pageId": "cascade-n02-target",
+            "version": 4,
+            "quote": "Il circolo scacchistico Torre Quieta prepara quattro incontri per adulti che conoscono già il movimento dei pezzi e vogliono imparare a leggere brevi partite commentate. La scheda serve a distinguere l’orario del corso dall’accesso libero alla sala, che usa lo stesso ingresso."
+          },
+          {
+            "pageId": "cascade-n02-s1",
+            "version": 2,
+            "quote": "Il verbale del 6 febbraio 2025 corregge l’orario del corso riportato nella bozza del 2 febbraio: le lezioni iniziano alle 19:00, non alle 18:30."
+          },
+          {
+            "pageId": "cascade-n02-s1",
+            "version": 2,
+            "quote": "Restano confermati quattro martedì consecutivi dall’11 marzo 2025, dodici posti per il corso e una durata di settantacinque minuti per incontro."
+          }
+        ],
+        "sources": [
+          {
+            "pageId": "cascade-n02-target",
+            "version": 4,
+            "title": "Torre Quieta — orari del corso",
+            "summary": "Calendario del corso di lettura delle partite e distinzione dall’accesso libero alla sala.",
+            "markdown": "# Torre Quieta: corso di lettura delle partite\n\nIl circolo scacchistico Torre Quieta prepara quattro incontri per adulti che conoscono già il movimento dei pezzi e vogliono imparare a leggere brevi partite commentate. La scheda serve a distinguere l’orario del corso dall’accesso libero alla sala, che usa lo stesso ingresso.\n\nLa bozza del 2 febbraio 2025 indica l’inizio del corso alle 18:30. La bozza prevedeva quattro martedì consecutivi a partire dall’11 marzo 2025, con dodici posti e lezioni di settantacinque minuti. Il [verbale di programmazione del 6 febbraio](/documents/cascade-n02-s1) è allegato alla scheda, ma il riquadro degli orari conserva ancora la prima trascrizione.\n\nLe scacchiere dedicate al corso si riconoscono dal numero viola sotto il bordo e vengono riposte nel secondo cassetto della credenza.\n\nL’accesso libero alla sala comincia alle 18:30 e può sovrapporsi alla preparazione delle scacchiere. I dodici posti riguardano chi segue le lezioni, non tutti i presenti nella sala. Il corso non prevede graduatorie né partite valide per una classifica ufficiale.\n\n## Nota per chi consulta la bozza\n\nSono previsti dodici partecipanti alle lezioni, ciascuna di settantacinque minuti, per quattro martedì dal giorno 11 marzo. L’apertura della sala e l’inizio della lezione sono informazioni diverse. L’accesso libero non assegna automaticamente un posto nel corso.\n\nResta aperta la disponibilità del ripostiglio durante il terzo incontro: nessun documento qui allegato ne assegna l’uso al circolo."
+          },
+          {
+            "pageId": "cascade-n02-s1",
+            "version": 2,
+            "title": "Verbale di programmazione — 6 febbraio 2025",
+            "markdown": "# Verbale di programmazione — 6 febbraio 2025\n\nIl verbale del 6 febbraio 2025 corregge l’orario del corso riportato nella bozza del 2 febbraio: le lezioni iniziano alle 19:00, non alle 18:30. L’orario delle 18:30 resta valido per l’accesso libero alla sala. La correzione distingue quindi due attività svolte nello stesso luogo e non registra uno spostamento di sede. Il verbale è redatto da Marta per la riunione di programmazione del circolo.\n\nRestano confermati quattro martedì consecutivi dall’11 marzo 2025, dodici posti per il corso e una durata di settantacinque minuti per incontro. I destinatari conoscono già come si muovono i pezzi; il lavoro riguarda la lettura di brevi partite commentate. Non viene istituita una graduatoria e le esercitazioni non producono risultati validi per classifiche ufficiali. La capienza del corso non coincide con il numero complessivo delle persone ammesse all’accesso libero.\n\nLa riunione non assegna il ripostiglio al terzo incontro. Quel punto viene lasciato senza una conclusione perché nella documentazione disponibile manca una conferma dell’uso dello spazio. L’assenza della conferma non modifica il calendario approvato e non dimostra che il ripostiglio sia indisponibile. Il verbale non elenca la collocazione delle singole scacchiere e non sostituisce le indicazioni pratiche conservate nella scheda del corso."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "variantId": "good_a",
+          "targetCriterion": null,
+          "after": {
+            "title": "Torre Quieta — orari del corso",
+            "type": "project",
+            "summary": "Calendario del corso di lettura delle partite e distinzione dall’accesso libero alla sala.",
+            "markdown": "# Torre Quieta: corso di lettura delle partite\n\nIl circolo scacchistico Torre Quieta prepara quattro incontri per adulti che conoscono già il movimento dei pezzi e vogliono imparare a leggere brevi partite commentate. La scheda serve a distinguere l’orario del corso dall’accesso libero alla sala, che usa lo stesso ingresso.\n\nIl [verbale di programmazione del 6 febbraio 2025](/documents/cascade-n02-s1) corregge l’orario della bozza del 2 febbraio: le lezioni iniziano alle 19:00; l’accesso libero alla stessa sala rimane alle 18:30 e può sovrapporsi alla preparazione delle scacchiere. Sono confermati quattro martedì consecutivi dall’11 marzo 2025, dodici posti e settantacinque minuti per incontro.\n\nLe scacchiere dedicate al corso si riconoscono dal numero viola sotto il bordo e vengono riposte nel secondo cassetto della credenza.\n\nI dodici posti sono riservati a chi segue le lezioni e non misurano il totale dei presenti in sala. L’accesso libero non assegna automaticamente un posto nel corso. Non sono previste graduatorie né partite valide per una classifica ufficiale.\n\nResta aperta la disponibilità del ripostiglio durante il terzo incontro: nessun documento qui allegato ne assegna l’uso al circolo."
+          },
+          "mutationDescription": "Incorpora la correzione con entrambe le date e fonde i vincoli del corso ripetuti in due sezioni."
+        },
+        {
+          "variantId": "good_b",
+          "targetCriterion": null,
+          "after": {
+            "title": "Torre Quieta — orari del corso",
+            "type": "project",
+            "summary": "Calendario del corso di lettura delle partite e distinzione dall’accesso libero alla sala.",
+            "markdown": "# Torre Quieta: corso di lettura delle partite\n\nIl circolo scacchistico Torre Quieta prepara quattro incontri per adulti che conoscono già il movimento dei pezzi e vogliono imparare a leggere brevi partite commentate. La scheda serve a distinguere l’orario del corso dall’accesso libero alla sala, che usa lo stesso ingresso.\n\nLa bozza del 2 febbraio 2025 indicava le 18:30; il verbale di programmazione del 6 febbraio 2025 corregge l’inizio del corso alle 19:00. Le 18:30 restano l’orario dell’accesso libero. La bozza prevedeva quattro martedì consecutivi a partire dall’11 marzo 2025, con dodici posti e lezioni di settantacinque minuti. Il [verbale di programmazione del 6 febbraio](/documents/cascade-n02-s1) è allegato alla scheda, e documenta questa correzione.\n\nLe scacchiere dedicate al corso si riconoscono dal numero viola sotto il bordo e vengono riposte nel secondo cassetto della credenza.\n\nL’accesso libero alla sala comincia alle 18:30 e può sovrapporsi alla preparazione delle scacchiere. I dodici posti riguardano chi segue le lezioni, non tutti i presenti nella sala. Il corso non prevede graduatorie né partite valide per una classifica ufficiale.\n\n## Nota per chi consulta la bozza\n\nSono previsti dodici partecipanti alle lezioni, ciascuna di settantacinque minuti, per quattro martedì dal giorno 11 marzo. L’apertura della sala e l’inizio della lezione sono informazioni diverse. L’accesso libero non assegna automaticamente un posto nel corso.\n\nResta aperta la disponibilità del ripostiglio durante il terzo incontro: nessun documento qui allegato ne assegna l’uso al circolo."
+          },
+          "mutationDescription": "Corregge localmente l’orario e la frase sulla vecchia trascrizione, lasciando inalterato il resto della pagina."
+        },
+        {
+          "variantId": "unsupported",
+          "targetCriterion": "supported_by_evidence",
+          "after": {
+            "title": "Torre Quieta — orari del corso",
+            "type": "project",
+            "summary": "Calendario del corso di lettura delle partite e distinzione dall’accesso libero alla sala.",
+            "markdown": "# Torre Quieta: corso di lettura delle partite\n\nIl circolo scacchistico Torre Quieta prepara quattro incontri per adulti che conoscono già il movimento dei pezzi e vogliono imparare a leggere brevi partite commentate. La scheda serve a distinguere l’orario del corso dall’accesso libero alla sala, che usa lo stesso ingresso.\n\nIl [verbale di programmazione del 6 febbraio 2025](/documents/cascade-n02-s1) corregge l’orario della bozza del 2 febbraio: le lezioni iniziano alle 19:00; l’accesso libero alla stessa sala rimane alle 18:30 e può sovrapporsi alla preparazione delle scacchiere. Sono confermati quattro martedì consecutivi dall’11 marzo 2025, dodici posti e settantacinque minuti per incontro.\n\nLe scacchiere dedicate al corso si riconoscono dal numero viola sotto il bordo e vengono riposte nel secondo cassetto della credenza.\n\nI dodici posti sono riservati a chi segue le lezioni e non misurano il totale dei presenti in sala. L’accesso libero non assegna automaticamente un posto nel corso. Non sono previste graduatorie né partite valide per una classifica ufficiale.\n\nResta aperta la disponibilità del ripostiglio durante il terzo incontro: nessun documento qui allegato ne assegna l’uso al circolo.\n\nLa correzione dell’orario è stata approvata all’unanimità dai dodici iscritti al corso."
+          },
+          "mutationDescription": "Aggiunta di una singola affermazione oltre il contenuto delle fonti, mantenendo il resto del consolidamento A."
+        },
+        {
+          "variantId": "loss",
+          "targetCriterion": "preserves_distinct_information",
+          "after": {
+            "title": "Torre Quieta — orari del corso",
+            "type": "project",
+            "summary": "Calendario del corso di lettura delle partite e distinzione dall’accesso libero alla sala.",
+            "markdown": "# Torre Quieta: corso di lettura delle partite\n\nIl circolo scacchistico Torre Quieta prepara quattro incontri per adulti che conoscono già il movimento dei pezzi e vogliono imparare a leggere brevi partite commentate. La scheda serve a distinguere l’orario del corso dall’accesso libero alla sala, che usa lo stesso ingresso.\n\nIl [verbale di programmazione del 6 febbraio 2025](/documents/cascade-n02-s1) corregge l’orario della bozza del 2 febbraio: le lezioni iniziano alle 19:00; l’accesso libero alla stessa sala rimane alle 18:30 e può sovrapporsi alla preparazione delle scacchiere. Sono confermati quattro martedì consecutivi dall’11 marzo 2025, dodici posti e settantacinque minuti per incontro.\n\nLe scacchiere dedicate al corso si riconoscono dal numero viola sotto il bordo.\n\nI dodici posti sono riservati a chi segue le lezioni e non misurano il totale dei presenti in sala. L’accesso libero non assegna automaticamente un posto nel corso. Non sono previste graduatorie né partite valide per una classifica ufficiale.\n\nResta aperta la disponibilità del ripostiglio durante il terzo incontro: nessun documento qui allegato ne assegna l’uso al circolo."
+          },
+          "mutationDescription": "Rimozione di un dettaglio operativo unico della pagina destinazione dal consolidamento A."
+        },
+        {
+          "variantId": "human_action",
+          "targetCriterion": "no_new_human_action",
+          "after": {
+            "title": "Torre Quieta — orari del corso",
+            "type": "project",
+            "summary": "Calendario del corso di lettura delle partite e distinzione dall’accesso libero alla sala.",
+            "markdown": "# Torre Quieta: corso di lettura delle partite\n\nIl circolo scacchistico Torre Quieta prepara quattro incontri per adulti che conoscono già il movimento dei pezzi e vogliono imparare a leggere brevi partite commentate. La scheda serve a distinguere l’orario del corso dall’accesso libero alla sala, che usa lo stesso ingresso.\n\nIl [verbale di programmazione del 6 febbraio 2025](/documents/cascade-n02-s1) corregge l’orario della bozza del 2 febbraio: le lezioni iniziano alle 19:00; l’accesso libero alla stessa sala rimane alle 18:30 e può sovrapporsi alla preparazione delle scacchiere. Sono confermati quattro martedì consecutivi dall’11 marzo 2025, dodici posti e settantacinque minuti per incontro.\n\nLe scacchiere dedicate al corso si riconoscono dal numero viola sotto il bordo e vengono riposte nel secondo cassetto della credenza.\n\nI dodici posti sono riservati a chi segue le lezioni e non misurano il totale dei presenti in sala. L’accesso libero non assegna automaticamente un posto nel corso. Non sono previste graduatorie né partite valide per una classifica ufficiale.\n\nResta aperta la disponibilità del ripostiglio durante il terzo incontro: nessun documento qui allegato ne assegna l’uso al circolo.\n\nLa conferma del presidente sull’orario corretto rimane il passaggio necessario prima di usare la scheda."
+          },
+          "mutationDescription": "Aggiunta di un nuovo seguito umano al consolidamento A, senza eliminare le incertezze già presenti."
+        },
+        {
+          "variantId": "cosmetic",
+          "targetCriterion": "meaningful_improvement",
+          "after": {
+            "title": "Torre Quieta — orari del corso",
+            "type": "project",
+            "summary": "Calendario del corso di lettura delle partite e distinzione dall’accesso libero alla sala.",
+            "markdown": "# Torre Quieta: corso di lettura delle partite\n\nIl circolo scacchistico Torre Quieta organizza quattro incontri rivolti ad adulti che conoscono già il movimento dei pezzi e vogliono imparare a leggere brevi partite commentate. La scheda serve a distinguere l’orario del corso dall’accesso libero alla sala, che usa lo stesso ingresso.\n\nLa bozza del 2 febbraio 2025 indica l’inizio del corso alle 18:30. La bozza prevedeva quattro martedì consecutivi a partire dall’11 marzo 2025, con dodici posti e lezioni di settantacinque minuti. Il [verbale di programmazione del 6 febbraio](/documents/cascade-n02-s1) è allegato alla scheda, ma il riquadro degli orari conserva ancora la prima trascrizione.\n\nLe scacchiere dedicate al corso si riconoscono dal numero viola sotto il bordo e vengono riposte nel secondo cassetto della credenza.\n\nL’accesso libero alla sala comincia alle 18:30 e può sovrapporsi alla preparazione delle scacchiere. I dodici posti riguardano chi segue le lezioni, non tutti i presenti nella sala. Il corso non prevede graduatorie né partite valide per una classifica ufficiale.\n\n## Avvertenza di lettura della bozza\n\nSono previsti dodici partecipanti alle lezioni, ciascuna di settantacinque minuti, per quattro martedì dal giorno 11 marzo. L’apertura della sala e l’inizio della lezione sono informazioni diverse. L’accesso libero non assegna automaticamente un posto nel corso.\n\nResta aperta la disponibilità del ripostiglio durante il terzo incontro: nessun documento qui allegato ne assegna l’uso al circolo."
+          },
+          "mutationDescription": "Riformulazione del corpo della pagina iniziale senza risolverne ripetizioni, domande o errori documentati."
+        }
+      ]
+    },
+    {
+      "familyId": "N03",
+      "title": "Filo Comune — lotto Argine",
+      "category": "deduplicazione_tra_pagine",
+      "before": {
+        "title": "Filo Comune — lotto Argine",
+        "type": "project",
+        "summary": "Lotto didattico di fasce in cotone, procedura collegata e riconoscimento del rotolo.",
+        "markdown": "# Filo Comune: lotto Argine\n\nIl laboratorio tessile Filo Comune prepara una piccola serie di fasce di cotone per insegnare l’orditura ai nuovi soci. Questa pagina collega la scelta dei colori al metodo di avvolgimento; riguarda il lotto Argine e non una regola generale per tutti i filati del laboratorio.\n\nLa [scheda di lavorazione del 14 aprile 2025](/documents/cascade-n03-s1) descrive il lotto Argine: cotone naturale e blu, dodici fasce, quaranta fili per fascia e avvolgimento su due stecche di legno. Ogni fascia alterna quattro fili naturali e quattro blu; le due stecche restano parallele per evitare torsioni durante il passaggio al telaio.\n\nIl rotolo di questo lotto porta la sigla AC in matita all’interno del tubo; la sigla sulla pellicola esterna può staccarsi durante il trasporto.\n\nLa tensione è controllata solo a mano, senza una misura numerica. Nella scheda esterna sono descritti il conteggio dei fili prima del trasferimento e il nodo provvisorio che viene sciolto dopo l’aggancio. Il tempo indicato, circa venti minuti per fascia, è una stima della dimostrazione del 14 aprile e non una durata garantita.\n\n## Procedura copiata sul foglio di gruppo\n\nPer il lotto Argine si usano quaranta fili a fascia e due stecche parallele. L’alternanza è di quattro fili naturali e quattro blu. Prima del trasferimento si ricontano i fili; il nodo è provvisorio e viene sciolto dopo l’aggancio al telaio. La stima della dimostrazione resta di circa venti minuti per fascia.\n\nLa resa dopo lavaggi ripetuti non è documentata. La pagina conserva questa limitazione anche se l’aspetto delle fasce appena tolte dal telaio risulta regolare."
+      },
+      "evidence": {
+        "citations": [
+          {
+            "pageId": "cascade-n03-target",
+            "version": 4,
+            "quote": "Il laboratorio tessile Filo Comune prepara una piccola serie di fasce di cotone per insegnare l’orditura ai nuovi soci. Questa pagina collega la scelta dei colori al metodo di avvolgimento; riguarda il lotto Argine e non una regola generale per tutti i filati del laboratorio."
+          },
+          {
+            "pageId": "cascade-n03-s1",
+            "version": 2,
+            "quote": "Ogni fascia comprende quaranta fili, alternati in gruppi di quattro naturali e quattro blu."
+          },
+          {
+            "pageId": "cascade-n03-s1",
+            "version": 2,
+            "quote": "Prima del trasferimento al telaio i fili vengono ricontati."
+          },
+          {
+            "pageId": "cascade-n03-s1",
+            "version": 2,
+            "quote": "Un nodo provvisorio trattiene il gruppo durante il passaggio e viene sciolto dopo l’aggancio."
+          }
+        ],
+        "sources": [
+          {
+            "pageId": "cascade-n03-target",
+            "version": 4,
+            "title": "Filo Comune — lotto Argine",
+            "summary": "Lotto didattico di fasce in cotone, procedura collegata e riconoscimento del rotolo.",
+            "markdown": "# Filo Comune: lotto Argine\n\nIl laboratorio tessile Filo Comune prepara una piccola serie di fasce di cotone per insegnare l’orditura ai nuovi soci. Questa pagina collega la scelta dei colori al metodo di avvolgimento; riguarda il lotto Argine e non una regola generale per tutti i filati del laboratorio.\n\nLa [scheda di lavorazione del 14 aprile 2025](/documents/cascade-n03-s1) descrive il lotto Argine: cotone naturale e blu, dodici fasce, quaranta fili per fascia e avvolgimento su due stecche di legno. Ogni fascia alterna quattro fili naturali e quattro blu; le due stecche restano parallele per evitare torsioni durante il passaggio al telaio.\n\nIl rotolo di questo lotto porta la sigla AC in matita all’interno del tubo; la sigla sulla pellicola esterna può staccarsi durante il trasporto.\n\nLa tensione è controllata solo a mano, senza una misura numerica. Nella scheda esterna sono descritti il conteggio dei fili prima del trasferimento e il nodo provvisorio che viene sciolto dopo l’aggancio. Il tempo indicato, circa venti minuti per fascia, è una stima della dimostrazione del 14 aprile e non una durata garantita.\n\n## Procedura copiata sul foglio di gruppo\n\nPer il lotto Argine si usano quaranta fili a fascia e due stecche parallele. L’alternanza è di quattro fili naturali e quattro blu. Prima del trasferimento si ricontano i fili; il nodo è provvisorio e viene sciolto dopo l’aggancio al telaio. La stima della dimostrazione resta di circa venti minuti per fascia.\n\nLa resa dopo lavaggi ripetuti non è documentata. La pagina conserva questa limitazione anche se l’aspetto delle fasce appena tolte dal telaio risulta regolare."
+          },
+          {
+            "pageId": "cascade-n03-s1",
+            "version": 2,
+            "title": "Scheda di lavorazione Argine — 14 aprile 2025",
+            "markdown": "# Scheda di lavorazione Argine — 14 aprile 2025\n\nLa dimostrazione del 14 aprile 2025 riguarda il lotto Argine del laboratorio Filo Comune: dodici fasce di cotone naturale e blu destinate agli incontri di avviamento all’orditura. Ogni fascia comprende quaranta fili, alternati in gruppi di quattro naturali e quattro blu. Il filato viene avvolto su due stecche di legno mantenute parallele, così da evitare torsioni nel successivo passaggio al telaio.\n\nPrima del trasferimento al telaio i fili vengono ricontati. Un nodo provvisorio trattiene il gruppo durante il passaggio e viene sciolto dopo l’aggancio. Il controllo della tensione è manuale e non produce un valore numerico confrontabile fra persone. La dimostrazione richiede circa venti minuti per fascia; si tratta di una stima osservata in quella sessione, non di un tempo standard garantito per ogni futura esecuzione.\n\nLe fasce appena tolte dal telaio presentano un aspetto regolare. Non vengono però eseguiti cicli di lavaggio e la scheda non permette di conoscere la resa dopo lavaggi ripetuti. I colori sono identificati dai nomi naturale e blu, senza codici industriali o equivalenze con altri fornitori. La procedura descrive il lotto Argine e non autorizza a estendere automaticamente quantità, tempi o alternanza ad altri filati. Le indicazioni di imballaggio non fanno parte di questa scheda di lavorazione."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "variantId": "good_a",
+          "targetCriterion": null,
+          "after": {
+            "title": "Filo Comune — lotto Argine",
+            "type": "project",
+            "summary": "Lotto didattico di fasce in cotone, procedura collegata e riconoscimento del rotolo.",
+            "markdown": "# Filo Comune: lotto Argine\n\nIl laboratorio tessile Filo Comune prepara una piccola serie di fasce di cotone per insegnare l’orditura ai nuovi soci. Questa pagina collega la scelta dei colori al metodo di avvolgimento; riguarda il lotto Argine e non una regola generale per tutti i filati del laboratorio.\n\nIl lotto comprende dodici fasce di cotone naturale e blu. La [scheda di lavorazione del 14 aprile 2025](/documents/cascade-n03-s1) conserva il dettaglio dell’orditura: quantità e alternanza dei fili, uso delle due stecche, ricontrollo prima del trasferimento, nodo provvisorio e controllo manuale della tensione. La stima di circa venti minuti per fascia si riferisce a quella dimostrazione e non è una durata garantita.\n\nIl rotolo di questo lotto porta la sigla AC in matita all’interno del tubo; la sigla sulla pellicola esterna può staccarsi durante il trasporto.\n\nLa resa dopo lavaggi ripetuti non è documentata. La pagina conserva questa limitazione anche se l’aspetto delle fasce appena tolte dal telaio risulta regolare."
+          },
+          "mutationDescription": "Lascia la procedura dettagliata nella fonte esterna raggiungibile, conservando contesto, limiti e identificazione locale del rotolo."
+        },
+        {
+          "variantId": "good_b",
+          "targetCriterion": null,
+          "after": {
+            "title": "Filo Comune — lotto Argine",
+            "type": "project",
+            "summary": "Lotto didattico di fasce in cotone, procedura collegata e riconoscimento del rotolo.",
+            "markdown": "# Filo Comune: lotto Argine\n\nIl laboratorio tessile Filo Comune prepara una piccola serie di fasce di cotone per insegnare l’orditura ai nuovi soci. Questa pagina collega la scelta dei colori al metodo di avvolgimento; riguarda il lotto Argine e non una regola generale per tutti i filati del laboratorio.\n\nLa [scheda di lavorazione del 14 aprile 2025](/documents/cascade-n03-s1) descrive il lotto Argine: cotone naturale e blu, dodici fasce, quaranta fili per fascia e avvolgimento su due stecche di legno. Ogni fascia alterna quattro fili naturali e quattro blu; le due stecche restano parallele per evitare torsioni durante il passaggio al telaio.\n\nIl rotolo di questo lotto porta la sigla AC in matita all’interno del tubo; la sigla sulla pellicola esterna può staccarsi durante il trasporto.\n\nLa tensione è controllata solo a mano, senza una misura numerica. Nella scheda esterna sono descritti il conteggio dei fili prima del trasferimento e il nodo provvisorio che viene sciolto dopo l’aggancio. Il tempo indicato, circa venti minuti per fascia, è una stima della dimostrazione del 14 aprile e non una durata garantita.\n\nLa resa dopo lavaggi ripetuti non è documentata. La pagina conserva questa limitazione anche se l’aspetto delle fasce appena tolte dal telaio risulta regolare."
+          },
+          "mutationDescription": "Elimina solo la copia della procedura nel foglio di gruppo, senza riscrivere il resto del contenuto."
+        },
+        {
+          "variantId": "unsupported",
+          "targetCriterion": "supported_by_evidence",
+          "after": {
+            "title": "Filo Comune — lotto Argine",
+            "type": "project",
+            "summary": "Lotto didattico di fasce in cotone, procedura collegata e riconoscimento del rotolo.",
+            "markdown": "# Filo Comune: lotto Argine\n\nIl laboratorio tessile Filo Comune prepara una piccola serie di fasce di cotone per insegnare l’orditura ai nuovi soci. Questa pagina collega la scelta dei colori al metodo di avvolgimento; riguarda il lotto Argine e non una regola generale per tutti i filati del laboratorio.\n\nIl lotto comprende dodici fasce di cotone naturale e blu. La [scheda di lavorazione del 14 aprile 2025](/documents/cascade-n03-s1) conserva il dettaglio dell’orditura: quantità e alternanza dei fili, uso delle due stecche, ricontrollo prima del trasferimento, nodo provvisorio e controllo manuale della tensione. La stima di circa venti minuti per fascia si riferisce a quella dimostrazione e non è una durata garantita.\n\nIl rotolo di questo lotto porta la sigla AC in matita all’interno del tubo; la sigla sulla pellicola esterna può staccarsi durante il trasporto.\n\nLa resa dopo lavaggi ripetuti non è documentata. La pagina conserva questa limitazione anche se l’aspetto delle fasce appena tolte dal telaio risulta regolare.\n\nIl metodo di avvolgimento è stato ideato personalmente dalla coordinatrice del laboratorio."
+          },
+          "mutationDescription": "Aggiunta di una singola affermazione oltre il contenuto delle fonti, mantenendo il resto del consolidamento A."
+        },
+        {
+          "variantId": "loss",
+          "targetCriterion": "preserves_distinct_information",
+          "after": {
+            "title": "Filo Comune — lotto Argine",
+            "type": "project",
+            "summary": "Lotto didattico di fasce in cotone, procedura collegata e riconoscimento del rotolo.",
+            "markdown": "# Filo Comune: lotto Argine\n\nIl laboratorio tessile Filo Comune prepara una piccola serie di fasce di cotone per insegnare l’orditura ai nuovi soci. Questa pagina collega la scelta dei colori al metodo di avvolgimento; riguarda il lotto Argine e non una regola generale per tutti i filati del laboratorio.\n\nIl lotto comprende dodici fasce di cotone naturale e blu. La [scheda di lavorazione del 14 aprile 2025](/documents/cascade-n03-s1) conserva il dettaglio dell’orditura: quantità e alternanza dei fili, uso delle due stecche, ricontrollo prima del trasferimento, nodo provvisorio e controllo manuale della tensione. La stima di circa venti minuti per fascia si riferisce a quella dimostrazione e non è una durata garantita.\n\nLa sigla sulla pellicola esterna può staccarsi durante il trasporto.\n\nLa resa dopo lavaggi ripetuti non è documentata. La pagina conserva questa limitazione anche se l’aspetto delle fasce appena tolte dal telaio risulta regolare."
+          },
+          "mutationDescription": "Rimozione di un dettaglio operativo unico della pagina destinazione dal consolidamento A."
+        },
+        {
+          "variantId": "human_action",
+          "targetCriterion": "no_new_human_action",
+          "after": {
+            "title": "Filo Comune — lotto Argine",
+            "type": "project",
+            "summary": "Lotto didattico di fasce in cotone, procedura collegata e riconoscimento del rotolo.",
+            "markdown": "# Filo Comune: lotto Argine\n\nIl laboratorio tessile Filo Comune prepara una piccola serie di fasce di cotone per insegnare l’orditura ai nuovi soci. Questa pagina collega la scelta dei colori al metodo di avvolgimento; riguarda il lotto Argine e non una regola generale per tutti i filati del laboratorio.\n\nIl lotto comprende dodici fasce di cotone naturale e blu. La [scheda di lavorazione del 14 aprile 2025](/documents/cascade-n03-s1) conserva il dettaglio dell’orditura: quantità e alternanza dei fili, uso delle due stecche, ricontrollo prima del trasferimento, nodo provvisorio e controllo manuale della tensione. La stima di circa venti minuti per fascia si riferisce a quella dimostrazione e non è una durata garantita.\n\nIl rotolo di questo lotto porta la sigla AC in matita all’interno del tubo; la sigla sulla pellicola esterna può staccarsi durante il trasporto.\n\nLa resa dopo lavaggi ripetuti non è documentata. La pagina conserva questa limitazione anche se l’aspetto delle fasce appena tolte dal telaio risulta regolare.\n\nPer chiudere la scheda manca ora un riscontro dei soci sulla comodità delle due stecche."
+          },
+          "mutationDescription": "Aggiunta di un nuovo seguito umano al consolidamento A, senza eliminare le incertezze già presenti."
+        },
+        {
+          "variantId": "cosmetic",
+          "targetCriterion": "meaningful_improvement",
+          "after": {
+            "title": "Filo Comune — lotto Argine",
+            "type": "project",
+            "summary": "Lotto didattico di fasce in cotone, procedura collegata e riconoscimento del rotolo.",
+            "markdown": "# Filo Comune: lotto Argine\n\nIl laboratorio tessile Filo Comune prepara una piccola serie di fasce di cotone per insegnare l’orditura ai nuovi soci. Il documento mette in relazione i colori scelti e il metodo di avvolgimento; riguarda il lotto Argine e non una regola generale per tutti i filati del laboratorio.\n\nLa [scheda di lavorazione del 14 aprile 2025](/documents/cascade-n03-s1) descrive il lotto Argine: cotone naturale e blu, dodici fasce, quaranta fili per fascia e avvolgimento su due stecche di legno. Ogni fascia alterna quattro fili naturali e quattro blu; le due stecche restano parallele per evitare torsioni durante il passaggio al telaio.\n\nIl rotolo di questo lotto porta la sigla AC in matita all’interno del tubo; la sigla sulla pellicola esterna può staccarsi durante il trasporto.\n\nLa tensione è controllata solo a mano, senza una misura numerica. Nella scheda esterna sono descritti il conteggio dei fili prima del trasferimento e il nodo provvisorio che viene sciolto dopo l’aggancio. Il tempo indicato, circa venti minuti per fascia, è una stima della dimostrazione del 14 aprile e non una durata garantita.\n\n## Trascrizione della procedura nel foglio collettivo\n\nPer il lotto Argine si usano quaranta fili a fascia e due stecche parallele. L’alternanza è di quattro fili naturali e quattro blu. Prima del trasferimento si ricontano i fili; il nodo è provvisorio e viene sciolto dopo l’aggancio al telaio. La stima della dimostrazione resta di circa venti minuti per fascia.\n\nLa resa dopo lavaggi ripetuti non è documentata. La pagina conserva questa limitazione anche se l’aspetto delle fasce appena tolte dal telaio risulta regolare."
+          },
+          "mutationDescription": "Riformulazione del corpo della pagina iniziale senza risolverne ripetizioni, domande o errori documentati."
+        }
+      ]
+    },
+    {
+      "familyId": "N04",
+      "title": "Voci di Sera — accompagnamenti della prova",
+      "category": "risposta_documentata_e_incertezza",
+      "before": {
+        "title": "Voci di Sera — accompagnamenti della prova",
+        "type": "project",
+        "summary": "Tre accompagnamenti per il laboratorio corale e limiti delle informazioni sui nuovi partecipanti.",
+        "markdown": "# Voci di Sera: accompagnamenti di Passi Leggeri\n\nIl coro amatoriale Voci di Sera prepara un breve laboratorio di lettura ritmica per persone che cantano insieme per la prima volta. La cartella raccoglie tre tracce di accompagnamento del brano immaginario Passi Leggeri, tutte destinate alla prova del 22 maggio 2025.\n\nLa [nota di esportazione del 18 maggio 2025](/documents/cascade-n04-s1) accompagna i file piano, sola pulsazione e insieme. Le tre tracce durano novantasei secondi e usano lo stesso conteggio iniziale di quattro battiti. La traccia piano non contiene voci registrate, mentre insieme comprende le due linee vocali della dimostrazione.\n\nNon è ancora chiaro se nella traccia insieme il metronomo rimanga udibile anche dopo l’introduzione.\n\nFra due ripetizioni del brano è prevista una pausa di quaranta secondi per annotare i passaggi difficili.\n\nIl conteggio iniziale è esterno alle prime otto battute del brano. La cartella usa i nomi dei file per distinguere gli accompagnamenti e non cambia il titolo del brano da una versione all’altra. I file non contengono una registrazione del pubblico o delle voci dei nuovi partecipanti.\n\n## Appunto ripreso per la prova\n\nPiano, sola pulsazione e insieme hanno durata comune di novantasei secondi e partono con quattro battiti di conteggio. Piano non include cantanti; insieme contiene le due linee vocali mostrate nella dimostrazione. Le prime otto battute si contano dopo l’introduzione.\n\nNon è stato osservato se il conteggio sia sufficiente per chi non ha mai cantato in gruppo. La nota di esportazione descrive i file, senza misurare questo effetto sui partecipanti."
+      },
+      "evidence": {
+        "citations": [
+          {
+            "pageId": "cascade-n04-target",
+            "version": 4,
+            "quote": "Il coro amatoriale Voci di Sera prepara un breve laboratorio di lettura ritmica per persone che cantano insieme per la prima volta. La cartella raccoglie tre tracce di accompagnamento del brano immaginario Passi Leggeri, tutte destinate alla prova del 22 maggio 2025."
+          },
+          {
+            "pageId": "cascade-n04-s1",
+            "version": 2,
+            "quote": "Nella traccia insieme il metronomo rimane udibile nelle prime otto battute del brano e poi scompare."
+          },
+          {
+            "pageId": "cascade-n04-s1",
+            "version": 2,
+            "quote": "Il 18 maggio 2025 Elia esporta tre accompagnamenti di Passi Leggeri per il laboratorio del coro Voci di Sera del 22 maggio."
+          }
+        ],
+        "sources": [
+          {
+            "pageId": "cascade-n04-target",
+            "version": 4,
+            "title": "Voci di Sera — accompagnamenti della prova",
+            "summary": "Tre accompagnamenti per il laboratorio corale e limiti delle informazioni sui nuovi partecipanti.",
+            "markdown": "# Voci di Sera: accompagnamenti di Passi Leggeri\n\nIl coro amatoriale Voci di Sera prepara un breve laboratorio di lettura ritmica per persone che cantano insieme per la prima volta. La cartella raccoglie tre tracce di accompagnamento del brano immaginario Passi Leggeri, tutte destinate alla prova del 22 maggio 2025.\n\nLa [nota di esportazione del 18 maggio 2025](/documents/cascade-n04-s1) accompagna i file piano, sola pulsazione e insieme. Le tre tracce durano novantasei secondi e usano lo stesso conteggio iniziale di quattro battiti. La traccia piano non contiene voci registrate, mentre insieme comprende le due linee vocali della dimostrazione.\n\nNon è ancora chiaro se nella traccia insieme il metronomo rimanga udibile anche dopo l’introduzione.\n\nFra due ripetizioni del brano è prevista una pausa di quaranta secondi per annotare i passaggi difficili.\n\nIl conteggio iniziale è esterno alle prime otto battute del brano. La cartella usa i nomi dei file per distinguere gli accompagnamenti e non cambia il titolo del brano da una versione all’altra. I file non contengono una registrazione del pubblico o delle voci dei nuovi partecipanti.\n\n## Appunto ripreso per la prova\n\nPiano, sola pulsazione e insieme hanno durata comune di novantasei secondi e partono con quattro battiti di conteggio. Piano non include cantanti; insieme contiene le due linee vocali mostrate nella dimostrazione. Le prime otto battute si contano dopo l’introduzione.\n\nNon è stato osservato se il conteggio sia sufficiente per chi non ha mai cantato in gruppo. La nota di esportazione descrive i file, senza misurare questo effetto sui partecipanti."
+          },
+          {
+            "pageId": "cascade-n04-s1",
+            "version": 2,
+            "title": "Nota di esportazione — 18 maggio 2025",
+            "markdown": "# Nota di esportazione — 18 maggio 2025\n\nIl 18 maggio 2025 Elia esporta tre accompagnamenti di Passi Leggeri per il laboratorio del coro Voci di Sera del 22 maggio. I file si chiamano piano, sola pulsazione e insieme, durano novantasei secondi ciascuno e iniziano con quattro battiti di conteggio. Il conteggio precede l’inizio delle battute del brano e non rientra nelle prime otto.\n\nNella traccia insieme il metronomo rimane udibile nelle prime otto battute del brano e poi scompare. La traccia include le due linee vocali della dimostrazione; non è una registrazione delle persone che parteciperanno al laboratorio. La versione piano contiene soltanto l’accompagnamento e il conteggio iniziale, senza voci registrate. Sola pulsazione fornisce il riferimento ritmico per la lettura, mantenendo la durata comune dei file.\n\nLa nota consente di distinguere il contenuto delle tracce senza cambiare il titolo Passi Leggeri. Non riporta osservazioni sui nuovi partecipanti e non stabilisce se quattro battiti bastino per un ingresso sicuro di chi non ha mai cantato in gruppo. L’esportazione è una preparazione del materiale, non una valutazione didattica conclusiva. Le due linee vocali provengono dalla dimostrazione interna del coro e il documento non include suoni del pubblico. Le pause fra due ripetizioni sono definite nella scheda del laboratorio e non nei file audio."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "variantId": "good_a",
+          "targetCriterion": null,
+          "after": {
+            "title": "Voci di Sera — accompagnamenti della prova",
+            "type": "project",
+            "summary": "Tre accompagnamenti per il laboratorio corale e limiti delle informazioni sui nuovi partecipanti.",
+            "markdown": "# Voci di Sera: accompagnamenti di Passi Leggeri\n\nIl coro amatoriale Voci di Sera prepara un breve laboratorio di lettura ritmica per persone che cantano insieme per la prima volta. La cartella raccoglie tre tracce di accompagnamento del brano immaginario Passi Leggeri, tutte destinate alla prova del 22 maggio 2025.\n\nLa [nota di esportazione di Elia del 18 maggio 2025](/documents/cascade-n04-s1) distingue piano, sola pulsazione e insieme. Tutte le tracce durano novantasei secondi e iniziano con quattro battiti di conteggio, esterni alle prime otto battute del brano. Piano non contiene voci registrate; insieme comprende le due linee vocali della dimostrazione e mantiene il metronomo nelle prime otto battute, poi lo elimina.\n\nFra due ripetizioni del brano è prevista una pausa di quaranta secondi per annotare i passaggi difficili.\n\nLa cartella distingue gli accompagnamenti attraverso i nomi dei file, mantenendo il titolo Passi Leggeri. Non contiene registrazioni del pubblico o delle voci dei nuovi partecipanti.\n\nNon è stato osservato se il conteggio sia sufficiente per chi non ha mai cantato in gruppo. La nota di esportazione descrive i file, senza misurare questo effetto sui partecipanti."
+          },
+          "mutationDescription": "Integra la risposta sul metronomo e riunisce la descrizione duplicata dei file, mantenendo l’incertezza didattica."
+        },
+        {
+          "variantId": "good_b",
+          "targetCriterion": null,
+          "after": {
+            "title": "Voci di Sera — accompagnamenti della prova",
+            "type": "project",
+            "summary": "Tre accompagnamenti per il laboratorio corale e limiti delle informazioni sui nuovi partecipanti.",
+            "markdown": "# Voci di Sera: accompagnamenti di Passi Leggeri\n\nIl coro amatoriale Voci di Sera prepara un breve laboratorio di lettura ritmica per persone che cantano insieme per la prima volta. La cartella raccoglie tre tracce di accompagnamento del brano immaginario Passi Leggeri, tutte destinate alla prova del 22 maggio 2025.\n\nLa [nota di esportazione del 18 maggio 2025](/documents/cascade-n04-s1) accompagna i file piano, sola pulsazione e insieme. Le tre tracce durano novantasei secondi e usano lo stesso conteggio iniziale di quattro battiti. La traccia piano non contiene voci registrate, mentre insieme comprende le due linee vocali della dimostrazione.\n\nLa nota di esportazione di Elia del 18 maggio 2025 chiarisce che nella traccia insieme il metronomo rimane udibile nelle prime otto battute del brano e poi scompare.\n\nFra due ripetizioni del brano è prevista una pausa di quaranta secondi per annotare i passaggi difficili.\n\nIl conteggio iniziale è esterno alle prime otto battute del brano. La cartella usa i nomi dei file per distinguere gli accompagnamenti e non cambia il titolo del brano da una versione all’altra. I file non contengono una registrazione del pubblico o delle voci dei nuovi partecipanti.\n\n## Appunto ripreso per la prova\n\nPiano, sola pulsazione e insieme hanno durata comune di novantasei secondi e partono con quattro battiti di conteggio. Piano non include cantanti; insieme contiene le due linee vocali mostrate nella dimostrazione. Le prime otto battute si contano dopo l’introduzione.\n\nNon è stato osservato se il conteggio sia sufficiente per chi non ha mai cantato in gruppo. La nota di esportazione descrive i file, senza misurare questo effetto sui partecipanti."
+          },
+          "mutationDescription": "Sostituisce soltanto la domanda sul metronomo con la risposta attribuita alla nota di esportazione."
+        },
+        {
+          "variantId": "unsupported",
+          "targetCriterion": "supported_by_evidence",
+          "after": {
+            "title": "Voci di Sera — accompagnamenti della prova",
+            "type": "project",
+            "summary": "Tre accompagnamenti per il laboratorio corale e limiti delle informazioni sui nuovi partecipanti.",
+            "markdown": "# Voci di Sera: accompagnamenti di Passi Leggeri\n\nIl coro amatoriale Voci di Sera prepara un breve laboratorio di lettura ritmica per persone che cantano insieme per la prima volta. La cartella raccoglie tre tracce di accompagnamento del brano immaginario Passi Leggeri, tutte destinate alla prova del 22 maggio 2025.\n\nLa [nota di esportazione di Elia del 18 maggio 2025](/documents/cascade-n04-s1) distingue piano, sola pulsazione e insieme. Tutte le tracce durano novantasei secondi e iniziano con quattro battiti di conteggio, esterni alle prime otto battute del brano. Piano non contiene voci registrate; insieme comprende le due linee vocali della dimostrazione e mantiene il metronomo nelle prime otto battute, poi lo elimina.\n\nFra due ripetizioni del brano è prevista una pausa di quaranta secondi per annotare i passaggi difficili.\n\nLa cartella distingue gli accompagnamenti attraverso i nomi dei file, mantenendo il titolo Passi Leggeri. Non contiene registrazioni del pubblico o delle voci dei nuovi partecipanti.\n\nNon è stato osservato se il conteggio sia sufficiente per chi non ha mai cantato in gruppo. La nota di esportazione descrive i file, senza misurare questo effetto sui partecipanti.\n\nL’uso delle due linee vocali registrate garantisce che nessuno dei partecipanti perda l’intonazione."
+          },
+          "mutationDescription": "Aggiunta di una singola affermazione oltre il contenuto delle fonti, mantenendo il resto del consolidamento A."
+        },
+        {
+          "variantId": "loss",
+          "targetCriterion": "preserves_distinct_information",
+          "after": {
+            "title": "Voci di Sera — accompagnamenti della prova",
+            "type": "project",
+            "summary": "Tre accompagnamenti per il laboratorio corale e limiti delle informazioni sui nuovi partecipanti.",
+            "markdown": "# Voci di Sera: accompagnamenti di Passi Leggeri\n\nIl coro amatoriale Voci di Sera prepara un breve laboratorio di lettura ritmica per persone che cantano insieme per la prima volta. La cartella raccoglie tre tracce di accompagnamento del brano immaginario Passi Leggeri, tutte destinate alla prova del 22 maggio 2025.\n\nLa [nota di esportazione di Elia del 18 maggio 2025](/documents/cascade-n04-s1) distingue piano, sola pulsazione e insieme. Tutte le tracce durano novantasei secondi e iniziano con quattro battiti di conteggio, esterni alle prime otto battute del brano. Piano non contiene voci registrate; insieme comprende le due linee vocali della dimostrazione e mantiene il metronomo nelle prime otto battute, poi lo elimina.\n\nLa cartella distingue gli accompagnamenti attraverso i nomi dei file, mantenendo il titolo Passi Leggeri. Non contiene registrazioni del pubblico o delle voci dei nuovi partecipanti.\n\nNon è stato osservato se il conteggio sia sufficiente per chi non ha mai cantato in gruppo. La nota di esportazione descrive i file, senza misurare questo effetto sui partecipanti."
+          },
+          "mutationDescription": "Rimozione di un dettaglio operativo unico della pagina destinazione dal consolidamento A."
+        },
+        {
+          "variantId": "human_action",
+          "targetCriterion": "no_new_human_action",
+          "after": {
+            "title": "Voci di Sera — accompagnamenti della prova",
+            "type": "project",
+            "summary": "Tre accompagnamenti per il laboratorio corale e limiti delle informazioni sui nuovi partecipanti.",
+            "markdown": "# Voci di Sera: accompagnamenti di Passi Leggeri\n\nIl coro amatoriale Voci di Sera prepara un breve laboratorio di lettura ritmica per persone che cantano insieme per la prima volta. La cartella raccoglie tre tracce di accompagnamento del brano immaginario Passi Leggeri, tutte destinate alla prova del 22 maggio 2025.\n\nLa [nota di esportazione di Elia del 18 maggio 2025](/documents/cascade-n04-s1) distingue piano, sola pulsazione e insieme. Tutte le tracce durano novantasei secondi e iniziano con quattro battiti di conteggio, esterni alle prime otto battute del brano. Piano non contiene voci registrate; insieme comprende le due linee vocali della dimostrazione e mantiene il metronomo nelle prime otto battute, poi lo elimina.\n\nFra due ripetizioni del brano è prevista una pausa di quaranta secondi per annotare i passaggi difficili.\n\nLa cartella distingue gli accompagnamenti attraverso i nomi dei file, mantenendo il titolo Passi Leggeri. Non contiene registrazioni del pubblico o delle voci dei nuovi partecipanti.\n\nNon è stato osservato se il conteggio sia sufficiente per chi non ha mai cantato in gruppo. La nota di esportazione descrive i file, senza misurare questo effetto sui partecipanti.\n\nResta da decidere, a cura di Elia, quale delle tre tracce diventerà l’accompagnamento ufficiale del coro."
+          },
+          "mutationDescription": "Aggiunta di un nuovo seguito umano al consolidamento A, senza eliminare le incertezze già presenti."
+        },
+        {
+          "variantId": "cosmetic",
+          "targetCriterion": "meaningful_improvement",
+          "after": {
+            "title": "Voci di Sera — accompagnamenti della prova",
+            "type": "project",
+            "summary": "Tre accompagnamenti per il laboratorio corale e limiti delle informazioni sui nuovi partecipanti.",
+            "markdown": "# Voci di Sera: accompagnamenti di Passi Leggeri\n\nIl coro amatoriale Voci di Sera prepara un breve laboratorio di lettura ritmica per persone che cantano insieme per la prima volta. Nella cartella sono riunite tre tracce di accompagnamento del brano immaginario Passi Leggeri, tutte destinate alla prova del 22 maggio 2025.\n\nLa [nota di esportazione del 18 maggio 2025](/documents/cascade-n04-s1) accompagna i file piano, sola pulsazione e insieme. Le tre tracce durano novantasei secondi e usano lo stesso conteggio iniziale di quattro battiti. La traccia piano non contiene voci registrate, mentre insieme comprende le due linee vocali della dimostrazione.\n\nNon è ancora chiaro se nella traccia insieme il metronomo rimanga udibile anche dopo l’introduzione.\n\nFra due ripetizioni del brano è prevista una pausa di quaranta secondi per annotare i passaggi difficili.\n\nIl conteggio iniziale è esterno alle prime otto battute del brano. La cartella usa i nomi dei file per distinguere gli accompagnamenti e non cambia il titolo del brano da una versione all’altra. I file non contengono una registrazione del pubblico o delle voci dei nuovi partecipanti.\n\n## Nota riportata per la sessione\n\nPiano, sola pulsazione e insieme hanno durata comune di novantasei secondi e partono con quattro battiti di conteggio. Piano non include cantanti; insieme contiene le due linee vocali mostrate nella dimostrazione. Le prime otto battute si contano dopo l’introduzione.\n\nNon è stato osservato se il conteggio sia sufficiente per chi non ha mai cantato in gruppo. La nota di esportazione descrive i file, senza misurare questo effetto sui partecipanti."
+          },
+          "mutationDescription": "Riformulazione del corpo della pagina iniziale senza risolverne ripetizioni, domande o errori documentati."
+        }
+      ]
+    },
+    {
+      "familyId": "N05",
+      "title": "Giro Corto — tempi dell’anello dimostrativo",
+      "category": "cronologia_e_confronto_non_risolto",
+      "before": {
+        "title": "Giro Corto — tempi dell’anello dimostrativo",
+        "type": "project",
+        "summary": "Tempi di due dimostrazioni in bicicletta da carico, con metodi di conteggio non confrontabili con certezza.",
+        "markdown": "# Giro Corto: tempi dell’anello dimostrativo\n\nL’officina ciclistica Giro Corto raccoglie appunti sul percorso usato per presentare una bicicletta da carico ai nuovi volontari. Il percorso unisce il cortile e la piazza del mercato, con ritorno allo stesso cancello; non è una stima dei tempi delle consegne commerciali.\n\nNel [registro delle dimostrazioni](/documents/cascade-n05-s1), Paola annota il 3 giugno 2025 un giro di diciotto minuti con due soste. Ludo annota il 10 giugno 2025 un giro di quattordici minuti, anch’esso con due soste. Entrambi chiamano il tragitto “anello corto”, ma solo Paola scrive che il conteggio include il tempo trascorso da fermi.\n\nIl giro dimostrativo percorre via delle Betulle in uscita e via del Melo al ritorno.\n\nIl registro non indica il carico trasportato né le condizioni del traffico nelle due date. La differenza di quattro minuti non è spiegata e nessuna annotazione rettifica l’altra. Non è quindi documentato un miglioramento della prestazione fra la prima e la seconda dimostrazione.\n\n## Trascrizione per il tavolo dei volontari\n\nIl 3 giugno Paola riporta diciotto minuti e due soste, includendo esplicitamente il tempo fermo. Il 10 giugno Ludo riporta quattordici minuti e due soste, senza specificare come conta il tempo fermo. Tutte e due le righe riguardano il nome anello corto.\n\nRimane sconosciuto se Ludo abbia escluso le soste dal cronometro. La loro presenza nel testo non basta a risolvere questa differenza di metodo; i due tempi restano osservazioni separate."
+      },
+      "evidence": {
+        "citations": [
+          {
+            "pageId": "cascade-n05-target",
+            "version": 4,
+            "quote": "L’officina ciclistica Giro Corto raccoglie appunti sul percorso usato per presentare una bicicletta da carico ai nuovi volontari. Il percorso unisce il cortile e la piazza del mercato, con ritorno allo stesso cancello; non è una stima dei tempi delle consegne commerciali."
+          },
+          {
+            "pageId": "cascade-n05-s1",
+            "version": 2,
+            "quote": "Registra diciotto minuti complessivi e due soste."
+          },
+          {
+            "pageId": "cascade-n05-s1",
+            "version": 2,
+            "quote": "Paola precisa che il tempo trascorso da fermi è incluso nel conteggio."
+          },
+          {
+            "pageId": "cascade-n05-s1",
+            "version": 2,
+            "quote": "La riga di Ludo del 10 giugno 2025 registra quattordici minuti e due soste per l’anello corto."
+          },
+          {
+            "pageId": "cascade-n05-s1",
+            "version": 2,
+            "quote": "Ludo non precisa se il cronometro resti in funzione durante le soste."
+          }
+        ],
+        "sources": [
+          {
+            "pageId": "cascade-n05-target",
+            "version": 4,
+            "title": "Giro Corto — tempi dell’anello dimostrativo",
+            "summary": "Tempi di due dimostrazioni in bicicletta da carico, con metodi di conteggio non confrontabili con certezza.",
+            "markdown": "# Giro Corto: tempi dell’anello dimostrativo\n\nL’officina ciclistica Giro Corto raccoglie appunti sul percorso usato per presentare una bicicletta da carico ai nuovi volontari. Il percorso unisce il cortile e la piazza del mercato, con ritorno allo stesso cancello; non è una stima dei tempi delle consegne commerciali.\n\nNel [registro delle dimostrazioni](/documents/cascade-n05-s1), Paola annota il 3 giugno 2025 un giro di diciotto minuti con due soste. Ludo annota il 10 giugno 2025 un giro di quattordici minuti, anch’esso con due soste. Entrambi chiamano il tragitto “anello corto”, ma solo Paola scrive che il conteggio include il tempo trascorso da fermi.\n\nIl giro dimostrativo percorre via delle Betulle in uscita e via del Melo al ritorno.\n\nIl registro non indica il carico trasportato né le condizioni del traffico nelle due date. La differenza di quattro minuti non è spiegata e nessuna annotazione rettifica l’altra. Non è quindi documentato un miglioramento della prestazione fra la prima e la seconda dimostrazione.\n\n## Trascrizione per il tavolo dei volontari\n\nIl 3 giugno Paola riporta diciotto minuti e due soste, includendo esplicitamente il tempo fermo. Il 10 giugno Ludo riporta quattordici minuti e due soste, senza specificare come conta il tempo fermo. Tutte e due le righe riguardano il nome anello corto.\n\nRimane sconosciuto se Ludo abbia escluso le soste dal cronometro. La loro presenza nel testo non basta a risolvere questa differenza di metodo; i due tempi restano osservazioni separate."
+          },
+          {
+            "pageId": "cascade-n05-s1",
+            "version": 2,
+            "title": "Registro delle dimostrazioni di giugno 2025",
+            "markdown": "# Registro delle dimostrazioni di giugno 2025\n\nLa riga compilata da Paola il 3 giugno 2025 descrive l’anello corto fra cortile e piazza del mercato, con ritorno al cancello di partenza. Registra diciotto minuti complessivi e due soste. Paola precisa che il tempo trascorso da fermi è incluso nel conteggio. La riga non descrive il peso di eventuali oggetti nel cassone né la situazione del traffico nel tratto verso la piazza.\n\nLa riga di Ludo del 10 giugno 2025 registra quattordici minuti e due soste per l’anello corto. Anche questa annotazione identifica il cortile, la piazza del mercato e il ritorno allo stesso cancello. Ludo non precisa se il cronometro resti in funzione durante le soste. Non c’è una nota di rettifica della riga di Paola e non viene dichiarata una diversa lunghezza del percorso.\n\nLe righe documentano dimostrazioni rivolte ai nuovi volontari dell’officina Giro Corto. Non sono un campione di consegne commerciali, non riportano il carico e non consentono di attribuire la differenza di durata alla bicicletta o a una maggiore abilità del conducente. Il nome comune del tragitto permette il confronto delle annotazioni, ma non dimostra che il metodo di conteggio dei minuti sia lo stesso. Entrambe le osservazioni rimangono nel registro con la propria data e il proprio autore."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "variantId": "good_a",
+          "targetCriterion": null,
+          "after": {
+            "title": "Giro Corto — tempi dell’anello dimostrativo",
+            "type": "project",
+            "summary": "Tempi di due dimostrazioni in bicicletta da carico, con metodi di conteggio non confrontabili con certezza.",
+            "markdown": "# Giro Corto: tempi dell’anello dimostrativo\n\nL’officina ciclistica Giro Corto raccoglie appunti sul percorso usato per presentare una bicicletta da carico ai nuovi volontari. Il percorso unisce il cortile e la piazza del mercato, con ritorno allo stesso cancello; non è una stima dei tempi delle consegne commerciali.\n\nIl [registro delle dimostrazioni](/documents/cascade-n05-s1) conserva due osservazioni dell’anello corto:\n\n| Data e autore | Durata riportata | Soste | Trattamento del tempo fermo |\n| --- | --- | --- | --- |\n| 3 giugno 2025, Paola | 18 minuti | 2 | Incluso esplicitamente |\n| 10 giugno 2025, Ludo | 14 minuti | 2 | Non specificato |\n\nIl giro dimostrativo percorre via delle Betulle in uscita e via del Melo al ritorno.\n\nIl registro non indica il carico trasportato né le condizioni del traffico nelle due date. La differenza di quattro minuti non è spiegata e nessuna annotazione rettifica l’altra. Non è quindi documentato un miglioramento della prestazione fra la prima e la seconda dimostrazione.\n\nRimane sconosciuto se Ludo abbia escluso le soste dal cronometro. La loro presenza nel testo non basta a risolvere questa differenza di metodo; i due tempi restano osservazioni separate."
+          },
+          "mutationDescription": "Accosta data, autore e metodo delle due osservazioni senza risolvere arbitrariamente la differenza."
+        },
+        {
+          "variantId": "good_b",
+          "targetCriterion": null,
+          "after": {
+            "title": "Giro Corto — tempi dell’anello dimostrativo",
+            "type": "project",
+            "summary": "Tempi di due dimostrazioni in bicicletta da carico, con metodi di conteggio non confrontabili con certezza.",
+            "markdown": "# Giro Corto: tempi dell’anello dimostrativo\n\nL’officina ciclistica Giro Corto raccoglie appunti sul percorso usato per presentare una bicicletta da carico ai nuovi volontari. Il percorso unisce il cortile e la piazza del mercato, con ritorno allo stesso cancello; non è una stima dei tempi delle consegne commerciali.\n\nNel [registro delle dimostrazioni](/documents/cascade-n05-s1), Paola annota il 3 giugno 2025 un giro di diciotto minuti con due soste. Ludo annota il 10 giugno 2025 un giro di quattordici minuti, anch’esso con due soste. Entrambi chiamano il tragitto “anello corto”, ma solo Paola scrive che il conteggio include il tempo trascorso da fermi.\n\nIl giro dimostrativo percorre via delle Betulle in uscita e via del Melo al ritorno.\n\nIl registro non indica il carico trasportato né le condizioni del traffico nelle due date. La differenza di quattro minuti non è spiegata e nessuna annotazione rettifica l’altra. Non è quindi documentato un miglioramento della prestazione fra la prima e la seconda dimostrazione.\n\nRimane sconosciuto se Ludo abbia escluso le soste dal cronometro. La loro presenza nel testo non basta a risolvere questa differenza di metodo; i due tempi restano osservazioni separate."
+          },
+          "mutationDescription": "Rimuove localmente la seconda trascrizione dei tempi, lasciando la spiegazione originale del conflitto."
+        },
+        {
+          "variantId": "unsupported",
+          "targetCriterion": "supported_by_evidence",
+          "after": {
+            "title": "Giro Corto — tempi dell’anello dimostrativo",
+            "type": "project",
+            "summary": "Tempi di due dimostrazioni in bicicletta da carico, con metodi di conteggio non confrontabili con certezza.",
+            "markdown": "# Giro Corto: tempi dell’anello dimostrativo\n\nL’officina ciclistica Giro Corto raccoglie appunti sul percorso usato per presentare una bicicletta da carico ai nuovi volontari. Il percorso unisce il cortile e la piazza del mercato, con ritorno allo stesso cancello; non è una stima dei tempi delle consegne commerciali.\n\nIl [registro delle dimostrazioni](/documents/cascade-n05-s1) conserva due osservazioni dell’anello corto:\n\n| Data e autore | Durata riportata | Soste | Trattamento del tempo fermo |\n| --- | --- | --- | --- |\n| 3 giugno 2025, Paola | 18 minuti | 2 | Incluso esplicitamente |\n| 10 giugno 2025, Ludo | 14 minuti | 2 | Non specificato |\n\nIl giro dimostrativo percorre via delle Betulle in uscita e via del Melo al ritorno.\n\nIl registro non indica il carico trasportato né le condizioni del traffico nelle due date. La differenza di quattro minuti non è spiegata e nessuna annotazione rettifica l’altra. Non è quindi documentato un miglioramento della prestazione fra la prima e la seconda dimostrazione.\n\nRimane sconosciuto se Ludo abbia escluso le soste dal cronometro. La loro presenza nel testo non basta a risolvere questa differenza di metodo; i due tempi restano osservazioni separate.\n\nIl registro attribuisce inoltre a Paola la scelta del nome anello corto per il percorso."
+          },
+          "mutationDescription": "Aggiunta di una singola affermazione oltre il contenuto delle fonti, mantenendo il resto del consolidamento A."
+        },
+        {
+          "variantId": "loss",
+          "targetCriterion": "preserves_distinct_information",
+          "after": {
+            "title": "Giro Corto — tempi dell’anello dimostrativo",
+            "type": "project",
+            "summary": "Tempi di due dimostrazioni in bicicletta da carico, con metodi di conteggio non confrontabili con certezza.",
+            "markdown": "# Giro Corto: tempi dell’anello dimostrativo\n\nL’officina ciclistica Giro Corto raccoglie appunti sul percorso usato per presentare una bicicletta da carico ai nuovi volontari. Il percorso unisce il cortile e la piazza del mercato, con ritorno allo stesso cancello; non è una stima dei tempi delle consegne commerciali.\n\nIl [registro delle dimostrazioni](/documents/cascade-n05-s1) conserva due osservazioni dell’anello corto:\n\n| Data e autore | Durata riportata | Soste | Trattamento del tempo fermo |\n| --- | --- | --- | --- |\n| 3 giugno 2025, Paola | 18 minuti | 2 | Incluso esplicitamente |\n| 10 giugno 2025, Ludo | 14 minuti | 2 | Non specificato |\n\nIl registro non indica il carico trasportato né le condizioni del traffico nelle due date. La differenza di quattro minuti non è spiegata e nessuna annotazione rettifica l’altra. Non è quindi documentato un miglioramento della prestazione fra la prima e la seconda dimostrazione.\n\nRimane sconosciuto se Ludo abbia escluso le soste dal cronometro. La loro presenza nel testo non basta a risolvere questa differenza di metodo; i due tempi restano osservazioni separate."
+          },
+          "mutationDescription": "Rimozione di un dettaglio operativo unico della pagina destinazione dal consolidamento A."
+        },
+        {
+          "variantId": "human_action",
+          "targetCriterion": "no_new_human_action",
+          "after": {
+            "title": "Giro Corto — tempi dell’anello dimostrativo",
+            "type": "project",
+            "summary": "Tempi di due dimostrazioni in bicicletta da carico, con metodi di conteggio non confrontabili con certezza.",
+            "markdown": "# Giro Corto: tempi dell’anello dimostrativo\n\nL’officina ciclistica Giro Corto raccoglie appunti sul percorso usato per presentare una bicicletta da carico ai nuovi volontari. Il percorso unisce il cortile e la piazza del mercato, con ritorno allo stesso cancello; non è una stima dei tempi delle consegne commerciali.\n\nIl [registro delle dimostrazioni](/documents/cascade-n05-s1) conserva due osservazioni dell’anello corto:\n\n| Data e autore | Durata riportata | Soste | Trattamento del tempo fermo |\n| --- | --- | --- | --- |\n| 3 giugno 2025, Paola | 18 minuti | 2 | Incluso esplicitamente |\n| 10 giugno 2025, Ludo | 14 minuti | 2 | Non specificato |\n\nIl giro dimostrativo percorre via delle Betulle in uscita e via del Melo al ritorno.\n\nIl registro non indica il carico trasportato né le condizioni del traffico nelle due date. La differenza di quattro minuti non è spiegata e nessuna annotazione rettifica l’altra. Non è quindi documentato un miglioramento della prestazione fra la prima e la seconda dimostrazione.\n\nRimane sconosciuto se Ludo abbia escluso le soste dal cronometro. La loro presenza nel testo non basta a risolvere questa differenza di metodo; i due tempi restano osservazioni separate.\n\nLudo deve confermare se il cronometro fosse fermo durante le soste del 10 giugno."
+          },
+          "mutationDescription": "Aggiunta di un nuovo seguito umano al consolidamento A, senza eliminare le incertezze già presenti."
+        },
+        {
+          "variantId": "cosmetic",
+          "targetCriterion": "meaningful_improvement",
+          "after": {
+            "title": "Giro Corto — tempi dell’anello dimostrativo",
+            "type": "project",
+            "summary": "Tempi di due dimostrazioni in bicicletta da carico, con metodi di conteggio non confrontabili con certezza.",
+            "markdown": "# Giro Corto: tempi dell’anello dimostrativo\n\nL’officina ciclistica Giro Corto riunisce note sul percorso utilizzato per presentare una bicicletta da carico ai nuovi volontari. Il percorso unisce il cortile e la piazza del mercato, con ritorno allo stesso cancello; non è una stima dei tempi delle consegne commerciali.\n\nNel [registro delle dimostrazioni](/documents/cascade-n05-s1), Paola annota il 3 giugno 2025 un giro di diciotto minuti con due soste. Ludo annota il 10 giugno 2025 un giro di quattordici minuti, anch’esso con due soste. Entrambi chiamano il tragitto “anello corto”, ma solo Paola scrive che il conteggio include il tempo trascorso da fermi.\n\nIl giro dimostrativo percorre via delle Betulle in uscita e via del Melo al ritorno.\n\nIl registro non indica il carico trasportato né le condizioni del traffico nelle due date. La differenza di quattro minuti non è spiegata e nessuna annotazione rettifica l’altra. Non è quindi documentato un miglioramento della prestazione fra la prima e la seconda dimostrazione.\n\n## Copia destinata al tavolo dei volontari\n\nIl 3 giugno Paola riporta diciotto minuti e due soste, includendo esplicitamente il tempo fermo. Il 10 giugno Ludo riporta quattordici minuti e due soste, senza specificare come conta il tempo fermo. Tutte e due le righe riguardano il nome anello corto.\n\nRimane sconosciuto se Ludo abbia escluso le soste dal cronometro. La loro presenza nel testo non basta a risolvere questa differenza di metodo; i due tempi restano osservazioni separate."
+          },
+          "mutationDescription": "Riformulazione del corpo della pagina iniziale senza risolverne ripetizioni, domande o errori documentati."
+        }
+      ]
+    },
+    {
+      "familyId": "N06",
+      "title": "Crosta Amica — ceste della dimostrazione",
+      "category": "note_di_manutenzione_duplicate",
+      "before": {
+        "title": "Crosta Amica — ceste della dimostrazione",
+        "type": "project",
+        "summary": "Etichette e riconoscimento delle sei ceste del laboratorio di formatura.",
+        "markdown": "# Crosta Amica: ceste per la dimostrazione\n\nIl forno di quartiere Crosta Amica organizza una dimostrazione di formatura per sei piccoli gruppi durante la mattina del 7 luglio 2025. Questa pagina descrive le etichette delle ceste usate nell’attività, così che il pane dimostrativo non venga confuso con quello del banco di vendita.\n\nLa [scheda delle ceste del 4 luglio 2025](/documents/cascade-n06-s1) assegna alle sei ceste i nomi Alba, Bosco, Cielo, Duna, Erba e Faro. Ogni cartellino riporta nome del gruppo e numero di pezzi previsti; il numero indica la preparazione della dimostrazione, non una quantità già venduta o consegnata.\n\nLe ceste sono riposte nel locale a ovest soltanto dopo che il tavolo è stato liberato.\n\nLe etichette sono leggibili da entrambi i lati del tavolo. La scheda esterna conserva l’ordine di disposizione delle ceste e il modello del cartellino, che comprende uno spazio vuoto per eventuali pezzi rimasti. Quello spazio non rappresenta un difetto di stampa e non contiene una previsione degli avanzi.\n\n## Tracce di manutenzione della pagina\n\nNota di manutenzione già completata: il collegamento alla scheda delle ceste è stato ricontrollato; i sei nomi e il modello a due facce coincidono con il documento collegato. Nessuna modifica al contenuto.\n\nSeconda nota di manutenzione conclusa: ripetuto il controllo del collegamento e della corrispondenza dei sei nomi; confermato il cartellino a due facce. Non è emerso alcun aggiornamento della scheda.\n\nNon è documentato quanti pezzi resteranno a fine mattina. Il numero pianificato sui cartellini non permette di ricavare quel risultato."
+      },
+      "evidence": {
+        "citations": [
+          {
+            "pageId": "cascade-n06-target",
+            "version": 4,
+            "quote": "Il forno di quartiere Crosta Amica organizza una dimostrazione di formatura per sei piccoli gruppi durante la mattina del 7 luglio 2025. Questa pagina descrive le etichette delle ceste usate nell’attività, così che il pane dimostrativo non venga confuso con quello del banco di vendita."
+          },
+          {
+            "pageId": "cascade-n06-s1",
+            "version": 2,
+            "quote": "I sei gruppi usano i nomi Alba, Bosco, Cielo, Duna, Erba e Faro."
+          },
+          {
+            "pageId": "cascade-n06-s1",
+            "version": 2,
+            "quote": "Il modello di cartellino è stampato a due facce per essere leggibile da entrambi i lati del tavolo."
+          },
+          {
+            "pageId": "cascade-n06-s1",
+            "version": 2,
+            "quote": "Il documento è preparatorio: non contiene conteggi di fine mattina e non permette di calcolare i pezzi rimasti."
+          }
+        ],
+        "sources": [
+          {
+            "pageId": "cascade-n06-target",
+            "version": 4,
+            "title": "Crosta Amica — ceste della dimostrazione",
+            "summary": "Etichette e riconoscimento delle sei ceste del laboratorio di formatura.",
+            "markdown": "# Crosta Amica: ceste per la dimostrazione\n\nIl forno di quartiere Crosta Amica organizza una dimostrazione di formatura per sei piccoli gruppi durante la mattina del 7 luglio 2025. Questa pagina descrive le etichette delle ceste usate nell’attività, così che il pane dimostrativo non venga confuso con quello del banco di vendita.\n\nLa [scheda delle ceste del 4 luglio 2025](/documents/cascade-n06-s1) assegna alle sei ceste i nomi Alba, Bosco, Cielo, Duna, Erba e Faro. Ogni cartellino riporta nome del gruppo e numero di pezzi previsti; il numero indica la preparazione della dimostrazione, non una quantità già venduta o consegnata.\n\nLe ceste sono riposte nel locale a ovest soltanto dopo che il tavolo è stato liberato.\n\nLe etichette sono leggibili da entrambi i lati del tavolo. La scheda esterna conserva l’ordine di disposizione delle ceste e il modello del cartellino, che comprende uno spazio vuoto per eventuali pezzi rimasti. Quello spazio non rappresenta un difetto di stampa e non contiene una previsione degli avanzi.\n\n## Tracce di manutenzione della pagina\n\nNota di manutenzione già completata: il collegamento alla scheda delle ceste è stato ricontrollato; i sei nomi e il modello a due facce coincidono con il documento collegato. Nessuna modifica al contenuto.\n\nSeconda nota di manutenzione conclusa: ripetuto il controllo del collegamento e della corrispondenza dei sei nomi; confermato il cartellino a due facce. Non è emerso alcun aggiornamento della scheda.\n\nNon è documentato quanti pezzi resteranno a fine mattina. Il numero pianificato sui cartellini non permette di ricavare quel risultato."
+          },
+          {
+            "pageId": "cascade-n06-s1",
+            "version": 2,
+            "title": "Scheda delle ceste — 4 luglio 2025",
+            "markdown": "# Scheda delle ceste — 4 luglio 2025\n\nLa scheda del 4 luglio 2025 prepara le ceste per la dimostrazione di formatura del forno Crosta Amica, prevista la mattina del 7 luglio. I sei gruppi usano i nomi Alba, Bosco, Cielo, Duna, Erba e Faro. Le ceste vengono disposte sul tavolo in questo ordine, da sinistra a destra guardando il banco dalla porta di ingresso. Le ceste della dimostrazione non identificano le merci del banco di vendita.\n\nIl modello di cartellino è stampato a due facce per essere leggibile da entrambi i lati del tavolo. Riporta il nome del gruppo e il numero di pezzi previsti per la preparazione, senza rappresentare una vendita o una consegna già effettuata. Un campo distinto rimane vuoto per registrare eventuali pezzi rimasti dopo l’attività. Il campo vuoto è intenzionale e non corrisponde a una previsione degli avanzi.\n\nIl documento è preparatorio: non contiene conteggi di fine mattina e non permette di calcolare i pezzi rimasti. Non assegna un prezzo ai prodotti né una destinazione agli eventuali avanzi. L’ordine delle ceste serve a orientare i partecipanti durante la dimostrazione; i nomi non classificano ingredienti, ricette o caratteristiche alimentari. La collocazione delle ceste dopo l’attività è descritta nella pagina della dimostrazione e non nel modello stampabile qui conservato."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "variantId": "good_a",
+          "targetCriterion": null,
+          "after": {
+            "title": "Crosta Amica — ceste della dimostrazione",
+            "type": "project",
+            "summary": "Etichette e riconoscimento delle sei ceste del laboratorio di formatura.",
+            "markdown": "# Crosta Amica: ceste per la dimostrazione\n\nIl forno di quartiere Crosta Amica organizza una dimostrazione di formatura per sei piccoli gruppi durante la mattina del 7 luglio 2025. Questa pagina descrive le etichette delle ceste usate nell’attività, così che il pane dimostrativo non venga confuso con quello del banco di vendita.\n\nLa [scheda delle ceste del 4 luglio 2025](/documents/cascade-n06-s1) assegna alle sei ceste i nomi Alba, Bosco, Cielo, Duna, Erba e Faro. Ogni cartellino riporta nome del gruppo e numero di pezzi previsti; il numero indica la preparazione della dimostrazione, non una quantità già venduta o consegnata.\n\nLe ceste sono riposte nel locale a ovest soltanto dopo che il tavolo è stato liberato.\n\nLe etichette sono leggibili da entrambi i lati del tavolo. La scheda esterna conserva l’ordine di disposizione delle ceste e il modello del cartellino, che comprende uno spazio vuoto per eventuali pezzi rimasti. Quello spazio non rappresenta un difetto di stampa e non contiene una previsione degli avanzi.\n\nNon è documentato quanti pezzi resteranno a fine mattina. Il numero pianificato sui cartellini non permette di ricavare quel risultato."
+          },
+          "mutationDescription": "Rimuove entrambe le note concluse prive di aggiornamenti, mantenendo tutti i dati delle ceste e il limite sui conteggi futuri."
+        },
+        {
+          "variantId": "good_b",
+          "targetCriterion": null,
+          "after": {
+            "title": "Crosta Amica — ceste della dimostrazione",
+            "type": "project",
+            "summary": "Etichette e riconoscimento delle sei ceste del laboratorio di formatura.",
+            "markdown": "# Crosta Amica: ceste per la dimostrazione\n\nIl forno di quartiere Crosta Amica organizza una dimostrazione di formatura per sei piccoli gruppi durante la mattina del 7 luglio 2025. Questa pagina descrive le etichette delle ceste usate nell’attività, così che il pane dimostrativo non venga confuso con quello del banco di vendita.\n\nLa [scheda delle ceste del 4 luglio 2025](/documents/cascade-n06-s1) assegna alle sei ceste i nomi Alba, Bosco, Cielo, Duna, Erba e Faro. Ogni cartellino riporta nome del gruppo e numero di pezzi previsti; il numero indica la preparazione della dimostrazione, non una quantità già venduta o consegnata.\n\nLe ceste sono riposte nel locale a ovest soltanto dopo che il tavolo è stato liberato.\n\nLe etichette sono leggibili da entrambi i lati del tavolo. La scheda esterna conserva l’ordine di disposizione delle ceste e il modello del cartellino, che comprende uno spazio vuoto per eventuali pezzi rimasti. Quello spazio non rappresenta un difetto di stampa e non contiene una previsione degli avanzi.\n\n## Tracce di manutenzione della pagina\n\nNota di manutenzione già completata: il collegamento alla scheda delle ceste è stato ricontrollato; i sei nomi e il modello a due facce coincidono con il documento collegato. Nessuna modifica al contenuto.\n\nNon è documentato quanti pezzi resteranno a fine mattina. Il numero pianificato sui cartellini non permette di ricavare quel risultato."
+          },
+          "mutationDescription": "Elimina soltanto il secondo controllo concluso, duplicato del primo, con modifica minima alla pagina."
+        },
+        {
+          "variantId": "unsupported",
+          "targetCriterion": "supported_by_evidence",
+          "after": {
+            "title": "Crosta Amica — ceste della dimostrazione",
+            "type": "project",
+            "summary": "Etichette e riconoscimento delle sei ceste del laboratorio di formatura.",
+            "markdown": "# Crosta Amica: ceste per la dimostrazione\n\nIl forno di quartiere Crosta Amica organizza una dimostrazione di formatura per sei piccoli gruppi durante la mattina del 7 luglio 2025. Questa pagina descrive le etichette delle ceste usate nell’attività, così che il pane dimostrativo non venga confuso con quello del banco di vendita.\n\nLa [scheda delle ceste del 4 luglio 2025](/documents/cascade-n06-s1) assegna alle sei ceste i nomi Alba, Bosco, Cielo, Duna, Erba e Faro. Ogni cartellino riporta nome del gruppo e numero di pezzi previsti; il numero indica la preparazione della dimostrazione, non una quantità già venduta o consegnata.\n\nLe ceste sono riposte nel locale a ovest soltanto dopo che il tavolo è stato liberato.\n\nLe etichette sono leggibili da entrambi i lati del tavolo. La scheda esterna conserva l’ordine di disposizione delle ceste e il modello del cartellino, che comprende uno spazio vuoto per eventuali pezzi rimasti. Quello spazio non rappresenta un difetto di stampa e non contiene una previsione degli avanzi.\n\nNon è documentato quanti pezzi resteranno a fine mattina. Il numero pianificato sui cartellini non permette di ricavare quel risultato.\n\nLa stampa a due facce dimezza esattamente il tempo necessario a distribuire le ceste ai gruppi."
+          },
+          "mutationDescription": "Aggiunta di una singola affermazione oltre il contenuto delle fonti, mantenendo il resto del consolidamento A."
+        },
+        {
+          "variantId": "loss",
+          "targetCriterion": "preserves_distinct_information",
+          "after": {
+            "title": "Crosta Amica — ceste della dimostrazione",
+            "type": "project",
+            "summary": "Etichette e riconoscimento delle sei ceste del laboratorio di formatura.",
+            "markdown": "# Crosta Amica: ceste per la dimostrazione\n\nIl forno di quartiere Crosta Amica organizza una dimostrazione di formatura per sei piccoli gruppi durante la mattina del 7 luglio 2025. Questa pagina descrive le etichette delle ceste usate nell’attività, così che il pane dimostrativo non venga confuso con quello del banco di vendita.\n\nLa [scheda delle ceste del 4 luglio 2025](/documents/cascade-n06-s1) assegna alle sei ceste i nomi Alba, Bosco, Cielo, Duna, Erba e Faro. Ogni cartellino riporta nome del gruppo e numero di pezzi previsti; il numero indica la preparazione della dimostrazione, non una quantità già venduta o consegnata.\n\nLe etichette sono leggibili da entrambi i lati del tavolo. La scheda esterna conserva l’ordine di disposizione delle ceste e il modello del cartellino, che comprende uno spazio vuoto per eventuali pezzi rimasti. Quello spazio non rappresenta un difetto di stampa e non contiene una previsione degli avanzi.\n\nNon è documentato quanti pezzi resteranno a fine mattina. Il numero pianificato sui cartellini non permette di ricavare quel risultato."
+          },
+          "mutationDescription": "Rimozione di un dettaglio operativo unico della pagina destinazione dal consolidamento A."
+        },
+        {
+          "variantId": "human_action",
+          "targetCriterion": "no_new_human_action",
+          "after": {
+            "title": "Crosta Amica — ceste della dimostrazione",
+            "type": "project",
+            "summary": "Etichette e riconoscimento delle sei ceste del laboratorio di formatura.",
+            "markdown": "# Crosta Amica: ceste per la dimostrazione\n\nIl forno di quartiere Crosta Amica organizza una dimostrazione di formatura per sei piccoli gruppi durante la mattina del 7 luglio 2025. Questa pagina descrive le etichette delle ceste usate nell’attività, così che il pane dimostrativo non venga confuso con quello del banco di vendita.\n\nLa [scheda delle ceste del 4 luglio 2025](/documents/cascade-n06-s1) assegna alle sei ceste i nomi Alba, Bosco, Cielo, Duna, Erba e Faro. Ogni cartellino riporta nome del gruppo e numero di pezzi previsti; il numero indica la preparazione della dimostrazione, non una quantità già venduta o consegnata.\n\nLe ceste sono riposte nel locale a ovest soltanto dopo che il tavolo è stato liberato.\n\nLe etichette sono leggibili da entrambi i lati del tavolo. La scheda esterna conserva l’ordine di disposizione delle ceste e il modello del cartellino, che comprende uno spazio vuoto per eventuali pezzi rimasti. Quello spazio non rappresenta un difetto di stampa e non contiene una previsione degli avanzi.\n\nNon è documentato quanti pezzi resteranno a fine mattina. Il numero pianificato sui cartellini non permette di ricavare quel risultato.\n\nSarebbe utile che il referente attestasse nuovamente la corrispondenza dei sei cartellini prima della mattina del 7 luglio."
+          },
+          "mutationDescription": "Aggiunta di un nuovo seguito umano al consolidamento A, senza eliminare le incertezze già presenti."
+        },
+        {
+          "variantId": "cosmetic",
+          "targetCriterion": "meaningful_improvement",
+          "after": {
+            "title": "Crosta Amica — ceste della dimostrazione",
+            "type": "project",
+            "summary": "Etichette e riconoscimento delle sei ceste del laboratorio di formatura.",
+            "markdown": "# Crosta Amica: ceste per la dimostrazione\n\nIl forno di quartiere Crosta Amica organizza una dimostrazione di formatura per sei piccoli gruppi durante la mattina del 7 luglio 2025. Il documento presenta le etichette delle ceste impiegate nell’attività, così che il pane dimostrativo non venga confuso con quello del banco di vendita.\n\nLa [scheda delle ceste del 4 luglio 2025](/documents/cascade-n06-s1) assegna alle sei ceste i nomi Alba, Bosco, Cielo, Duna, Erba e Faro. Ogni cartellino riporta nome del gruppo e numero di pezzi previsti; il numero indica la preparazione della dimostrazione, non una quantità già venduta o consegnata.\n\nLe ceste sono riposte nel locale a ovest soltanto dopo che il tavolo è stato liberato.\n\nLe etichette sono leggibili da entrambi i lati del tavolo. La scheda esterna conserva l’ordine di disposizione delle ceste e il modello del cartellino, che comprende uno spazio vuoto per eventuali pezzi rimasti. Quello spazio non rappresenta un difetto di stampa e non contiene una previsione degli avanzi.\n\n## Annotazioni di manutenzione del documento\n\nNota di manutenzione già completata: il collegamento alla scheda delle ceste è stato ricontrollato; i sei nomi e il modello a due facce coincidono con il documento collegato. Nessuna modifica al contenuto.\n\nSeconda nota di manutenzione conclusa: ripetuto il controllo del collegamento e della corrispondenza dei sei nomi; confermato il cartellino a due facce. Non è emerso alcun aggiornamento della scheda.\n\nNon è documentato quanti pezzi resteranno a fine mattina. Il numero pianificato sui cartellini non permette di ricavare quel risultato."
+          },
+          "mutationDescription": "Riformulazione del corpo della pagina iniziale senza risolverne ripetizioni, domande o errori documentati."
+        }
+      ]
+    },
+    {
+      "familyId": "N07",
+      "title": "Binario Menta — legenda di Borgo Sasso",
+      "category": "correzione_e_storia_delle_edizioni",
+      "before": {
+        "title": "Binario Menta — legenda di Borgo Sasso",
+        "type": "project",
+        "summary": "Legenda del pannello dimostrativo, storia della correzione e identificazione delle copie.",
+        "markdown": "# Binario Menta: legenda di Borgo Sasso\n\nIl gruppo di fermodellismo Binario Menta prepara un plastico dimostrativo per raccontare ai visitatori come si alternano gli arrivi in una piccola stazione. La pagina riguarda la legenda del pannello del plastico Borgo Sasso; non è uno schema elettrico utilizzabile per cablare altri modelli.\n\nIl pannello contiene due spie, un pulsante di avvio della sequenza e una targa con il nome Borgo Sasso. Durante la presentazione la sequenza dura circa tre minuti. Il pulsante fa partire la dimostrazione, ma non seleziona manualmente uno dei due binari.\n\nLa copia della legenda destinata al tavolo dei visitatori ha un taglio obliquo nell’angolo inferiore destro; le copie senza taglio restano nel raccoglitore del gruppo.\n\n## Cronologia delle copie\n\n### 9 agosto: distribuzione\n\nNella legenda distribuita il 9 agosto 2025, la spia ambra identifica il binario lato monte e la spia verde il binario lato valle. La pagina del gruppo ha ripreso gli stessi abbinamenti dopo la stampa, senza un confronto con il pannello.\n\n### 13 agosto: documento aggiunto\n\nLa [rettifica della legenda del 13 agosto 2025](/documents/cascade-n07-s1) è stata collegata alla pagina. Il testo principale non è ancora stato riallineato al documento; la rettifica riguarda i nomi delle spie e non registra uno spostamento fisico dei binari.\n\n### Riepilogo del materiale presentato\n\nIl plastico si chiama Borgo Sasso. Sul pannello compaiono due spie, un pulsante per avviare la sequenza e la targa del nome. La sequenza della presentazione richiede circa tre minuti; il pulsante non serve alla scelta manuale del binario.\n\nNon è nota la leggibilità della spia verde in pieno sole: la presentazione registrata si svolge al coperto, senza una prova all’aperto."
+      },
+      "evidence": {
+        "citations": [
+          {
+            "pageId": "cascade-n07-target",
+            "version": 4,
+            "quote": "Il gruppo di fermodellismo Binario Menta prepara un plastico dimostrativo per raccontare ai visitatori come si alternano gli arrivi in una piccola stazione. La pagina riguarda la legenda del pannello del plastico Borgo Sasso; non è uno schema elettrico utilizzabile per cablare altri modelli."
+          },
+          {
+            "pageId": "cascade-n07-s1",
+            "version": 2,
+            "quote": "La rettifica del 13 agosto 2025 sostituisce gli abbinamenti stampati nella legenda del 9 agosto: ambra identifica il binario lato valle, verde il binario lato monte."
+          },
+          {
+            "pageId": "cascade-n07-s1",
+            "version": 2,
+            "quote": "La rettifica è compilata da Daria dopo il confronto fra la legenda e il pannello del plastico Borgo Sasso del gruppo Binario Menta."
+          }
+        ],
+        "sources": [
+          {
+            "pageId": "cascade-n07-target",
+            "version": 4,
+            "title": "Binario Menta — legenda di Borgo Sasso",
+            "summary": "Legenda del pannello dimostrativo, storia della correzione e identificazione delle copie.",
+            "markdown": "# Binario Menta: legenda di Borgo Sasso\n\nIl gruppo di fermodellismo Binario Menta prepara un plastico dimostrativo per raccontare ai visitatori come si alternano gli arrivi in una piccola stazione. La pagina riguarda la legenda del pannello del plastico Borgo Sasso; non è uno schema elettrico utilizzabile per cablare altri modelli.\n\nIl pannello contiene due spie, un pulsante di avvio della sequenza e una targa con il nome Borgo Sasso. Durante la presentazione la sequenza dura circa tre minuti. Il pulsante fa partire la dimostrazione, ma non seleziona manualmente uno dei due binari.\n\nLa copia della legenda destinata al tavolo dei visitatori ha un taglio obliquo nell’angolo inferiore destro; le copie senza taglio restano nel raccoglitore del gruppo.\n\n## Cronologia delle copie\n\n### 9 agosto: distribuzione\n\nNella legenda distribuita il 9 agosto 2025, la spia ambra identifica il binario lato monte e la spia verde il binario lato valle. La pagina del gruppo ha ripreso gli stessi abbinamenti dopo la stampa, senza un confronto con il pannello.\n\n### 13 agosto: documento aggiunto\n\nLa [rettifica della legenda del 13 agosto 2025](/documents/cascade-n07-s1) è stata collegata alla pagina. Il testo principale non è ancora stato riallineato al documento; la rettifica riguarda i nomi delle spie e non registra uno spostamento fisico dei binari.\n\n### Riepilogo del materiale presentato\n\nIl plastico si chiama Borgo Sasso. Sul pannello compaiono due spie, un pulsante per avviare la sequenza e la targa del nome. La sequenza della presentazione richiede circa tre minuti; il pulsante non serve alla scelta manuale del binario.\n\nNon è nota la leggibilità della spia verde in pieno sole: la presentazione registrata si svolge al coperto, senza una prova all’aperto."
+          },
+          {
+            "pageId": "cascade-n07-s1",
+            "version": 2,
+            "title": "Rettifica della legenda — 13 agosto 2025",
+            "markdown": "# Rettifica della legenda — 13 agosto 2025\n\nLa rettifica del 13 agosto 2025 sostituisce gli abbinamenti stampati nella legenda del 9 agosto: ambra identifica il binario lato valle, verde il binario lato monte. La prima edizione aveva scambiato i due nomi. La rettifica è compilata da Daria dopo il confronto fra la legenda e il pannello del plastico Borgo Sasso del gruppo Binario Menta.\n\nNon sono stati spostati i binari e non viene documentata una modifica dei collegamenti elettrici. Il cambiamento riguarda soltanto il testo descrittivo delle due spie. Il pannello mantiene un pulsante che avvia la sequenza e la targa con il nome del plastico. Il pulsante non permette di scegliere manualmente un binario; la sequenza usata nella presentazione dura circa tre minuti.\n\nIl plastico viene mostrato al coperto per spiegare l’alternanza degli arrivi nella piccola stazione. Il documento non contiene una prova di leggibilità della spia verde in pieno sole e non permette di ricavare le prestazioni all’aperto. La descrizione della legenda non è uno schema elettrico e non contiene istruzioni di cablaggio per altri modelli. Il nome Borgo Sasso viene mantenuto per entrambe le edizioni, in modo che le copie possano essere riconosciute come versioni dello stesso materiale. La rettifica non descrive i contrassegni delle copie di carta."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "variantId": "good_a",
+          "targetCriterion": null,
+          "after": {
+            "title": "Binario Menta — legenda di Borgo Sasso",
+            "type": "project",
+            "summary": "Legenda del pannello dimostrativo, storia della correzione e identificazione delle copie.",
+            "markdown": "# Binario Menta: legenda di Borgo Sasso\n\nIl gruppo di fermodellismo Binario Menta prepara un plastico dimostrativo per raccontare ai visitatori come si alternano gli arrivi in una piccola stazione. La pagina riguarda la legenda del pannello del plastico Borgo Sasso; non è uno schema elettrico utilizzabile per cablare altri modelli.\n\nIl pannello contiene due spie, un pulsante di avvio della sequenza e una targa con il nome Borgo Sasso. Durante la presentazione la sequenza dura circa tre minuti. Il pulsante fa partire la dimostrazione, ma non seleziona manualmente uno dei due binari.\n\nLa copia della legenda destinata al tavolo dei visitatori ha un taglio obliquo nell’angolo inferiore destro; le copie senza taglio restano nel raccoglitore del gruppo.\n\n## Legenda e provenienza della correzione\n\nLa [rettifica di Daria del 13 agosto 2025](/documents/cascade-n07-s1) corregge gli abbinamenti invertiti nella legenda distribuita il 9 agosto e ripresi dalla prima copia della pagina senza confronto con il pannello:\n\n- Ambra: binario lato valle.\n- Verde: binario lato monte.\n\nIl nome Borgo Sasso è invariato. La correzione riguarda i nomi delle spie e non registra uno spostamento fisico dei binari.\n\nNon è nota la leggibilità della spia verde in pieno sole: la presentazione registrata si svolge al coperto, senza una prova all’aperto."
+          },
+          "mutationDescription": "Corregge gli abbinamenti documentati e riunisce le informazioni ripetute sul pannello, preservando la storia delle copie."
+        },
+        {
+          "variantId": "good_b",
+          "targetCriterion": null,
+          "after": {
+            "title": "Binario Menta — legenda di Borgo Sasso",
+            "type": "project",
+            "summary": "Legenda del pannello dimostrativo, storia della correzione e identificazione delle copie.",
+            "markdown": "# Binario Menta: legenda di Borgo Sasso\n\nIl gruppo di fermodellismo Binario Menta prepara un plastico dimostrativo per raccontare ai visitatori come si alternano gli arrivi in una piccola stazione. La pagina riguarda la legenda del pannello del plastico Borgo Sasso; non è uno schema elettrico utilizzabile per cablare altri modelli.\n\nIl pannello contiene due spie, un pulsante di avvio della sequenza e una targa con il nome Borgo Sasso. Durante la presentazione la sequenza dura circa tre minuti. Il pulsante fa partire la dimostrazione, ma non seleziona manualmente uno dei due binari.\n\nLa copia della legenda destinata al tavolo dei visitatori ha un taglio obliquo nell’angolo inferiore destro; le copie senza taglio restano nel raccoglitore del gruppo.\n\n## Cronologia delle copie\n\n### 9 agosto: distribuzione\n\nLa legenda distribuita il 9 agosto 2025 aveva scambiato i nomi: la rettifica di Daria del 13 agosto 2025 stabilisce ambra per il binario lato valle e verde per il binario lato monte. La prima copia della pagina aveva ripreso gli abbinamenti della stampa senza confrontarli con il pannello.\n\n### 13 agosto: documento aggiunto\n\nLa [rettifica della legenda del 13 agosto 2025](/documents/cascade-n07-s1) è stata collegata alla pagina. La rettifica riguarda i nomi delle spie e non registra uno spostamento fisico dei binari.\n\n### Riepilogo del materiale presentato\n\nIl plastico si chiama Borgo Sasso. Sul pannello compaiono due spie, un pulsante per avviare la sequenza e la targa del nome. La sequenza della presentazione richiede circa tre minuti; il pulsante non serve alla scelta manuale del binario.\n\nNon è nota la leggibilità della spia verde in pieno sole: la presentazione registrata si svolge al coperto, senza una prova all’aperto."
+          },
+          "mutationDescription": "Aggiorna soltanto le frasi rese obsolete dalla rettifica, mantenendo struttura cronologica e riepilogo originali."
+        },
+        {
+          "variantId": "unsupported",
+          "targetCriterion": "supported_by_evidence",
+          "after": {
+            "title": "Binario Menta — legenda di Borgo Sasso",
+            "type": "project",
+            "summary": "Legenda del pannello dimostrativo, storia della correzione e identificazione delle copie.",
+            "markdown": "# Binario Menta: legenda di Borgo Sasso\n\nIl gruppo di fermodellismo Binario Menta prepara un plastico dimostrativo per raccontare ai visitatori come si alternano gli arrivi in una piccola stazione. La pagina riguarda la legenda del pannello del plastico Borgo Sasso; non è uno schema elettrico utilizzabile per cablare altri modelli.\n\nIl pannello contiene due spie, un pulsante di avvio della sequenza e una targa con il nome Borgo Sasso. Durante la presentazione la sequenza dura circa tre minuti. Il pulsante fa partire la dimostrazione, ma non seleziona manualmente uno dei due binari.\n\nLa copia della legenda destinata al tavolo dei visitatori ha un taglio obliquo nell’angolo inferiore destro; le copie senza taglio restano nel raccoglitore del gruppo.\n\n## Legenda e provenienza della correzione\n\nLa [rettifica di Daria del 13 agosto 2025](/documents/cascade-n07-s1) corregge gli abbinamenti invertiti nella legenda distribuita il 9 agosto e ripresi dalla prima copia della pagina senza confronto con il pannello:\n\n- Ambra: binario lato valle.\n- Verde: binario lato monte.\n\nIl nome Borgo Sasso è invariato. La correzione riguarda i nomi delle spie e non registra uno spostamento fisico dei binari.\n\nNon è nota la leggibilità della spia verde in pieno sole: la presentazione registrata si svolge al coperto, senza una prova all’aperto.\n\nDaria aveva già verificato sul pannello gli abbinamenti corretti il 9 agosto 2025, prima della distribuzione."
+          },
+          "mutationDescription": "Aggiunta di una singola affermazione oltre il contenuto delle fonti, mantenendo il resto del consolidamento A."
+        },
+        {
+          "variantId": "loss",
+          "targetCriterion": "preserves_distinct_information",
+          "after": {
+            "title": "Binario Menta — legenda di Borgo Sasso",
+            "type": "project",
+            "summary": "Legenda del pannello dimostrativo, storia della correzione e identificazione delle copie.",
+            "markdown": "# Binario Menta: legenda di Borgo Sasso\n\nIl gruppo di fermodellismo Binario Menta prepara un plastico dimostrativo per raccontare ai visitatori come si alternano gli arrivi in una piccola stazione. La pagina riguarda la legenda del pannello del plastico Borgo Sasso; non è uno schema elettrico utilizzabile per cablare altri modelli.\n\nIl pannello contiene due spie, un pulsante di avvio della sequenza e una targa con il nome Borgo Sasso. Durante la presentazione la sequenza dura circa tre minuti. Il pulsante fa partire la dimostrazione, ma non seleziona manualmente uno dei due binari.\n\nLe copie senza taglio restano nel raccoglitore del gruppo.\n\n## Legenda e provenienza della correzione\n\nLa [rettifica di Daria del 13 agosto 2025](/documents/cascade-n07-s1) corregge gli abbinamenti invertiti nella legenda distribuita il 9 agosto e ripresi dalla prima copia della pagina senza confronto con il pannello:\n\n- Ambra: binario lato valle.\n- Verde: binario lato monte.\n\nIl nome Borgo Sasso è invariato. La correzione riguarda i nomi delle spie e non registra uno spostamento fisico dei binari.\n\nNon è nota la leggibilità della spia verde in pieno sole: la presentazione registrata si svolge al coperto, senza una prova all’aperto."
+          },
+          "mutationDescription": "Rimozione di un dettaglio operativo unico della pagina destinazione dal consolidamento A."
+        },
+        {
+          "variantId": "human_action",
+          "targetCriterion": "no_new_human_action",
+          "after": {
+            "title": "Binario Menta — legenda di Borgo Sasso",
+            "type": "project",
+            "summary": "Legenda del pannello dimostrativo, storia della correzione e identificazione delle copie.",
+            "markdown": "# Binario Menta: legenda di Borgo Sasso\n\nIl gruppo di fermodellismo Binario Menta prepara un plastico dimostrativo per raccontare ai visitatori come si alternano gli arrivi in una piccola stazione. La pagina riguarda la legenda del pannello del plastico Borgo Sasso; non è uno schema elettrico utilizzabile per cablare altri modelli.\n\nIl pannello contiene due spie, un pulsante di avvio della sequenza e una targa con il nome Borgo Sasso. Durante la presentazione la sequenza dura circa tre minuti. Il pulsante fa partire la dimostrazione, ma non seleziona manualmente uno dei due binari.\n\nLa copia della legenda destinata al tavolo dei visitatori ha un taglio obliquo nell’angolo inferiore destro; le copie senza taglio restano nel raccoglitore del gruppo.\n\n## Legenda e provenienza della correzione\n\nLa [rettifica di Daria del 13 agosto 2025](/documents/cascade-n07-s1) corregge gli abbinamenti invertiti nella legenda distribuita il 9 agosto e ripresi dalla prima copia della pagina senza confronto con il pannello:\n\n- Ambra: binario lato valle.\n- Verde: binario lato monte.\n\nIl nome Borgo Sasso è invariato. La correzione riguarda i nomi delle spie e non registra uno spostamento fisico dei binari.\n\nNon è nota la leggibilità della spia verde in pieno sole: la presentazione registrata si svolge al coperto, senza una prova all’aperto.\n\nLa copia corretta attende un visto di Daria per essere considerata pronta all’uso da parte del gruppo."
+          },
+          "mutationDescription": "Aggiunta di un nuovo seguito umano al consolidamento A, senza eliminare le incertezze già presenti."
+        },
+        {
+          "variantId": "cosmetic",
+          "targetCriterion": "meaningful_improvement",
+          "after": {
+            "title": "Binario Menta — legenda di Borgo Sasso",
+            "type": "project",
+            "summary": "Legenda del pannello dimostrativo, storia della correzione e identificazione delle copie.",
+            "markdown": "# Binario Menta: legenda di Borgo Sasso\n\nIl gruppo di fermodellismo Binario Menta prepara un plastico dimostrativo per raccontare ai visitatori come si alternano gli arrivi in una piccola stazione. La pagina riguarda la legenda del pannello del plastico Borgo Sasso; non è uno schema elettrico utilizzabile per cablare altri modelli.\n\nIl pannello contiene due spie, un pulsante di avvio della sequenza e una targa con il nome Borgo Sasso. La sequenza dura all’incirca tre minuti durante la presentazione. Il pulsante fa partire la dimostrazione, ma non seleziona manualmente uno dei due binari.\n\nLa copia della legenda destinata al tavolo dei visitatori ha un taglio obliquo nell’angolo inferiore destro; le copie senza taglio restano nel raccoglitore del gruppo.\n\n## Storia delle copie\n\n### 9 agosto: distribuzione\n\nNella legenda distribuita il 9 agosto 2025, la spia ambra identifica il binario lato monte e la spia verde il binario lato valle. La pagina del gruppo ha ripreso gli stessi abbinamenti dopo la stampa, senza un confronto con il pannello.\n\n### 13 agosto: documento aggiunto\n\nLa [rettifica della legenda del 13 agosto 2025](/documents/cascade-n07-s1) è stata collegata alla pagina. Il testo principale non è ancora stato riallineato al documento; la rettifica riguarda i nomi delle spie e non registra uno spostamento fisico dei binari.\n\n### Rassegna del materiale mostrato\n\nIl plastico si chiama Borgo Sasso. Sul pannello compaiono due spie, un pulsante per avviare la sequenza e la targa del nome. La sequenza della presentazione richiede circa tre minuti; il pulsante non serve alla scelta manuale del binario.\n\nNon è nota la leggibilità della spia verde in pieno sole: la presentazione registrata si svolge al coperto, senza una prova all’aperto."
+          },
+          "mutationDescription": "Riformulazione del corpo della pagina iniziale senza risolverne ripetizioni, domande o errori documentati."
+        }
+      ]
+    },
+    {
+      "familyId": "N08",
+      "title": "Lentisco — lessico di Isola di Carta",
+      "category": "glossario_risposta_e_dubbio_aperto",
+      "before": {
+        "title": "Lentisco — lessico di Isola di Carta",
+        "type": "project",
+        "summary": "Scelte terminologiche e tipografiche per la prova della traduzione italiana di un gioco.",
+        "markdown": "# Lentisco: lessico italiano di Isola di Carta\n\nIl collettivo Ludoteca Lentisco sta traducendo il regolamento del gioco immaginario Isola di Carta per una serata di prova fra otto adulti. La pagina registra scelte terminologiche della traduzione italiana, senza introdurre varianti alle regole o stabilire una terminologia comune ad altri giochi.\n\n## Che cosa indica “ponte”?\n\nLa bozza usa ponte come nome dell’azione con cui si collega una carta luogo a una carta viaggio. Resta da chiarire se il termine indichi anche un oggetto presente nell’illustrazione. Il [glossario commentato del 21 settembre 2025](/documents/cascade-n08-s1) è stato aggiunto fra i riferimenti dopo la stesura della bozza.\n\nLa prima lettura ad alta voce usa soltanto le carte luogo, prima di introdurre le carte viaggio.\n\n## Come vengono trattati i nomi delle carte?\n\nI nomi stampati sulle carte rimangono in corsivo nel regolamento; i nomi delle azioni usano il tondo. Questa distinzione riguarda il testo italiano della prova e non prescrive una nuova grafica per le carte. Le illustrazioni vengono conservate senza modifiche.\n\n## Appunto ricopiato dalla tabella di stile\n\nNel testo della prova i nomi delle carte sono in corsivo, mentre quelli delle azioni sono in tondo. Le immagini non cambiano e questa scelta tipografica non costituisce un incarico di ridisegnare le carte.\n\n## Quale forma si usa al plurale?\n\nLa scelta fra i plurali “approdi” e “approdature” per il termine inventato approdatura resta aperta. Il glossario disponibile riporta solo il singolare, quindi non risolve questo punto."
+      },
+      "evidence": {
+        "citations": [
+          {
+            "pageId": "cascade-n08-target",
+            "version": 4,
+            "quote": "Il collettivo Ludoteca Lentisco sta traducendo il regolamento del gioco immaginario Isola di Carta per una serata di prova fra otto adulti. La pagina registra scelte terminologiche della traduzione italiana, senza introdurre varianti alle regole o stabilire una terminologia comune ad altri giochi."
+          },
+          {
+            "pageId": "cascade-n08-s1",
+            "version": 2,
+            "quote": "La voce ponte designa esclusivamente l’azione di collegare una carta luogo a una carta viaggio e non un oggetto raffigurato."
+          },
+          {
+            "pageId": "cascade-n08-s1",
+            "version": 2,
+            "quote": "La voce approdatura compare solo al singolare."
+          },
+          {
+            "pageId": "cascade-n08-s1",
+            "version": 2,
+            "quote": "Non è indicato se il plurale debba essere approdi oppure approdature e il glossario non assegna a una delle due forme uno stato di approvazione."
+          }
+        ],
+        "sources": [
+          {
+            "pageId": "cascade-n08-target",
+            "version": 4,
+            "title": "Lentisco — lessico di Isola di Carta",
+            "summary": "Scelte terminologiche e tipografiche per la prova della traduzione italiana di un gioco.",
+            "markdown": "# Lentisco: lessico italiano di Isola di Carta\n\nIl collettivo Ludoteca Lentisco sta traducendo il regolamento del gioco immaginario Isola di Carta per una serata di prova fra otto adulti. La pagina registra scelte terminologiche della traduzione italiana, senza introdurre varianti alle regole o stabilire una terminologia comune ad altri giochi.\n\n## Che cosa indica “ponte”?\n\nLa bozza usa ponte come nome dell’azione con cui si collega una carta luogo a una carta viaggio. Resta da chiarire se il termine indichi anche un oggetto presente nell’illustrazione. Il [glossario commentato del 21 settembre 2025](/documents/cascade-n08-s1) è stato aggiunto fra i riferimenti dopo la stesura della bozza.\n\nLa prima lettura ad alta voce usa soltanto le carte luogo, prima di introdurre le carte viaggio.\n\n## Come vengono trattati i nomi delle carte?\n\nI nomi stampati sulle carte rimangono in corsivo nel regolamento; i nomi delle azioni usano il tondo. Questa distinzione riguarda il testo italiano della prova e non prescrive una nuova grafica per le carte. Le illustrazioni vengono conservate senza modifiche.\n\n## Appunto ricopiato dalla tabella di stile\n\nNel testo della prova i nomi delle carte sono in corsivo, mentre quelli delle azioni sono in tondo. Le immagini non cambiano e questa scelta tipografica non costituisce un incarico di ridisegnare le carte.\n\n## Quale forma si usa al plurale?\n\nLa scelta fra i plurali “approdi” e “approdature” per il termine inventato approdatura resta aperta. Il glossario disponibile riporta solo il singolare, quindi non risolve questo punto."
+          },
+          {
+            "pageId": "cascade-n08-s1",
+            "version": 2,
+            "title": "Glossario commentato — 21 settembre 2025",
+            "markdown": "# Glossario commentato — 21 settembre 2025\n\nIl glossario del 21 settembre 2025 accompagna la traduzione italiana di Isola di Carta predisposta dal collettivo Ludoteca Lentisco per una prova fra otto adulti. La voce ponte designa esclusivamente l’azione di collegare una carta luogo a una carta viaggio e non un oggetto raffigurato. Il chiarimento riguarda il significato del termine nel regolamento, senza cambiare lo svolgimento dell’azione.\n\nLa convenzione tipografica della prova distingue i nomi stampati sulle carte, riportati in corsivo, dai nomi delle azioni, riportati in tondo. Vale per il testo italiano e non comporta il ridisegno delle carte o la modifica delle illustrazioni. I nomi delle carte rimangono quelli stampati sui componenti disponibili, così che una persona che legge il regolamento possa riconoscerli durante la partita.\n\nLa voce approdatura compare solo al singolare. Non è indicato se il plurale debba essere approdi oppure approdature e il glossario non assegna a una delle due forme uno stato di approvazione. Il documento non è un vocabolario per altri giochi: le definizioni sono limitate a questa traduzione e alla serata di prova descritta. Non introduce regole alternative né registra una decisione editoriale per eventuali edizioni future. L’ordine di lettura scelto per la prova non è descritto dal glossario."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "variantId": "good_a",
+          "targetCriterion": null,
+          "after": {
+            "title": "Lentisco — lessico di Isola di Carta",
+            "type": "project",
+            "summary": "Scelte terminologiche e tipografiche per la prova della traduzione italiana di un gioco.",
+            "markdown": "# Lentisco: lessico italiano di Isola di Carta\n\nIl collettivo Ludoteca Lentisco sta traducendo il regolamento del gioco immaginario Isola di Carta per una serata di prova fra otto adulti. La pagina registra scelte terminologiche della traduzione italiana, senza introdurre varianti alle regole o stabilire una terminologia comune ad altri giochi.\n\n## Significato e stile documentati\n\nIl [glossario commentato del 21 settembre 2025](/documents/cascade-n08-s1), aggiunto dopo la bozza, chiarisce che ponte è esclusivamente l’azione di collegare una carta luogo a una carta viaggio e non un oggetto presente nell’illustrazione. La bozza aveva già usato ponte per l’azione e lasciava aperta la seconda accezione.\n\nI nomi stampati sulle carte restano in corsivo e quelli delle azioni in tondo. La convenzione riguarda soltanto il regolamento italiano della prova, non impone una nuova grafica né un incarico di ridisegno; le illustrazioni rimangono invariate.\n\nLa prima lettura ad alta voce usa soltanto le carte luogo, prima di introdurre le carte viaggio.\n\n## Quale forma si usa al plurale?\n\nLa scelta fra i plurali “approdi” e “approdature” per il termine inventato approdatura resta aperta. Il glossario disponibile riporta solo il singolare, quindi non risolve questo punto."
+          },
+          "mutationDescription": "Incorpora la definizione documentata di ponte e fonde le note tipografiche, conservando il dubbio sul plurale."
+        },
+        {
+          "variantId": "good_b",
+          "targetCriterion": null,
+          "after": {
+            "title": "Lentisco — lessico di Isola di Carta",
+            "type": "project",
+            "summary": "Scelte terminologiche e tipografiche per la prova della traduzione italiana di un gioco.",
+            "markdown": "# Lentisco: lessico italiano di Isola di Carta\n\nIl collettivo Ludoteca Lentisco sta traducendo il regolamento del gioco immaginario Isola di Carta per una serata di prova fra otto adulti. La pagina registra scelte terminologiche della traduzione italiana, senza introdurre varianti alle regole o stabilire una terminologia comune ad altri giochi.\n\n## Che cosa indica “ponte”?\n\nLa bozza usa ponte come nome dell’azione con cui si collega una carta luogo a una carta viaggio. Il glossario del 21 settembre 2025 chiarisce che ponte designa esclusivamente l’azione di collegare una carta luogo a una carta viaggio, non un oggetto presente nell’illustrazione. Il [glossario commentato del 21 settembre 2025](/documents/cascade-n08-s1) è stato aggiunto fra i riferimenti dopo la stesura della bozza.\n\nLa prima lettura ad alta voce usa soltanto le carte luogo, prima di introdurre le carte viaggio.\n\n## Come vengono trattati i nomi delle carte?\n\nI nomi stampati sulle carte rimangono in corsivo nel regolamento; i nomi delle azioni usano il tondo. Questa distinzione riguarda il testo italiano della prova e non prescrive una nuova grafica per le carte. Le illustrazioni vengono conservate senza modifiche.\n\n## Appunto ricopiato dalla tabella di stile\n\nNel testo della prova i nomi delle carte sono in corsivo, mentre quelli delle azioni sono in tondo. Le immagini non cambiano e questa scelta tipografica non costituisce un incarico di ridisegnare le carte.\n\n## Quale forma si usa al plurale?\n\nLa scelta fra i plurali “approdi” e “approdature” per il termine inventato approdatura resta aperta. Il glossario disponibile riporta solo il singolare, quindi non risolve questo punto."
+          },
+          "mutationDescription": "Sostituisce soltanto la domanda ormai risolta sull’illustrazione con la risposta documentata del glossario."
+        },
+        {
+          "variantId": "unsupported",
+          "targetCriterion": "supported_by_evidence",
+          "after": {
+            "title": "Lentisco — lessico di Isola di Carta",
+            "type": "project",
+            "summary": "Scelte terminologiche e tipografiche per la prova della traduzione italiana di un gioco.",
+            "markdown": "# Lentisco: lessico italiano di Isola di Carta\n\nIl collettivo Ludoteca Lentisco sta traducendo il regolamento del gioco immaginario Isola di Carta per una serata di prova fra otto adulti. La pagina registra scelte terminologiche della traduzione italiana, senza introdurre varianti alle regole o stabilire una terminologia comune ad altri giochi.\n\n## Significato e stile documentati\n\nIl [glossario commentato del 21 settembre 2025](/documents/cascade-n08-s1), aggiunto dopo la bozza, chiarisce che ponte è esclusivamente l’azione di collegare una carta luogo a una carta viaggio e non un oggetto presente nell’illustrazione. La bozza aveva già usato ponte per l’azione e lasciava aperta la seconda accezione.\n\nI nomi stampati sulle carte restano in corsivo e quelli delle azioni in tondo. La convenzione riguarda soltanto il regolamento italiano della prova, non impone una nuova grafica né un incarico di ridisegno; le illustrazioni rimangono invariate.\n\nLa prima lettura ad alta voce usa soltanto le carte luogo, prima di introdurre le carte viaggio.\n\n## Quale forma si usa al plurale?\n\nLa scelta fra i plurali “approdi” e “approdature” per il termine inventato approdatura resta aperta. Il glossario disponibile riporta solo il singolare, quindi non risolve questo punto.\n\nLa scelta del termine ponte è stata approvata anche dall’autrice dell’edizione originale del gioco."
+          },
+          "mutationDescription": "Aggiunta di una singola affermazione oltre il contenuto delle fonti, mantenendo il resto del consolidamento A."
+        },
+        {
+          "variantId": "loss",
+          "targetCriterion": "preserves_distinct_information",
+          "after": {
+            "title": "Lentisco — lessico di Isola di Carta",
+            "type": "project",
+            "summary": "Scelte terminologiche e tipografiche per la prova della traduzione italiana di un gioco.",
+            "markdown": "# Lentisco: lessico italiano di Isola di Carta\n\nIl collettivo Ludoteca Lentisco sta traducendo il regolamento del gioco immaginario Isola di Carta per una serata di prova fra otto adulti. La pagina registra scelte terminologiche della traduzione italiana, senza introdurre varianti alle regole o stabilire una terminologia comune ad altri giochi.\n\n## Significato e stile documentati\n\nIl [glossario commentato del 21 settembre 2025](/documents/cascade-n08-s1), aggiunto dopo la bozza, chiarisce che ponte è esclusivamente l’azione di collegare una carta luogo a una carta viaggio e non un oggetto presente nell’illustrazione. La bozza aveva già usato ponte per l’azione e lasciava aperta la seconda accezione.\n\nI nomi stampati sulle carte restano in corsivo e quelli delle azioni in tondo. La convenzione riguarda soltanto il regolamento italiano della prova, non impone una nuova grafica né un incarico di ridisegno; le illustrazioni rimangono invariate.\n\n## Quale forma si usa al plurale?\n\nLa scelta fra i plurali “approdi” e “approdature” per il termine inventato approdatura resta aperta. Il glossario disponibile riporta solo il singolare, quindi non risolve questo punto."
+          },
+          "mutationDescription": "Rimozione di un dettaglio operativo unico della pagina destinazione dal consolidamento A."
+        },
+        {
+          "variantId": "human_action",
+          "targetCriterion": "no_new_human_action",
+          "after": {
+            "title": "Lentisco — lessico di Isola di Carta",
+            "type": "project",
+            "summary": "Scelte terminologiche e tipografiche per la prova della traduzione italiana di un gioco.",
+            "markdown": "# Lentisco: lessico italiano di Isola di Carta\n\nIl collettivo Ludoteca Lentisco sta traducendo il regolamento del gioco immaginario Isola di Carta per una serata di prova fra otto adulti. La pagina registra scelte terminologiche della traduzione italiana, senza introdurre varianti alle regole o stabilire una terminologia comune ad altri giochi.\n\n## Significato e stile documentati\n\nIl [glossario commentato del 21 settembre 2025](/documents/cascade-n08-s1), aggiunto dopo la bozza, chiarisce che ponte è esclusivamente l’azione di collegare una carta luogo a una carta viaggio e non un oggetto presente nell’illustrazione. La bozza aveva già usato ponte per l’azione e lasciava aperta la seconda accezione.\n\nI nomi stampati sulle carte restano in corsivo e quelli delle azioni in tondo. La convenzione riguarda soltanto il regolamento italiano della prova, non impone una nuova grafica né un incarico di ridisegno; le illustrazioni rimangono invariate.\n\nLa prima lettura ad alta voce usa soltanto le carte luogo, prima di introdurre le carte viaggio.\n\n## Quale forma si usa al plurale?\n\nLa scelta fra i plurali “approdi” e “approdature” per il termine inventato approdatura resta aperta. Il glossario disponibile riporta solo il singolare, quindi non risolve questo punto.\n\nPrima della serata, chi coordina la traduzione verificherà che tutti gli otto partecipanti conoscano la distinzione fra corsivo e tondo."
+          },
+          "mutationDescription": "Aggiunta di un nuovo seguito umano al consolidamento A, senza eliminare le incertezze già presenti."
+        },
+        {
+          "variantId": "cosmetic",
+          "targetCriterion": "meaningful_improvement",
+          "after": {
+            "title": "Lentisco — lessico di Isola di Carta",
+            "type": "project",
+            "summary": "Scelte terminologiche e tipografiche per la prova della traduzione italiana di un gioco.",
+            "markdown": "# Lentisco: lessico italiano di Isola di Carta\n\nIl collettivo Ludoteca Lentisco sta traducendo il regolamento del gioco immaginario Isola di Carta per una serata di prova fra otto adulti. La pagina registra scelte terminologiche della traduzione italiana, senza introdurre varianti alle regole o stabilire una terminologia comune ad altri giochi.\n\n## Che cosa indica “ponte”?\n\nLa bozza usa ponte come nome dell’azione con cui si collega una carta luogo a una carta viaggio. Resta da chiarire se il termine indichi anche un oggetto presente nell’illustrazione. Il [glossario commentato del 21 settembre 2025](/documents/cascade-n08-s1) è stato aggiunto fra i riferimenti dopo la stesura della bozza.\n\nLa prima lettura ad alta voce usa soltanto le carte luogo, prima di introdurre le carte viaggio.\n\n## Quale trattamento hanno i nomi delle carte?\n\nI nomi stampati sulle carte rimangono in corsivo nel regolamento; i nomi delle azioni usano il tondo. Tale distinzione si riferisce al testo italiano della prova e non prescrive una nuova grafica per le carte. Le illustrazioni vengono conservate senza modifiche.\n\n## Appunto ricopiato dalla tabella di stile\n\nNel testo della prova i nomi delle carte sono in corsivo, mentre quelli delle azioni sono in tondo. Le immagini non cambiano e questa scelta tipografica non costituisce un incarico di ridisegnare le carte.\n\n## Quale forma si usa al plurale?\n\nLa scelta fra i plurali “approdi” e “approdature” per il termine inventato approdatura resta aperta. Il glossario disponibile riporta solo il singolare, quindi non risolve questo punto."
+          },
+          "mutationDescription": "Riformulazione del corpo della pagina iniziale senza risolverne ripetizioni, domande o errori documentati."
+        }
+      ]
+    }
+  ]
+}
