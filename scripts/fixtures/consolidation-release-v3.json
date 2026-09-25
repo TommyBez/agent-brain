@@ -1,0 +1,709 @@
+{
+  "version": 1,
+  "scope": "jev-kimi-release-heldout-v3",
+  "status": "frozen-before-model-calls",
+  "provenance": {
+    "synthetic": true,
+    "authorIndependentOfV3PromptDevelopment": true,
+    "v3PromptContentsRead": false,
+    "v3ModelOutputsRead": false,
+    "providerCalls": 0,
+    "caseContentsSharedWithPromptDeveloper": false,
+    "novelty": "New fictional entities, full source documents, dates and candidate text; no copied candidate answers from earlier fixtures."
+  },
+  "decisionPolicy": {
+    "valid": "accept with all four criteria pass",
+    "invalid": "reject with an explicit decisive fail; uncertain is not counted correct for these clear violations",
+    "ambiguous": "do_not_apply: reject or uncertain are admissible; this measures non-application, not calibrated uncertain frequency",
+    "missingCriterion": "not_scored, never an implicit pass",
+    "errors": "never success",
+    "sourceCompleteness": "Each scenario supplies the entire relevant corpus. No outside knowledge or unavailable pages resolve a gap.",
+    "independence": "Six controlled pairs are correlated; three executions per case measure repeatability, not population reliability.",
+    "frozenLabels": "Do not alter labels or thresholds after provider outputs. Once tested or revealed, the corpus becomes development data."
+  },
+  "scenarios": [
+    {
+      "scenarioId": "V3A",
+      "title": "Cedrino",
+      "target": {
+        "pageId": "project/cedrino",
+        "version": 1,
+        "title": "Cedrino",
+        "markdown": "# Cedrino\nIl resoconto del 12 novembre 2026 indica che l'archivio firmato è disponibile per il servizio.\nLa disponibilità dell'archivio firmato è segnalata nel resoconto del 12 novembre 2026.\nFonte: [Resoconto Cedrino](note/cedrino-resoconto).\n",
+        "type": "project",
+        "summary": "Memoria operativa del progetto sintetico Cedrino."
+      },
+      "sources": [
+        {
+          "pageId": "note/cedrino-resoconto",
+          "version": 1,
+          "title": "Resoconto Cedrino",
+          "markdown": "# Resoconto del 12 novembre 2026\nIl resoconto del 12 novembre segnala che l'archivio firmato è disponibile per il servizio.\nIl giorno in cui l'archivio è diventato disponibile non è annotato.\nIl collaudo della firma è terminato l'11 novembre 2026.\nIl resoconto non attribuisce al collaudo l'attivazione del servizio.\n"
+        }
+      ],
+      "rules": [
+        {
+          "id": "V3A-R1",
+          "description": "La data della segnalazione non determina la data dell'evento.",
+          "evidence": [
+            {
+              "pageId": "note/cedrino-resoconto",
+              "quote": "Il giorno in cui l'archivio è diventato disponibile non è annotato."
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "designId": "V3A-V",
+          "label": "Segnalazione datata e collaudo distinto",
+          "category": "valid",
+          "afterMarkdown": "# Cedrino\nIl resoconto del 12 novembre 2026 segnala la disponibilità dell'archivio firmato per il servizio; il giorno di inizio della disponibilità non è annotato. Il collaudo della firma è terminato l'11 novembre 2026, senza che il resoconto gli attribuisca l'attivazione del servizio.\nFonte: [Resoconto Cedrino](note/cedrino-resoconto).\n",
+          "expectedDecision": "accept",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "pass",
+              "rationale": "Conserva il 12 come data del resoconto; il collaudo dell'11 e la sua mancata relazione causale sono espliciti nella fonte completa."
+            },
+            "preserves_distinct_information": {
+              "verdict": "pass",
+              "rationale": "Le due frasi iniziali duplicano la stessa segnalazione; disponibilità, data del resoconto e citazione restano."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "La modifica registra soltanto conoscenza documentata e non introduce incarichi, controlli o domande per una persona."
+            },
+            "meaningful_improvement": {
+              "verdict": "pass",
+              "rationale": "Elimina una ripetizione e incorpora il distinto collaudo documentato senza colmare il vuoto temporale."
+            }
+          },
+          "rationale": "Elimina una ripetizione e incorpora il distinto collaudo documentato senza colmare il vuoto temporale. Conserva il 12 come data del resoconto; il collaudo dell'11 e la sua mancata relazione causale sono espliciti nella fonte completa.",
+          "proof": [
+            {
+              "location": "source",
+              "quote": "Il giorno in cui l'archivio è diventato disponibile non è annotato.",
+              "pageId": "note/cedrino-resoconto"
+            },
+            {
+              "location": "source",
+              "quote": "Il collaudo della firma è terminato l'11 novembre 2026.",
+              "pageId": "note/cedrino-resoconto"
+            },
+            {
+              "location": "after",
+              "quote": "il giorno di inizio della disponibilità non è annotato."
+            }
+          ]
+        },
+        {
+          "designId": "V3A-N",
+          "label": "Trasforma il resoconto in data di attivazione",
+          "category": "invalid",
+          "afterMarkdown": "# Cedrino\nL'archivio firmato è diventato disponibile per il servizio il 12 novembre 2026. Il collaudo della firma è terminato l'11 novembre 2026, senza che il resoconto gli attribuisca l'attivazione del servizio.\nFonte: [Resoconto Cedrino](note/cedrino-resoconto).\n",
+          "expectedDecision": "reject",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "fail",
+              "rationale": "Il corpus completo data il resoconto, non l'inizio della disponibilità. La proposta aggiunge proprio la data che la fonte dichiara non annotata; non è una scelta fra due interpretazioni documentate."
+            }
+          },
+          "rationale": "Il corpus completo data il resoconto, non l'inizio della disponibilità. La proposta aggiunge proprio la data che la fonte dichiara non annotata; non è una scelta fra due interpretazioni documentate.",
+          "contrastWith": "V3A-V",
+          "proof": [
+            {
+              "location": "source",
+              "quote": "Il giorno in cui l'archivio è diventato disponibile non è annotato.",
+              "pageId": "note/cedrino-resoconto"
+            },
+            {
+              "location": "after",
+              "quote": "L'archivio firmato è diventato disponibile per il servizio il 12 novembre 2026."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "scenarioId": "V3B",
+      "title": "Olivastro",
+      "target": {
+        "pageId": "project/olivastro",
+        "version": 1,
+        "title": "Olivastro",
+        "markdown": "# Olivastro\n## 13 novembre 2026\nLa quota occupata è 17 GB. Il backup non è stato controllato in questa verifica.\nFonte: [Verifica del 13 novembre](note/olivastro-13).\n## 14 novembre 2026\nLa quota occupata è 17 GB. È stata controllata la configurazione del backup: le tracce sono conservate per 48 ore.\nFonte: [Verifica del 14 novembre](note/olivastro-14).\n",
+        "type": "project",
+        "summary": "Memoria operativa del progetto sintetico Olivastro."
+      },
+      "sources": [
+        {
+          "pageId": "note/olivastro-13",
+          "version": 1,
+          "title": "Verifica del 13 novembre",
+          "markdown": "# Verifica del 13 novembre 2026\nLa quota occupata è 17 GB.\nIl backup non è stato controllato in questa verifica.\n"
+        },
+        {
+          "pageId": "note/olivastro-14",
+          "version": 1,
+          "title": "Verifica del 14 novembre",
+          "markdown": "# Verifica del 14 novembre 2026\nLa quota occupata è 17 GB.\nÈ stata controllata la configurazione del backup: le tracce sono conservate per 48 ore.\n"
+        }
+      ],
+      "rules": [
+        {
+          "id": "V3B-R1",
+          "description": "L'uguaglianza di un valore non estende a entrambe le fonti il controllo del backup.",
+          "evidence": [
+            {
+              "pageId": "note/olivastro-13",
+              "quote": "Il backup non è stato controllato in questa verifica."
+            },
+            {
+              "pageId": "note/olivastro-14",
+              "quote": "È stata controllata la configurazione del backup: le tracce sono conservate per 48 ore."
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "designId": "V3B-V",
+          "label": "Accorpa il valore comune con provenienza parziale",
+          "category": "valid",
+          "afterMarkdown": "# Olivastro\nLa quota occupata risulta 17 GB sia nella [verifica del 13 novembre](note/olivastro-13) sia nella [verifica del 14 novembre](note/olivastro-14), entrambe del 2026. Il backup non è stato controllato il 13; soltanto la verifica del 14 documenta il controllo della configurazione e la conservazione delle tracce per 48 ore.\n",
+          "expectedDecision": "accept",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "pass",
+              "rationale": "Entrambe le fonti riportano 17 GB; solo quella del 14 contiene il controllo del backup. Il testo mantiene tale differenza."
+            },
+            "preserves_distinct_information": {
+              "verdict": "pass",
+              "rationale": "Conserva due osservazioni, due link e la mancata verifica del 13, oltre al dettaglio unico del 14."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "La modifica registra soltanto conoscenza documentata e non introduce incarichi, controlli o domande per una persona."
+            },
+            "meaningful_improvement": {
+              "verdict": "pass",
+              "rationale": "Rappresenta una sola volta il valore ripetuto e rende leggibile la distinzione fra ciò che fu verificato nelle due date."
+            }
+          },
+          "rationale": "Rappresenta una sola volta il valore ripetuto e rende leggibile la distinzione fra ciò che fu verificato nelle due date. Entrambe le fonti riportano 17 GB; solo quella del 14 contiene il controllo del backup. Il testo mantiene tale differenza.",
+          "proof": [
+            {
+              "location": "source",
+              "quote": "La quota occupata è 17 GB.",
+              "pageId": "note/olivastro-13"
+            },
+            {
+              "location": "source",
+              "quote": "La quota occupata è 17 GB.",
+              "pageId": "note/olivastro-14"
+            },
+            {
+              "location": "after",
+              "quote": "Il backup non è stato controllato il 13; soltanto la verifica del 14 documenta il controllo della configurazione"
+            }
+          ]
+        },
+        {
+          "designId": "V3B-N",
+          "label": "Estende a entrambe le date il controllo tardivo",
+          "category": "invalid",
+          "afterMarkdown": "# Olivastro\nLe verifiche del 13 e del 14 novembre 2026 hanno entrambe controllato la quota, risultata 17 GB, e la configurazione del backup, con conservazione delle tracce per 48 ore.\nFonti: [Verifica del 13 novembre](note/olivastro-13), [Verifica del 14 novembre](note/olivastro-14).\n",
+          "expectedDecision": "reject",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "fail",
+              "rationale": "La proposta dice che anche il 13 il backup fu controllato, in contraddizione con la relativa fonte. L'elenco congiunto di fonti non autorizza il prodotto di tutte le affermazioni per tutte le date."
+            }
+          },
+          "rationale": "La proposta dice che anche il 13 il backup fu controllato, in contraddizione con la relativa fonte. L'elenco congiunto di fonti non autorizza il prodotto di tutte le affermazioni per tutte le date.",
+          "contrastWith": "V3B-V",
+          "proof": [
+            {
+              "location": "source",
+              "quote": "Il backup non è stato controllato in questa verifica.",
+              "pageId": "note/olivastro-13"
+            },
+            {
+              "location": "after",
+              "quote": "hanno entrambe controllato la quota, risultata 17 GB, e la configurazione del backup"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "scenarioId": "V3C",
+      "title": "Mirto",
+      "target": {
+        "pageId": "project/mirto",
+        "version": 1,
+        "title": "Mirto",
+        "markdown": "# Mirto\n## 15 novembre 2026, 08:15\nVerifica indice: 7 frammenti validi, 0 errori. L'esito riguarda lo snapshot di quell'istante.\n## 16 novembre 2026, 08:15\nVerifica indice: 7 frammenti validi, 0 errori. L'esito riguarda lo snapshot di quell'istante.\nDefinizione: [Verifica indice](note/mirto-glossario).\n",
+        "type": "project",
+        "summary": "Memoria operativa del progetto sintetico Mirto."
+      },
+      "sources": [
+        {
+          "pageId": "note/mirto-glossario",
+          "version": 1,
+          "title": "Definizione della verifica indice",
+          "markdown": "# Definizione della verifica indice\nOgni verifica riguarda lo snapshot disponibile all'istante indicato.\nIl numero di frammenti validi è una misura dello snapshot, non la durata della sua validità.\nQuesta pagina definisce la misura; non registra esecuzioni né risultati.\n"
+        }
+      ],
+      "rules": [
+        {
+          "id": "V3C-R1",
+          "description": "Due rilevazioni con gli stessi valori ma date diverse sono fatti distinti.",
+          "evidence": [
+            {
+              "pageId": "project/mirto",
+              "quote": "## 15 novembre 2026, 08:15"
+            },
+            {
+              "pageId": "project/mirto",
+              "quote": "## 16 novembre 2026, 08:15"
+            },
+            {
+              "pageId": "note/mirto-glossario",
+              "quote": "Questa pagina definisce la misura; non registra esecuzioni né risultati."
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "designId": "V3C-V",
+          "label": "Unisce la formulazione mantenendo entrambe le osservazioni",
+          "category": "valid",
+          "afterMarkdown": "# Mirto\nLe verifiche indice del 15 e del 16 novembre 2026, entrambe alle 08:15, registrano ciascuna 7 frammenti validi e 0 errori. Ogni esito riguarda soltanto lo snapshot del proprio istante.\nDefinizione: [Verifica indice](note/mirto-glossario).\n",
+          "expectedDecision": "accept",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "pass",
+              "rationale": "Il target originale registra le due misure; il glossario ne limita l'ambito agli snapshot puntuali."
+            },
+            "preserves_distinct_information": {
+              "verdict": "pass",
+              "rationale": "Date, ora, valori e natura puntuale di entrambe le verifiche sopravvivono senza una falsa continuità fra i giorni."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "La modifica registra soltanto conoscenza documentata e non introduce incarichi, controlli o domande per una persona."
+            },
+            "meaningful_improvement": {
+              "verdict": "pass",
+              "rationale": "Elimina la ripetizione della misura e della sua spiegazione mantenendo le due osservazioni autonome."
+            }
+          },
+          "rationale": "Elimina la ripetizione della misura e della sua spiegazione mantenendo le due osservazioni autonome. Il target originale registra le due misure; il glossario ne limita l'ambito agli snapshot puntuali.",
+          "proof": [
+            {
+              "location": "before",
+              "quote": "## 15 novembre 2026, 08:15"
+            },
+            {
+              "location": "before",
+              "quote": "## 16 novembre 2026, 08:15"
+            },
+            {
+              "location": "after",
+              "quote": "registrano ciascuna 7 frammenti validi e 0 errori."
+            }
+          ]
+        },
+        {
+          "designId": "V3C-N",
+          "label": "Cancella la seconda osservazione perché il valore è uguale",
+          "category": "invalid",
+          "afterMarkdown": "# Mirto\nLa verifica indice del 15 novembre 2026 alle 08:15 registra 7 frammenti validi e 0 errori. L'esito riguarda soltanto lo snapshot di quell'istante.\nDefinizione: [Verifica indice](note/mirto-glossario).\n",
+          "expectedDecision": "reject",
+          "expectedCriteria": {
+            "preserves_distinct_information": {
+              "verdict": "fail",
+              "rationale": "Scompare la rilevazione del 16 novembre. Il corpus completo non contiene altrove quel risultato: la fonte collegata è soltanto un glossario. La rilevazione del 15 non dimostra il risultato del giorno successivo."
+            }
+          },
+          "rationale": "Scompare la rilevazione del 16 novembre. Il corpus completo non contiene altrove quel risultato: la fonte collegata è soltanto un glossario. La rilevazione del 15 non dimostra il risultato del giorno successivo.",
+          "contrastWith": "V3C-V",
+          "proof": [
+            {
+              "location": "before",
+              "quote": "## 16 novembre 2026, 08:15"
+            },
+            {
+              "location": "source",
+              "quote": "Questa pagina definisce la misura; non registra esecuzioni né risultati.",
+              "pageId": "note/mirto-glossario"
+            },
+            {
+              "location": "after",
+              "quote": "La verifica indice del 15 novembre 2026 alle 08:15 registra 7 frammenti validi e 0 errori."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "scenarioId": "V3D",
+      "title": "Ginepro",
+      "target": {
+        "pageId": "project/ginepro",
+        "version": 1,
+        "title": "Ginepro",
+        "markdown": "# Ginepro\nQuestione aperta: quale gruppo può consultare lo storico delle revisioni?\nFonte disponibile: [Accesso allo storico](decision/ginepro-accessi).\n",
+        "type": "project",
+        "summary": "Memoria operativa del progetto sintetico Ginepro."
+      },
+      "sources": [
+        {
+          "pageId": "decision/ginepro-accessi",
+          "version": 1,
+          "title": "Accesso allo storico Ginepro",
+          "markdown": "# Accesso allo storico — decisione del 17 novembre 2026\nLo storico delle revisioni è consultabile dal gruppo Osservatori tramite la vista Registro.\nIl gruppo Osservatori può leggere lo storico ma non modificare le revisioni.\nL'accesso resta attivo fino a revoca; non è prevista una riconferma periodica.\n"
+        }
+      ],
+      "rules": [
+        {
+          "id": "V3D-R1",
+          "description": "La domanda ha una risposta completa e non richiede un nuovo processo umano.",
+          "evidence": [
+            {
+              "pageId": "decision/ginepro-accessi",
+              "quote": "Lo storico delle revisioni è consultabile dal gruppo Osservatori tramite la vista Registro."
+            },
+            {
+              "pageId": "decision/ginepro-accessi",
+              "quote": "L'accesso resta attivo fino a revoca; non è prevista una riconferma periodica."
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "designId": "V3D-V",
+          "label": "Sostituisce la domanda con permesso e limiti documentati",
+          "category": "valid",
+          "afterMarkdown": "# Ginepro\nLa decisione del 17 novembre 2026 abilita il gruppo Osservatori a consultare lo storico delle revisioni tramite la vista Registro, senza poter modificare le revisioni. L'accesso resta attivo fino a revoca e non richiede riconferme periodiche.\nFonte: [Accesso allo storico](decision/ginepro-accessi).\n",
+          "expectedDecision": "accept",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "pass",
+              "rationale": "Gruppo, vista, permesso di lettura, assenza di modifica e durata derivano tutti dalla decisione datata."
+            },
+            "preserves_distinct_information": {
+              "verdict": "pass",
+              "rationale": "Rimane il collegamento originale e la domanda è sostituita dalla risposta completa, non da una conclusione senza fonte."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "La modifica registra soltanto conoscenza documentata e non introduce incarichi, controlli o domande per una persona."
+            },
+            "meaningful_improvement": {
+              "verdict": "pass",
+              "rationale": "Chiude una questione risolta nella fonte e rende espliciti i limiti del permesso, anche aumentando la lunghezza del testo."
+            }
+          },
+          "rationale": "Chiude una questione risolta nella fonte e rende espliciti i limiti del permesso, anche aumentando la lunghezza del testo. Gruppo, vista, permesso di lettura, assenza di modifica e durata derivano tutti dalla decisione datata.",
+          "proof": [
+            {
+              "location": "before",
+              "quote": "Questione aperta: quale gruppo può consultare lo storico delle revisioni?"
+            },
+            {
+              "location": "source",
+              "quote": "Il gruppo Osservatori può leggere lo storico ma non modificare le revisioni.",
+              "pageId": "decision/ginepro-accessi"
+            },
+            {
+              "location": "after",
+              "quote": "L'accesso resta attivo fino a revoca e non richiede riconferme periodiche."
+            }
+          ]
+        },
+        {
+          "designId": "V3D-N",
+          "label": "Aggiunge una riconferma umana settimanale",
+          "category": "invalid",
+          "afterMarkdown": "# Ginepro\nLa decisione del 17 novembre 2026 abilita il gruppo Osservatori a consultare lo storico delle revisioni tramite la vista Registro, senza poter modificare le revisioni. L'accesso resta attivo fino a revoca e non richiede riconferme periodiche.\nOgni venerdì una persona del gruppo Osservatori deve comunque scrivere al responsabile per chiedere conferma dell'accesso e registrare la risposta.\nFonte: [Accesso allo storico](decision/ginepro-accessi).\n",
+          "expectedDecision": "reject",
+          "expectedCriteria": {
+            "no_new_human_action": {
+              "verdict": "fail",
+              "rationale": "L'ultima frase introduce un obbligo ricorrente di contatto e registrazione inesistente prima. La fonte esclude la necessità di riconferme periodiche: la risposta documentata non giustifica una nuova attività umana."
+            }
+          },
+          "rationale": "L'ultima frase introduce un obbligo ricorrente di contatto e registrazione inesistente prima. La fonte esclude la necessità di riconferme periodiche: la risposta documentata non giustifica una nuova attività umana.",
+          "contrastWith": "V3D-V",
+          "proof": [
+            {
+              "location": "source",
+              "quote": "L'accesso resta attivo fino a revoca; non è prevista una riconferma periodica.",
+              "pageId": "decision/ginepro-accessi"
+            },
+            {
+              "location": "after",
+              "quote": "Ogni venerdì una persona del gruppo Osservatori deve comunque scrivere al responsabile per chiedere conferma dell'accesso e registrare la risposta."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "scenarioId": "V3E",
+      "title": "Leccio",
+      "target": {
+        "pageId": "project/leccio",
+        "version": 1,
+        "title": "Leccio",
+        "markdown": "# Leccio\nBosco e Selce producono file JSON senza immagini incorporate. Entrambe sono esportazioni manuali in formato compatto.\nNon ci sono immagini incorporate nei file JSON prodotti da Bosco e Selce.\nResta ambiguo a quale delle due esportazioni si riferisca l'appunto sugli allegati separati.\nFonti: [Catalogo](note/leccio-catalogo), [Appunto del 18 novembre](note/leccio-appunto).\n",
+        "type": "project",
+        "summary": "Memoria operativa del progetto sintetico Leccio."
+      },
+      "sources": [
+        {
+          "pageId": "note/leccio-catalogo",
+          "version": 1,
+          "title": "Catalogo Leccio",
+          "markdown": "# Catalogo delle esportazioni\nL'esportazione Bosco è manuale e usa il formato compatto.\nL'esportazione Selce è manuale e usa il formato compatto.\nEntrambe producono file JSON senza immagini incorporate.\n"
+        },
+        {
+          "pageId": "note/leccio-appunto",
+          "version": 1,
+          "title": "Appunto di configurazione Leccio",
+          "markdown": "# Appunto del 18 novembre 2026\nL'esportazione manuale in formato compatto conserva anche gli allegati come file separati.\nL'appunto usa soltanto questa descrizione al singolare: non contiene il nome dell'esportazione né altri identificativi.\n"
+        }
+      ],
+      "rules": [
+        {
+          "id": "V3E-R1",
+          "description": "La descrizione singolare dell'appunto identifica due candidati possibili nel catalogo.",
+          "evidence": [
+            {
+              "pageId": "note/leccio-catalogo",
+              "quote": "L'esportazione Bosco è manuale e usa il formato compatto."
+            },
+            {
+              "pageId": "note/leccio-catalogo",
+              "quote": "L'esportazione Selce è manuale e usa il formato compatto."
+            },
+            {
+              "pageId": "note/leccio-appunto",
+              "quote": "L'appunto usa soltanto questa descrizione al singolare: non contiene il nome dell'esportazione né altri identificativi."
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "designId": "V3E-V",
+          "label": "Riduce una ripetizione senza risolvere il referente",
+          "category": "valid",
+          "afterMarkdown": "# Leccio\nBosco e Selce sono esportazioni manuali in formato compatto e producono file JSON senza immagini incorporate. L'appunto del 18 novembre 2026 attribuisce allegati come file separati a un'esportazione descritta al singolare come manuale e compatta, senza identificarla: può riferirsi a Bosco o a Selce.\nFonti: [Catalogo](note/leccio-catalogo), [Appunto del 18 novembre](note/leccio-appunto).\n",
+          "expectedDecision": "accept",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "pass",
+              "rationale": "La proprietà comune deriva dal catalogo; l'attribuzione singolare ambigua deriva dall'appunto e non viene assegnata a un nome."
+            },
+            "preserves_distinct_information": {
+              "verdict": "pass",
+              "rationale": "Restano entrambe le esportazioni, le caratteristiche comuni, il dubbio autentico e le due fonti."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "La modifica registra soltanto conoscenza documentata e non introduce incarichi, controlli o domande per una persona."
+            },
+            "meaningful_improvement": {
+              "verdict": "pass",
+              "rationale": "Rimuove la ripetizione sulle immagini e precisa il motivo documentato dell'ambiguità senza chiedere un intervento."
+            }
+          },
+          "rationale": "Rimuove la ripetizione sulle immagini e precisa il motivo documentato dell'ambiguità senza chiedere un intervento. La proprietà comune deriva dal catalogo; l'attribuzione singolare ambigua deriva dall'appunto e non viene assegnata a un nome.",
+          "proof": [
+            {
+              "location": "source",
+              "quote": "Entrambe producono file JSON senza immagini incorporate.",
+              "pageId": "note/leccio-catalogo"
+            },
+            {
+              "location": "before",
+              "quote": "Non ci sono immagini incorporate nei file JSON prodotti da Bosco e Selce."
+            },
+            {
+              "location": "after",
+              "quote": "può riferirsi a Bosco o a Selce."
+            }
+          ]
+        },
+        {
+          "designId": "V3E-A",
+          "label": "Sceglie un referente tra due corrispondenze",
+          "category": "ambiguous",
+          "afterMarkdown": "# Leccio\nBosco e Selce sono esportazioni manuali in formato compatto e producono file JSON senza immagini incorporate. L'appunto del 18 novembre 2026 stabilisce che Bosco conserva anche gli allegati come file separati.\nFonti: [Catalogo](note/leccio-catalogo), [Appunto del 18 novembre](note/leccio-appunto).\n",
+          "expectedDecision": "do_not_apply",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "acceptableVerdicts": [
+                "fail",
+                "uncertain"
+              ],
+              "rationale": "L'evidenza contiene una regola positiva, ma il suo referente singolare ha due corrispondenze esatte nel catalogo. Non è semplice mancanza di una fonte: l'appunto potrebbe riferirsi a Bosco oppure a Selce. Assegnarlo a Bosco richiede risolvere un'ambiguità che il corpus completo non scioglie."
+            }
+          },
+          "rationale": "L'evidenza contiene una regola positiva, ma il suo referente singolare ha due corrispondenze esatte nel catalogo. Non è semplice mancanza di una fonte: l'appunto potrebbe riferirsi a Bosco oppure a Selce. Assegnarlo a Bosco richiede risolvere un'ambiguità che il corpus completo non scioglie.",
+          "contrastWith": "V3E-V",
+          "proof": [
+            {
+              "location": "source",
+              "quote": "L'esportazione Bosco è manuale e usa il formato compatto.",
+              "pageId": "note/leccio-catalogo"
+            },
+            {
+              "location": "source",
+              "quote": "L'esportazione Selce è manuale e usa il formato compatto.",
+              "pageId": "note/leccio-catalogo"
+            },
+            {
+              "location": "source",
+              "quote": "L'esportazione manuale in formato compatto conserva anche gli allegati come file separati.",
+              "pageId": "note/leccio-appunto"
+            },
+            {
+              "location": "after",
+              "quote": "stabilisce che Bosco conserva anche gli allegati come file separati."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "scenarioId": "V3F",
+      "title": "Corbezzolo",
+      "target": {
+        "pageId": "project/corbezzolo",
+        "version": 1,
+        "title": "Corbezzolo",
+        "markdown": "# Corbezzolo\nQuestione aperta: a che ora parte il servizio e quante pagine può elaborare per esecuzione?\nLa scheda A indica partenza alle 02:15 e limite di 10 pagine; la scheda B indica partenza alle 02:15 e limite di 12 pagine. Entrambe sono state acquisite il 19 novembre 2026 e nessuna stabilisce una priorità.\nFonti: [Scheda A](note/corbezzolo-scheda-a), [Scheda B](note/corbezzolo-scheda-b).\n",
+        "type": "project",
+        "summary": "Memoria operativa del progetto sintetico Corbezzolo."
+      },
+      "sources": [
+        {
+          "pageId": "note/corbezzolo-scheda-a",
+          "version": 1,
+          "title": "Scheda A del servizio Corbezzolo",
+          "markdown": "# Scheda A — acquisita il 19 novembre 2026\nIl servizio parte ogni giorno alle 02:15.\nOgni esecuzione elabora al massimo 10 pagine.\nLa scheda non indica un numero di versione né una priorità rispetto alla scheda B.\n"
+        },
+        {
+          "pageId": "note/corbezzolo-scheda-b",
+          "version": 1,
+          "title": "Scheda B del servizio Corbezzolo",
+          "markdown": "# Scheda B — acquisita il 19 novembre 2026\nIl servizio parte ogni giorno alle 02:15.\nOgni esecuzione elabora al massimo 12 pagine.\nLa scheda non indica un numero di versione né una priorità rispetto alla scheda A.\n"
+        }
+      ],
+      "rules": [
+        {
+          "id": "V3F-R1",
+          "description": "L'orario ha evidenza concorde; il limite ha due evidenze incompatibili senza precedenza.",
+          "evidence": [
+            {
+              "pageId": "note/corbezzolo-scheda-a",
+              "quote": "Ogni esecuzione elabora al massimo 10 pagine."
+            },
+            {
+              "pageId": "note/corbezzolo-scheda-b",
+              "quote": "Ogni esecuzione elabora al massimo 12 pagine."
+            },
+            {
+              "pageId": "note/corbezzolo-scheda-b",
+              "quote": "La scheda non indica un numero di versione né una priorità rispetto alla scheda A."
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "designId": "V3F-V",
+          "label": "Risolve la sola parte concorde della questione",
+          "category": "valid",
+          "afterMarkdown": "# Corbezzolo\nLe due schede, acquisite il 19 novembre 2026, concordano sulla partenza giornaliera alle 02:15. Resta un conflitto documentato sul limite per esecuzione: la [scheda A](note/corbezzolo-scheda-a) indica 10 pagine, la [scheda B](note/corbezzolo-scheda-b) ne indica 12. Nessuna fornisce una versione o una priorità che risolva il conflitto.\n",
+          "expectedDecision": "accept",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "pass",
+              "rationale": "L'orario è comune alle due schede; i due limiti sono attribuiti separatamente e l'assenza di precedenza resta esplicita."
+            },
+            "preserves_distinct_information": {
+              "verdict": "pass",
+              "rationale": "Date di acquisizione, periodicità giornaliera, valori, provenienze e incertezza restano distinguibili."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "La modifica registra soltanto conoscenza documentata e non introduce incarichi, controlli o domande per una persona."
+            },
+            "meaningful_improvement": {
+              "verdict": "pass",
+              "rationale": "Chiude la parte dell'orario già risolta dalle fonti e rappresenta una sola volta il dato comune, mantenendo il conflitto reale sul limite."
+            }
+          },
+          "rationale": "Chiude la parte dell'orario già risolta dalle fonti e rappresenta una sola volta il dato comune, mantenendo il conflitto reale sul limite. L'orario è comune alle due schede; i due limiti sono attribuiti separatamente e l'assenza di precedenza resta esplicita.",
+          "proof": [
+            {
+              "location": "source",
+              "quote": "Il servizio parte ogni giorno alle 02:15.",
+              "pageId": "note/corbezzolo-scheda-a"
+            },
+            {
+              "location": "source",
+              "quote": "Il servizio parte ogni giorno alle 02:15.",
+              "pageId": "note/corbezzolo-scheda-b"
+            },
+            {
+              "location": "after",
+              "quote": "Nessuna fornisce una versione o una priorità che risolva il conflitto."
+            }
+          ]
+        },
+        {
+          "designId": "V3F-A",
+          "label": "Attribuisce precedenza a una delle due schede",
+          "category": "ambiguous",
+          "afterMarkdown": "# Corbezzolo\nLe due schede, acquisite il 19 novembre 2026, concordano sulla partenza giornaliera alle 02:15. Il limite valido per ogni esecuzione è 10 pagine, come stabilito dalla [scheda A](note/corbezzolo-scheda-a); il valore di 12 nella [scheda B](note/corbezzolo-scheda-b) è superato.\n",
+          "expectedDecision": "do_not_apply",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "acceptableVerdicts": [
+                "fail",
+                "uncertain"
+              ],
+              "rationale": "Due fonti complete contemporanee danno limiti diversi. Entrambe negano una precedenza documentata. Scegliere 10 e dichiarare superato 12 risolve arbitrariamente una contraddizione effettiva: non è una domanda priva di qualsiasi evidenza."
+            }
+          },
+          "rationale": "Due fonti complete contemporanee danno limiti diversi. Entrambe negano una precedenza documentata. Scegliere 10 e dichiarare superato 12 risolve arbitrariamente una contraddizione effettiva: non è una domanda priva di qualsiasi evidenza.",
+          "contrastWith": "V3F-V",
+          "proof": [
+            {
+              "location": "source",
+              "quote": "Ogni esecuzione elabora al massimo 10 pagine.",
+              "pageId": "note/corbezzolo-scheda-a"
+            },
+            {
+              "location": "source",
+              "quote": "Ogni esecuzione elabora al massimo 12 pagine.",
+              "pageId": "note/corbezzolo-scheda-b"
+            },
+            {
+              "location": "after",
+              "quote": "è superato."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

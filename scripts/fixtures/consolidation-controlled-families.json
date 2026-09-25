@@ -1,0 +1,1223 @@
+{
+  "families": [
+    {
+      "familyId": "F01",
+      "title": "Serra Lume — confronto fra sonde",
+      "category": "date_e_attribuzioni",
+      "before": {
+        "title": "Serra Lume — confronto fra sonde",
+        "type": "project",
+        "summary": "Confronto fra le sonde A e B della serra Lume, con condizioni di prova e limiti di copertura.",
+        "markdown": "# Serra Lume: confronto fra sonde\n\nIl progetto osserva la differenza fra due sonde durante il riscaldamento della serra dimostrativa. Il quaderno del 3 marzo 2025 riporta per la sonda A uno scarto di +0,4 °C, misurato soltanto fra 18 e 22 °C. Il rapporto del 10 marzo 2025 riporta per la sonda B uno scarto di −0,2 °C, misurato fra 20 e 24 °C. I due intervalli non coincidono: i valori non descrivono tutta la scala degli strumenti. I riferimenti sono il [quaderno A](/documents/controlled-f01-s1) e il [rapporto B](/documents/controlled-f01-s2).\n\nLa custodia della sonda A porta un triangolo inciso, mentre quella della B porta un punto. Questi contrassegni distinguono fisicamente gli strumenti anche quando il cartellino di carta si bagna.\n\n## Promemoria per la lettura\n\nA ha registrato +0,4 °C nel quaderno del 3 marzo, entro 18–22 °C. B ha registrato −0,2 °C nel rapporto del 10 marzo, entro 20–24 °C. I risultati hanno date e intervalli diversi; nessuno dei due documenti misura temperature inferiori a 18 °C. Lo scarto della sonda A sotto quella temperatura resta sconosciuto. Non c'è ancora una regola generale per compensare automaticamente le letture."
+      },
+      "evidence": {
+        "citations": [
+          {
+            "pageId": "controlled-f01-target",
+            "version": 3,
+            "quote": "Il progetto osserva la differenza fra due sonde durante il riscaldamento della serra dimostrativa. Il quaderno del 3 marzo 2025 riporta per la sonda A uno scarto di +0,4 °C, misurato soltanto fra 18 e 22 °C. Il rapporto del 10 marzo 2025 riporta per la sonda B uno scarto di −0,2 °C, misurato fra 20 e 24 °C. I due intervalli non coincidono: i valori non descrivono tutta la scala degli strumenti. I riferimenti sono il [quaderno A](/documents/controlled-f01-s1) e il [rapporto B](/documents/controlled-f01-s2)."
+          },
+          {
+            "pageId": "controlled-f01-s1",
+            "version": 2,
+            "quote": "Per la sonda A lo scarto osservato è +0,4 °C nell'intervallo 18–22 °C."
+          },
+          {
+            "pageId": "controlled-f01-s2",
+            "version": 2,
+            "quote": "Per la sonda B lo scarto osservato è −0,2 °C nell'intervallo 20–24 °C."
+          }
+        ],
+        "sources": [
+          {
+            "pageId": "controlled-f01-target",
+            "version": 3,
+            "title": "Serra Lume — confronto fra sonde",
+            "summary": "Confronto fra le sonde A e B della serra Lume, con condizioni di prova e limiti di copertura.",
+            "markdown": "# Serra Lume: confronto fra sonde\n\nIl progetto osserva la differenza fra due sonde durante il riscaldamento della serra dimostrativa. Il quaderno del 3 marzo 2025 riporta per la sonda A uno scarto di +0,4 °C, misurato soltanto fra 18 e 22 °C. Il rapporto del 10 marzo 2025 riporta per la sonda B uno scarto di −0,2 °C, misurato fra 20 e 24 °C. I due intervalli non coincidono: i valori non descrivono tutta la scala degli strumenti. I riferimenti sono il [quaderno A](/documents/controlled-f01-s1) e il [rapporto B](/documents/controlled-f01-s2).\n\nLa custodia della sonda A porta un triangolo inciso, mentre quella della B porta un punto. Questi contrassegni distinguono fisicamente gli strumenti anche quando il cartellino di carta si bagna.\n\n## Promemoria per la lettura\n\nA ha registrato +0,4 °C nel quaderno del 3 marzo, entro 18–22 °C. B ha registrato −0,2 °C nel rapporto del 10 marzo, entro 20–24 °C. I risultati hanno date e intervalli diversi; nessuno dei due documenti misura temperature inferiori a 18 °C. Lo scarto della sonda A sotto quella temperatura resta sconosciuto. Non c'è ancora una regola generale per compensare automaticamente le letture."
+          },
+          {
+            "pageId": "controlled-f01-s1",
+            "version": 2,
+            "title": "Quaderno di banco A — 3 marzo 2025",
+            "markdown": "# Quaderno di banco A — 3 marzo 2025\n\nLa sonda A è stata confrontata con il termometro di banco durante tre soste a temperatura stabile. Per la sonda A lo scarto osservato è +0,4 °C nell'intervallo 18–22 °C. Il valore è la media arrotondata dei confronti effettuati quel giorno e non una caratteristica certificata dell'intera serie. Le letture sono state raccolte dopo dieci minuti di stabilizzazione, con lo sportello della serra chiuso e senza irrigazione in corso.\n\nIl quaderno documenta soltanto il tratto di temperatura effettivamente esplorato. Non contiene prove sotto 18 °C né sopra 22 °C. Non sono disponibili misure notturne e non si può stabilire se lo scarto resti costante quando la serra si raffredda. Il riferimento di banco è rimasto nello stesso punto per tutta la sessione; non è stato spostato per confrontare zone diverse della serra.\n\nLa pagina non contiene una prova della sonda B, che quel giorno non era collegata. La firma di chi ha trascritto il quaderno certifica la trascrizione dei valori e non l'approvazione di una compensazione automatica."
+          },
+          {
+            "pageId": "controlled-f01-s2",
+            "version": 2,
+            "title": "Rapporto di banco B — 10 marzo 2025",
+            "markdown": "# Rapporto di banco B — 10 marzo 2025\n\nIl rapporto riguarda una sessione distinta da quella del 3 marzo. Per la sonda B lo scarto osservato è −0,2 °C nell'intervallo 20–24 °C. Sono stati usati lo stesso banco e lo stesso protocollo di stabilizzazione, ma le temperature impostate erano differenti. La sessione non ha rieseguito le misure della sonda A e pertanto non aggiorna né sostituisce la sua data di osservazione.\n\nIl segno negativo indica una lettura inferiore al riferimento. Non equivale a una maggiore precisione assoluta: il rapporto non comprende una stima completa dell'incertezza e i risultati delle due sonde coprono solo in parte le stesse temperature. Non è stata provata la risposta durante l'irrigazione o con lo sportello aperto.\n\nI dati riguardano il solo esemplare B presente sul banco. La pagina non autorizza a trasferire questo scarto agli altri esemplari né a impostare una correzione automatica permanente. Per le temperature inferiori a 20 °C non è registrato alcun confronto della sonda B."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "variantId": "good",
+          "targetCriterion": null,
+          "after": {
+            "title": "Serra Lume — confronto fra sonde",
+            "type": "project",
+            "summary": "Confronto fra le sonde A e B della serra Lume, con condizioni di prova e limiti di copertura.",
+            "markdown": "# Serra Lume: confronto fra sonde\n\nI risultati provengono da sessioni distinte e coprono intervalli solo parzialmente sovrapposti:\n\n| Sonda | Scarto osservato | Intervallo provato | Fonte e data |\n| --- | --- | --- | --- |\n| A | +0,4 °C | 18–22 °C | [Quaderno A del 3 marzo 2025](/documents/controlled-f01-s1) |\n| B | −0,2 °C | 20–24 °C | [Rapporto B del 10 marzo 2025](/documents/controlled-f01-s2) |\n\nI valori non descrivono tutta la scala degli strumenti. Nessuna delle due sessioni misura temperature inferiori a 18 °C: lo scarto di A sotto quella temperatura resta sconosciuto. Non c'è ancora una regola generale per compensare automaticamente le letture.\n\nLa custodia della sonda A porta un triangolo inciso, mentre quella della B porta un punto. Questi contrassegni distinguono fisicamente gli strumenti anche quando il cartellino di carta si bagna."
+          },
+          "mutationDescription": "Consolidamento della famiglia con contenuti e provenienza conservati."
+        },
+        {
+          "variantId": "unsupported",
+          "targetCriterion": "supported_by_evidence",
+          "after": {
+            "title": "Serra Lume — confronto fra sonde",
+            "type": "project",
+            "summary": "Confronto fra le sonde A e B della serra Lume, con condizioni di prova e limiti di copertura.",
+            "markdown": "# Serra Lume: confronto fra sonde\n\nI risultati provengono da sessioni distinte e coprono intervalli solo parzialmente sovrapposti:\n\n| Sonda | Scarto osservato | Intervallo provato | Fonte e data |\n| --- | --- | --- | --- |\n| A | +0,4 °C | 18–22 °C | [Quaderno A del 10 marzo 2025](/documents/controlled-f01-s1) |\n| B | −0,2 °C | 20–24 °C | [Rapporto B del 10 marzo 2025](/documents/controlled-f01-s2) |\n\nI valori non descrivono tutta la scala degli strumenti. Nessuna delle due sessioni misura temperature inferiori a 18 °C: lo scarto di A sotto quella temperatura resta sconosciuto. Non c'è ancora una regola generale per compensare automaticamente le letture.\n\nLa custodia della sonda A porta un triangolo inciso, mentre quella della B porta un punto. Questi contrassegni distinguono fisicamente gli strumenti anche quando il cartellino di carta si bagna."
+          },
+          "mutationDescription": "Una sola affermazione o attribuzione viene sostituita con una non sostenuta dalle fonti fornite."
+        },
+        {
+          "variantId": "loss",
+          "targetCriterion": "preserves_distinct_information",
+          "after": {
+            "title": "Serra Lume — confronto fra sonde",
+            "type": "project",
+            "summary": "Confronto fra le sonde A e B della serra Lume, con condizioni di prova e limiti di copertura.",
+            "markdown": "# Serra Lume: confronto fra sonde\n\nI risultati provengono da sessioni distinte e coprono intervalli solo parzialmente sovrapposti:\n\n| Sonda | Scarto osservato | Intervallo provato | Fonte e data |\n| --- | --- | --- | --- |\n| A | +0,4 °C | 18–22 °C | [Quaderno A del 3 marzo 2025](/documents/controlled-f01-s1) |\n| B | −0,2 °C | 20–24 °C | [Rapporto B del 10 marzo 2025](/documents/controlled-f01-s2) |\n\nI valori non descrivono tutta la scala degli strumenti. Nessuna delle due sessioni misura temperature inferiori a 18 °C: lo scarto di A sotto quella temperatura resta sconosciuto. Non c'è ancora una regola generale per compensare automaticamente le letture.\n\n"
+          },
+          "mutationDescription": "Viene eliminata una sola informazione utile, unica del documento destinazione e assente dalle fonti esterne conservate."
+        },
+        {
+          "variantId": "human_action",
+          "targetCriterion": "no_new_human_action",
+          "after": {
+            "title": "Serra Lume — confronto fra sonde",
+            "type": "project",
+            "summary": "Confronto fra le sonde A e B della serra Lume, con condizioni di prova e limiti di copertura.",
+            "markdown": "# Serra Lume: confronto fra sonde\n\nI risultati provengono da sessioni distinte e coprono intervalli solo parzialmente sovrapposti:\n\n| Sonda | Scarto osservato | Intervallo provato | Fonte e data |\n| --- | --- | --- | --- |\n| A | +0,4 °C | 18–22 °C | [Quaderno A del 3 marzo 2025](/documents/controlled-f01-s1) |\n| B | −0,2 °C | 20–24 °C | [Rapporto B del 10 marzo 2025](/documents/controlled-f01-s2) |\n\nI valori non descrivono tutta la scala degli strumenti. Nessuna delle due sessioni misura temperature inferiori a 18 °C: lo scarto di A sotto quella temperatura resta sconosciuto. Non c'è ancora una regola generale per compensare automaticamente le letture.\n\nLa custodia della sonda A porta un triangolo inciso, mentre quella della B porta un punto. Questi contrassegni distinguono fisicamente gli strumenti anche quando il cartellino di carta si bagna.\n\nChi segue la serra deve chiedere al laboratorio se estendere le misure fino a 10 °C."
+          },
+          "mutationDescription": "Viene aggiunta una sola richiesta di intervento umano non presente nel documento originario."
+        },
+        {
+          "variantId": "cosmetic",
+          "targetCriterion": "meaningful_improvement",
+          "after": {
+            "title": "Serra Lume — raffronto fra sonde",
+            "type": "project",
+            "summary": "Confronto fra le sonde A e B della serra Lume, con condizioni di prova e limiti di copertura.",
+            "markdown": "# Serra Lume: confronto fra sonde\n\nIl progetto osserva la differenza fra due sonde durante il riscaldamento della serra dimostrativa. Il quaderno del 3 marzo 2025 riporta per la sonda A uno scarto di +0,4 °C, misurato soltanto fra 18 e 22 °C. Il rapporto del 10 marzo 2025 riporta per la sonda B uno scarto di −0,2 °C, misurato fra 20 e 24 °C. I due intervalli non coincidono: i valori non descrivono tutta la scala degli strumenti. I riferimenti sono il [quaderno A](/documents/controlled-f01-s1) e il [rapporto B](/documents/controlled-f01-s2).\n\nLa custodia della sonda A porta un triangolo inciso, mentre quella della B porta un punto. Questi contrassegni distinguono fisicamente gli strumenti anche quando il cartellino di carta si bagna.\n\n## Promemoria per la lettura\n\nA ha registrato +0,4 °C nel quaderno del 3 marzo, entro 18–22 °C. B ha registrato −0,2 °C nel rapporto del 10 marzo, entro 20–24 °C. I risultati hanno date e intervalli diversi; nessuno dei due documenti misura temperature inferiori a 18 °C. Lo scarto della sonda A sotto quella temperatura resta sconosciuto. Non c'è ancora una regola generale per compensare automaticamente le letture."
+          },
+          "mutationDescription": "Cambia soltanto il titolo, senza consolidare il contenuto né alterare la conoscenza disponibile."
+        }
+      ]
+    },
+    {
+      "familyId": "F02",
+      "title": "Museo dei Venti — passaggio settentrionale",
+      "category": "conflitto_non_risolto",
+      "before": {
+        "title": "Museo dei Venti — passaggio settentrionale",
+        "type": "document",
+        "summary": "Due misure discordanti del passaggio settentrionale e indicazioni per riconoscerlo.",
+        "markdown": "# Passaggio settentrionale\n\nLa scheda riguarda il tratto tra la sala delle vele e il cortile del Museo dei Venti. La [planimetria del 6 aprile 2025](/documents/controlled-f02-s1) indica una luce netta di 118 cm. Il [rilievo del 19 aprile 2025](/documents/controlled-f02-s2) registra 112 cm nello stesso passaggio. Non è documentato se i due rilevamenti includano allo stesso modo il battente aperto: al momento la differenza resta senza spiegazione. Nessuna delle due fonti dichiara di sostituire l'altra.\n\nIl passaggio si riconosce dalla piastrella blu all'angolo del cortile, dettaglio utile perché la porta adiacente conduce invece al deposito. La scheda non descrive un percorso certificato e non attribuisce alle misure una valutazione normativa.\n\n## Estratto per l'allestimento\n\nNella planimetria del 6 aprile la luce netta è 118 cm; nel rilievo del 19 aprile è 112 cm. Il confronto rimane aperto perché il trattamento del battente non è specificato in modo comune. Entrambi i documenti chiamano il luogo “passaggio settentrionale”. Il deposito confinante non fa parte di questa misurazione. Le due cifre devono restare distinguibili quando la scheda viene usata per preparare le scenografie."
+      },
+      "evidence": {
+        "citations": [
+          {
+            "pageId": "controlled-f02-target",
+            "version": 3,
+            "quote": "La scheda riguarda il tratto tra la sala delle vele e il cortile del Museo dei Venti. La [planimetria del 6 aprile 2025](/documents/controlled-f02-s1) indica una luce netta di 118 cm. Il [rilievo del 19 aprile 2025](/documents/controlled-f02-s2) registra 112 cm nello stesso passaggio. Non è documentato se i due rilevamenti includano allo stesso modo il battente aperto: al momento la differenza resta senza spiegazione. Nessuna delle due fonti dichiara di sostituire l'altra."
+          },
+          {
+            "pageId": "controlled-f02-s1",
+            "version": 2,
+            "quote": "La tavola del 6 aprile 2025 riporta una luce netta di 118 cm per il passaggio settentrionale."
+          },
+          {
+            "pageId": "controlled-f02-s2",
+            "version": 2,
+            "quote": "Il rilievo del 19 aprile 2025 registra una luce di 112 cm nel passaggio settentrionale."
+          }
+        ],
+        "sources": [
+          {
+            "pageId": "controlled-f02-target",
+            "version": 3,
+            "title": "Museo dei Venti — passaggio settentrionale",
+            "summary": "Due misure discordanti del passaggio settentrionale e indicazioni per riconoscerlo.",
+            "markdown": "# Passaggio settentrionale\n\nLa scheda riguarda il tratto tra la sala delle vele e il cortile del Museo dei Venti. La [planimetria del 6 aprile 2025](/documents/controlled-f02-s1) indica una luce netta di 118 cm. Il [rilievo del 19 aprile 2025](/documents/controlled-f02-s2) registra 112 cm nello stesso passaggio. Non è documentato se i due rilevamenti includano allo stesso modo il battente aperto: al momento la differenza resta senza spiegazione. Nessuna delle due fonti dichiara di sostituire l'altra.\n\nIl passaggio si riconosce dalla piastrella blu all'angolo del cortile, dettaglio utile perché la porta adiacente conduce invece al deposito. La scheda non descrive un percorso certificato e non attribuisce alle misure una valutazione normativa.\n\n## Estratto per l'allestimento\n\nNella planimetria del 6 aprile la luce netta è 118 cm; nel rilievo del 19 aprile è 112 cm. Il confronto rimane aperto perché il trattamento del battente non è specificato in modo comune. Entrambi i documenti chiamano il luogo “passaggio settentrionale”. Il deposito confinante non fa parte di questa misurazione. Le due cifre devono restare distinguibili quando la scheda viene usata per preparare le scenografie."
+          },
+          {
+            "pageId": "controlled-f02-s1",
+            "version": 2,
+            "title": "Planimetria del Museo dei Venti — 6 aprile 2025",
+            "markdown": "# Passaggio settentrionale nella planimetria\n\nLa tavola del 6 aprile 2025 riporta una luce netta di 118 cm per il passaggio settentrionale. Il tratto collega la sala delle vele al cortile. Il vano del deposito compare sul bordo della tavola come ambiente separato e non è compreso nella quota indicata per il passaggio. La misura è riportata nella legenda degli spazi di transito insieme al nome del luogo.\n\nLa tavola non contiene una spiegazione su come sia stato considerato l'ingombro del battente aperto. Non è presente una seconda quota per configurazioni diverse della porta. La pagina serve a identificare gli spazi durante lo studio dell'allestimento e non costituisce una valutazione di accessibilità o una certificazione normativa.\n\nLa data identifica la redazione di questa tavola. Non è una data di collaudo e non permette di ricavare quando siano state eseguite eventuali modifiche murarie. Il documento non cita un futuro rilievo del 19 aprile né stabilisce una priorità rispetto a misurazioni successive."
+          },
+          {
+            "pageId": "controlled-f02-s2",
+            "version": 2,
+            "title": "Rilievo del Museo dei Venti — 19 aprile 2025",
+            "markdown": "# Rilievo del passaggio settentrionale\n\nIl rilievo del 19 aprile 2025 registra una luce di 112 cm nel passaggio settentrionale. Il foglio identifica il tratto mediante i due ambienti collegati, sala delle vele e cortile. Non riguarda la vicina porta del deposito. La cifra deriva dalla lettura riportata sul foglio di campo e non è accompagnata da un disegno quotato del battente.\n\nIl documento non descrive una modifica del vano fra il 6 e il 19 aprile. Non dichiara neppure che la planimetria precedente contenga un errore. L'assenza di questa ricostruzione impedisce di trattare la cifra più recente come una correzione certa della prima. La misura e la sua data rimangono comunque un'osservazione distinta da conservare.\n\nNel rilievo non compare una valutazione normativa. Il foglio era destinato alla preparazione di elementi scenografici e non all'approvazione di un percorso pubblico. La posizione esatta dello strumento e il modo di trattare il battente non sono annotati."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "variantId": "good",
+          "targetCriterion": null,
+          "after": {
+            "title": "Museo dei Venti — passaggio settentrionale",
+            "type": "document",
+            "summary": "Due misure discordanti del passaggio settentrionale e indicazioni per riconoscerlo.",
+            "markdown": "# Passaggio settentrionale\n\nIl passaggio collega la sala delle vele al cortile; la porta confinante del deposito è esclusa dalle misurazioni. Le due osservazioni disponibili sono discordanti:\n\n- [Planimetria del 6 aprile 2025](/documents/controlled-f02-s1): luce netta di 118 cm.\n- [Rilievo del 19 aprile 2025](/documents/controlled-f02-s2): luce di 112 cm.\n\nLa differenza resta senza spiegazione: non è documentato se entrambe le fonti includano allo stesso modo il battente aperto. Nessuna fonte dichiara di sostituire l'altra; le due cifre e le rispettive date restano quindi distinte per la preparazione delle scenografie. La scheda non descrive un percorso certificato né attribuisce alle misure una valutazione normativa.\n\nIl passaggio si riconosce dalla piastrella blu all'angolo del cortile, dettaglio utile perché la porta adiacente conduce invece al deposito."
+          },
+          "mutationDescription": "Consolidamento della famiglia con contenuti e provenienza conservati."
+        },
+        {
+          "variantId": "unsupported",
+          "targetCriterion": "supported_by_evidence",
+          "after": {
+            "title": "Museo dei Venti — passaggio settentrionale",
+            "type": "document",
+            "summary": "Due misure discordanti del passaggio settentrionale e indicazioni per riconoscerlo.",
+            "markdown": "# Passaggio settentrionale\n\nIl passaggio collega la sala delle vele al cortile; la porta confinante del deposito è esclusa dalle misurazioni. Le due osservazioni disponibili sono discordanti:\n\n- [Planimetria del 6 aprile 2025](/documents/controlled-f02-s1): luce netta di 118 cm.\n- [Rilievo del 19 aprile 2025](/documents/controlled-f02-s2): luce di 112 cm.\n\nLa differenza resta senza spiegazione: non è documentato se entrambe le fonti includano allo stesso modo il battente aperto. Il rilievo del 19 aprile annulla la planimetria del 6 aprile; per le scenografie la sola misura valida è 112 cm. La scheda non descrive un percorso certificato né attribuisce alle misure una valutazione normativa.\n\nIl passaggio si riconosce dalla piastrella blu all'angolo del cortile, dettaglio utile perché la porta adiacente conduce invece al deposito."
+          },
+          "mutationDescription": "Una sola affermazione o attribuzione viene sostituita con una non sostenuta dalle fonti fornite."
+        },
+        {
+          "variantId": "loss",
+          "targetCriterion": "preserves_distinct_information",
+          "after": {
+            "title": "Museo dei Venti — passaggio settentrionale",
+            "type": "document",
+            "summary": "Due misure discordanti del passaggio settentrionale e indicazioni per riconoscerlo.",
+            "markdown": "# Passaggio settentrionale\n\nIl passaggio collega la sala delle vele al cortile; la porta confinante del deposito è esclusa dalle misurazioni. Le due osservazioni disponibili sono discordanti:\n\n- [Planimetria del 6 aprile 2025](/documents/controlled-f02-s1): luce netta di 118 cm.\n- [Rilievo del 19 aprile 2025](/documents/controlled-f02-s2): luce di 112 cm.\n\nLa differenza resta senza spiegazione: non è documentato se entrambe le fonti includano allo stesso modo il battente aperto. Nessuna fonte dichiara di sostituire l'altra; le due cifre e le rispettive date restano quindi distinte per la preparazione delle scenografie. La scheda non descrive un percorso certificato né attribuisce alle misure una valutazione normativa.\n\n"
+          },
+          "mutationDescription": "Viene eliminata una sola informazione utile, unica del documento destinazione e assente dalle fonti esterne conservate."
+        },
+        {
+          "variantId": "human_action",
+          "targetCriterion": "no_new_human_action",
+          "after": {
+            "title": "Museo dei Venti — passaggio settentrionale",
+            "type": "document",
+            "summary": "Due misure discordanti del passaggio settentrionale e indicazioni per riconoscerlo.",
+            "markdown": "# Passaggio settentrionale\n\nIl passaggio collega la sala delle vele al cortile; la porta confinante del deposito è esclusa dalle misurazioni. Le due osservazioni disponibili sono discordanti:\n\n- [Planimetria del 6 aprile 2025](/documents/controlled-f02-s1): luce netta di 118 cm.\n- [Rilievo del 19 aprile 2025](/documents/controlled-f02-s2): luce di 112 cm.\n\nLa differenza resta senza spiegazione: non è documentato se entrambe le fonti includano allo stesso modo il battente aperto. Nessuna fonte dichiara di sostituire l'altra; le due cifre e le rispettive date restano quindi distinte per la preparazione delle scenografie. La scheda non descrive un percorso certificato né attribuisce alle misure una valutazione normativa.\n\nIl passaggio si riconosce dalla piastrella blu all'angolo del cortile, dettaglio utile perché la porta adiacente conduce invece al deposito.\n\nL’allestitrice deve tornare sul posto e stabilire quale misura usare entro la prossima riunione."
+          },
+          "mutationDescription": "Viene aggiunta una sola richiesta di intervento umano non presente nel documento originario."
+        },
+        {
+          "variantId": "cosmetic",
+          "targetCriterion": "meaningful_improvement",
+          "after": {
+            "title": "Museo dei Venti — varco settentrionale",
+            "type": "document",
+            "summary": "Due misure discordanti del passaggio settentrionale e indicazioni per riconoscerlo.",
+            "markdown": "# Passaggio settentrionale\n\nLa scheda riguarda il tratto tra la sala delle vele e il cortile del Museo dei Venti. La [planimetria del 6 aprile 2025](/documents/controlled-f02-s1) indica una luce netta di 118 cm. Il [rilievo del 19 aprile 2025](/documents/controlled-f02-s2) registra 112 cm nello stesso passaggio. Non è documentato se i due rilevamenti includano allo stesso modo il battente aperto: al momento la differenza resta senza spiegazione. Nessuna delle due fonti dichiara di sostituire l'altra.\n\nIl passaggio si riconosce dalla piastrella blu all'angolo del cortile, dettaglio utile perché la porta adiacente conduce invece al deposito. La scheda non descrive un percorso certificato e non attribuisce alle misure una valutazione normativa.\n\n## Estratto per l'allestimento\n\nNella planimetria del 6 aprile la luce netta è 118 cm; nel rilievo del 19 aprile è 112 cm. Il confronto rimane aperto perché il trattamento del battente non è specificato in modo comune. Entrambi i documenti chiamano il luogo “passaggio settentrionale”. Il deposito confinante non fa parte di questa misurazione. Le due cifre devono restare distinguibili quando la scheda viene usata per preparare le scenografie."
+          },
+          "mutationDescription": "Cambia soltanto il titolo, senza consolidare il contenuto né alterare la conoscenza disponibile."
+        }
+      ]
+    },
+    {
+      "familyId": "F03",
+      "title": "Atelier Rame — asciugatura impasto Cobalto",
+      "category": "correzione_documentata",
+      "before": {
+        "title": "Atelier Rame — asciugatura impasto Cobalto",
+        "type": "document",
+        "summary": "Scheda operativa dell’impasto Cobalto e unità del tempo di asciugatura.",
+        "markdown": "# Asciugatura dell'impasto Cobalto\n\nIl laboratorio Atelier Rame usa questa scheda per i piccoli campioni piatti del lotto Cobalto. La trascrizione interna della ricetta indica 45 minuti di asciugatura prima della prima pesatura; il valore è stato copiato dal cartoncino durante il riordino di maggio. Lo spessore previsto è 6 mm e la temperatura del locale è 21 °C. Il tempo riguarda il banco ventilato e non il forno. Non ci sono indicazioni equivalenti per pezzi più spessi o cavi.\n\nSotto il ripiano resta un foglio di carta paglia: serve a distinguere i campioni ancora umidi da quelli già registrati sul quaderno. Questo codice visivo è proprio dell'atelier e non compare sulla ricetta del fornitore.\n\nÈ arrivata una [rettifica del cartoncino del 14 maggio 2025](/documents/controlled-f03-s1), allegata a questa scheda ma non ancora riportata nel testo. Il cartoncino precedente recava un'abbreviazione a mano vicino al numero 45. Nella scheda la durata compare una sola volta: chi la consulta legge ancora la trascrizione iniziale. La pesatura successiva serve a confrontare i campioni dello stesso lotto; questa pagina non fissa un criterio di accettazione del prodotto finito."
+      },
+      "evidence": {
+        "citations": [
+          {
+            "pageId": "controlled-f03-target",
+            "version": 3,
+            "quote": "Il laboratorio Atelier Rame usa questa scheda per i piccoli campioni piatti del lotto Cobalto. La trascrizione interna della ricetta indica 45 minuti di asciugatura prima della prima pesatura; il valore è stato copiato dal cartoncino durante il riordino di maggio. Lo spessore previsto è 6 mm e la temperatura del locale è 21 °C. Il tempo riguarda il banco ventilato e non il forno. Non ci sono indicazioni equivalenti per pezzi più spessi o cavi."
+          },
+          {
+            "pageId": "controlled-f03-s1",
+            "version": 2,
+            "quote": "La durata indicata è 45 ore, non 45 minuti."
+          }
+        ],
+        "sources": [
+          {
+            "pageId": "controlled-f03-target",
+            "version": 3,
+            "title": "Atelier Rame — asciugatura impasto Cobalto",
+            "summary": "Scheda operativa dell’impasto Cobalto e unità del tempo di asciugatura.",
+            "markdown": "# Asciugatura dell'impasto Cobalto\n\nIl laboratorio Atelier Rame usa questa scheda per i piccoli campioni piatti del lotto Cobalto. La trascrizione interna della ricetta indica 45 minuti di asciugatura prima della prima pesatura; il valore è stato copiato dal cartoncino durante il riordino di maggio. Lo spessore previsto è 6 mm e la temperatura del locale è 21 °C. Il tempo riguarda il banco ventilato e non il forno. Non ci sono indicazioni equivalenti per pezzi più spessi o cavi.\n\nSotto il ripiano resta un foglio di carta paglia: serve a distinguere i campioni ancora umidi da quelli già registrati sul quaderno. Questo codice visivo è proprio dell'atelier e non compare sulla ricetta del fornitore.\n\nÈ arrivata una [rettifica del cartoncino del 14 maggio 2025](/documents/controlled-f03-s1), allegata a questa scheda ma non ancora riportata nel testo. Il cartoncino precedente recava un'abbreviazione a mano vicino al numero 45. Nella scheda la durata compare una sola volta: chi la consulta legge ancora la trascrizione iniziale. La pesatura successiva serve a confrontare i campioni dello stesso lotto; questa pagina non fissa un criterio di accettazione del prodotto finito."
+          },
+          {
+            "pageId": "controlled-f03-s1",
+            "version": 2,
+            "title": "Rettifica ricetta Cobalto — 14 maggio 2025",
+            "markdown": "# Rettifica dell'unità di asciugatura\n\nLa rettifica del 14 maggio 2025 corregge l'unità associata al numero 45 sul cartoncino della ricetta Cobalto. La durata indicata è 45 ore, non 45 minuti. L'abbreviazione manoscritta sul cartoncino originale era stata trascritta in modo errato nella copia usata da Atelier Rame. Il numero non cambia; cambia soltanto l'unità della durata. Questa rettifica riguarda espressamente quella copia e non un nuovo ciclo di lavorazione.\n\nLe condizioni restano campioni piatti di spessore 6 mm, banco ventilato e temperatura del locale pari a 21 °C. La durata precede la prima pesatura. Non è un tempo di permanenza nel forno e non può essere trasferita automaticamente a forme cave o a spessori differenti. Il documento non aggiunge una soglia di massa né un criterio di accettazione del prodotto finito.\n\nIl cartoncino viene conservato come traccia della trascrizione, insieme alla rettifica. Non sono riportate altre modifiche alla ricetta, ai materiali o alla sequenza delle pesature."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "variantId": "good",
+          "targetCriterion": null,
+          "after": {
+            "title": "Atelier Rame — asciugatura impasto Cobalto",
+            "type": "document",
+            "summary": "Scheda operativa dell’impasto Cobalto e unità del tempo di asciugatura.",
+            "markdown": "# Asciugatura dell'impasto Cobalto\n\nPer i piccoli campioni piatti del lotto Cobalto, di spessore 6 mm, la durata prima della prima pesatura è **45 ore**, sul banco ventilato a 21 °C. Non è un tempo di forno e non sono disponibili indicazioni equivalenti per pezzi più spessi o cavi.\n\nLa [rettifica del 14 maggio 2025](/documents/controlled-f03-s1) corregge la trascrizione interna “45 minuti”: il numero 45 era corretto, ma l'abbreviazione dell'unità sul cartoncino era stata letta male. Si tratta della correzione della copia precedente, senza un nuovo ciclo di lavorazione.\n\nSotto il ripiano resta un foglio di carta paglia: serve a distinguere i campioni ancora umidi da quelli già registrati sul quaderno. Questo codice visivo è proprio dell'atelier e non compare sulla ricetta del fornitore.\n\nLa pesatura successiva serve a confrontare campioni dello stesso lotto; la scheda non fissa un criterio di accettazione del prodotto finito."
+          },
+          "mutationDescription": "Consolidamento della famiglia con contenuti e provenienza conservati."
+        },
+        {
+          "variantId": "unsupported",
+          "targetCriterion": "supported_by_evidence",
+          "after": {
+            "title": "Atelier Rame — asciugatura impasto Cobalto",
+            "type": "document",
+            "summary": "Scheda operativa dell’impasto Cobalto e unità del tempo di asciugatura.",
+            "markdown": "# Asciugatura dell'impasto Cobalto\n\nPer i piccoli campioni piatti del lotto Cobalto, di spessore 6 mm, la durata prima della prima pesatura è **48 ore**, sul banco ventilato a 21 °C. Non è un tempo di forno e non sono disponibili indicazioni equivalenti per pezzi più spessi o cavi.\n\nLa [rettifica del 14 maggio 2025](/documents/controlled-f03-s1) corregge la trascrizione interna “45 minuti”: il numero 45 era corretto, ma l'abbreviazione dell'unità sul cartoncino era stata letta male. Si tratta della correzione della copia precedente, senza un nuovo ciclo di lavorazione.\n\nSotto il ripiano resta un foglio di carta paglia: serve a distinguere i campioni ancora umidi da quelli già registrati sul quaderno. Questo codice visivo è proprio dell'atelier e non compare sulla ricetta del fornitore.\n\nLa pesatura successiva serve a confrontare campioni dello stesso lotto; la scheda non fissa un criterio di accettazione del prodotto finito."
+          },
+          "mutationDescription": "Una sola affermazione o attribuzione viene sostituita con una non sostenuta dalle fonti fornite."
+        },
+        {
+          "variantId": "loss",
+          "targetCriterion": "preserves_distinct_information",
+          "after": {
+            "title": "Atelier Rame — asciugatura impasto Cobalto",
+            "type": "document",
+            "summary": "Scheda operativa dell’impasto Cobalto e unità del tempo di asciugatura.",
+            "markdown": "# Asciugatura dell'impasto Cobalto\n\nPer i piccoli campioni piatti del lotto Cobalto, di spessore 6 mm, la durata prima della prima pesatura è **45 ore**, sul banco ventilato a 21 °C. Non è un tempo di forno e non sono disponibili indicazioni equivalenti per pezzi più spessi o cavi.\n\nLa [rettifica del 14 maggio 2025](/documents/controlled-f03-s1) corregge la trascrizione interna “45 minuti”: il numero 45 era corretto, ma l'abbreviazione dell'unità sul cartoncino era stata letta male. Si tratta della correzione della copia precedente, senza un nuovo ciclo di lavorazione.\n\n\nLa pesatura successiva serve a confrontare campioni dello stesso lotto; la scheda non fissa un criterio di accettazione del prodotto finito."
+          },
+          "mutationDescription": "Viene eliminata una sola informazione utile, unica del documento destinazione e assente dalle fonti esterne conservate."
+        },
+        {
+          "variantId": "human_action",
+          "targetCriterion": "no_new_human_action",
+          "after": {
+            "title": "Atelier Rame — asciugatura impasto Cobalto",
+            "type": "document",
+            "summary": "Scheda operativa dell’impasto Cobalto e unità del tempo di asciugatura.",
+            "markdown": "# Asciugatura dell'impasto Cobalto\n\nPer i piccoli campioni piatti del lotto Cobalto, di spessore 6 mm, la durata prima della prima pesatura è **45 ore**, sul banco ventilato a 21 °C. Non è un tempo di forno e non sono disponibili indicazioni equivalenti per pezzi più spessi o cavi.\n\nLa [rettifica del 14 maggio 2025](/documents/controlled-f03-s1) corregge la trascrizione interna “45 minuti”: il numero 45 era corretto, ma l'abbreviazione dell'unità sul cartoncino era stata letta male. Si tratta della correzione della copia precedente, senza un nuovo ciclo di lavorazione.\n\nSotto il ripiano resta un foglio di carta paglia: serve a distinguere i campioni ancora umidi da quelli già registrati sul quaderno. Questo codice visivo è proprio dell'atelier e non compare sulla ricetta del fornitore.\n\nLa pesatura successiva serve a confrontare campioni dello stesso lotto; la scheda non fissa un criterio di accettazione del prodotto finito.\n\nIl personale dell’atelier deve chiedere al fornitore una nuova conferma scritta dell’unità corretta."
+          },
+          "mutationDescription": "Viene aggiunta una sola richiesta di intervento umano non presente nel documento originario."
+        },
+        {
+          "variantId": "cosmetic",
+          "targetCriterion": "meaningful_improvement",
+          "after": {
+            "title": "Atelier Rame — essiccazione impasto Cobalto",
+            "type": "document",
+            "summary": "Scheda operativa dell’impasto Cobalto e unità del tempo di asciugatura.",
+            "markdown": "# Asciugatura dell'impasto Cobalto\n\nIl laboratorio Atelier Rame usa questa scheda per i piccoli campioni piatti del lotto Cobalto. La trascrizione interna della ricetta indica 45 minuti di asciugatura prima della prima pesatura; il valore è stato copiato dal cartoncino durante il riordino di maggio. Lo spessore previsto è 6 mm e la temperatura del locale è 21 °C. Il tempo riguarda il banco ventilato e non il forno. Non ci sono indicazioni equivalenti per pezzi più spessi o cavi.\n\nSotto il ripiano resta un foglio di carta paglia: serve a distinguere i campioni ancora umidi da quelli già registrati sul quaderno. Questo codice visivo è proprio dell'atelier e non compare sulla ricetta del fornitore.\n\nÈ arrivata una [rettifica del cartoncino del 14 maggio 2025](/documents/controlled-f03-s1), allegata a questa scheda ma non ancora riportata nel testo. Il cartoncino precedente recava un'abbreviazione a mano vicino al numero 45. Nella scheda la durata compare una sola volta: chi la consulta legge ancora la trascrizione iniziale. La pesatura successiva serve a confrontare i campioni dello stesso lotto; questa pagina non fissa un criterio di accettazione del prodotto finito."
+          },
+          "mutationDescription": "Cambia soltanto il titolo, senza consolidare il contenuto né alterare la conoscenza disponibile."
+        }
+      ]
+    },
+    {
+      "familyId": "F04",
+      "title": "Biblioteca delle Lucciole — restituzioni serali",
+      "category": "domanda_risolta",
+      "before": {
+        "title": "Biblioteca delle Lucciole — restituzioni serali",
+        "type": "document",
+        "summary": "Uso della cassetta esterna per le restituzioni e gestione locale delle buste.",
+        "markdown": "# Restituzioni serali\n\nLa Biblioteca delle Lucciole ha una cassetta esterna a fianco del portone est. I libri rientrati da quella cassetta vengono registrati all'apertura successiva, senza ricostruire l'ora esatta di deposito. Il cartello interno menziona solo i volumi ordinari e non indica se il servizio rimanga utilizzabile dopo la chiusura del cortile. La domanda aperta nella scheda è: la cassetta si può usare anche nelle sere in cui il cortile viene chiuso?\n\nLe buste usate dai volontari hanno una fascetta arancione quando il volume contiene inserti sciolti. La fascetta evita che mappe e schede vengano separate dal libro durante lo smistamento del mattino. Questo accorgimento non cambia i materiali ammessi nella cassetta.\n\nIl [verbale di prova del 22 maggio 2025](/documents/controlled-f04-s1) è stato allegato dopo il sopralluogo. La scheda non ne incorpora ancora l'esito. Per orientarsi, il portone est è quello rivolto verso il piccolo ponte pedonale; il portone della sala lettura apre invece sulla piazzetta. Le registrazioni dell'apertura successiva sono la regola già in uso e non dipendono dall'esito del sopralluogo."
+      },
+      "evidence": {
+        "citations": [
+          {
+            "pageId": "controlled-f04-target",
+            "version": 3,
+            "quote": "La Biblioteca delle Lucciole ha una cassetta esterna a fianco del portone est. I libri rientrati da quella cassetta vengono registrati all'apertura successiva, senza ricostruire l'ora esatta di deposito. Il cartello interno menziona solo i volumi ordinari e non indica se il servizio rimanga utilizzabile dopo la chiusura del cortile. La domanda aperta nella scheda è: la cassetta si può usare anche nelle sere in cui il cortile viene chiuso?"
+          },
+          {
+            "pageId": "controlled-f04-s1",
+            "version": 2,
+            "quote": "La cassetta è raggiungibile dal marciapiede anche quando il cortile è chiuso."
+          }
+        ],
+        "sources": [
+          {
+            "pageId": "controlled-f04-target",
+            "version": 3,
+            "title": "Biblioteca delle Lucciole — restituzioni serali",
+            "summary": "Uso della cassetta esterna per le restituzioni e gestione locale delle buste.",
+            "markdown": "# Restituzioni serali\n\nLa Biblioteca delle Lucciole ha una cassetta esterna a fianco del portone est. I libri rientrati da quella cassetta vengono registrati all'apertura successiva, senza ricostruire l'ora esatta di deposito. Il cartello interno menziona solo i volumi ordinari e non indica se il servizio rimanga utilizzabile dopo la chiusura del cortile. La domanda aperta nella scheda è: la cassetta si può usare anche nelle sere in cui il cortile viene chiuso?\n\nLe buste usate dai volontari hanno una fascetta arancione quando il volume contiene inserti sciolti. La fascetta evita che mappe e schede vengano separate dal libro durante lo smistamento del mattino. Questo accorgimento non cambia i materiali ammessi nella cassetta.\n\nIl [verbale di prova del 22 maggio 2025](/documents/controlled-f04-s1) è stato allegato dopo il sopralluogo. La scheda non ne incorpora ancora l'esito. Per orientarsi, il portone est è quello rivolto verso il piccolo ponte pedonale; il portone della sala lettura apre invece sulla piazzetta. Le registrazioni dell'apertura successiva sono la regola già in uso e non dipendono dall'esito del sopralluogo."
+          },
+          {
+            "pageId": "controlled-f04-s1",
+            "version": 2,
+            "title": "Prova della cassetta esterna — 22 maggio 2025",
+            "markdown": "# Verbale della prova serale\n\nIl 22 maggio 2025 la prova è stata eseguita con il cancello del cortile chiuso. La cassetta è raggiungibile dal marciapiede anche quando il cortile è chiuso. L'apertura si trova sul lato est rivolto verso il ponte pedonale e non richiede di entrare nel cortile. Questo risponde al dubbio riportato nella scheda delle restituzioni serali. Il verbale riguarda l'accesso fisico alla cassetta e non modifica gli orari della biblioteca.\n\nSono ammessi solo volumi ordinari; pacchi, giochi e scatole multimediali non entrano nel servizio di restituzione esterna. La prova ha utilizzato tre libri di formato comune e non ha verificato dimensioni eccezionali. La capienza residua può variare durante la serata, ma non è stata stabilita una soglia numerica di riempimento.\n\nLa registrazione dei rientri avviene all'apertura successiva. Il verbale non permette di risalire all'ora di deposito di ciascun libro e non introduce una ricevuta immediata. Il cancello chiuso non impedisce l'uso dell'apertura esterna."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "variantId": "good",
+          "targetCriterion": null,
+          "after": {
+            "title": "Biblioteca delle Lucciole — restituzioni serali",
+            "type": "document",
+            "summary": "Uso della cassetta esterna per le restituzioni e gestione locale delle buste.",
+            "markdown": "# Restituzioni serali\n\nLa cassetta esterna della Biblioteca delle Lucciole è utilizzabile dal marciapiede anche nelle sere in cui il cortile è chiuso: lo documenta il [verbale di prova del 22 maggio 2025](/documents/controlled-f04-s1). Si trova a fianco del portone est, rivolto verso il piccolo ponte pedonale; il portone della sala lettura è sulla piazzetta.\n\nIl servizio riguarda solo i volumi ordinari ed esclude pacchi, giochi e scatole multimediali, come specifica lo stesso verbale. I rientri vengono registrati all'apertura successiva, senza ricostruire l'ora esatta di deposito. Questa era già la regola in uso.\n\nLe buste usate dai volontari hanno una fascetta arancione quando il volume contiene inserti sciolti. La fascetta evita che mappe e schede vengano separate dal libro durante lo smistamento del mattino. Questo accorgimento non cambia i materiali ammessi nella cassetta."
+          },
+          "mutationDescription": "Consolidamento della famiglia con contenuti e provenienza conservati."
+        },
+        {
+          "variantId": "unsupported",
+          "targetCriterion": "supported_by_evidence",
+          "after": {
+            "title": "Biblioteca delle Lucciole — restituzioni serali",
+            "type": "document",
+            "summary": "Uso della cassetta esterna per le restituzioni e gestione locale delle buste.",
+            "markdown": "# Restituzioni serali\n\nLa cassetta esterna della Biblioteca delle Lucciole è utilizzabile dal marciapiede anche nelle sere in cui il cortile è chiuso: lo documenta il [verbale di prova del 22 maggio 2025](/documents/controlled-f04-s1). Si trova a fianco del portone est, rivolto verso il piccolo ponte pedonale; il portone della sala lettura è sulla piazzetta.\n\nIl servizio riguarda solo i volumi ordinari ed ammette anche pacchi, giochi e scatole multimediali, come specifica lo stesso verbale. I rientri vengono registrati all'apertura successiva, senza ricostruire l'ora esatta di deposito. Questa era già la regola in uso.\n\nLe buste usate dai volontari hanno una fascetta arancione quando il volume contiene inserti sciolti. La fascetta evita che mappe e schede vengano separate dal libro durante lo smistamento del mattino. Questo accorgimento non cambia i materiali ammessi nella cassetta."
+          },
+          "mutationDescription": "Una sola affermazione o attribuzione viene sostituita con una non sostenuta dalle fonti fornite."
+        },
+        {
+          "variantId": "loss",
+          "targetCriterion": "preserves_distinct_information",
+          "after": {
+            "title": "Biblioteca delle Lucciole — restituzioni serali",
+            "type": "document",
+            "summary": "Uso della cassetta esterna per le restituzioni e gestione locale delle buste.",
+            "markdown": "# Restituzioni serali\n\nLa cassetta esterna della Biblioteca delle Lucciole è utilizzabile dal marciapiede anche nelle sere in cui il cortile è chiuso: lo documenta il [verbale di prova del 22 maggio 2025](/documents/controlled-f04-s1). Si trova a fianco del portone est, rivolto verso il piccolo ponte pedonale; il portone della sala lettura è sulla piazzetta.\n\nIl servizio riguarda solo i volumi ordinari ed esclude pacchi, giochi e scatole multimediali, come specifica lo stesso verbale. I rientri vengono registrati all'apertura successiva, senza ricostruire l'ora esatta di deposito. Questa era già la regola in uso.\n\n"
+          },
+          "mutationDescription": "Viene eliminata una sola informazione utile, unica del documento destinazione e assente dalle fonti esterne conservate."
+        },
+        {
+          "variantId": "human_action",
+          "targetCriterion": "no_new_human_action",
+          "after": {
+            "title": "Biblioteca delle Lucciole — restituzioni serali",
+            "type": "document",
+            "summary": "Uso della cassetta esterna per le restituzioni e gestione locale delle buste.",
+            "markdown": "# Restituzioni serali\n\nLa cassetta esterna della Biblioteca delle Lucciole è utilizzabile dal marciapiede anche nelle sere in cui il cortile è chiuso: lo documenta il [verbale di prova del 22 maggio 2025](/documents/controlled-f04-s1). Si trova a fianco del portone est, rivolto verso il piccolo ponte pedonale; il portone della sala lettura è sulla piazzetta.\n\nIl servizio riguarda solo i volumi ordinari ed esclude pacchi, giochi e scatole multimediali, come specifica lo stesso verbale. I rientri vengono registrati all'apertura successiva, senza ricostruire l'ora esatta di deposito. Questa era già la regola in uso.\n\nLe buste usate dai volontari hanno una fascetta arancione quando il volume contiene inserti sciolti. La fascetta evita che mappe e schede vengano separate dal libro durante lo smistamento del mattino. Questo accorgimento non cambia i materiali ammessi nella cassetta.\n\nLa coordinatrice dei volontari deve verificare nuovamente di sera che il cancello chiuso consenta la restituzione."
+          },
+          "mutationDescription": "Viene aggiunta una sola richiesta di intervento umano non presente nel documento originario."
+        },
+        {
+          "variantId": "cosmetic",
+          "targetCriterion": "meaningful_improvement",
+          "after": {
+            "title": "Biblioteca delle Lucciole — rientri serali",
+            "type": "document",
+            "summary": "Uso della cassetta esterna per le restituzioni e gestione locale delle buste.",
+            "markdown": "# Restituzioni serali\n\nLa Biblioteca delle Lucciole ha una cassetta esterna a fianco del portone est. I libri rientrati da quella cassetta vengono registrati all'apertura successiva, senza ricostruire l'ora esatta di deposito. Il cartello interno menziona solo i volumi ordinari e non indica se il servizio rimanga utilizzabile dopo la chiusura del cortile. La domanda aperta nella scheda è: la cassetta si può usare anche nelle sere in cui il cortile viene chiuso?\n\nLe buste usate dai volontari hanno una fascetta arancione quando il volume contiene inserti sciolti. La fascetta evita che mappe e schede vengano separate dal libro durante lo smistamento del mattino. Questo accorgimento non cambia i materiali ammessi nella cassetta.\n\nIl [verbale di prova del 22 maggio 2025](/documents/controlled-f04-s1) è stato allegato dopo il sopralluogo. La scheda non ne incorpora ancora l'esito. Per orientarsi, il portone est è quello rivolto verso il piccolo ponte pedonale; il portone della sala lettura apre invece sulla piazzetta. Le registrazioni dell'apertura successiva sono la regola già in uso e non dipendono dall'esito del sopralluogo."
+          },
+          "mutationDescription": "Cambia soltanto il titolo, senza consolidare il contenuto né alterare la conoscenza disponibile."
+        }
+      ]
+    },
+    {
+      "familyId": "F05",
+      "title": "Festival Nebbia — guida ai biglietti",
+      "category": "deduplicazione_fra_pagine",
+      "before": {
+        "title": "Festival Nebbia — guida ai biglietti",
+        "type": "document",
+        "summary": "Guida per il banco accoglienza del Festival Nebbia con rimando al tariffario.",
+        "markdown": "# Guida del banco biglietti\n\nPer il Festival Nebbia la giornata singola costa 12 euro, il pass per le tre giornate costa 28 euro e i minori di 12 anni entrano gratuitamente se accompagnati. Il pass è nominativo e non comprende il laboratorio di stampa. I prezzi sono validi per l'edizione del 2025; non riguardano altre iniziative dello stesso spazio. Queste informazioni sono copiate dal [tariffario del 2 giugno 2025](/documents/controlled-f05-s1), che contiene anche l'esempio per due adulti.\n\nUn adulto che acquista tre giornate singole paga 36 euro, mentre lo stesso accesso con il pass costa 28 euro. Per due adulti con pass la somma è 56 euro. Non è previsto uno sconto aggiuntivo sul secondo pass. Il laboratorio di stampa mantiene una prenotazione separata; la gratuità per i minori non riserva automaticamente un posto al laboratorio.\n\nAl banco accoglienza i biglietti già ritirati si ripongono nella cassetta di legno con etichetta “ponte”. Questo passaggio evita che vengano rimessi nella pila da consegnare.\n\nIl tariffario è la pagina conservata per prezzi, esempi e condizioni; questa guida è consultata dai volontari mentre preparano il banco. La copia estesa dei prezzi occupa quasi tutta la guida, pur essendo disponibile attraverso il collegamento al tariffario."
+      },
+      "evidence": {
+        "citations": [
+          {
+            "pageId": "controlled-f05-target",
+            "version": 3,
+            "quote": "Per il Festival Nebbia la giornata singola costa 12 euro, il pass per le tre giornate costa 28 euro e i minori di 12 anni entrano gratuitamente se accompagnati. Il pass è nominativo e non comprende il laboratorio di stampa. I prezzi sono validi per l'edizione del 2025; non riguardano altre iniziative dello stesso spazio. Queste informazioni sono copiate dal [tariffario del 2 giugno 2025](/documents/controlled-f05-s1), che contiene anche l'esempio per due adulti."
+          },
+          {
+            "pageId": "controlled-f05-s1",
+            "version": 2,
+            "quote": "Per l'edizione 2025 la giornata singola costa 12 euro e il pass per le tre giornate costa 28 euro."
+          }
+        ],
+        "sources": [
+          {
+            "pageId": "controlled-f05-target",
+            "version": 3,
+            "title": "Festival Nebbia — guida ai biglietti",
+            "summary": "Guida per il banco accoglienza del Festival Nebbia con rimando al tariffario.",
+            "markdown": "# Guida del banco biglietti\n\nPer il Festival Nebbia la giornata singola costa 12 euro, il pass per le tre giornate costa 28 euro e i minori di 12 anni entrano gratuitamente se accompagnati. Il pass è nominativo e non comprende il laboratorio di stampa. I prezzi sono validi per l'edizione del 2025; non riguardano altre iniziative dello stesso spazio. Queste informazioni sono copiate dal [tariffario del 2 giugno 2025](/documents/controlled-f05-s1), che contiene anche l'esempio per due adulti.\n\nUn adulto che acquista tre giornate singole paga 36 euro, mentre lo stesso accesso con il pass costa 28 euro. Per due adulti con pass la somma è 56 euro. Non è previsto uno sconto aggiuntivo sul secondo pass. Il laboratorio di stampa mantiene una prenotazione separata; la gratuità per i minori non riserva automaticamente un posto al laboratorio.\n\nAl banco accoglienza i biglietti già ritirati si ripongono nella cassetta di legno con etichetta “ponte”. Questo passaggio evita che vengano rimessi nella pila da consegnare.\n\nIl tariffario è la pagina conservata per prezzi, esempi e condizioni; questa guida è consultata dai volontari mentre preparano il banco. La copia estesa dei prezzi occupa quasi tutta la guida, pur essendo disponibile attraverso il collegamento al tariffario."
+          },
+          {
+            "pageId": "controlled-f05-s1",
+            "version": 2,
+            "title": "Tariffario Festival Nebbia — 2 giugno 2025",
+            "markdown": "# Tariffario del Festival Nebbia 2025\n\nPer l'edizione 2025 la giornata singola costa 12 euro e il pass per le tre giornate costa 28 euro. I minori di 12 anni entrano gratuitamente se accompagnati. Il pass è nominativo e non comprende il laboratorio di stampa. Le tariffe si riferiscono esclusivamente al Festival Nebbia e non si applicano alle altre iniziative ospitate nello stesso spazio. Questo tariffario è stato redatto il 2 giugno 2025.\n\nTre giornate singole per un adulto costano 36 euro; il pass per lo stesso accesso costa 28 euro. Due adulti che scelgono il pass pagano complessivamente 56 euro. Non è previsto uno sconto aggiuntivo per il secondo pass. Questi esempi servono a illustrare le tariffe, senza introdurre pacchetti ulteriori.\n\nIl laboratorio di stampa richiede una prenotazione separata. La gratuità di accesso per i minori non assegna automaticamente un posto al laboratorio. Prezzi, esempi e condizioni sono conservati in questa pagina per permettere alle guide del banco di rimandare a un testo completo."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "variantId": "good",
+          "targetCriterion": null,
+          "after": {
+            "title": "Festival Nebbia — guida ai biglietti",
+            "type": "document",
+            "summary": "Guida per il banco accoglienza del Festival Nebbia con rimando al tariffario.",
+            "markdown": "# Guida del banco biglietti\n\nPrezzi, esempi di acquisto e condizioni del Festival Nebbia 2025 sono disponibili nel [tariffario completo del 2 giugno 2025](/documents/controlled-f05-s1). La pagina conserva le tariffe della giornata e del pass, la gratuità per i minori accompagnati, il carattere nominativo del pass, gli esempi per uno e due adulti e le condizioni del laboratorio di stampa. Il collegamento serve ai volontari per consultare l'intero testo mentre preparano il banco.\n\nAl banco accoglienza i biglietti già ritirati si ripongono nella cassetta di legno con etichetta “ponte”. Questo passaggio evita che vengano rimessi nella pila da consegnare."
+          },
+          "mutationDescription": "Consolidamento della famiglia con contenuti e provenienza conservati."
+        },
+        {
+          "variantId": "unsupported",
+          "targetCriterion": "supported_by_evidence",
+          "after": {
+            "title": "Festival Nebbia — guida ai biglietti",
+            "type": "document",
+            "summary": "Guida per il banco accoglienza del Festival Nebbia con rimando al tariffario.",
+            "markdown": "# Guida del banco biglietti\n\nPrezzi, esempi di acquisto e condizioni del Festival Nebbia 2025 sono disponibili nel [tariffario completo approvato dal Comune il 2 giugno 2025](/documents/controlled-f05-s1). La pagina conserva le tariffe della giornata e del pass, la gratuità per i minori accompagnati, il carattere nominativo del pass, gli esempi per uno e due adulti e le condizioni del laboratorio di stampa. Il collegamento serve ai volontari per consultare l'intero testo mentre preparano il banco.\n\nAl banco accoglienza i biglietti già ritirati si ripongono nella cassetta di legno con etichetta “ponte”. Questo passaggio evita che vengano rimessi nella pila da consegnare."
+          },
+          "mutationDescription": "Una sola affermazione o attribuzione viene sostituita con una non sostenuta dalle fonti fornite."
+        },
+        {
+          "variantId": "loss",
+          "targetCriterion": "preserves_distinct_information",
+          "after": {
+            "title": "Festival Nebbia — guida ai biglietti",
+            "type": "document",
+            "summary": "Guida per il banco accoglienza del Festival Nebbia con rimando al tariffario.",
+            "markdown": "# Guida del banco biglietti\n\nPrezzi, esempi di acquisto e condizioni del Festival Nebbia 2025 sono disponibili nel [tariffario completo del 2 giugno 2025](/documents/controlled-f05-s1). La pagina conserva le tariffe della giornata e del pass, la gratuità per i minori accompagnati, il carattere nominativo del pass, gli esempi per uno e due adulti e le condizioni del laboratorio di stampa. Il collegamento serve ai volontari per consultare l'intero testo mentre preparano il banco.\n\n"
+          },
+          "mutationDescription": "Viene eliminata una sola informazione utile, unica del documento destinazione e assente dalle fonti esterne conservate."
+        },
+        {
+          "variantId": "human_action",
+          "targetCriterion": "no_new_human_action",
+          "after": {
+            "title": "Festival Nebbia — guida ai biglietti",
+            "type": "document",
+            "summary": "Guida per il banco accoglienza del Festival Nebbia con rimando al tariffario.",
+            "markdown": "# Guida del banco biglietti\n\nPrezzi, esempi di acquisto e condizioni del Festival Nebbia 2025 sono disponibili nel [tariffario completo del 2 giugno 2025](/documents/controlled-f05-s1). La pagina conserva le tariffe della giornata e del pass, la gratuità per i minori accompagnati, il carattere nominativo del pass, gli esempi per uno e due adulti e le condizioni del laboratorio di stampa. Il collegamento serve ai volontari per consultare l'intero testo mentre preparano il banco.\n\nAl banco accoglienza i biglietti già ritirati si ripongono nella cassetta di legno con etichetta “ponte”. Questo passaggio evita che vengano rimessi nella pila da consegnare.\n\nI volontari devono chiedere al Comune una conferma delle tariffe prima di aprire il banco."
+          },
+          "mutationDescription": "Viene aggiunta una sola richiesta di intervento umano non presente nel documento originario."
+        },
+        {
+          "variantId": "cosmetic",
+          "targetCriterion": "meaningful_improvement",
+          "after": {
+            "title": "Festival Nebbia — indicazioni sui biglietti",
+            "type": "document",
+            "summary": "Guida per il banco accoglienza del Festival Nebbia con rimando al tariffario.",
+            "markdown": "# Guida del banco biglietti\n\nPer il Festival Nebbia la giornata singola costa 12 euro, il pass per le tre giornate costa 28 euro e i minori di 12 anni entrano gratuitamente se accompagnati. Il pass è nominativo e non comprende il laboratorio di stampa. I prezzi sono validi per l'edizione del 2025; non riguardano altre iniziative dello stesso spazio. Queste informazioni sono copiate dal [tariffario del 2 giugno 2025](/documents/controlled-f05-s1), che contiene anche l'esempio per due adulti.\n\nUn adulto che acquista tre giornate singole paga 36 euro, mentre lo stesso accesso con il pass costa 28 euro. Per due adulti con pass la somma è 56 euro. Non è previsto uno sconto aggiuntivo sul secondo pass. Il laboratorio di stampa mantiene una prenotazione separata; la gratuità per i minori non riserva automaticamente un posto al laboratorio.\n\nAl banco accoglienza i biglietti già ritirati si ripongono nella cassetta di legno con etichetta “ponte”. Questo passaggio evita che vengano rimessi nella pila da consegnare.\n\nIl tariffario è la pagina conservata per prezzi, esempi e condizioni; questa guida è consultata dai volontari mentre preparano il banco. La copia estesa dei prezzi occupa quasi tutta la guida, pur essendo disponibile attraverso il collegamento al tariffario."
+          },
+          "mutationDescription": "Cambia soltanto il titolo, senza consolidare il contenuto né alterare la conoscenza disponibile."
+        }
+      ]
+    },
+    {
+      "familyId": "F06",
+      "title": "Torrente Fronda — letture di torbidità",
+      "category": "incertezza_e_condizioni",
+      "before": {
+        "title": "Torrente Fronda — letture di torbidità",
+        "type": "project",
+        "summary": "Letture di torbidità in due postazioni, con condizioni meteorologiche e limiti del confronto.",
+        "markdown": "# Torbidità del torrente Fronda\n\nLa campagna dimostrativa usa due postazioni: Sasso, a monte, e Ontano, a valle. Il [quaderno del 7 luglio 2025](/documents/controlled-f06-s1) riporta 8 unità a Sasso al mattino e 15 unità a Ontano nel pomeriggio, dopo la pioggia. Le letture non sono simultanee. Il rapporto non stabilisce se la differenza derivi dalla posizione, dall'orario, dalla pioggia o da più fattori insieme. Non è una misura della qualità potabile dell'acqua.\n\nPer raggiungere Ontano con le cassette si usa il sentiero dietro la vecchia bacheca; il guado è escluso dal tragitto previsto. Questa indicazione logistica è stata aggiunta durante la preparazione e non fa parte del quaderno delle misure.\n\n## Dati riportati nel riepilogo della campagna\n\nSasso ha una lettura di 8 unità nella mattina del 7 luglio; Ontano ne ha una di 15 nel pomeriggio dello stesso giorno, dopo la pioggia. Le postazioni sono rispettivamente a monte e a valle. Poiché cambiano sia il luogo sia il momento, resta incerta la spiegazione della differenza. Non è stata descritta una tendenza su più giorni e nessuna delle letture riguarda la potabilità."
+      },
+      "evidence": {
+        "citations": [
+          {
+            "pageId": "controlled-f06-target",
+            "version": 3,
+            "quote": "La campagna dimostrativa usa due postazioni: Sasso, a monte, e Ontano, a valle. Il [quaderno del 7 luglio 2025](/documents/controlled-f06-s1) riporta 8 unità a Sasso al mattino e 15 unità a Ontano nel pomeriggio, dopo la pioggia. Le letture non sono simultanee. Il rapporto non stabilisce se la differenza derivi dalla posizione, dall'orario, dalla pioggia o da più fattori insieme. Non è una misura della qualità potabile dell'acqua."
+          },
+          {
+            "pageId": "controlled-f06-s1",
+            "version": 2,
+            "quote": "A Sasso, postazione a monte, la lettura del mattino è 8 unità; a Ontano, postazione a valle, la lettura del pomeriggio dopo la pioggia è 15 unità."
+          }
+        ],
+        "sources": [
+          {
+            "pageId": "controlled-f06-target",
+            "version": 3,
+            "title": "Torrente Fronda — letture di torbidità",
+            "summary": "Letture di torbidità in due postazioni, con condizioni meteorologiche e limiti del confronto.",
+            "markdown": "# Torbidità del torrente Fronda\n\nLa campagna dimostrativa usa due postazioni: Sasso, a monte, e Ontano, a valle. Il [quaderno del 7 luglio 2025](/documents/controlled-f06-s1) riporta 8 unità a Sasso al mattino e 15 unità a Ontano nel pomeriggio, dopo la pioggia. Le letture non sono simultanee. Il rapporto non stabilisce se la differenza derivi dalla posizione, dall'orario, dalla pioggia o da più fattori insieme. Non è una misura della qualità potabile dell'acqua.\n\nPer raggiungere Ontano con le cassette si usa il sentiero dietro la vecchia bacheca; il guado è escluso dal tragitto previsto. Questa indicazione logistica è stata aggiunta durante la preparazione e non fa parte del quaderno delle misure.\n\n## Dati riportati nel riepilogo della campagna\n\nSasso ha una lettura di 8 unità nella mattina del 7 luglio; Ontano ne ha una di 15 nel pomeriggio dello stesso giorno, dopo la pioggia. Le postazioni sono rispettivamente a monte e a valle. Poiché cambiano sia il luogo sia il momento, resta incerta la spiegazione della differenza. Non è stata descritta una tendenza su più giorni e nessuna delle letture riguarda la potabilità."
+          },
+          {
+            "pageId": "controlled-f06-s1",
+            "version": 2,
+            "title": "Quaderno Fronda — 7 luglio 2025",
+            "markdown": "# Letture del 7 luglio 2025\n\nA Sasso, postazione a monte, la lettura del mattino è 8 unità; a Ontano, postazione a valle, la lettura del pomeriggio dopo la pioggia è 15 unità. Le due misure sono state trascritte nella stessa pagina perché appartengono alla giornata dimostrativa. Non sono state eseguite nello stesso momento. Tra le due sessioni è cambiato anche il tempo meteorologico, oltre alla postazione.\n\nIl quaderno non attribuisce alla pioggia un effetto causale misurato. Non contiene una terza osservazione che permetta di separare il contributo del luogo da quello dell'orario. La differenza può quindi essere descritta, ma la sua spiegazione rimane incerta. Non è documentata una serie giornaliera precedente o successiva a queste letture.\n\nLe unità sono quelle dello strumento didattico utilizzato durante la dimostrazione. La pagina non certifica la potabilità dell'acqua e non stabilisce soglie ambientali. I nomi Sasso e Ontano identificano le postazioni di questa campagna e non altre località omonime."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "variantId": "good",
+          "targetCriterion": null,
+          "after": {
+            "title": "Torrente Fronda — letture di torbidità",
+            "type": "project",
+            "summary": "Letture di torbidità in due postazioni, con condizioni meteorologiche e limiti del confronto.",
+            "markdown": "# Torbidità del torrente Fronda\n\nIl [quaderno del 7 luglio 2025](/documents/controlled-f06-s1) documenta due letture non simultanee della campagna dimostrativa:\n\n| Postazione | Posizione | Momento | Lettura |\n| --- | --- | --- | --- |\n| Sasso | A monte | Mattino | 8 unità |\n| Ontano | A valle | Pomeriggio, dopo la pioggia | 15 unità |\n\nPoiché cambiano luogo, orario e condizioni meteorologiche, il quaderno non stabilisce la causa della differenza. Resta incerto se dipenda dalla posizione, dall'orario, dalla pioggia o da più fattori. Non è documentata una tendenza su più giorni e le letture non riguardano la potabilità.\n\nPer raggiungere Ontano con le cassette si usa il sentiero dietro la vecchia bacheca; il guado è escluso dal tragitto previsto. Questa indicazione logistica è stata aggiunta durante la preparazione e non fa parte del quaderno delle misure."
+          },
+          "mutationDescription": "Consolidamento della famiglia con contenuti e provenienza conservati."
+        },
+        {
+          "variantId": "unsupported",
+          "targetCriterion": "supported_by_evidence",
+          "after": {
+            "title": "Torrente Fronda — letture di torbidità",
+            "type": "project",
+            "summary": "Letture di torbidità in due postazioni, con condizioni meteorologiche e limiti del confronto.",
+            "markdown": "# Torbidità del torrente Fronda\n\nIl [quaderno del 7 luglio 2025](/documents/controlled-f06-s1) documenta due letture non simultanee della campagna dimostrativa:\n\n| Postazione | Posizione | Momento | Lettura |\n| --- | --- | --- | --- |\n| Sasso | A monte | Mattino | 8 unità |\n| Ontano | A valle | Pomeriggio, dopo la pioggia | 15 unità |\n\nPoiché cambiano luogo, orario e condizioni meteorologiche, il quaderno dimostra che la pioggia è l’unica causa della differenza. Non è documentata una tendenza su più giorni e le letture non riguardano la potabilità.\n\nPer raggiungere Ontano con le cassette si usa il sentiero dietro la vecchia bacheca; il guado è escluso dal tragitto previsto. Questa indicazione logistica è stata aggiunta durante la preparazione e non fa parte del quaderno delle misure."
+          },
+          "mutationDescription": "Una sola affermazione o attribuzione viene sostituita con una non sostenuta dalle fonti fornite."
+        },
+        {
+          "variantId": "loss",
+          "targetCriterion": "preserves_distinct_information",
+          "after": {
+            "title": "Torrente Fronda — letture di torbidità",
+            "type": "project",
+            "summary": "Letture di torbidità in due postazioni, con condizioni meteorologiche e limiti del confronto.",
+            "markdown": "# Torbidità del torrente Fronda\n\nIl [quaderno del 7 luglio 2025](/documents/controlled-f06-s1) documenta due letture non simultanee della campagna dimostrativa:\n\n| Postazione | Posizione | Momento | Lettura |\n| --- | --- | --- | --- |\n| Sasso | A monte | Mattino | 8 unità |\n| Ontano | A valle | Pomeriggio, dopo la pioggia | 15 unità |\n\nPoiché cambiano luogo, orario e condizioni meteorologiche, il quaderno non stabilisce la causa della differenza. Resta incerto se dipenda dalla posizione, dall'orario, dalla pioggia o da più fattori. Non è documentata una tendenza su più giorni e le letture non riguardano la potabilità.\n\n"
+          },
+          "mutationDescription": "Viene eliminata una sola informazione utile, unica del documento destinazione e assente dalle fonti esterne conservate."
+        },
+        {
+          "variantId": "human_action",
+          "targetCriterion": "no_new_human_action",
+          "after": {
+            "title": "Torrente Fronda — letture di torbidità",
+            "type": "project",
+            "summary": "Letture di torbidità in due postazioni, con condizioni meteorologiche e limiti del confronto.",
+            "markdown": "# Torbidità del torrente Fronda\n\nIl [quaderno del 7 luglio 2025](/documents/controlled-f06-s1) documenta due letture non simultanee della campagna dimostrativa:\n\n| Postazione | Posizione | Momento | Lettura |\n| --- | --- | --- | --- |\n| Sasso | A monte | Mattino | 8 unità |\n| Ontano | A valle | Pomeriggio, dopo la pioggia | 15 unità |\n\nPoiché cambiano luogo, orario e condizioni meteorologiche, il quaderno non stabilisce la causa della differenza. Resta incerto se dipenda dalla posizione, dall'orario, dalla pioggia o da più fattori. Non è documentata una tendenza su più giorni e le letture non riguardano la potabilità.\n\nPer raggiungere Ontano con le cassette si usa il sentiero dietro la vecchia bacheca; il guado è escluso dal tragitto previsto. Questa indicazione logistica è stata aggiunta durante la preparazione e non fa parte del quaderno delle misure.\n\nLa squadra deve organizzare un sopralluogo aggiuntivo per chiarire la causa della differenza."
+          },
+          "mutationDescription": "Viene aggiunta una sola richiesta di intervento umano non presente nel documento originario."
+        },
+        {
+          "variantId": "cosmetic",
+          "targetCriterion": "meaningful_improvement",
+          "after": {
+            "title": "Torrente Fronda — osservazioni di torbidità",
+            "type": "project",
+            "summary": "Letture di torbidità in due postazioni, con condizioni meteorologiche e limiti del confronto.",
+            "markdown": "# Torbidità del torrente Fronda\n\nLa campagna dimostrativa usa due postazioni: Sasso, a monte, e Ontano, a valle. Il [quaderno del 7 luglio 2025](/documents/controlled-f06-s1) riporta 8 unità a Sasso al mattino e 15 unità a Ontano nel pomeriggio, dopo la pioggia. Le letture non sono simultanee. Il rapporto non stabilisce se la differenza derivi dalla posizione, dall'orario, dalla pioggia o da più fattori insieme. Non è una misura della qualità potabile dell'acqua.\n\nPer raggiungere Ontano con le cassette si usa il sentiero dietro la vecchia bacheca; il guado è escluso dal tragitto previsto. Questa indicazione logistica è stata aggiunta durante la preparazione e non fa parte del quaderno delle misure.\n\n## Dati riportati nel riepilogo della campagna\n\nSasso ha una lettura di 8 unità nella mattina del 7 luglio; Ontano ne ha una di 15 nel pomeriggio dello stesso giorno, dopo la pioggia. Le postazioni sono rispettivamente a monte e a valle. Poiché cambiano sia il luogo sia il momento, resta incerta la spiegazione della differenza. Non è stata descritta una tendenza su più giorni e nessuna delle letture riguarda la potabilità."
+          },
+          "mutationDescription": "Cambia soltanto il titolo, senza consolidare il contenuto né alterare la conoscenza disponibile."
+        }
+      ]
+    },
+    {
+      "familyId": "F07",
+      "title": "Officina delle Vele — memoria dell’apertura",
+      "category": "cronologia_e_testimonianza",
+      "before": {
+        "title": "Officina delle Vele — memoria dell’apertura",
+        "type": "document",
+        "summary": "Fonti discordanti sull’apertura dell’Officina delle Vele e significato delle date.",
+        "markdown": "# Apertura dell'Officina delle Vele\n\nNella [testimonianza raccolta il 9 agosto 2025](/documents/controlled-f07-s1), Lidia Merlo ricorda che l'officina era già aperta “nell'autunno del 1978”. La [fotografia inventariata il 12 agosto 2025](/documents/controlled-f07-s2) mostra invece un cartello “Apertura 1979”. La data del 12 agosto è quella dell'inventariazione, non dello scatto. Non sappiamo se il cartello riguardi un'inaugurazione pubblica successiva o se il ricordo di Lidia sia impreciso.\n\nLa bobina con l'intervista è conservata nella scatola di cartone viola, scomparto 4. È il solo riferimento fisico disponibile in questa scheda; la trascrizione non include la posizione della bobina.\n\n## Appunto cronologico\n\nLidia colloca l'apertura nell'autunno 1978, ma il cartello nella fotografia reca 1979. La testimonianza è stata raccolta il 9 agosto 2025 e la fotografia inventariata il 12 agosto 2025. Queste due date recenti non datano l'apertura. Non c'è una fonte che distingua con certezza l'inizio dell'attività dall'inaugurazione e la fotografia non ha una data di scatto verificata. Entrambe le tracce riguardano l'officina sulla riva occidentale, non il negozio omonimo della stazione."
+      },
+      "evidence": {
+        "citations": [
+          {
+            "pageId": "controlled-f07-target",
+            "version": 3,
+            "quote": "Nella [testimonianza raccolta il 9 agosto 2025](/documents/controlled-f07-s1), Lidia Merlo ricorda che l'officina era già aperta “nell'autunno del 1978”. La [fotografia inventariata il 12 agosto 2025](/documents/controlled-f07-s2) mostra invece un cartello “Apertura 1979”. La data del 12 agosto è quella dell'inventariazione, non dello scatto. Non sappiamo se il cartello riguardi un'inaugurazione pubblica successiva o se il ricordo di Lidia sia impreciso."
+          },
+          {
+            "pageId": "controlled-f07-s1",
+            "version": 2,
+            "quote": "Lidia Merlo ricorda l'officina già aperta nell'autunno del 1978."
+          },
+          {
+            "pageId": "controlled-f07-s2",
+            "version": 2,
+            "quote": "La fotografia è stata inventariata il 12 agosto 2025 e mostra un cartello con la scritta “Apertura 1979”."
+          }
+        ],
+        "sources": [
+          {
+            "pageId": "controlled-f07-target",
+            "version": 3,
+            "title": "Officina delle Vele — memoria dell’apertura",
+            "summary": "Fonti discordanti sull’apertura dell’Officina delle Vele e significato delle date.",
+            "markdown": "# Apertura dell'Officina delle Vele\n\nNella [testimonianza raccolta il 9 agosto 2025](/documents/controlled-f07-s1), Lidia Merlo ricorda che l'officina era già aperta “nell'autunno del 1978”. La [fotografia inventariata il 12 agosto 2025](/documents/controlled-f07-s2) mostra invece un cartello “Apertura 1979”. La data del 12 agosto è quella dell'inventariazione, non dello scatto. Non sappiamo se il cartello riguardi un'inaugurazione pubblica successiva o se il ricordo di Lidia sia impreciso.\n\nLa bobina con l'intervista è conservata nella scatola di cartone viola, scomparto 4. È il solo riferimento fisico disponibile in questa scheda; la trascrizione non include la posizione della bobina.\n\n## Appunto cronologico\n\nLidia colloca l'apertura nell'autunno 1978, ma il cartello nella fotografia reca 1979. La testimonianza è stata raccolta il 9 agosto 2025 e la fotografia inventariata il 12 agosto 2025. Queste due date recenti non datano l'apertura. Non c'è una fonte che distingua con certezza l'inizio dell'attività dall'inaugurazione e la fotografia non ha una data di scatto verificata. Entrambe le tracce riguardano l'officina sulla riva occidentale, non il negozio omonimo della stazione."
+          },
+          {
+            "pageId": "controlled-f07-s1",
+            "version": 2,
+            "title": "Intervista a Lidia Merlo — 9 agosto 2025",
+            "markdown": "# Ricordo dell'Officina delle Vele\n\nL'intervista è stata raccolta il 9 agosto 2025. Lidia Merlo ricorda l'officina già aperta nell'autunno del 1978. La testimone collega il ricordo a un tragitto che faceva verso il molo, ma precisa di non conservare un documento con la data dell'apertura. La sua formulazione descrive un ricordo personale e non una consultazione di registri amministrativi.\n\nIl luogo ricordato è l'officina sulla riva occidentale. Lidia la distingue dal negozio omonimo presso la stazione, che conosceva per altri motivi. Nell'intervista non separa un eventuale periodo di attività informale dall'inaugurazione al pubblico. Non afferma che ci siano state due aperture e non commenta il cartello “Apertura 1979” conservato nella raccolta fotografica.\n\nLa data del 9 agosto 2025 identifica la raccolta della testimonianza. Non coincide con l'evento ricordato. La trascrizione mantiene il riferimento stagionale “autunno” e il grado di incertezza della memoria, senza trasformarli in un giorno preciso dell'anno."
+          },
+          {
+            "pageId": "controlled-f07-s2",
+            "version": 2,
+            "title": "Scheda fotografica dell’Officina delle Vele — 12 agosto 2025",
+            "markdown": "# Fotografia dell'Officina delle Vele\n\nLa fotografia è stata inventariata il 12 agosto 2025 e mostra un cartello con la scritta “Apertura 1979”. Il cartello è appeso sulla facciata dell'officina della riva occidentale. La scheda distingue questa sede dal negozio omonimo della stazione. Sul retro della stampa non compare una data leggibile dello scatto e non è disponibile un negativo datato.\n\nLa data d'inventariazione documenta l'ingresso della fotografia nella raccolta, non il momento in cui la fotografia è stata scattata. La parola “Apertura” potrebbe riferirsi a eventi differenti, ma la scheda non dispone di elementi per sceglierne uno. Non contiene una descrizione di un'inaugurazione distinta dall'avvio dell'attività e non smentisce in modo conclusivo la testimonianza raccolta il 9 agosto.\n\nIl valore della fotografia consiste nella traccia visiva della scritta e del luogo. Non è stata ricavata da essa una data completa di apertura e non è stata attribuita a un fotografo identificato."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "variantId": "good",
+          "targetCriterion": null,
+          "after": {
+            "title": "Officina delle Vele — memoria dell’apertura",
+            "type": "document",
+            "summary": "Fonti discordanti sull’apertura dell’Officina delle Vele e significato delle date.",
+            "markdown": "# Apertura dell'Officina delle Vele\n\nLe tracce riguardano l'officina della riva occidentale, distinta dal negozio omonimo della stazione:\n\n- [Lidia Merlo, intervista raccolta il 9 agosto 2025](/documents/controlled-f07-s1): ricorda l'attività già aperta nell'autunno del 1978.\n- [Fotografia inventariata il 12 agosto 2025](/documents/controlled-f07-s2): mostra la scritta “Apertura 1979”; la data dello scatto non è verificata.\n\nLe date di raccolta e inventariazione non datano l'apertura. Rimane incerto se il cartello riguardi un'inaugurazione pubblica successiva all'avvio dell'attività oppure se il ricordo di Lidia sia impreciso. Nessuna fonte permette di distinguere con certezza i due eventi.\n\nLa bobina con l'intervista è conservata nella scatola di cartone viola, scomparto 4. È il solo riferimento fisico disponibile in questa scheda; la trascrizione non include la posizione della bobina."
+          },
+          "mutationDescription": "Consolidamento della famiglia con contenuti e provenienza conservati."
+        },
+        {
+          "variantId": "unsupported",
+          "targetCriterion": "supported_by_evidence",
+          "after": {
+            "title": "Officina delle Vele — memoria dell’apertura",
+            "type": "document",
+            "summary": "Fonti discordanti sull’apertura dell’Officina delle Vele e significato delle date.",
+            "markdown": "# Apertura dell'Officina delle Vele\n\nLe tracce riguardano l'officina della riva occidentale, distinta dal negozio omonimo della stazione:\n\n- [Lidia Merlo, intervista raccolta il 9 agosto 2025](/documents/controlled-f07-s1): ricorda l'attività già aperta nell'autunno del 1978.\n- [Fotografia scattata il 12 agosto 2025](/documents/controlled-f07-s2): mostra la scritta “Apertura 1979”; la data dello scatto non è verificata.\n\nLe date di raccolta e inventariazione non datano l'apertura. Rimane incerto se il cartello riguardi un'inaugurazione pubblica successiva all'avvio dell'attività oppure se il ricordo di Lidia sia impreciso. Nessuna fonte permette di distinguere con certezza i due eventi.\n\nLa bobina con l'intervista è conservata nella scatola di cartone viola, scomparto 4. È il solo riferimento fisico disponibile in questa scheda; la trascrizione non include la posizione della bobina."
+          },
+          "mutationDescription": "Una sola affermazione o attribuzione viene sostituita con una non sostenuta dalle fonti fornite."
+        },
+        {
+          "variantId": "loss",
+          "targetCriterion": "preserves_distinct_information",
+          "after": {
+            "title": "Officina delle Vele — memoria dell’apertura",
+            "type": "document",
+            "summary": "Fonti discordanti sull’apertura dell’Officina delle Vele e significato delle date.",
+            "markdown": "# Apertura dell'Officina delle Vele\n\nLe tracce riguardano l'officina della riva occidentale, distinta dal negozio omonimo della stazione:\n\n- [Lidia Merlo, intervista raccolta il 9 agosto 2025](/documents/controlled-f07-s1): ricorda l'attività già aperta nell'autunno del 1978.\n- [Fotografia inventariata il 12 agosto 2025](/documents/controlled-f07-s2): mostra la scritta “Apertura 1979”; la data dello scatto non è verificata.\n\nLe date di raccolta e inventariazione non datano l'apertura. Rimane incerto se il cartello riguardi un'inaugurazione pubblica successiva all'avvio dell'attività oppure se il ricordo di Lidia sia impreciso. Nessuna fonte permette di distinguere con certezza i due eventi.\n\n"
+          },
+          "mutationDescription": "Viene eliminata una sola informazione utile, unica del documento destinazione e assente dalle fonti esterne conservate."
+        },
+        {
+          "variantId": "human_action",
+          "targetCriterion": "no_new_human_action",
+          "after": {
+            "title": "Officina delle Vele — memoria dell’apertura",
+            "type": "document",
+            "summary": "Fonti discordanti sull’apertura dell’Officina delle Vele e significato delle date.",
+            "markdown": "# Apertura dell'Officina delle Vele\n\nLe tracce riguardano l'officina della riva occidentale, distinta dal negozio omonimo della stazione:\n\n- [Lidia Merlo, intervista raccolta il 9 agosto 2025](/documents/controlled-f07-s1): ricorda l'attività già aperta nell'autunno del 1978.\n- [Fotografia inventariata il 12 agosto 2025](/documents/controlled-f07-s2): mostra la scritta “Apertura 1979”; la data dello scatto non è verificata.\n\nLe date di raccolta e inventariazione non datano l'apertura. Rimane incerto se il cartello riguardi un'inaugurazione pubblica successiva all'avvio dell'attività oppure se il ricordo di Lidia sia impreciso. Nessuna fonte permette di distinguere con certezza i due eventi.\n\nLa bobina con l'intervista è conservata nella scatola di cartone viola, scomparto 4. È il solo riferimento fisico disponibile in questa scheda; la trascrizione non include la posizione della bobina.\n\nIl gruppo di storia locale deve ricontattare Lidia per ottenere una data definitiva dell’apertura."
+          },
+          "mutationDescription": "Viene aggiunta una sola richiesta di intervento umano non presente nel documento originario."
+        },
+        {
+          "variantId": "cosmetic",
+          "targetCriterion": "meaningful_improvement",
+          "after": {
+            "title": "Officina delle Vele — ricordi dell’apertura",
+            "type": "document",
+            "summary": "Fonti discordanti sull’apertura dell’Officina delle Vele e significato delle date.",
+            "markdown": "# Apertura dell'Officina delle Vele\n\nNella [testimonianza raccolta il 9 agosto 2025](/documents/controlled-f07-s1), Lidia Merlo ricorda che l'officina era già aperta “nell'autunno del 1978”. La [fotografia inventariata il 12 agosto 2025](/documents/controlled-f07-s2) mostra invece un cartello “Apertura 1979”. La data del 12 agosto è quella dell'inventariazione, non dello scatto. Non sappiamo se il cartello riguardi un'inaugurazione pubblica successiva o se il ricordo di Lidia sia impreciso.\n\nLa bobina con l'intervista è conservata nella scatola di cartone viola, scomparto 4. È il solo riferimento fisico disponibile in questa scheda; la trascrizione non include la posizione della bobina.\n\n## Appunto cronologico\n\nLidia colloca l'apertura nell'autunno 1978, ma il cartello nella fotografia reca 1979. La testimonianza è stata raccolta il 9 agosto 2025 e la fotografia inventariata il 12 agosto 2025. Queste due date recenti non datano l'apertura. Non c'è una fonte che distingua con certezza l'inizio dell'attività dall'inaugurazione e la fotografia non ha una data di scatto verificata. Entrambe le tracce riguardano l'officina sulla riva occidentale, non il negozio omonimo della stazione."
+          },
+          "mutationDescription": "Cambia soltanto il titolo, senza consolidare il contenuto né alterare la conoscenza disponibile."
+        }
+      ]
+    },
+    {
+      "familyId": "F08",
+      "title": "Chiosco Iris — pacchetto offline",
+      "category": "relazione_tecnica_documentata",
+      "before": {
+        "title": "Chiosco Iris — pacchetto offline",
+        "type": "project",
+        "summary": "Comportamento del catalogo offline sui chioschi Iris durante le prove di agosto.",
+        "markdown": "# Catalogo offline del chiosco Iris\n\nIl chiosco Iris carica un pacchetto locale con le schede degli oggetti della mostra. Il [registro del 18 agosto 2025](/documents/controlled-f08-s1) descrive due prove: sul dispositivo P il pacchetto v7 riappare dopo un riavvio senza rete; sul dispositivo Q il pacchetto v8 non è disponibile dopo la cancellazione dei dati locali. Le prove hanno quindi versioni e condizioni diverse. La scheda non contiene ancora una spiegazione della differenza.\n\nL'audio dimostrativo della scheda “Lanterna” parte a volume zero: durante la preparazione della sala questo evita suoni inattesi quando il dispositivo viene acceso. Il comportamento è annotato qui perché non faceva parte della prova del pacchetto.\n\nÈ disponibile anche la [nota tecnica del 20 agosto 2025](/documents/controlled-f08-s2), che descrive dove viene conservato il pacchetto. Il registro non testa tutti i modelli di dispositivo e non misura la disponibilità dei contenuti audio senza rete. I nomi P e Q indicano due esemplari di prova, non due versioni del prodotto. La differenza osservata non basta da sola a concludere che v8 abbia un difetto: su Q è stata eseguita un'operazione distruttiva dei dati locali assente nella prova su P."
+      },
+      "evidence": {
+        "citations": [
+          {
+            "pageId": "controlled-f08-target",
+            "version": 3,
+            "quote": "Il chiosco Iris carica un pacchetto locale con le schede degli oggetti della mostra. Il [registro del 18 agosto 2025](/documents/controlled-f08-s1) descrive due prove: sul dispositivo P il pacchetto v7 riappare dopo un riavvio senza rete; sul dispositivo Q il pacchetto v8 non è disponibile dopo la cancellazione dei dati locali. Le prove hanno quindi versioni e condizioni diverse. La scheda non contiene ancora una spiegazione della differenza."
+          },
+          {
+            "pageId": "controlled-f08-s1",
+            "version": 2,
+            "quote": "Sul dispositivo P il pacchetto v7 torna disponibile dopo un riavvio senza rete. Sul dispositivo Q il pacchetto v8 non è disponibile dopo la cancellazione dei dati locali."
+          },
+          {
+            "pageId": "controlled-f08-s2",
+            "version": 2,
+            "quote": "Il riavvio mantiene il pacchetto locale, mentre la cancellazione dei dati locali lo elimina."
+          }
+        ],
+        "sources": [
+          {
+            "pageId": "controlled-f08-target",
+            "version": 3,
+            "title": "Chiosco Iris — pacchetto offline",
+            "summary": "Comportamento del catalogo offline sui chioschi Iris durante le prove di agosto.",
+            "markdown": "# Catalogo offline del chiosco Iris\n\nIl chiosco Iris carica un pacchetto locale con le schede degli oggetti della mostra. Il [registro del 18 agosto 2025](/documents/controlled-f08-s1) descrive due prove: sul dispositivo P il pacchetto v7 riappare dopo un riavvio senza rete; sul dispositivo Q il pacchetto v8 non è disponibile dopo la cancellazione dei dati locali. Le prove hanno quindi versioni e condizioni diverse. La scheda non contiene ancora una spiegazione della differenza.\n\nL'audio dimostrativo della scheda “Lanterna” parte a volume zero: durante la preparazione della sala questo evita suoni inattesi quando il dispositivo viene acceso. Il comportamento è annotato qui perché non faceva parte della prova del pacchetto.\n\nÈ disponibile anche la [nota tecnica del 20 agosto 2025](/documents/controlled-f08-s2), che descrive dove viene conservato il pacchetto. Il registro non testa tutti i modelli di dispositivo e non misura la disponibilità dei contenuti audio senza rete. I nomi P e Q indicano due esemplari di prova, non due versioni del prodotto. La differenza osservata non basta da sola a concludere che v8 abbia un difetto: su Q è stata eseguita un'operazione distruttiva dei dati locali assente nella prova su P."
+          },
+          {
+            "pageId": "controlled-f08-s1",
+            "version": 2,
+            "title": "Registro prove Iris — 18 agosto 2025",
+            "markdown": "# Due prove del pacchetto locale\n\nSul dispositivo P il pacchetto v7 torna disponibile dopo un riavvio senza rete. Sul dispositivo Q il pacchetto v8 non è disponibile dopo la cancellazione dei dati locali. Le due operazioni sono state eseguite su esemplari distinti durante la sessione del 18 agosto 2025. Il registro conserva separatamente versione del pacchetto e intervento eseguito, perché cambiano entrambi fra le prove.\n\nNon è stato eseguito un riavvio di Q con i dati locali intatti, né una cancellazione dei dati di P. Il registro non consente perciò un confronto isolato fra v7 e v8. Non riporta una regressione attribuita a v8 e non certifica un comportamento comune a tutti i modelli di chiosco. P e Q sono etichette degli esemplari usati al banco.\n\nLe verifiche hanno riguardato la presenza delle schede testuali nel catalogo. I contenuti audio non sono stati verificati senza rete. La sessione non include prove di sincronizzazione fra due dispositivi né di recupero automatico dopo la cancellazione."
+          },
+          {
+            "pageId": "controlled-f08-s2",
+            "version": 2,
+            "title": "Nota di architettura Iris — 20 agosto 2025",
+            "markdown": "# Conservazione del pacchetto offline\n\nIl pacchetto del catalogo è conservato nei dati locali del chiosco. Il riavvio mantiene il pacchetto locale, mentre la cancellazione dei dati locali lo elimina. Questo comportamento è previsto per le versioni v7 e v8 considerate nella nota. Dopo una cancellazione serve una nuova acquisizione del pacchetto; il documento non descrive una copia persistente esterna ai dati del dispositivo.\n\nLa distinzione spiega perché un riavvio e una cancellazione non costituiscano la stessa condizione di prova. È coerente con la disponibilità registrata su P e con l'assenza registrata su Q il 18 agosto. Non dimostra però che ogni parte del sistema sia priva di difetti e non sostituisce prove su altre configurazioni hardware. La nota tratta la conservazione del catalogo, non l'intero comportamento dell'applicazione.\n\nI contenuti audio hanno un percorso di caricamento separato, qui non descritto. Da questa nota non deriva una garanzia che l'audio sia disponibile senza rete. Non vengono introdotte nuove etichette per P o Q né nuove versioni del pacchetto."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "variantId": "good",
+          "targetCriterion": null,
+          "after": {
+            "title": "Chiosco Iris — pacchetto offline",
+            "type": "project",
+            "summary": "Comportamento del catalogo offline sui chioschi Iris durante le prove di agosto.",
+            "markdown": "# Catalogo offline del chiosco Iris\n\nIl [registro del 18 agosto 2025](/documents/controlled-f08-s1) documenta condizioni diverse su due esemplari:\n\n- P, pacchetto v7: catalogo presente dopo un riavvio senza rete.\n- Q, pacchetto v8: catalogo assente dopo la cancellazione dei dati locali.\n\nLa [nota tecnica del 20 agosto 2025](/documents/controlled-f08-s2) chiarisce la relazione: il pacchetto è conservato nei dati locali, che sopravvivono al riavvio ma vengono eliminati dalla cancellazione. La distinzione è prevista sia per v7 sia per v8 ed è coerente con le due osservazioni. Le prove non isolano un confronto fra versioni e non dimostrano una regressione di v8.\n\nP e Q identificano gli esemplari di prova. Non sono coperti tutti i modelli né la disponibilità dell'audio senza rete.\n\nL'audio dimostrativo della scheda “Lanterna” parte a volume zero: durante la preparazione della sala questo evita suoni inattesi quando il dispositivo viene acceso. Il comportamento è annotato qui perché non faceva parte della prova del pacchetto."
+          },
+          "mutationDescription": "Consolidamento della famiglia con contenuti e provenienza conservati."
+        },
+        {
+          "variantId": "unsupported",
+          "targetCriterion": "supported_by_evidence",
+          "after": {
+            "title": "Chiosco Iris — pacchetto offline",
+            "type": "project",
+            "summary": "Comportamento del catalogo offline sui chioschi Iris durante le prove di agosto.",
+            "markdown": "# Catalogo offline del chiosco Iris\n\nIl [registro del 18 agosto 2025](/documents/controlled-f08-s1) documenta condizioni diverse su due esemplari:\n\n- P, pacchetto v7: catalogo presente dopo un riavvio senza rete.\n- Q, pacchetto v8: catalogo assente dopo la cancellazione dei dati locali.\n\nLa [nota tecnica del 20 agosto 2025](/documents/controlled-f08-s2) chiarisce la relazione: il pacchetto è conservato nei dati locali, che sopravvivono al riavvio ma vengono eliminati dalla cancellazione. La distinzione è prevista sia per v7 sia per v8 ed è coerente con le due osservazioni. Le prove non isolano un confronto fra versioni e non dimostrano una regressione di v8.\n\nP e Q identificano gli esemplari di prova. La nota garantisce lo stesso comportamento su tutti i modelli e la disponibilità dell’audio senza rete.\n\nL'audio dimostrativo della scheda “Lanterna” parte a volume zero: durante la preparazione della sala questo evita suoni inattesi quando il dispositivo viene acceso. Il comportamento è annotato qui perché non faceva parte della prova del pacchetto."
+          },
+          "mutationDescription": "Una sola affermazione o attribuzione viene sostituita con una non sostenuta dalle fonti fornite."
+        },
+        {
+          "variantId": "loss",
+          "targetCriterion": "preserves_distinct_information",
+          "after": {
+            "title": "Chiosco Iris — pacchetto offline",
+            "type": "project",
+            "summary": "Comportamento del catalogo offline sui chioschi Iris durante le prove di agosto.",
+            "markdown": "# Catalogo offline del chiosco Iris\n\nIl [registro del 18 agosto 2025](/documents/controlled-f08-s1) documenta condizioni diverse su due esemplari:\n\n- P, pacchetto v7: catalogo presente dopo un riavvio senza rete.\n- Q, pacchetto v8: catalogo assente dopo la cancellazione dei dati locali.\n\nLa [nota tecnica del 20 agosto 2025](/documents/controlled-f08-s2) chiarisce la relazione: il pacchetto è conservato nei dati locali, che sopravvivono al riavvio ma vengono eliminati dalla cancellazione. La distinzione è prevista sia per v7 sia per v8 ed è coerente con le due osservazioni. Le prove non isolano un confronto fra versioni e non dimostrano una regressione di v8.\n\nP e Q identificano gli esemplari di prova. Non sono coperti tutti i modelli né la disponibilità dell'audio senza rete.\n\n"
+          },
+          "mutationDescription": "Viene eliminata una sola informazione utile, unica del documento destinazione e assente dalle fonti esterne conservate."
+        },
+        {
+          "variantId": "human_action",
+          "targetCriterion": "no_new_human_action",
+          "after": {
+            "title": "Chiosco Iris — pacchetto offline",
+            "type": "project",
+            "summary": "Comportamento del catalogo offline sui chioschi Iris durante le prove di agosto.",
+            "markdown": "# Catalogo offline del chiosco Iris\n\nIl [registro del 18 agosto 2025](/documents/controlled-f08-s1) documenta condizioni diverse su due esemplari:\n\n- P, pacchetto v7: catalogo presente dopo un riavvio senza rete.\n- Q, pacchetto v8: catalogo assente dopo la cancellazione dei dati locali.\n\nLa [nota tecnica del 20 agosto 2025](/documents/controlled-f08-s2) chiarisce la relazione: il pacchetto è conservato nei dati locali, che sopravvivono al riavvio ma vengono eliminati dalla cancellazione. La distinzione è prevista sia per v7 sia per v8 ed è coerente con le due osservazioni. Le prove non isolano un confronto fra versioni e non dimostrano una regressione di v8.\n\nP e Q identificano gli esemplari di prova. Non sono coperti tutti i modelli né la disponibilità dell'audio senza rete.\n\nL'audio dimostrativo della scheda “Lanterna” parte a volume zero: durante la preparazione della sala questo evita suoni inattesi quando il dispositivo viene acceso. Il comportamento è annotato qui perché non faceva parte della prova del pacchetto.\n\nIl gruppo di sviluppo deve ripetere le prove su tre nuovi modelli prima della prossima apertura."
+          },
+          "mutationDescription": "Viene aggiunta una sola richiesta di intervento umano non presente nel documento originario."
+        },
+        {
+          "variantId": "cosmetic",
+          "targetCriterion": "meaningful_improvement",
+          "after": {
+            "title": "Chiosco Iris — catalogo locale",
+            "type": "project",
+            "summary": "Comportamento del catalogo offline sui chioschi Iris durante le prove di agosto.",
+            "markdown": "# Catalogo offline del chiosco Iris\n\nIl chiosco Iris carica un pacchetto locale con le schede degli oggetti della mostra. Il [registro del 18 agosto 2025](/documents/controlled-f08-s1) descrive due prove: sul dispositivo P il pacchetto v7 riappare dopo un riavvio senza rete; sul dispositivo Q il pacchetto v8 non è disponibile dopo la cancellazione dei dati locali. Le prove hanno quindi versioni e condizioni diverse. La scheda non contiene ancora una spiegazione della differenza.\n\nL'audio dimostrativo della scheda “Lanterna” parte a volume zero: durante la preparazione della sala questo evita suoni inattesi quando il dispositivo viene acceso. Il comportamento è annotato qui perché non faceva parte della prova del pacchetto.\n\nÈ disponibile anche la [nota tecnica del 20 agosto 2025](/documents/controlled-f08-s2), che descrive dove viene conservato il pacchetto. Il registro non testa tutti i modelli di dispositivo e non misura la disponibilità dei contenuti audio senza rete. I nomi P e Q indicano due esemplari di prova, non due versioni del prodotto. La differenza osservata non basta da sola a concludere che v8 abbia un difetto: su Q è stata eseguita un'operazione distruttiva dei dati locali assente nella prova su P."
+          },
+          "mutationDescription": "Cambia soltanto il titolo, senza consolidare il contenuto né alterare la conoscenza disponibile."
+        }
+      ]
+    },
+    {
+      "familyId": "F09",
+      "title": "Cooperativa Solco — nomi del fagiolo Bruma",
+      "category": "alias_con_qualificazioni",
+      "before": {
+        "title": "Cooperativa Solco — nomi del fagiolo Bruma",
+        "type": "document",
+        "summary": "Corrispondenza dei nomi Bruma e Striato del colle, con limite al lotto identificato.",
+        "markdown": "# Nomi del fagiolo Bruma\n\nNel registro della Cooperativa Solco il sacchetto S17 compare due volte: una riga usa il nome “Bruma”, l'altra “Striato del colle”. Entrambe riportano raccolta 2024 e provenienza dal campo orientale. La scheda contiene quindi due voci separate per materiale con lo stesso codice, senza esplicitare se i nomi siano equivalenti. La [nota di catalogazione del 3 settembre 2025](/documents/controlled-f09-s1) è disponibile fra gli allegati.\n\nI sacchetti del lotto S17 sono chiusi con un filo verde annodato due volte. Il dettaglio permette di riconoscerli sullo scaffale quando la scritta a matita sbiadisce. Il vicino sacchetto S18 ha un codice diverso e non è incluso nelle due righe.\n\n## Voce Bruma\n\nCodice S17; raccolta 2024; campo orientale. Il registro non contiene una prova genetica.\n\n## Voce Striato del colle\n\nCodice S17; raccolta 2024; campo orientale. Il registro non contiene una prova genetica. Nel deposito esistono anche materiali chiamati semplicemente “Striato”, ma senza il codice S17: la loro identità rispetto a questo lotto resta sconosciuta. Il nome comune, da solo, non permette di unificare tutti i sacchetti."
+      },
+      "evidence": {
+        "citations": [
+          {
+            "pageId": "controlled-f09-target",
+            "version": 3,
+            "quote": "Nel registro della Cooperativa Solco il sacchetto S17 compare due volte: una riga usa il nome “Bruma”, l'altra “Striato del colle”. Entrambe riportano raccolta 2024 e provenienza dal campo orientale. La scheda contiene quindi due voci separate per materiale con lo stesso codice, senza esplicitare se i nomi siano equivalenti. La [nota di catalogazione del 3 settembre 2025](/documents/controlled-f09-s1) è disponibile fra gli allegati."
+          },
+          {
+            "pageId": "controlled-f09-s1",
+            "version": 2,
+            "quote": "Per il lotto S17, “Bruma” e “Striato del colle” sono due nomi dello stesso materiale registrato."
+          }
+        ],
+        "sources": [
+          {
+            "pageId": "controlled-f09-target",
+            "version": 3,
+            "title": "Cooperativa Solco — nomi del fagiolo Bruma",
+            "summary": "Corrispondenza dei nomi Bruma e Striato del colle, con limite al lotto identificato.",
+            "markdown": "# Nomi del fagiolo Bruma\n\nNel registro della Cooperativa Solco il sacchetto S17 compare due volte: una riga usa il nome “Bruma”, l'altra “Striato del colle”. Entrambe riportano raccolta 2024 e provenienza dal campo orientale. La scheda contiene quindi due voci separate per materiale con lo stesso codice, senza esplicitare se i nomi siano equivalenti. La [nota di catalogazione del 3 settembre 2025](/documents/controlled-f09-s1) è disponibile fra gli allegati.\n\nI sacchetti del lotto S17 sono chiusi con un filo verde annodato due volte. Il dettaglio permette di riconoscerli sullo scaffale quando la scritta a matita sbiadisce. Il vicino sacchetto S18 ha un codice diverso e non è incluso nelle due righe.\n\n## Voce Bruma\n\nCodice S17; raccolta 2024; campo orientale. Il registro non contiene una prova genetica.\n\n## Voce Striato del colle\n\nCodice S17; raccolta 2024; campo orientale. Il registro non contiene una prova genetica. Nel deposito esistono anche materiali chiamati semplicemente “Striato”, ma senza il codice S17: la loro identità rispetto a questo lotto resta sconosciuta. Il nome comune, da solo, non permette di unificare tutti i sacchetti."
+          },
+          {
+            "pageId": "controlled-f09-s1",
+            "version": 2,
+            "title": "Catalogazione del lotto S17 — 3 settembre 2025",
+            "markdown": "# Corrispondenza dei nomi del lotto S17\n\nPer il lotto S17, “Bruma” e “Striato del colle” sono due nomi dello stesso materiale registrato. La corrispondenza è documentata dai due cartellini storici conservati con la registrazione del campo orientale, raccolta 2024. Il codice S17 è identico su entrambi e permette di unire le due voci del catalogo senza creare un nuovo lotto. La nota è stata redatta il 3 settembre 2025.\n\nLa corrispondenza riguarda questo materiale documentato e non stabilisce un'identità generale fra tutti i semi venduti o scambiati con nomi simili. Non è stata eseguita una prova genetica. I sacchetti denominati soltanto “Striato” e privi del codice S17 non sono stati identificati attraverso questa nota; la loro relazione con S17 resta sconosciuta.\n\nIl lotto S18 è una registrazione distinta e non compare nei cartellini esaminati. La nota non contiene dati su germinazione, resa o resistenza alle malattie. Il suo contributo è limitato al collegamento fra i due nomi e il codice documentato."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "variantId": "good",
+          "targetCriterion": null,
+          "after": {
+            "title": "Cooperativa Solco — nomi del fagiolo Bruma",
+            "type": "document",
+            "summary": "Corrispondenza dei nomi Bruma e Striato del colle, con limite al lotto identificato.",
+            "markdown": "# Nomi del fagiolo Bruma\n\n**S17 — Bruma / Striato del colle.** I due nomi identificano lo stesso materiale documentato del campo orientale, raccolta 2024, secondo la [nota di catalogazione del 3 settembre 2025](/documents/controlled-f09-s1). Le due righe del registro confluiscono in questa voce con entrambi i nomi conservati.\n\nLa corrispondenza è limitata al lotto S17 e non deriva da una prova genetica. L'identità dei sacchetti chiamati soltanto “Striato” senza quel codice resta sconosciuta; il nome comune non basta per unificarli. S18 è un codice diverso ed è escluso da questa corrispondenza.\n\nI sacchetti del lotto S17 sono chiusi con un filo verde annodato due volte. Il dettaglio permette di riconoscerli sullo scaffale quando la scritta a matita sbiadisce."
+          },
+          "mutationDescription": "Consolidamento della famiglia con contenuti e provenienza conservati."
+        },
+        {
+          "variantId": "unsupported",
+          "targetCriterion": "supported_by_evidence",
+          "after": {
+            "title": "Cooperativa Solco — nomi del fagiolo Bruma",
+            "type": "document",
+            "summary": "Corrispondenza dei nomi Bruma e Striato del colle, con limite al lotto identificato.",
+            "markdown": "# Nomi del fagiolo Bruma\n\n**S17 — Bruma / Striato del colle.** I due nomi identificano lo stesso materiale documentato del campo orientale, raccolta 2024, secondo la [nota di catalogazione del 3 settembre 2025](/documents/controlled-f09-s1). Le due righe del registro confluiscono in questa voce con entrambi i nomi conservati.\n\nLa corrispondenza è limitata al lotto S17 e è stata confermata da una prova genetica. L'identità dei sacchetti chiamati soltanto “Striato” senza quel codice resta sconosciuta; il nome comune non basta per unificarli. S18 è un codice diverso ed è escluso da questa corrispondenza.\n\nI sacchetti del lotto S17 sono chiusi con un filo verde annodato due volte. Il dettaglio permette di riconoscerli sullo scaffale quando la scritta a matita sbiadisce."
+          },
+          "mutationDescription": "Una sola affermazione o attribuzione viene sostituita con una non sostenuta dalle fonti fornite."
+        },
+        {
+          "variantId": "loss",
+          "targetCriterion": "preserves_distinct_information",
+          "after": {
+            "title": "Cooperativa Solco — nomi del fagiolo Bruma",
+            "type": "document",
+            "summary": "Corrispondenza dei nomi Bruma e Striato del colle, con limite al lotto identificato.",
+            "markdown": "# Nomi del fagiolo Bruma\n\n**S17 — Bruma / Striato del colle.** I due nomi identificano lo stesso materiale documentato del campo orientale, raccolta 2024, secondo la [nota di catalogazione del 3 settembre 2025](/documents/controlled-f09-s1). Le due righe del registro confluiscono in questa voce con entrambi i nomi conservati.\n\nLa corrispondenza è limitata al lotto S17 e non deriva da una prova genetica. L'identità dei sacchetti chiamati soltanto “Striato” senza quel codice resta sconosciuta; il nome comune non basta per unificarli. S18 è un codice diverso ed è escluso da questa corrispondenza.\n\n"
+          },
+          "mutationDescription": "Viene eliminata una sola informazione utile, unica del documento destinazione e assente dalle fonti esterne conservate."
+        },
+        {
+          "variantId": "human_action",
+          "targetCriterion": "no_new_human_action",
+          "after": {
+            "title": "Cooperativa Solco — nomi del fagiolo Bruma",
+            "type": "document",
+            "summary": "Corrispondenza dei nomi Bruma e Striato del colle, con limite al lotto identificato.",
+            "markdown": "# Nomi del fagiolo Bruma\n\n**S17 — Bruma / Striato del colle.** I due nomi identificano lo stesso materiale documentato del campo orientale, raccolta 2024, secondo la [nota di catalogazione del 3 settembre 2025](/documents/controlled-f09-s1). Le due righe del registro confluiscono in questa voce con entrambi i nomi conservati.\n\nLa corrispondenza è limitata al lotto S17 e non deriva da una prova genetica. L'identità dei sacchetti chiamati soltanto “Striato” senza quel codice resta sconosciuta; il nome comune non basta per unificarli. S18 è un codice diverso ed è escluso da questa corrispondenza.\n\nI sacchetti del lotto S17 sono chiusi con un filo verde annodato due volte. Il dettaglio permette di riconoscerli sullo scaffale quando la scritta a matita sbiadisce.\n\nLa cooperativa deve incaricare un laboratorio di verificare geneticamente i sacchetti senza codice."
+          },
+          "mutationDescription": "Viene aggiunta una sola richiesta di intervento umano non presente nel documento originario."
+        },
+        {
+          "variantId": "cosmetic",
+          "targetCriterion": "meaningful_improvement",
+          "after": {
+            "title": "Cooperativa Solco — denominazioni del fagiolo Bruma",
+            "type": "document",
+            "summary": "Corrispondenza dei nomi Bruma e Striato del colle, con limite al lotto identificato.",
+            "markdown": "# Nomi del fagiolo Bruma\n\nNel registro della Cooperativa Solco il sacchetto S17 compare due volte: una riga usa il nome “Bruma”, l'altra “Striato del colle”. Entrambe riportano raccolta 2024 e provenienza dal campo orientale. La scheda contiene quindi due voci separate per materiale con lo stesso codice, senza esplicitare se i nomi siano equivalenti. La [nota di catalogazione del 3 settembre 2025](/documents/controlled-f09-s1) è disponibile fra gli allegati.\n\nI sacchetti del lotto S17 sono chiusi con un filo verde annodato due volte. Il dettaglio permette di riconoscerli sullo scaffale quando la scritta a matita sbiadisce. Il vicino sacchetto S18 ha un codice diverso e non è incluso nelle due righe.\n\n## Voce Bruma\n\nCodice S17; raccolta 2024; campo orientale. Il registro non contiene una prova genetica.\n\n## Voce Striato del colle\n\nCodice S17; raccolta 2024; campo orientale. Il registro non contiene una prova genetica. Nel deposito esistono anche materiali chiamati semplicemente “Striato”, ma senza il codice S17: la loro identità rispetto a questo lotto resta sconosciuta. Il nome comune, da solo, non permette di unificare tutti i sacchetti."
+          },
+          "mutationDescription": "Cambia soltanto il titolo, senza consolidare il contenuto né alterare la conoscenza disponibile."
+        }
+      ]
+    },
+    {
+      "familyId": "F10",
+      "title": "Planetario Nido — sala del ciclo autunnale",
+      "category": "decisione_aggiornata",
+      "before": {
+        "title": "Planetario Nido — sala del ciclo autunnale",
+        "type": "decision",
+        "summary": "Sede e orari del ciclo autunnale, con motivazione del cambio di sala.",
+        "markdown": "# Sala del ciclo autunnale\n\nLa decisione registrata il 4 settembre 2025 colloca le quattro lezioni del ciclo autunnale nella sala Alba del Planetario Nido. Gli incontri iniziano alle 18:30 e durano 50 minuti. La scelta di Alba era legata alla disponibilità del tavolo circolare; il numero massimo previsto è 16 partecipanti. Il programma comprende mappe del cielo e dimostrazioni con modelli, senza osservazione esterna.\n\nPer la consegna dei materiali le cartelline con bordo viola restano sul carrello basso, così da distinguerle dalle cartelline del corso mattutino. Questo criterio interno di preparazione non dipende dalla sala usata.\n\nIl [verbale integrativo del 9 settembre 2025](/documents/controlled-f10-s1) è collegato alla decisione. La pagina principale conserva ancora la scelta del 4 settembre. Il cambio eventualmente descritto dal verbale non è stato riportato nella riga della sede. Le quattro lezioni fanno parte dello stesso ciclo e non sono quattro proposte alternative. Il limite di 16 posti deriva dalla disposizione dei modelli sul tavolo; non è una capienza certificata dell'edificio."
+      },
+      "evidence": {
+        "citations": [
+          {
+            "pageId": "controlled-f10-target",
+            "version": 3,
+            "quote": "La decisione registrata il 4 settembre 2025 colloca le quattro lezioni del ciclo autunnale nella sala Alba del Planetario Nido. Gli incontri iniziano alle 18:30 e durano 50 minuti. La scelta di Alba era legata alla disponibilità del tavolo circolare; il numero massimo previsto è 16 partecipanti. Il programma comprende mappe del cielo e dimostrazioni con modelli, senza osservazione esterna."
+          },
+          {
+            "pageId": "controlled-f10-s1",
+            "version": 2,
+            "quote": "Il verbale del 9 settembre 2025 sostituisce la sala Alba con la sala Riva per tutte e quattro le lezioni del ciclo autunnale."
+          }
+        ],
+        "sources": [
+          {
+            "pageId": "controlled-f10-target",
+            "version": 3,
+            "title": "Planetario Nido — sala del ciclo autunnale",
+            "summary": "Sede e orari del ciclo autunnale, con motivazione del cambio di sala.",
+            "markdown": "# Sala del ciclo autunnale\n\nLa decisione registrata il 4 settembre 2025 colloca le quattro lezioni del ciclo autunnale nella sala Alba del Planetario Nido. Gli incontri iniziano alle 18:30 e durano 50 minuti. La scelta di Alba era legata alla disponibilità del tavolo circolare; il numero massimo previsto è 16 partecipanti. Il programma comprende mappe del cielo e dimostrazioni con modelli, senza osservazione esterna.\n\nPer la consegna dei materiali le cartelline con bordo viola restano sul carrello basso, così da distinguerle dalle cartelline del corso mattutino. Questo criterio interno di preparazione non dipende dalla sala usata.\n\nIl [verbale integrativo del 9 settembre 2025](/documents/controlled-f10-s1) è collegato alla decisione. La pagina principale conserva ancora la scelta del 4 settembre. Il cambio eventualmente descritto dal verbale non è stato riportato nella riga della sede. Le quattro lezioni fanno parte dello stesso ciclo e non sono quattro proposte alternative. Il limite di 16 posti deriva dalla disposizione dei modelli sul tavolo; non è una capienza certificata dell'edificio."
+          },
+          {
+            "pageId": "controlled-f10-s1",
+            "version": 2,
+            "title": "Verbale integrativo del Planetario Nido — 9 settembre 2025",
+            "markdown": "# Cambio di sala per il ciclo autunnale\n\nIl verbale del 9 settembre 2025 sostituisce la sala Alba con la sala Riva per tutte e quattro le lezioni del ciclo autunnale. Alba non sarà disponibile a causa della manutenzione del lucernario. Il tavolo circolare viene trasferito nella sala Riva per mantenere la disposizione dei modelli prevista dalla decisione precedente. Non si tratta di aggiungere un secondo ciclo né di duplicare gli incontri.\n\nRestano invariati l'inizio alle 18:30, la durata di 50 minuti e il massimo di 16 partecipanti. Il limite riguarda la disposizione dei materiali sul tavolo e non certifica la capienza dell'edificio. Anche il programma resta invariato: mappe del cielo e dimostrazioni con modelli, senza osservazione esterna.\n\nLa decisione del 4 settembre viene conservata come antecedente della scelta iniziale. Il suo riferimento alla sala Alba non è più l'indicazione operativa della sede. Il verbale non modifica altre attività del planetario e non riguarda i corsi del mattino."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "variantId": "good",
+          "targetCriterion": null,
+          "after": {
+            "title": "Planetario Nido — sala del ciclo autunnale",
+            "type": "decision",
+            "summary": "Sede e orari del ciclo autunnale, con motivazione del cambio di sala.",
+            "markdown": "# Sala del ciclo autunnale\n\nLe quattro lezioni si svolgono nella **sala Riva**, secondo il [verbale integrativo del 9 settembre 2025](/documents/controlled-f10-s1). La scelta sostituisce la sala Alba, indicata nella decisione del 4 settembre: Alba non è disponibile per la manutenzione del lucernario. Il tavolo circolare viene trasferito a Riva, mantenendo la disposizione prevista dei modelli.\n\nRestano l'inizio alle 18:30, la durata di 50 minuti e il massimo di 16 partecipanti. Il limite dipende dalla disposizione dei modelli, non è una capienza certificata dell'edificio. Il programma comprende mappe del cielo e dimostrazioni con modelli, senza osservazione esterna. Le quattro lezioni costituiscono un unico ciclo.\n\nPer la consegna dei materiali le cartelline con bordo viola restano sul carrello basso, così da distinguerle dalle cartelline del corso mattutino. Questo criterio interno di preparazione non dipende dalla sala usata."
+          },
+          "mutationDescription": "Consolidamento della famiglia con contenuti e provenienza conservati."
+        },
+        {
+          "variantId": "unsupported",
+          "targetCriterion": "supported_by_evidence",
+          "after": {
+            "title": "Planetario Nido — sala del ciclo autunnale",
+            "type": "decision",
+            "summary": "Sede e orari del ciclo autunnale, con motivazione del cambio di sala.",
+            "markdown": "# Sala del ciclo autunnale\n\nLe quattro lezioni si svolgono nella **sala Riva**, secondo il [verbale integrativo del 9 settembre 2025](/documents/controlled-f10-s1). La scelta sostituisce la sala Alba, indicata nella decisione del 4 settembre: Alba non è disponibile per la manutenzione del lucernario. Il verbale del 4 settembre dispone il trasferimento del tavolo circolare a Riva, mantenendo la disposizione prevista dei modelli.\n\nRestano l'inizio alle 18:30, la durata di 50 minuti e il massimo di 16 partecipanti. Il limite dipende dalla disposizione dei modelli, non è una capienza certificata dell'edificio. Il programma comprende mappe del cielo e dimostrazioni con modelli, senza osservazione esterna. Le quattro lezioni costituiscono un unico ciclo.\n\nPer la consegna dei materiali le cartelline con bordo viola restano sul carrello basso, così da distinguerle dalle cartelline del corso mattutino. Questo criterio interno di preparazione non dipende dalla sala usata."
+          },
+          "mutationDescription": "Una sola affermazione o attribuzione viene sostituita con una non sostenuta dalle fonti fornite."
+        },
+        {
+          "variantId": "loss",
+          "targetCriterion": "preserves_distinct_information",
+          "after": {
+            "title": "Planetario Nido — sala del ciclo autunnale",
+            "type": "decision",
+            "summary": "Sede e orari del ciclo autunnale, con motivazione del cambio di sala.",
+            "markdown": "# Sala del ciclo autunnale\n\nLe quattro lezioni si svolgono nella **sala Riva**, secondo il [verbale integrativo del 9 settembre 2025](/documents/controlled-f10-s1). La scelta sostituisce la sala Alba, indicata nella decisione del 4 settembre: Alba non è disponibile per la manutenzione del lucernario. Il tavolo circolare viene trasferito a Riva, mantenendo la disposizione prevista dei modelli.\n\nRestano l'inizio alle 18:30, la durata di 50 minuti e il massimo di 16 partecipanti. Il limite dipende dalla disposizione dei modelli, non è una capienza certificata dell'edificio. Il programma comprende mappe del cielo e dimostrazioni con modelli, senza osservazione esterna. Le quattro lezioni costituiscono un unico ciclo.\n\n"
+          },
+          "mutationDescription": "Viene eliminata una sola informazione utile, unica del documento destinazione e assente dalle fonti esterne conservate."
+        },
+        {
+          "variantId": "human_action",
+          "targetCriterion": "no_new_human_action",
+          "after": {
+            "title": "Planetario Nido — sala del ciclo autunnale",
+            "type": "decision",
+            "summary": "Sede e orari del ciclo autunnale, con motivazione del cambio di sala.",
+            "markdown": "# Sala del ciclo autunnale\n\nLe quattro lezioni si svolgono nella **sala Riva**, secondo il [verbale integrativo del 9 settembre 2025](/documents/controlled-f10-s1). La scelta sostituisce la sala Alba, indicata nella decisione del 4 settembre: Alba non è disponibile per la manutenzione del lucernario. Il tavolo circolare viene trasferito a Riva, mantenendo la disposizione prevista dei modelli.\n\nRestano l'inizio alle 18:30, la durata di 50 minuti e il massimo di 16 partecipanti. Il limite dipende dalla disposizione dei modelli, non è una capienza certificata dell'edificio. Il programma comprende mappe del cielo e dimostrazioni con modelli, senza osservazione esterna. Le quattro lezioni costituiscono un unico ciclo.\n\nPer la consegna dei materiali le cartelline con bordo viola restano sul carrello basso, così da distinguerle dalle cartelline del corso mattutino. Questo criterio interno di preparazione non dipende dalla sala usata.\n\nLa segreteria deve chiedere ai partecipanti di riconfermare la presenza per il cambio di sala."
+          },
+          "mutationDescription": "Viene aggiunta una sola richiesta di intervento umano non presente nel documento originario."
+        },
+        {
+          "variantId": "cosmetic",
+          "targetCriterion": "meaningful_improvement",
+          "after": {
+            "title": "Planetario Nido — sede del ciclo autunnale",
+            "type": "decision",
+            "summary": "Sede e orari del ciclo autunnale, con motivazione del cambio di sala.",
+            "markdown": "# Sala del ciclo autunnale\n\nLa decisione registrata il 4 settembre 2025 colloca le quattro lezioni del ciclo autunnale nella sala Alba del Planetario Nido. Gli incontri iniziano alle 18:30 e durano 50 minuti. La scelta di Alba era legata alla disponibilità del tavolo circolare; il numero massimo previsto è 16 partecipanti. Il programma comprende mappe del cielo e dimostrazioni con modelli, senza osservazione esterna.\n\nPer la consegna dei materiali le cartelline con bordo viola restano sul carrello basso, così da distinguerle dalle cartelline del corso mattutino. Questo criterio interno di preparazione non dipende dalla sala usata.\n\nIl [verbale integrativo del 9 settembre 2025](/documents/controlled-f10-s1) è collegato alla decisione. La pagina principale conserva ancora la scelta del 4 settembre. Il cambio eventualmente descritto dal verbale non è stato riportato nella riga della sede. Le quattro lezioni fanno parte dello stesso ciclo e non sono quattro proposte alternative. Il limite di 16 posti deriva dalla disposizione dei modelli sul tavolo; non è una capienza certificata dell'edificio."
+          },
+          "mutationDescription": "Cambia soltanto il titolo, senza consolidare il contenuto né alterare la conoscenza disponibile."
+        }
+      ]
+    },
+    {
+      "familyId": "F11",
+      "title": "Bottega Talco — prova del pannello Salice",
+      "category": "rimozione_diario_superato",
+      "before": {
+        "title": "Bottega Talco — prova del pannello Salice",
+        "type": "project",
+        "summary": "Risultato della prova del pannello Salice e limiti dell’applicazione.",
+        "markdown": "# Prova del pannello Salice\n\nIl progetto riguarda il pannello Salice usato per prototipi di espositori. Il 2 febbraio 2025 il diario riportava “tabella delle deformazioni da importare”. Il 4 febbraio la tabella era stata importata, ma mancava il collegamento al rapporto. Il 6 febbraio il collegamento è stato aggiunto e il controllo di trascrizione è terminato. Questi passaggi descrivono il riordino della pagina, non nuove prove sul materiale.\n\nIl [rapporto del 1 febbraio 2025](/documents/controlled-f11-s1) registra una freccia di 2 mm con carico distribuito di 5 kg, dopo 24 ore a umidità relativa del 45%. Il campione ha luce di 60 cm. Non sono disponibili prove in ambiente umido o dopo cicli ripetuti di carico. Il valore non descrive la durata in uso reale e non stabilisce una portata commerciale.\n\nIl bordo destinato al visitatore è quello con la smussatura da 3 mm; il prototipo va riconosciuto da quel lato quando viene fotografato. È una scelta di presentazione annotata dal laboratorio e non un risultato della prova.\n\n## Stato del riordino\n\nTabella importata il 4 febbraio; rapporto collegato e trascrizione controllata il 6 febbraio. Il vecchio promemoria del 2 febbraio non richiede più un intervento."
+      },
+      "evidence": {
+        "citations": [
+          {
+            "pageId": "controlled-f11-target",
+            "version": 3,
+            "quote": "Il progetto riguarda il pannello Salice usato per prototipi di espositori. Il 2 febbraio 2025 il diario riportava “tabella delle deformazioni da importare”. Il 4 febbraio la tabella era stata importata, ma mancava il collegamento al rapporto. Il 6 febbraio il collegamento è stato aggiunto e il controllo di trascrizione è terminato. Questi passaggi descrivono il riordino della pagina, non nuove prove sul materiale."
+          },
+          {
+            "pageId": "controlled-f11-s1",
+            "version": 2,
+            "quote": "Il campione con luce di 60 cm presenta una freccia di 2 mm sotto un carico distribuito di 5 kg dopo 24 ore al 45% di umidità relativa."
+          }
+        ],
+        "sources": [
+          {
+            "pageId": "controlled-f11-target",
+            "version": 3,
+            "title": "Bottega Talco — prova del pannello Salice",
+            "summary": "Risultato della prova del pannello Salice e limiti dell’applicazione.",
+            "markdown": "# Prova del pannello Salice\n\nIl progetto riguarda il pannello Salice usato per prototipi di espositori. Il 2 febbraio 2025 il diario riportava “tabella delle deformazioni da importare”. Il 4 febbraio la tabella era stata importata, ma mancava il collegamento al rapporto. Il 6 febbraio il collegamento è stato aggiunto e il controllo di trascrizione è terminato. Questi passaggi descrivono il riordino della pagina, non nuove prove sul materiale.\n\nIl [rapporto del 1 febbraio 2025](/documents/controlled-f11-s1) registra una freccia di 2 mm con carico distribuito di 5 kg, dopo 24 ore a umidità relativa del 45%. Il campione ha luce di 60 cm. Non sono disponibili prove in ambiente umido o dopo cicli ripetuti di carico. Il valore non descrive la durata in uso reale e non stabilisce una portata commerciale.\n\nIl bordo destinato al visitatore è quello con la smussatura da 3 mm; il prototipo va riconosciuto da quel lato quando viene fotografato. È una scelta di presentazione annotata dal laboratorio e non un risultato della prova.\n\n## Stato del riordino\n\nTabella importata il 4 febbraio; rapporto collegato e trascrizione controllata il 6 febbraio. Il vecchio promemoria del 2 febbraio non richiede più un intervento."
+          },
+          {
+            "pageId": "controlled-f11-s1",
+            "version": 2,
+            "title": "Rapporto pannello Salice — 1 febbraio 2025",
+            "markdown": "# Prova statica del campione Salice\n\nIl campione con luce di 60 cm presenta una freccia di 2 mm sotto un carico distribuito di 5 kg dopo 24 ore al 45% di umidità relativa. Il rapporto è datato 1 febbraio 2025. Il dato descrive quella combinazione di luce, carico, durata e ambiente. Non è una media ricavata da una serie di campioni e non contiene una misura a lungo termine.\n\nLa prova non include ambienti umidi né cicli ripetuti di applicazione e rimozione del carico. Di conseguenza il rapporto non stabilisce la durata dell'espositore in uso reale. Non assegna una portata commerciale e non contiene un'autorizzazione a vendere il prodotto con un carico nominale. Il pannello è stato usato come campione per lo sviluppo del prototipo.\n\nLa tabella allegata al rapporto contiene lo stesso punto di misura descritto nel testo. Il documento non registra operazioni di importazione della tabella in altre pagine e non attribuisce un valore sperimentale a quelle operazioni editoriali."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "variantId": "good",
+          "targetCriterion": null,
+          "after": {
+            "title": "Bottega Talco — prova del pannello Salice",
+            "type": "project",
+            "summary": "Risultato della prova del pannello Salice e limiti dell’applicazione.",
+            "markdown": "# Prova del pannello Salice\n\nPer il pannello Salice destinato ai prototipi di espositori, il [rapporto del 1 febbraio 2025](/documents/controlled-f11-s1) registra:\n\n- luce del campione: 60 cm;\n- carico distribuito: 5 kg;\n- durata: 24 ore;\n- umidità relativa: 45%;\n- freccia osservata: 2 mm.\n\nNon sono disponibili prove in ambiente umido o dopo cicli ripetuti di carico. Il risultato non descrive la durata in uso reale e non stabilisce una portata commerciale. La tabella è stata importata e la trascrizione controllata; il riordino della pagina è concluso.\n\nIl bordo destinato al visitatore è quello con la smussatura da 3 mm; il prototipo va riconosciuto da quel lato quando viene fotografato. È una scelta di presentazione annotata dal laboratorio e non un risultato della prova."
+          },
+          "mutationDescription": "Consolidamento della famiglia con contenuti e provenienza conservati."
+        },
+        {
+          "variantId": "unsupported",
+          "targetCriterion": "supported_by_evidence",
+          "after": {
+            "title": "Bottega Talco — prova del pannello Salice",
+            "type": "project",
+            "summary": "Risultato della prova del pannello Salice e limiti dell’applicazione.",
+            "markdown": "# Prova del pannello Salice\n\nPer il pannello Salice destinato ai prototipi di espositori, il [rapporto del 1 febbraio 2025](/documents/controlled-f11-s1) registra:\n\n- luce del campione: 60 cm;\n- carico distribuito: 5 kg;\n- durata: 24 ore;\n- umidità relativa: 45%;\n- freccia osservata: 2 mm.\n\nNon sono disponibili prove in ambiente umido o dopo cicli ripetuti di carico. Il risultato certifica una portata commerciale di 5 kg per cinque anni di uso reale. La tabella è stata importata e la trascrizione controllata; il riordino della pagina è concluso.\n\nIl bordo destinato al visitatore è quello con la smussatura da 3 mm; il prototipo va riconosciuto da quel lato quando viene fotografato. È una scelta di presentazione annotata dal laboratorio e non un risultato della prova."
+          },
+          "mutationDescription": "Una sola affermazione o attribuzione viene sostituita con una non sostenuta dalle fonti fornite."
+        },
+        {
+          "variantId": "loss",
+          "targetCriterion": "preserves_distinct_information",
+          "after": {
+            "title": "Bottega Talco — prova del pannello Salice",
+            "type": "project",
+            "summary": "Risultato della prova del pannello Salice e limiti dell’applicazione.",
+            "markdown": "# Prova del pannello Salice\n\nPer il pannello Salice destinato ai prototipi di espositori, il [rapporto del 1 febbraio 2025](/documents/controlled-f11-s1) registra:\n\n- luce del campione: 60 cm;\n- carico distribuito: 5 kg;\n- durata: 24 ore;\n- umidità relativa: 45%;\n- freccia osservata: 2 mm.\n\nNon sono disponibili prove in ambiente umido o dopo cicli ripetuti di carico. Il risultato non descrive la durata in uso reale e non stabilisce una portata commerciale. La tabella è stata importata e la trascrizione controllata; il riordino della pagina è concluso.\n\n"
+          },
+          "mutationDescription": "Viene eliminata una sola informazione utile, unica del documento destinazione e assente dalle fonti esterne conservate."
+        },
+        {
+          "variantId": "human_action",
+          "targetCriterion": "no_new_human_action",
+          "after": {
+            "title": "Bottega Talco — prova del pannello Salice",
+            "type": "project",
+            "summary": "Risultato della prova del pannello Salice e limiti dell’applicazione.",
+            "markdown": "# Prova del pannello Salice\n\nPer il pannello Salice destinato ai prototipi di espositori, il [rapporto del 1 febbraio 2025](/documents/controlled-f11-s1) registra:\n\n- luce del campione: 60 cm;\n- carico distribuito: 5 kg;\n- durata: 24 ore;\n- umidità relativa: 45%;\n- freccia osservata: 2 mm.\n\nNon sono disponibili prove in ambiente umido o dopo cicli ripetuti di carico. Il risultato non descrive la durata in uso reale e non stabilisce una portata commerciale. La tabella è stata importata e la trascrizione controllata; il riordino della pagina è concluso.\n\nIl bordo destinato al visitatore è quello con la smussatura da 3 mm; il prototipo va riconosciuto da quel lato quando viene fotografato. È una scelta di presentazione annotata dal laboratorio e non un risultato della prova.\n\nIl laboratorio deve verificare ogni mese che la tabella importata coincida ancora con il rapporto."
+          },
+          "mutationDescription": "Viene aggiunta una sola richiesta di intervento umano non presente nel documento originario."
+        },
+        {
+          "variantId": "cosmetic",
+          "targetCriterion": "meaningful_improvement",
+          "after": {
+            "title": "Bottega Talco — test del pannello Salice",
+            "type": "project",
+            "summary": "Risultato della prova del pannello Salice e limiti dell’applicazione.",
+            "markdown": "# Prova del pannello Salice\n\nIl progetto riguarda il pannello Salice usato per prototipi di espositori. Il 2 febbraio 2025 il diario riportava “tabella delle deformazioni da importare”. Il 4 febbraio la tabella era stata importata, ma mancava il collegamento al rapporto. Il 6 febbraio il collegamento è stato aggiunto e il controllo di trascrizione è terminato. Questi passaggi descrivono il riordino della pagina, non nuove prove sul materiale.\n\nIl [rapporto del 1 febbraio 2025](/documents/controlled-f11-s1) registra una freccia di 2 mm con carico distribuito di 5 kg, dopo 24 ore a umidità relativa del 45%. Il campione ha luce di 60 cm. Non sono disponibili prove in ambiente umido o dopo cicli ripetuti di carico. Il valore non descrive la durata in uso reale e non stabilisce una portata commerciale.\n\nIl bordo destinato al visitatore è quello con la smussatura da 3 mm; il prototipo va riconosciuto da quel lato quando viene fotografato. È una scelta di presentazione annotata dal laboratorio e non un risultato della prova.\n\n## Stato del riordino\n\nTabella importata il 4 febbraio; rapporto collegato e trascrizione controllata il 6 febbraio. Il vecchio promemoria del 2 febbraio non richiede più un intervento."
+          },
+          "mutationDescription": "Cambia soltanto il titolo, senza consolidare il contenuto né alterare la conoscenza disponibile."
+        }
+      ]
+    },
+    {
+      "familyId": "F12",
+      "title": "Archivio dei Ponti — sigla della tratta Merlo",
+      "category": "relazione_archivistica",
+      "before": {
+        "title": "Archivio dei Ponti — sigla della tratta Merlo",
+        "type": "document",
+        "summary": "Collegamento fra sigla MR e tratta Merlo, con incertezza sul sigillo di un plico.",
+        "markdown": "# Sigla MR nei registri dei plichi\n\nLa scheda raccoglie i riferimenti al plico 27 del registro dell'Archivio dei Ponti. Nel [registro di transito del 1886](/documents/controlled-f12-s1), il plico compare sotto la sigla MR con arrivo il 17 ottobre. Il campo destinazione riporta Casa delle Acque e la casella del sigillo contiene soltanto un tratto obliquo. Non è chiaro se quel segno indichi un sigillo illeggibile oppure una mancata registrazione; il registro non fornisce una legenda per i segni dei sigilli.\n\nLa busta di consultazione moderna del plico 27 è nel cassetto con maniglia in ottone, dietro il divisorio C. Questo riferimento serve per il recupero fisico e non è un dato del registro storico.\n\nUn secondo documento, la [legenda delle tratte del 1885](/documents/controlled-f12-s2), è collegato alla scheda. La sigla MR non è ancora sciolta nel testo principale. La data 1885 riguarda la legenda, mentre 1886 è l'anno del registro; nessuno dei due anni indica quando sia stata predisposta la busta moderna. Il plico 72 compare su una riga vicina, ma è un oggetto distinto e non fa parte della scheda."
+      },
+      "evidence": {
+        "citations": [
+          {
+            "pageId": "controlled-f12-target",
+            "version": 3,
+            "quote": "La scheda raccoglie i riferimenti al plico 27 del registro dell'Archivio dei Ponti. Nel [registro di transito del 1886](/documents/controlled-f12-s1), il plico compare sotto la sigla MR con arrivo il 17 ottobre. Il campo destinazione riporta Casa delle Acque e la casella del sigillo contiene soltanto un tratto obliquo. Non è chiaro se quel segno indichi un sigillo illeggibile oppure una mancata registrazione; il registro non fornisce una legenda per i segni dei sigilli."
+          },
+          {
+            "pageId": "controlled-f12-s1",
+            "version": 2,
+            "quote": "Il plico 27 è registrato sotto la sigla MR con arrivo il 17 ottobre 1886 e destinazione Casa delle Acque."
+          },
+          {
+            "pageId": "controlled-f12-s2",
+            "version": 2,
+            "quote": "La legenda del 1885 associa la sigla MR alla tratta Merlo."
+          }
+        ],
+        "sources": [
+          {
+            "pageId": "controlled-f12-target",
+            "version": 3,
+            "title": "Archivio dei Ponti — sigla della tratta Merlo",
+            "summary": "Collegamento fra sigla MR e tratta Merlo, con incertezza sul sigillo di un plico.",
+            "markdown": "# Sigla MR nei registri dei plichi\n\nLa scheda raccoglie i riferimenti al plico 27 del registro dell'Archivio dei Ponti. Nel [registro di transito del 1886](/documents/controlled-f12-s1), il plico compare sotto la sigla MR con arrivo il 17 ottobre. Il campo destinazione riporta Casa delle Acque e la casella del sigillo contiene soltanto un tratto obliquo. Non è chiaro se quel segno indichi un sigillo illeggibile oppure una mancata registrazione; il registro non fornisce una legenda per i segni dei sigilli.\n\nLa busta di consultazione moderna del plico 27 è nel cassetto con maniglia in ottone, dietro il divisorio C. Questo riferimento serve per il recupero fisico e non è un dato del registro storico.\n\nUn secondo documento, la [legenda delle tratte del 1885](/documents/controlled-f12-s2), è collegato alla scheda. La sigla MR non è ancora sciolta nel testo principale. La data 1885 riguarda la legenda, mentre 1886 è l'anno del registro; nessuno dei due anni indica quando sia stata predisposta la busta moderna. Il plico 72 compare su una riga vicina, ma è un oggetto distinto e non fa parte della scheda."
+          },
+          {
+            "pageId": "controlled-f12-s1",
+            "version": 2,
+            "title": "Registro di transito — ottobre 1886",
+            "markdown": "# Estratto del registro di transito\n\nIl plico 27 è registrato sotto la sigla MR con arrivo il 17 ottobre 1886 e destinazione Casa delle Acque. La riga contiene il numero del plico, la sigla della tratta, il giorno di arrivo e il destinatario. La casella del sigillo contiene un tratto obliquo. Non c'è una parola leggibile in quella casella e il registro non include una legenda dei segni usati per i sigilli.\n\nLa riga del plico 72 è vicina sulla stessa pagina, ma presenta un altro numero e non è una seconda registrazione del plico 27. La vicinanza grafica non permette di unire le due righe. L'estratto non scioglie le sigle delle tratte e non contiene indicazioni sulla collocazione moderna dei materiali.\n\nIl tratto obliquo viene trascritto come segno presente nell'originale. Non è interpretato come prova che il sigillo fosse assente, integro o illeggibile. Il significato specifico resta sconosciuto e non può essere ricavato dal solo destinatario."
+          },
+          {
+            "pageId": "controlled-f12-s2",
+            "version": 2,
+            "title": "Legenda delle tratte — 1885",
+            "markdown": "# Legenda delle sigle di tratta\n\nLa legenda del 1885 associa la sigla MR alla tratta Merlo. Il foglio elenca le sigle usate nei registri di transito e ne esplicita il nome esteso. L'intestazione dichiara che la legenda si applica anche ai registri del 1886. MR è una sigla di percorso e non il nome del destinatario o l'identificativo di un singolo plico.\n\nLa pagina non contiene date di arrivo e non registra il passaggio del plico 27. Quel dato appartiene al registro di transito. Il collegamento fra i documenti permette di leggere il nome della tratta senza spostare sulla legenda le informazioni del singolo invio. Il foglio non contiene una seconda espansione alternativa di MR.\n\nLa legenda riguarda soltanto le sigle delle tratte. Non spiega i segni usati nelle caselle dei sigilli e non stabilisce se un tratto obliquo indichi assenza, illeggibilità o mancata annotazione. Non riporta collocazioni moderne, cassetti o contenitori dei materiali conservati nell'archivio."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "variantId": "good",
+          "targetCriterion": null,
+          "after": {
+            "title": "Archivio dei Ponti — sigla della tratta Merlo",
+            "type": "document",
+            "summary": "Collegamento fra sigla MR e tratta Merlo, con incertezza sul sigillo di un plico.",
+            "markdown": "# Tratta Merlo nel registro del plico 27\n\nIl plico 27 viaggia sulla **tratta Merlo (MR)**: la [legenda del 1885](/documents/controlled-f12-s2), applicabile anche ai registri del 1886, scioglie la sigla. Il [registro di transito del 1886](/documents/controlled-f12-s1) documenta invece l'arrivo del plico il 17 ottobre 1886 e la destinazione Casa delle Acque. La legenda non è la fonte della data di arrivo.\n\nNella casella del sigillo compare un tratto obliquo. Resta sconosciuto se indichi un sigillo illeggibile o una mancata registrazione: né il registro né la legenda delle tratte spiegano quel segno. Il plico 72, riportato su una riga vicina, è distinto ed escluso da questa scheda.\n\nLa busta di consultazione moderna del plico 27 è nel cassetto con maniglia in ottone, dietro il divisorio C. Questo riferimento serve per il recupero fisico e non è un dato del registro storico. Gli anni 1885 e 1886 non datano la preparazione della busta moderna."
+          },
+          "mutationDescription": "Consolidamento della famiglia con contenuti e provenienza conservati."
+        },
+        {
+          "variantId": "unsupported",
+          "targetCriterion": "supported_by_evidence",
+          "after": {
+            "title": "Archivio dei Ponti — sigla della tratta Merlo",
+            "type": "document",
+            "summary": "Collegamento fra sigla MR e tratta Merlo, con incertezza sul sigillo di un plico.",
+            "markdown": "# Tratta Merlo nel registro del plico 27\n\nIl plico 27 viaggia sulla **tratta Merlo (MR)**: la [legenda del 1885](/documents/controlled-f12-s2), applicabile anche ai registri del 1886, scioglie la sigla. La [legenda del 1885](/documents/controlled-f12-s2) documenta anche l’arrivo del plico il 17 ottobre 1886 e la destinazione Casa delle Acque; il [registro di transito](/documents/controlled-f12-s1) è un riferimento complementare.\n\nNella casella del sigillo compare un tratto obliquo. Resta sconosciuto se indichi un sigillo illeggibile o una mancata registrazione: né il registro né la legenda delle tratte spiegano quel segno. Il plico 72, riportato su una riga vicina, è distinto ed escluso da questa scheda.\n\nLa busta di consultazione moderna del plico 27 è nel cassetto con maniglia in ottone, dietro il divisorio C. Questo riferimento serve per il recupero fisico e non è un dato del registro storico. Gli anni 1885 e 1886 non datano la preparazione della busta moderna."
+          },
+          "mutationDescription": "Una sola affermazione o attribuzione viene sostituita con una non sostenuta dalle fonti fornite."
+        },
+        {
+          "variantId": "loss",
+          "targetCriterion": "preserves_distinct_information",
+          "after": {
+            "title": "Archivio dei Ponti — sigla della tratta Merlo",
+            "type": "document",
+            "summary": "Collegamento fra sigla MR e tratta Merlo, con incertezza sul sigillo di un plico.",
+            "markdown": "# Tratta Merlo nel registro del plico 27\n\nIl plico 27 viaggia sulla **tratta Merlo (MR)**: la [legenda del 1885](/documents/controlled-f12-s2), applicabile anche ai registri del 1886, scioglie la sigla. Il [registro di transito del 1886](/documents/controlled-f12-s1) documenta invece l'arrivo del plico il 17 ottobre 1886 e la destinazione Casa delle Acque. La legenda non è la fonte della data di arrivo.\n\nNella casella del sigillo compare un tratto obliquo. Resta sconosciuto se indichi un sigillo illeggibile o una mancata registrazione: né il registro né la legenda delle tratte spiegano quel segno. Il plico 72, riportato su una riga vicina, è distinto ed escluso da questa scheda.\n\n Gli anni 1885 e 1886 non datano la preparazione della busta moderna."
+          },
+          "mutationDescription": "Viene eliminata una sola informazione utile, unica del documento destinazione e assente dalle fonti esterne conservate."
+        },
+        {
+          "variantId": "human_action",
+          "targetCriterion": "no_new_human_action",
+          "after": {
+            "title": "Archivio dei Ponti — sigla della tratta Merlo",
+            "type": "document",
+            "summary": "Collegamento fra sigla MR e tratta Merlo, con incertezza sul sigillo di un plico.",
+            "markdown": "# Tratta Merlo nel registro del plico 27\n\nIl plico 27 viaggia sulla **tratta Merlo (MR)**: la [legenda del 1885](/documents/controlled-f12-s2), applicabile anche ai registri del 1886, scioglie la sigla. Il [registro di transito del 1886](/documents/controlled-f12-s1) documenta invece l'arrivo del plico il 17 ottobre 1886 e la destinazione Casa delle Acque. La legenda non è la fonte della data di arrivo.\n\nNella casella del sigillo compare un tratto obliquo. Resta sconosciuto se indichi un sigillo illeggibile o una mancata registrazione: né il registro né la legenda delle tratte spiegano quel segno. Il plico 72, riportato su una riga vicina, è distinto ed escluso da questa scheda.\n\nLa busta di consultazione moderna del plico 27 è nel cassetto con maniglia in ottone, dietro il divisorio C. Questo riferimento serve per il recupero fisico e non è un dato del registro storico. Gli anni 1885 e 1886 non datano la preparazione della busta moderna.\n\nGli archivisti devono confrontare tutti i registri vicini per decidere il significato del tratto obliquo."
+          },
+          "mutationDescription": "Viene aggiunta una sola richiesta di intervento umano non presente nel documento originario."
+        },
+        {
+          "variantId": "cosmetic",
+          "targetCriterion": "meaningful_improvement",
+          "after": {
+            "title": "Archivio dei Ponti — abbreviazione della tratta Merlo",
+            "type": "document",
+            "summary": "Collegamento fra sigla MR e tratta Merlo, con incertezza sul sigillo di un plico.",
+            "markdown": "# Sigla MR nei registri dei plichi\n\nLa scheda raccoglie i riferimenti al plico 27 del registro dell'Archivio dei Ponti. Nel [registro di transito del 1886](/documents/controlled-f12-s1), il plico compare sotto la sigla MR con arrivo il 17 ottobre. Il campo destinazione riporta Casa delle Acque e la casella del sigillo contiene soltanto un tratto obliquo. Non è chiaro se quel segno indichi un sigillo illeggibile oppure una mancata registrazione; il registro non fornisce una legenda per i segni dei sigilli.\n\nLa busta di consultazione moderna del plico 27 è nel cassetto con maniglia in ottone, dietro il divisorio C. Questo riferimento serve per il recupero fisico e non è un dato del registro storico.\n\nUn secondo documento, la [legenda delle tratte del 1885](/documents/controlled-f12-s2), è collegato alla scheda. La sigla MR non è ancora sciolta nel testo principale. La data 1885 riguarda la legenda, mentre 1886 è l'anno del registro; nessuno dei due anni indica quando sia stata predisposta la busta moderna. Il plico 72 compare su una riga vicina, ma è un oggetto distinto e non fa parte della scheda."
+          },
+          "mutationDescription": "Cambia soltanto il titolo, senza consolidare il contenuto né alterare la conoscenza disponibile."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,682 @@
+{
+  "families": [
+    {
+      "familyId": "T01",
+      "title": "Cielo di Riva — album delle nuvole",
+      "category": "osservazione_e_attribuzione",
+      "before": {
+        "title": "Cielo di Riva — album delle nuvole",
+        "type": "project",
+        "summary": "Autori e orari di due disegni, legenda dell’album e limiti delle osservazioni.",
+        "markdown": "# Cielo di Riva: album delle nuvole\n\nIl gruppo Cielo di Riva raccoglie disegni delle nuvole visibili dalla finestra della sala comune. L’album serve a confrontare le descrizioni dei partecipanti, senza produrre previsioni meteorologiche o misure della copertura dell’intero cielo.\n\nIl 14 aprile 2026, alle 9:10, Marta disegna tre strisce nella parte settentrionale della finestra; alle 9:40, Paolo disegna una massa unica nello stesso settore. Elda trascrive entrambi i cartellini il 16 aprile. Il [foglio di accompagnamento](/documents/defect-t01-s1) conserva nomi, orari e legenda dei segni.\n\nI fogli riguardano soltanto il settore visibile dalla finestra, che rimane chiusa durante entrambe le osservazioni. I disegni non stabiliscono se le forme ritratte a distanza di mezz’ora appartengano alla stessa nuvola.\n\nIl cartoncino piegato dietro la copertina separa i fogli originali dalle fotocopie usate durante gli incontri. Sul cartoncino, il lato con il triangolo indica il verso degli originali.\n\n## Promemoria riportato dall’incontro\n\nAlle 9:10 del 14 aprile Marta raffigura tre strisce; alle 9:40 Paolo raffigura una massa unica, sempre nel settore settentrionale visibile dalla finestra. Elda copia i due cartellini il 16 aprile; i suoi interventi riguardano la trascrizione.\n\nNon è ancora riportato qui il significato del piccolo punto grigio accanto all’orario. Resta inoltre sconosciuta la direzione del vento fuori dalla sala."
+      },
+      "evidence": {
+        "citations": [
+          {
+            "pageId": "defect-t01-target",
+            "version": 3,
+            "quote": "Il gruppo Cielo di Riva raccoglie disegni delle nuvole visibili dalla finestra della sala comune. L’album serve a confrontare le descrizioni dei partecipanti, senza produrre previsioni meteorologiche o misure della copertura dell’intero cielo."
+          },
+          {
+            "pageId": "defect-t01-s1",
+            "version": 2,
+            "quote": "Il punto grigio accanto all’orario indica che il disegno è stato realizzato direttamente davanti alla finestra, non ricopiato da una fotografia. La legenda riguarda soltanto questa raccolta e non è presentata come una convenzione meteorologica generale."
+          },
+          {
+            "pageId": "defect-t01-s1",
+            "version": 2,
+            "quote": "Elda ha trascritto entrambi i cartellini il 16 aprile 2026."
+          }
+        ],
+        "sources": [
+          {
+            "pageId": "defect-t01-target",
+            "version": 3,
+            "title": "Cielo di Riva — album delle nuvole",
+            "summary": "Autori e orari di due disegni, legenda dell’album e limiti delle osservazioni.",
+            "markdown": "# Cielo di Riva: album delle nuvole\n\nIl gruppo Cielo di Riva raccoglie disegni delle nuvole visibili dalla finestra della sala comune. L’album serve a confrontare le descrizioni dei partecipanti, senza produrre previsioni meteorologiche o misure della copertura dell’intero cielo.\n\nIl 14 aprile 2026, alle 9:10, Marta disegna tre strisce nella parte settentrionale della finestra; alle 9:40, Paolo disegna una massa unica nello stesso settore. Elda trascrive entrambi i cartellini il 16 aprile. Il [foglio di accompagnamento](/documents/defect-t01-s1) conserva nomi, orari e legenda dei segni.\n\nI fogli riguardano soltanto il settore visibile dalla finestra, che rimane chiusa durante entrambe le osservazioni. I disegni non stabiliscono se le forme ritratte a distanza di mezz’ora appartengano alla stessa nuvola.\n\nIl cartoncino piegato dietro la copertina separa i fogli originali dalle fotocopie usate durante gli incontri. Sul cartoncino, il lato con il triangolo indica il verso degli originali.\n\n## Promemoria riportato dall’incontro\n\nAlle 9:10 del 14 aprile Marta raffigura tre strisce; alle 9:40 Paolo raffigura una massa unica, sempre nel settore settentrionale visibile dalla finestra. Elda copia i due cartellini il 16 aprile; i suoi interventi riguardano la trascrizione.\n\nNon è ancora riportato qui il significato del piccolo punto grigio accanto all’orario. Resta inoltre sconosciuta la direzione del vento fuori dalla sala."
+          },
+          {
+            "pageId": "defect-t01-s1",
+            "version": 2,
+            "title": "Foglio di accompagnamento dell’album Cielo di Riva",
+            "markdown": "# Foglio di accompagnamento dell’album Cielo di Riva\n\nIl punto grigio accanto all’orario indica che il disegno è stato realizzato direttamente davanti alla finestra, non ricopiato da una fotografia. La legenda riguarda soltanto questa raccolta e non è presentata come una convenzione meteorologica generale.\n\nMarta ha realizzato il disegno delle 9:10 del 14 aprile 2026, con tre strisce nel settore settentrionale della finestra. Paolo ha realizzato quello delle 9:40, con una massa unica nel medesimo settore. Gli orari identificano due osservazioni separate, non la durata di un fenomeno. La finestra della sala è rimasta chiusa in entrambi i momenti; nessuna annotazione descrive ciò che era visibile dagli altri lati dell’edificio.\n\nElda ha trascritto entrambi i cartellini il 16 aprile 2026. Il suo nome identifica la trascrizione, non la realizzazione dei disegni o la presenza davanti alla finestra il 14 aprile. Il foglio non collega fisicamente le tre strisce alla massa successiva e non contiene una previsione del tempo. Le etichette consentono di recuperare il contesto delle immagini durante il confronto fra partecipanti, anche quando i due fogli vengono mostrati separatamente."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "variantId": "good_a",
+          "targetCriterion": null,
+          "after": {
+            "title": "Cielo di Riva — album delle nuvole",
+            "type": "project",
+            "summary": "Autori e orari di due disegni, legenda dell’album e limiti delle osservazioni.",
+            "markdown": "# Cielo di Riva: album delle nuvole\n\nIl gruppo Cielo di Riva raccoglie disegni delle nuvole visibili dalla finestra della sala comune. L’album serve a confrontare le descrizioni dei partecipanti, senza produrre previsioni meteorologiche o misure della copertura dell’intero cielo.\n\nIl 14 aprile 2026, alle 9:10, Marta disegna tre strisce nella parte settentrionale della finestra; alle 9:40, Paolo disegna una massa unica nello stesso settore. Elda trascrive entrambi i cartellini il 16 aprile. Il [foglio di accompagnamento](/documents/defect-t01-s1) conserva nomi, orari e legenda dei segni.\n\nI fogli riguardano soltanto il settore visibile dalla finestra, che rimane chiusa durante entrambe le osservazioni. I disegni non stabiliscono se le forme ritratte a distanza di mezz’ora appartengano alla stessa nuvola.\n\nIl cartoncino piegato dietro la copertina separa i fogli originali dalle fotocopie usate durante gli incontri. Sul cartoncino, il lato con il triangolo indica il verso degli originali.\n\nIl [foglio di accompagnamento](/documents/defect-t01-s1) chiarisce che il punto grigio accanto all’orario segnala un disegno realizzato direttamente davanti alla finestra, non ricopiato da una fotografia. Resta sconosciuta la direzione del vento fuori dalla sala."
+          },
+          "mutationDescription": "Elimina il promemoria duplicato e incorpora la legenda documentata, mantenendo autori, date e incertezza sul vento."
+        },
+        {
+          "variantId": "good_b",
+          "targetCriterion": null,
+          "after": {
+            "title": "Cielo di Riva — album delle nuvole",
+            "type": "project",
+            "summary": "Autori e orari di due disegni, legenda dell’album e limiti delle osservazioni.",
+            "markdown": "# Cielo di Riva: album delle nuvole\n\nIl gruppo Cielo di Riva raccoglie disegni delle nuvole visibili dalla finestra della sala comune. L’album serve a confrontare le descrizioni dei partecipanti, senza produrre previsioni meteorologiche o misure della copertura dell’intero cielo.\n\nIl 14 aprile 2026, alle 9:10, Marta disegna tre strisce nella parte settentrionale della finestra; alle 9:40, Paolo disegna una massa unica nello stesso settore. Elda trascrive entrambi i cartellini il 16 aprile. Il [foglio di accompagnamento](/documents/defect-t01-s1) conserva nomi, orari e legenda dei segni.\n\nI fogli riguardano soltanto il settore visibile dalla finestra, che rimane chiusa durante entrambe le osservazioni. I disegni non stabiliscono se le forme ritratte a distanza di mezz’ora appartengano alla stessa nuvola.\n\nIl cartoncino piegato dietro la copertina separa i fogli originali dalle fotocopie usate durante gli incontri. Sul cartoncino, il lato con il triangolo indica il verso degli originali.\n\nNon è ancora riportato qui il significato del piccolo punto grigio accanto all’orario. Resta inoltre sconosciuta la direzione del vento fuori dalla sala."
+          },
+          "mutationDescription": "Elimina soltanto la ripetizione sostanziale delle due osservazioni e della trascrizione."
+        },
+        {
+          "variantId": "unsupported",
+          "targetCriterion": "supported_by_evidence",
+          "after": {
+            "title": "Cielo di Riva — album delle nuvole",
+            "type": "project",
+            "summary": "Autori e orari di due disegni, legenda dell’album e limiti delle osservazioni.",
+            "markdown": "# Cielo di Riva: album delle nuvole\n\nIl gruppo Cielo di Riva raccoglie disegni delle nuvole visibili dalla finestra della sala comune. L’album serve a confrontare le descrizioni dei partecipanti, senza produrre previsioni meteorologiche o misure della copertura dell’intero cielo.\n\nIl 14 aprile 2026, alle 9:10, Marta disegna tre strisce nella parte settentrionale della finestra; alle 9:40, Paolo disegna una massa unica nello stesso settore. Elda, presente a entrambe le osservazioni, trascrive i cartellini il 16 aprile. Il [foglio di accompagnamento](/documents/defect-t01-s1) conserva nomi, orari e legenda dei segni.\n\nI fogli riguardano soltanto il settore visibile dalla finestra, che rimane chiusa durante entrambe le osservazioni. I disegni non stabiliscono se le forme ritratte a distanza di mezz’ora appartengano alla stessa nuvola.\n\nIl cartoncino piegato dietro la copertina separa i fogli originali dalle fotocopie usate durante gli incontri. Sul cartoncino, il lato con il triangolo indica il verso degli originali.\n\nIl [foglio di accompagnamento](/documents/defect-t01-s1) chiarisce che il punto grigio accanto all’orario segnala un disegno realizzato direttamente davanti alla finestra, non ricopiato da una fotografia. Resta sconosciuta la direzione del vento fuori dalla sala."
+          },
+          "mutationDescription": "Attribuisce a Elda la presenza durante le osservazioni, mentre le fonti attestano soltanto la trascrizione successiva."
+        },
+        {
+          "variantId": "loss",
+          "targetCriterion": "preserves_distinct_information",
+          "after": {
+            "title": "Cielo di Riva — album delle nuvole",
+            "type": "project",
+            "summary": "Autori e orari di due disegni, legenda dell’album e limiti delle osservazioni.",
+            "markdown": "# Cielo di Riva: album delle nuvole\n\nIl gruppo Cielo di Riva raccoglie disegni delle nuvole visibili dalla finestra della sala comune. L’album serve a confrontare le descrizioni dei partecipanti, senza produrre previsioni meteorologiche o misure della copertura dell’intero cielo.\n\nIl 14 aprile 2026, alle 9:10, Marta disegna tre strisce nella parte settentrionale della finestra; alle 9:40, Paolo disegna una massa unica nello stesso settore. Elda trascrive entrambi i cartellini il 16 aprile. Il [foglio di accompagnamento](/documents/defect-t01-s1) conserva nomi, orari e legenda dei segni.\n\nI fogli riguardano soltanto il settore visibile dalla finestra, che rimane chiusa durante entrambe le osservazioni. I disegni non stabiliscono se le forme ritratte a distanza di mezz’ora appartengano alla stessa nuvola.\n\nIl [foglio di accompagnamento](/documents/defect-t01-s1) chiarisce che il punto grigio accanto all’orario segnala un disegno realizzato direttamente davanti alla finestra, non ricopiato da una fotografia. Resta sconosciuta la direzione del vento fuori dalla sala."
+          },
+          "mutationDescription": "Elimina l’unica indicazione per distinguere originali e fotocopie mediante il cartoncino, assente dal foglio esterno."
+        },
+        {
+          "variantId": "human_action",
+          "targetCriterion": "no_new_human_action",
+          "after": {
+            "title": "Cielo di Riva — album delle nuvole",
+            "type": "project",
+            "summary": "Autori e orari di due disegni, legenda dell’album e limiti delle osservazioni.",
+            "markdown": "# Cielo di Riva: album delle nuvole\n\nIl gruppo Cielo di Riva raccoglie disegni delle nuvole visibili dalla finestra della sala comune. L’album serve a confrontare le descrizioni dei partecipanti, senza produrre previsioni meteorologiche o misure della copertura dell’intero cielo.\n\nIl 14 aprile 2026, alle 9:10, Marta disegna tre strisce nella parte settentrionale della finestra; alle 9:40, Paolo disegna una massa unica nello stesso settore. Elda trascrive entrambi i cartellini il 16 aprile. Il [foglio di accompagnamento](/documents/defect-t01-s1) conserva nomi, orari e legenda dei segni.\n\nI fogli riguardano soltanto il settore visibile dalla finestra, che rimane chiusa durante entrambe le osservazioni. I disegni non stabiliscono se le forme ritratte a distanza di mezz’ora appartengano alla stessa nuvola.\n\nIl cartoncino piegato dietro la copertina separa i fogli originali dalle fotocopie usate durante gli incontri. Sul cartoncino, il lato con il triangolo indica il verso degli originali.\n\nNon è ancora riportato qui il significato del piccolo punto grigio accanto all’orario. Resta inoltre sconosciuta la direzione del vento fuori dalla sala; la scheda potrà essere considerata completa dopo una verifica di Marta."
+          },
+          "mutationDescription": "Trasforma l’incertezza sul vento in una condizione di completezza subordinata a una nuova verifica di Marta."
+        },
+        {
+          "variantId": "cosmetic",
+          "targetCriterion": "meaningful_improvement",
+          "after": {
+            "title": "Cielo di Riva — album delle nuvole",
+            "type": "project",
+            "summary": "Autori e orari di due disegni, legenda dell’album e limiti delle osservazioni.",
+            "markdown": "# Cielo di Riva: album delle nuvole\n\nIl gruppo Cielo di Riva riunisce disegni delle nuvole visibili dalla finestra della sala comune. L’album permette di confrontare le descrizioni dei partecipanti, senza produrre previsioni meteorologiche o misure della copertura dell’intero cielo.\n\nIl 14 aprile 2026, alle 9:10, Marta disegna tre strisce nella parte settentrionale della finestra; alle 9:40, Paolo disegna una massa unica nello stesso settore. Elda trascrive entrambi i cartellini il 16 aprile. Il [foglio di accompagnamento](/documents/defect-t01-s1) conserva nomi, orari e legenda dei segni.\n\nI fogli riguardano soltanto il settore visibile dalla finestra, che rimane chiusa durante entrambe le osservazioni. I disegni non stabiliscono se le forme ritratte a distanza di mezz’ora appartengano alla stessa nuvola.\n\nIl cartoncino piegato dietro la copertina separa i fogli originali dalle fotocopie usate durante gli incontri. Sul cartoncino, il lato con il triangolo indica il verso degli originali.\n\n## Promemoria riportato dall’incontro\n\nAlle 9:10 del 14 aprile Marta raffigura tre strisce; alle 9:40 Paolo raffigura una massa unica, sempre nel settore settentrionale visibile dalla finestra. Elda copia i due cartellini il 16 aprile; i suoi interventi riguardano la trascrizione.\n\nNon è ancora riportato qui il significato del piccolo punto grigio accanto all’orario. Resta inoltre sconosciuta la direzione del vento fuori dalla sala."
+          },
+          "mutationDescription": "Sostituisce due espressioni nel corpo lasciando intatti promemoria duplicato e domanda risolvibile."
+        }
+      ]
+    },
+    {
+      "familyId": "T02",
+      "title": "Incastri di Quartiere — scatole del tavolo blu",
+      "category": "stato_delle_verifiche",
+      "before": {
+        "title": "Incastri di Quartiere — scatole del tavolo blu",
+        "type": "project",
+        "summary": "Stato dei conteggi di quattro puzzle e distinzione dalla prova di montaggio.",
+        "markdown": "# Incastri di Quartiere: scatole del tavolo blu\n\nIncastri di Quartiere organizza lo scambio di puzzle già usati fra abitanti del rione. Questa scheda riguarda quattro scatole sul tavolo blu; distingue il conteggio dei pezzi dalla prova di montaggio e non descrive gli scambi degli altri tavoli.\n\nIl registro del 3 maggio 2026 riporta per Porto e Balcone un conteggio di cinquecento pezzi ciascuno. Per Bosco e Laghetto il conteggio non è terminato. Il [registro dei conteggi](/documents/defect-t02-s1) conserva le annotazioni di Sara e l’elenco delle scatole.\n\nUn conteggio corretto non prova da solo che tutti i pezzi appartengano alla stessa immagine. La scheda non assegna un valore economico alle scatole e non certifica che il puzzle sia stato montato fino alla fine.\n\nPer il tavolo blu, la scritta del titolo sul dorso della scatola prevale sulla fotografia del coperchio: il coperchio di Balcone è stato sostituito e mostra un’immagine diversa. Questa eccezione riguarda soltanto quella scatola.\n\n## Copia della situazione per il banco\n\nAl 3 maggio Porto e Balcone risultano contati, con cinquecento pezzi ciascuno; Bosco e Laghetto hanno il conteggio incompleto. Queste quattro scatole appartengono al tavolo blu e il conteggio non equivale alla ricostruzione completa delle immagini.\n\nNon è ancora spiegata nella scheda la sigla G sui cartellini. Non è noto se il bordo di Bosco includa pezzi provenienti da un’altra scatola."
+      },
+      "evidence": {
+        "citations": [
+          {
+            "pageId": "defect-t02-target",
+            "version": 3,
+            "quote": "Incastri di Quartiere organizza lo scambio di puzzle già usati fra abitanti del rione. Questa scheda riguarda quattro scatole sul tavolo blu; distingue il conteggio dei pezzi dalla prova di montaggio e non descrive gli scambi degli altri tavoli."
+          },
+          {
+            "pageId": "defect-t02-s1",
+            "version": 2,
+            "quote": "Bosco e Laghetto sono ancora in conteggio alla chiusura del registro del 3 maggio."
+          },
+          {
+            "pageId": "defect-t02-s1",
+            "version": 2,
+            "quote": "La sigla G indica che è stato conteggiato un gruppo da cinquanta pezzi; non significa che la scatola sia completa."
+          }
+        ],
+        "sources": [
+          {
+            "pageId": "defect-t02-target",
+            "version": 3,
+            "title": "Incastri di Quartiere — scatole del tavolo blu",
+            "summary": "Stato dei conteggi di quattro puzzle e distinzione dalla prova di montaggio.",
+            "markdown": "# Incastri di Quartiere: scatole del tavolo blu\n\nIncastri di Quartiere organizza lo scambio di puzzle già usati fra abitanti del rione. Questa scheda riguarda quattro scatole sul tavolo blu; distingue il conteggio dei pezzi dalla prova di montaggio e non descrive gli scambi degli altri tavoli.\n\nIl registro del 3 maggio 2026 riporta per Porto e Balcone un conteggio di cinquecento pezzi ciascuno. Per Bosco e Laghetto il conteggio non è terminato. Il [registro dei conteggi](/documents/defect-t02-s1) conserva le annotazioni di Sara e l’elenco delle scatole.\n\nUn conteggio corretto non prova da solo che tutti i pezzi appartengano alla stessa immagine. La scheda non assegna un valore economico alle scatole e non certifica che il puzzle sia stato montato fino alla fine.\n\nPer il tavolo blu, la scritta del titolo sul dorso della scatola prevale sulla fotografia del coperchio: il coperchio di Balcone è stato sostituito e mostra un’immagine diversa. Questa eccezione riguarda soltanto quella scatola.\n\n## Copia della situazione per il banco\n\nAl 3 maggio Porto e Balcone risultano contati, con cinquecento pezzi ciascuno; Bosco e Laghetto hanno il conteggio incompleto. Queste quattro scatole appartengono al tavolo blu e il conteggio non equivale alla ricostruzione completa delle immagini.\n\nNon è ancora spiegata nella scheda la sigla G sui cartellini. Non è noto se il bordo di Bosco includa pezzi provenienti da un’altra scatola."
+          },
+          {
+            "pageId": "defect-t02-s1",
+            "version": 2,
+            "title": "Registro dei conteggi di Incastri di Quartiere",
+            "markdown": "# Registro dei conteggi di Incastri di Quartiere\n\nSara annota il 3 maggio 2026 che Porto e Balcone contengono cinquecento pezzi ciascuno. Il numero viene ottenuto dividendo i pezzi in gruppi da cinquanta; la registrazione riguarda le due scatole nominate, non l’intero tavolo.\n\nBosco e Laghetto sono ancora in conteggio alla chiusura del registro del 3 maggio. Le loro righe non contengono un totale definitivo. Il tavolo blu comprende queste quattro scatole, separate dalle scatole del tavolo verde per evitare di mescolare i pezzi durante il lavoro.\n\nLa sigla G indica che è stato conteggiato un gruppo da cinquanta pezzi; non significa che la scatola sia completa. Cinquecento pezzi contati possono comprendere un pezzo estraneo e non dimostrano che l’immagine sia stata ricostruita. Nessuna delle righe riporta una prova di montaggio conclusa. Il registro conserva i titoli usati al banco e il nome di chi ha effettuato il conteggio, senza stabilire un prezzo di scambio o attribuire certificazioni al gruppo di quartiere. Le annotazioni rimangono riferite al 3 maggio e non anticipano l’esito dei conteggi ancora aperti."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "variantId": "good_a",
+          "targetCriterion": null,
+          "after": {
+            "title": "Incastri di Quartiere — scatole del tavolo blu",
+            "type": "project",
+            "summary": "Stato dei conteggi di quattro puzzle e distinzione dalla prova di montaggio.",
+            "markdown": "# Incastri di Quartiere: scatole del tavolo blu\n\nIncastri di Quartiere organizza lo scambio di puzzle già usati fra abitanti del rione. Questa scheda riguarda quattro scatole sul tavolo blu; distingue il conteggio dei pezzi dalla prova di montaggio e non descrive gli scambi degli altri tavoli.\n\nIl registro del 3 maggio 2026 riporta per Porto e Balcone un conteggio di cinquecento pezzi ciascuno. Per Bosco e Laghetto il conteggio non è terminato. Il [registro dei conteggi](/documents/defect-t02-s1) conserva le annotazioni di Sara e l’elenco delle scatole.\n\nUn conteggio corretto non prova da solo che tutti i pezzi appartengano alla stessa immagine. La scheda non assegna un valore economico alle scatole e non certifica che il puzzle sia stato montato fino alla fine.\n\nPer il tavolo blu, la scritta del titolo sul dorso della scatola prevale sulla fotografia del coperchio: il coperchio di Balcone è stato sostituito e mostra un’immagine diversa. Questa eccezione riguarda soltanto quella scatola.\n\nSecondo il [registro dei conteggi](/documents/defect-t02-s1), G indica un gruppo di cinquanta pezzi conteggiati e non la completezza della scatola. Non è noto se il bordo di Bosco includa pezzi provenienti da un’altra scatola."
+          },
+          "mutationDescription": "Rimuove la copia della situazione e integra il significato documentato di G senza estendere lo stato dei conteggi."
+        },
+        {
+          "variantId": "good_b",
+          "targetCriterion": null,
+          "after": {
+            "title": "Incastri di Quartiere — scatole del tavolo blu",
+            "type": "project",
+            "summary": "Stato dei conteggi di quattro puzzle e distinzione dalla prova di montaggio.",
+            "markdown": "# Incastri di Quartiere: scatole del tavolo blu\n\nIncastri di Quartiere organizza lo scambio di puzzle già usati fra abitanti del rione. Questa scheda riguarda quattro scatole sul tavolo blu; distingue il conteggio dei pezzi dalla prova di montaggio e non descrive gli scambi degli altri tavoli.\n\nIl registro del 3 maggio 2026 riporta per Porto e Balcone un conteggio di cinquecento pezzi ciascuno. Per Bosco e Laghetto il conteggio non è terminato. Il [registro dei conteggi](/documents/defect-t02-s1) conserva le annotazioni di Sara e l’elenco delle scatole.\n\nUn conteggio corretto non prova da solo che tutti i pezzi appartengano alla stessa immagine. La scheda non assegna un valore economico alle scatole e non certifica che il puzzle sia stato montato fino alla fine.\n\nPer il tavolo blu, la scritta del titolo sul dorso della scatola prevale sulla fotografia del coperchio: il coperchio di Balcone è stato sostituito e mostra un’immagine diversa. Questa eccezione riguarda soltanto quella scatola.\n\nNon è ancora spiegata nella scheda la sigla G sui cartellini. Non è noto se il bordo di Bosco includa pezzi provenienti da un’altra scatola."
+          },
+          "mutationDescription": "Rimuove solo il riepilogo che ripete scatole, conteggi, data e distinzione dal montaggio."
+        },
+        {
+          "variantId": "unsupported",
+          "targetCriterion": "supported_by_evidence",
+          "after": {
+            "title": "Incastri di Quartiere — scatole del tavolo blu",
+            "type": "project",
+            "summary": "Stato dei conteggi di quattro puzzle e distinzione dalla prova di montaggio.",
+            "markdown": "# Incastri di Quartiere: scatole del tavolo blu\n\nIncastri di Quartiere organizza lo scambio di puzzle già usati fra abitanti del rione. Questa scheda riguarda quattro scatole sul tavolo blu; distingue il conteggio dei pezzi dalla prova di montaggio e non descrive gli scambi degli altri tavoli.\n\nIl registro del 3 maggio 2026 riporta per Porto e Balcone un conteggio di cinquecento pezzi ciascuno. Anche per Bosco e Laghetto il conteggio risulta terminato il 3 maggio 2026. Il [registro dei conteggi](/documents/defect-t02-s1) conserva le annotazioni di Sara e l’elenco delle scatole.\n\nUn conteggio corretto non prova da solo che tutti i pezzi appartengano alla stessa immagine. La scheda non assegna un valore economico alle scatole e non certifica che il puzzle sia stato montato fino alla fine.\n\nPer il tavolo blu, la scritta del titolo sul dorso della scatola prevale sulla fotografia del coperchio: il coperchio di Balcone è stato sostituito e mostra un’immagine diversa. Questa eccezione riguarda soltanto quella scatola.\n\nSecondo il [registro dei conteggi](/documents/defect-t02-s1), G indica un gruppo di cinquanta pezzi conteggiati e non la completezza della scatola. Non è noto se il bordo di Bosco includa pezzi provenienti da un’altra scatola."
+          },
+          "mutationDescription": "Assegna a Bosco e Laghetto un completamento datato che il registro contraddice."
+        },
+        {
+          "variantId": "loss",
+          "targetCriterion": "preserves_distinct_information",
+          "after": {
+            "title": "Incastri di Quartiere — scatole del tavolo blu",
+            "type": "project",
+            "summary": "Stato dei conteggi di quattro puzzle e distinzione dalla prova di montaggio.",
+            "markdown": "# Incastri di Quartiere: scatole del tavolo blu\n\nIncastri di Quartiere organizza lo scambio di puzzle già usati fra abitanti del rione. Questa scheda riguarda quattro scatole sul tavolo blu; distingue il conteggio dei pezzi dalla prova di montaggio e non descrive gli scambi degli altri tavoli.\n\nIl registro del 3 maggio 2026 riporta per Porto e Balcone un conteggio di cinquecento pezzi ciascuno. Per Bosco e Laghetto il conteggio non è terminato. Il [registro dei conteggi](/documents/defect-t02-s1) conserva le annotazioni di Sara e l’elenco delle scatole.\n\nUn conteggio corretto non prova da solo che tutti i pezzi appartengano alla stessa immagine. La scheda non assegna un valore economico alle scatole e non certifica che il puzzle sia stato montato fino alla fine.\n\nNon è ancora spiegata nella scheda la sigla G sui cartellini. Non è noto se il bordo di Bosco includa pezzi provenienti da un’altra scatola."
+          },
+          "mutationDescription": "Cancella l’eccezione unica sul coperchio sostituito di Balcone, necessaria per riconoscere la scatola."
+        },
+        {
+          "variantId": "human_action",
+          "targetCriterion": "no_new_human_action",
+          "after": {
+            "title": "Incastri di Quartiere — scatole del tavolo blu",
+            "type": "project",
+            "summary": "Stato dei conteggi di quattro puzzle e distinzione dalla prova di montaggio.",
+            "markdown": "# Incastri di Quartiere: scatole del tavolo blu\n\nIncastri di Quartiere organizza lo scambio di puzzle già usati fra abitanti del rione. Questa scheda riguarda quattro scatole sul tavolo blu; distingue il conteggio dei pezzi dalla prova di montaggio e non descrive gli scambi degli altri tavoli.\n\nIl registro del 3 maggio 2026 riporta per Porto e Balcone un conteggio di cinquecento pezzi ciascuno. Per Bosco e Laghetto il conteggio non è terminato. Il [registro dei conteggi](/documents/defect-t02-s1) conserva le annotazioni di Sara e l’elenco delle scatole.\n\nUn conteggio corretto non prova da solo che tutti i pezzi appartengano alla stessa immagine. La scheda non assegna un valore economico alle scatole e non certifica che il puzzle sia stato montato fino alla fine.\n\nPer il tavolo blu, la scritta del titolo sul dorso della scatola prevale sulla fotografia del coperchio: il coperchio di Balcone è stato sostituito e mostra un’immagine diversa. Questa eccezione riguarda soltanto quella scatola.\n\nSecondo il [registro dei conteggi](/documents/defect-t02-s1), G indica un gruppo di cinquanta pezzi conteggiati e non la completezza della scatola. Non è noto se il bordo di Bosco includa pezzi provenienti da un’altra scatola.\n\nLa pubblicazione della situazione del tavolo blu resta subordinata al visto di Sara sui quattro cartellini."
+          },
+          "mutationDescription": "Introduce un visto umano come nuova condizione di pubblicazione, assente da pagina e registro."
+        },
+        {
+          "variantId": "cosmetic",
+          "targetCriterion": "meaningful_improvement",
+          "after": {
+            "title": "Incastri di Quartiere — scatole del tavolo blu",
+            "type": "project",
+            "summary": "Stato dei conteggi di quattro puzzle e distinzione dalla prova di montaggio.",
+            "markdown": "# Incastri di Quartiere: scatole del tavolo blu\n\nIncastri di Quartiere organizza lo scambio di puzzle già usati fra abitanti del rione. Questa scheda tratta le quattro scatole collocate sul tavolo blu; distingue il conteggio dei pezzi dalla prova di montaggio e non descrive gli scambi degli altri tavoli.\n\nIl registro del 3 maggio 2026 riporta per Porto e Balcone un conteggio di cinquecento pezzi ciascuno. Per Bosco e Laghetto il conteggio non è terminato. Il [registro dei conteggi](/documents/defect-t02-s1) conserva le annotazioni di Sara e l’elenco delle scatole.\n\nUn conteggio corretto non prova da solo che tutti i pezzi appartengano alla stessa immagine. La scheda non assegna un valore economico alle scatole e non certifica che il puzzle sia stato montato fino alla fine.\n\nPer il tavolo blu, la scritta del titolo sul dorso della scatola prevale sulla fotografia del coperchio: il coperchio di Balcone è stato sostituito e mostra un’immagine diversa. Questa eccezione riguarda soltanto quella scatola.\n\n## Copia della situazione per il banco\n\nAl 3 maggio Porto e Balcone risultano contati, con cinquecento pezzi ciascuno; Bosco e Laghetto hanno il conteggio incompleto. Queste quattro scatole appartengono al tavolo blu e il conteggio non equivale alla ricostruzione completa delle immagini.\n\nNon è ancora spiegata nella scheda la sigla G sui cartellini. Non è noto se il bordo di Bosco includa pezzi provenienti da un’altra scatola."
+          },
+          "mutationDescription": "Riformula soltanto una frase introduttiva del corpo, senza rimuovere duplicazioni né aggiungere conoscenza."
+        }
+      ]
+    },
+    {
+      "familyId": "T03",
+      "title": "Punto Mobile — campione di riparazione R8",
+      "category": "deduplicazione_fra_pagine",
+      "before": {
+        "title": "Punto Mobile — campione di riparazione R8",
+        "type": "project",
+        "summary": "Procedura della tasca R8, distinzione del campione e contesto della dimostrazione.",
+        "markdown": "# Punto Mobile: riparazione delle borse in tela\n\nPunto Mobile raccoglie appunti sulle riparazioni dimostrative svolte al banco del sabato. Questa scheda riguarda la cucitura di una tasca della borsa R8, senza estendere il risultato a manici, chiusure o capacità di carico della borsa.\n\nLa [scheda tecnica R8](/documents/defect-t03-s1), compilata da Noor il 21 giugno 2026, descrive il campione: tela color ocra, tasca esterna e filo verde. Il filo verde permette di distinguere la riparazione dalla cucitura originale color sabbia.\n\nLa procedura R8 fissa prima i due angoli inferiori della tasca, prosegue lungo il bordo inferiore e termina sui lati. Sul lato sinistro lascia due millimetri di margine in più per evitare la vecchia piega. Il foglio tecnico riporta questa stessa sequenza.\n\nIl campione resta riconoscibile dalla cucitura verde; il resto della borsa non è stato ricucito. La dimostrazione riguarda la tasca esterna e non attribuisce al campione una resistenza certificata.\n\n## Nota ripetuta sul campione\n\nLa borsa R8 ha una tasca esterna su tela ocra: il filo verde della riparazione la distingue dalla cucitura originale color sabbia. La scheda tecnica è stata compilata da Noor il 21 giugno 2026 e riguarda soltanto il campione dimostrativo.\n\nLa spoletta usata per R8 è conservata nell’astuccio morbido, separata dalle spolette del corso. Non è noto se la seconda borsa ricevuta al banco abbia la stessa piega sul lato sinistro."
+      },
+      "evidence": {
+        "citations": [
+          {
+            "pageId": "defect-t03-target",
+            "version": 3,
+            "quote": "Punto Mobile raccoglie appunti sulle riparazioni dimostrative svolte al banco del sabato. Questa scheda riguarda la cucitura di una tasca della borsa R8, senza estendere il risultato a manici, chiusure o capacità di carico della borsa."
+          },
+          {
+            "pageId": "defect-t03-s1",
+            "version": 2,
+            "quote": "La procedura R8 fissa prima i due angoli inferiori della tasca, prosegue lungo il bordo inferiore e termina sui lati."
+          },
+          {
+            "pageId": "defect-t03-s1",
+            "version": 2,
+            "quote": "Sul lato sinistro lascia due millimetri di margine in più per evitare la vecchia piega."
+          }
+        ],
+        "sources": [
+          {
+            "pageId": "defect-t03-target",
+            "version": 3,
+            "title": "Punto Mobile — campione di riparazione R8",
+            "summary": "Procedura della tasca R8, distinzione del campione e contesto della dimostrazione.",
+            "markdown": "# Punto Mobile: riparazione delle borse in tela\n\nPunto Mobile raccoglie appunti sulle riparazioni dimostrative svolte al banco del sabato. Questa scheda riguarda la cucitura di una tasca della borsa R8, senza estendere il risultato a manici, chiusure o capacità di carico della borsa.\n\nLa [scheda tecnica R8](/documents/defect-t03-s1), compilata da Noor il 21 giugno 2026, descrive il campione: tela color ocra, tasca esterna e filo verde. Il filo verde permette di distinguere la riparazione dalla cucitura originale color sabbia.\n\nLa procedura R8 fissa prima i due angoli inferiori della tasca, prosegue lungo il bordo inferiore e termina sui lati. Sul lato sinistro lascia due millimetri di margine in più per evitare la vecchia piega. Il foglio tecnico riporta questa stessa sequenza.\n\nIl campione resta riconoscibile dalla cucitura verde; il resto della borsa non è stato ricucito. La dimostrazione riguarda la tasca esterna e non attribuisce al campione una resistenza certificata.\n\n## Nota ripetuta sul campione\n\nLa borsa R8 ha una tasca esterna su tela ocra: il filo verde della riparazione la distingue dalla cucitura originale color sabbia. La scheda tecnica è stata compilata da Noor il 21 giugno 2026 e riguarda soltanto il campione dimostrativo.\n\nLa spoletta usata per R8 è conservata nell’astuccio morbido, separata dalle spolette del corso. Non è noto se la seconda borsa ricevuta al banco abbia la stessa piega sul lato sinistro."
+          },
+          {
+            "pageId": "defect-t03-s1",
+            "version": 2,
+            "title": "Scheda tecnica R8 di Punto Mobile",
+            "markdown": "# Scheda tecnica R8 di Punto Mobile\n\nNoor compila questa scheda il 21 giugno 2026 durante la dimostrazione della riparazione di una tasca esterna. Il campione R8 è una borsa di tela color ocra con cucitura originale color sabbia. Il nuovo filo è verde, per rendere visibile il tratto eseguito al banco.\n\nLa procedura R8 fissa prima i due angoli inferiori della tasca, prosegue lungo il bordo inferiore e termina sui lati. Sul lato sinistro lascia due millimetri di margine in più per evitare la vecchia piega. La sequenza è riferita alla forma della tasca e alla piega presenti su questo campione. Il bordo superiore non viene chiuso e rimane l’apertura della tasca.\n\nLa scheda registra la dimostrazione, non una prova di durata. Non sono stati ricuciti i manici o le chiusure della borsa, e il documento non indica un carico massimo sostenibile. Le fotografie allegate al foglio cartaceo mostrano il filo verde rispetto a quello color sabbia, senza documentare altre borse. Il nome Noor identifica chi ha compilato la scheda in quella data; non sono riportati un controllo successivo o un verbale di approvazione della riparazione."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "variantId": "good_a",
+          "targetCriterion": null,
+          "after": {
+            "title": "Punto Mobile — campione di riparazione R8",
+            "type": "project",
+            "summary": "Procedura della tasca R8, distinzione del campione e contesto della dimostrazione.",
+            "markdown": "# Punto Mobile: riparazione delle borse in tela\n\nPunto Mobile raccoglie appunti sulle riparazioni dimostrative svolte al banco del sabato. Questa scheda riguarda la cucitura di una tasca della borsa R8, senza estendere il risultato a manici, chiusure o capacità di carico della borsa.\n\nLa [scheda tecnica R8](/documents/defect-t03-s1), compilata da Noor il 21 giugno 2026, descrive il campione: tela color ocra, tasca esterna e filo verde. Il filo verde permette di distinguere la riparazione dalla cucitura originale color sabbia.\n\nLa sequenza di cucitura e il margine del lato sinistro restano consultabili nella scheda tecnica R8 collegata sopra.\n\nIl campione resta riconoscibile dalla cucitura verde; il resto della borsa non è stato ricucito. La dimostrazione riguarda la tasca esterna e non attribuisce al campione una resistenza certificata.\n\nLa spoletta usata per R8 è conservata nell’astuccio morbido, separata dalle spolette del corso. Non è noto se la seconda borsa ricevuta al banco abbia la stessa piega sul lato sinistro."
+          },
+          "mutationDescription": "Elimina la ripetizione e la copia della procedura che rimane integralmente nella fonte collegata tramite link relativo conservato."
+        },
+        {
+          "variantId": "good_b",
+          "targetCriterion": null,
+          "after": {
+            "title": "Punto Mobile — campione di riparazione R8",
+            "type": "project",
+            "summary": "Procedura della tasca R8, distinzione del campione e contesto della dimostrazione.",
+            "markdown": "# Punto Mobile: riparazione delle borse in tela\n\nPunto Mobile raccoglie appunti sulle riparazioni dimostrative svolte al banco del sabato. Questa scheda riguarda la cucitura di una tasca della borsa R8, senza estendere il risultato a manici, chiusure o capacità di carico della borsa.\n\nLa [scheda tecnica R8](/documents/defect-t03-s1), compilata da Noor il 21 giugno 2026, descrive il campione: tela color ocra, tasca esterna e filo verde. Il filo verde permette di distinguere la riparazione dalla cucitura originale color sabbia.\n\nLa procedura R8 fissa prima i due angoli inferiori della tasca, prosegue lungo il bordo inferiore e termina sui lati. Sul lato sinistro lascia due millimetri di margine in più per evitare la vecchia piega. Il foglio tecnico riporta questa stessa sequenza.\n\nIl campione resta riconoscibile dalla cucitura verde; il resto della borsa non è stato ricucito. La dimostrazione riguarda la tasca esterna e non attribuisce al campione una resistenza certificata.\n\nLa spoletta usata per R8 è conservata nell’astuccio morbido, separata dalle spolette del corso. Non è noto se la seconda borsa ricevuta al banco abbia la stessa piega sul lato sinistro."
+          },
+          "mutationDescription": "Elimina soltanto la nota che ripete caratteristiche, autore, data e ambito del campione."
+        },
+        {
+          "variantId": "unsupported",
+          "targetCriterion": "supported_by_evidence",
+          "after": {
+            "title": "Punto Mobile — campione di riparazione R8",
+            "type": "project",
+            "summary": "Procedura della tasca R8, distinzione del campione e contesto della dimostrazione.",
+            "markdown": "# Punto Mobile: riparazione delle borse in tela\n\nPunto Mobile raccoglie appunti sulle riparazioni dimostrative svolte al banco del sabato. Questa scheda riguarda la cucitura di una tasca della borsa R8, senza estendere il risultato a manici, chiusure o capacità di carico della borsa.\n\nLa [scheda tecnica R8](/documents/defect-t03-s1), compilata da Noor il 21 giugno 2026, descrive il campione: tela color ocra, tasca esterna e filo verde. Il filo verde permette di distinguere la riparazione dalla cucitura originale color sabbia.\n\nLa sequenza di cucitura e il margine del lato sinistro restano consultabili nella scheda tecnica R8 collegata sopra.\n\nIl campione resta riconoscibile dalla cucitura verde; il resto della borsa non è stato ricucito. La dimostrazione riguarda la tasca esterna e non attribuisce al campione una resistenza certificata.\n\nLa spoletta usata per R8 è conservata nell’astuccio morbido, separata dalle spolette del corso. Non è noto se la seconda borsa ricevuta al banco abbia la stessa piega sul lato sinistro.\n\nLa riparazione è stata approvata da Noor il 24 giugno 2026 dopo un controllo del campione."
+          },
+          "mutationDescription": "Inventa una successiva approvazione datata e la attribuisce all’autrice della scheda tecnica."
+        },
+        {
+          "variantId": "loss",
+          "targetCriterion": "preserves_distinct_information",
+          "after": {
+            "title": "Punto Mobile — campione di riparazione R8",
+            "type": "project",
+            "summary": "Procedura della tasca R8, distinzione del campione e contesto della dimostrazione.",
+            "markdown": "# Punto Mobile: riparazione delle borse in tela\n\nPunto Mobile raccoglie appunti sulle riparazioni dimostrative svolte al banco del sabato. Questa scheda riguarda la cucitura di una tasca della borsa R8, senza estendere il risultato a manici, chiusure o capacità di carico della borsa.\n\nLa scheda tecnica R8, compilata da Noor il 21 giugno 2026, descrive il campione: tela color ocra, tasca esterna e filo verde. Il filo verde permette di distinguere la riparazione dalla cucitura originale color sabbia.\n\nLa sequenza di cucitura e il margine del lato sinistro restano consultabili nella scheda tecnica R8.\n\nIl campione resta riconoscibile dalla cucitura verde; il resto della borsa non è stato ricucito. La dimostrazione riguarda la tasca esterna e non attribuisce al campione una resistenza certificata.\n\nLa spoletta usata per R8 è conservata nell’astuccio morbido, separata dalle spolette del corso. Non è noto se la seconda borsa ricevuta al banco abbia la stessa piega sul lato sinistro."
+          },
+          "mutationDescription": "Rimuove l’unico collegamento alla fonte dopo la deduplicazione fra pagine, rendendo sequenza e margine non più raggiungibili dalla pagina risultante."
+        },
+        {
+          "variantId": "human_action",
+          "targetCriterion": "no_new_human_action",
+          "after": {
+            "title": "Punto Mobile — campione di riparazione R8",
+            "type": "project",
+            "summary": "Procedura della tasca R8, distinzione del campione e contesto della dimostrazione.",
+            "markdown": "# Punto Mobile: riparazione delle borse in tela\n\nPunto Mobile raccoglie appunti sulle riparazioni dimostrative svolte al banco del sabato. Questa scheda riguarda la cucitura di una tasca della borsa R8, senza estendere il risultato a manici, chiusure o capacità di carico della borsa.\n\nLa [scheda tecnica R8](/documents/defect-t03-s1), compilata da Noor il 21 giugno 2026, descrive il campione: tela color ocra, tasca esterna e filo verde. Il filo verde permette di distinguere la riparazione dalla cucitura originale color sabbia.\n\nLa procedura R8 fissa prima i due angoli inferiori della tasca, prosegue lungo il bordo inferiore e termina sui lati. Sul lato sinistro lascia due millimetri di margine in più per evitare la vecchia piega. Il foglio tecnico riporta questa stessa sequenza.\n\nIl campione resta riconoscibile dalla cucitura verde; il resto della borsa non è stato ricucito. La dimostrazione riguarda la tasca esterna e non attribuisce al campione una resistenza certificata.\n\nLa spoletta usata per R8 è conservata nell’astuccio morbido, separata dalle spolette del corso. Non è noto se la seconda borsa ricevuta al banco abbia la stessa piega sul lato sinistro; il suo confronto con R8 rimane da completare da parte di Noor."
+          },
+          "mutationDescription": "Amplia l’incertezza preesistente su una seconda borsa introducendo un confronto da svolgere con una persona incaricata."
+        },
+        {
+          "variantId": "cosmetic",
+          "targetCriterion": "meaningful_improvement",
+          "after": {
+            "title": "Punto Mobile — campione di riparazione R8",
+            "type": "project",
+            "summary": "Procedura della tasca R8, distinzione del campione e contesto della dimostrazione.",
+            "markdown": "# Punto Mobile: riparazione delle borse in tela\n\nPunto Mobile raccoglie appunti sulle riparazioni dimostrative svolte al banco del sabato. Questa scheda riguarda la cucitura di una tasca della borsa R8, senza estendere il risultato a manici, chiusure o capacità di carico della borsa.\n\nLa [scheda tecnica R8](/documents/defect-t03-s1), compilata da Noor il 21 giugno 2026, descrive il campione: tela color ocra, tasca esterna e filo verde. Il filo verde permette di distinguere la riparazione dalla cucitura originale color sabbia.\n\nLa procedura R8 fissa prima i due angoli inferiori della tasca, prosegue lungo il bordo inferiore e termina sui lati. Sul lato sinistro lascia due millimetri di margine in più per evitare la vecchia piega. Il foglio tecnico riporta questa stessa sequenza.\n\nIl campione resta riconoscibile dalla cucitura verde; il resto della borsa non è stato ricucito. La dimostrazione riguarda la tasca esterna e non attribuisce al campione una resistenza certificata.\n\n## Nota ripetuta sul campione\n\nLa borsa R8 ha una tasca esterna su tela ocra: il filo verde della riparazione la distingue dalla cucitura originale color sabbia. La scheda tecnica è stata compilata da Noor il 21 giugno 2026 e riguarda soltanto il campione dimostrativo.\n\nNell’astuccio morbido è conservata la spoletta usata per R8, separata dalle spolette del corso. Non è noto se la seconda borsa ricevuta al banco abbia la stessa piega sul lato sinistro."
+          },
+          "mutationDescription": "Inverte l’ordine delle parole nella sola frase sulla spoletta, lasciando tutte le duplicazioni."
+        }
+      ]
+    },
+    {
+      "familyId": "T04",
+      "title": "Terra Comune — nomi delle cassette",
+      "category": "qualificazioni_e_alias",
+      "before": {
+        "title": "Terra Comune — nomi delle cassette",
+        "type": "project",
+        "summary": "Conteggi del turno estivo e relazione documentata fra nomi delle cassette e sigle.",
+        "markdown": "# Terra Comune: nomi delle cassette di semina\n\nTerra Comune tiene un elenco delle cassette del piccolo orto condiviso per confrontare la semina di due varietà di lattuga. La pagina descrive i nomi usati nel turno estivo del 2026, senza ricostruire i turni precedenti o stabilire istruzioni generali di coltivazione.\n\nNel quaderno del 7 luglio, Ivo annota dodici germogli nella cassetta E2 e nove nella E3. La varietà indicata è rispettivamente Riccia e Liscia. Il [quaderno delle cassette](/documents/defect-t04-s1) riporta le etichette adottate per quel turno.\n\nI numeri sono conteggi di germogli presenti al momento dell’annotazione, non percentuali di germinazione: il numero iniziale dei semi non compare nella pagina. Il confronto non dimostra una resa migliore di una varietà.\n\nNel riepilogo di questa pagina, una riga priva del nome di chi conta rimane senza attribuzione; la vicinanza a una riga firmata non autorizza ad assegnarle lo stesso autore. Questa regola di lettura riguarda le trascrizioni del turno estivo.\n\n## Riepilogo copiato per il cartello\n\nAl 7 luglio Ivo registra dodici germogli di Riccia in E2 e nove di Liscia in E3. Le cifre contano germogli osservati e non rappresentano percentuali: manca il numero dei semi messi inizialmente in ciascuna cassetta.\n\nLa pagina non chiarisce se il nome Cassone Est usato nei messaggi indichi E2 oppure E3. Non è noto quando sia stata spostata E3 sotto la tettoia."
+      },
+      "evidence": {
+        "citations": [
+          {
+            "pageId": "defect-t04-target",
+            "version": 3,
+            "quote": "Terra Comune tiene un elenco delle cassette del piccolo orto condiviso per confrontare la semina di due varietà di lattuga. La pagina descrive i nomi usati nel turno estivo del 2026, senza ricostruire i turni precedenti o stabilire istruzioni generali di coltivazione."
+          },
+          {
+            "pageId": "defect-t04-s1",
+            "version": 2,
+            "quote": "Per il turno estivo del 2026, Cassone Est è il nome colloquiale della cassetta E2, con etichetta Riccia."
+          },
+          {
+            "pageId": "defect-t04-s1",
+            "version": 2,
+            "quote": "Ivo conta dodici germogli in E2 e nove in E3 il 7 luglio."
+          }
+        ],
+        "sources": [
+          {
+            "pageId": "defect-t04-target",
+            "version": 3,
+            "title": "Terra Comune — nomi delle cassette",
+            "summary": "Conteggi del turno estivo e relazione documentata fra nomi delle cassette e sigle.",
+            "markdown": "# Terra Comune: nomi delle cassette di semina\n\nTerra Comune tiene un elenco delle cassette del piccolo orto condiviso per confrontare la semina di due varietà di lattuga. La pagina descrive i nomi usati nel turno estivo del 2026, senza ricostruire i turni precedenti o stabilire istruzioni generali di coltivazione.\n\nNel quaderno del 7 luglio, Ivo annota dodici germogli nella cassetta E2 e nove nella E3. La varietà indicata è rispettivamente Riccia e Liscia. Il [quaderno delle cassette](/documents/defect-t04-s1) riporta le etichette adottate per quel turno.\n\nI numeri sono conteggi di germogli presenti al momento dell’annotazione, non percentuali di germinazione: il numero iniziale dei semi non compare nella pagina. Il confronto non dimostra una resa migliore di una varietà.\n\nNel riepilogo di questa pagina, una riga priva del nome di chi conta rimane senza attribuzione; la vicinanza a una riga firmata non autorizza ad assegnarle lo stesso autore. Questa regola di lettura riguarda le trascrizioni del turno estivo.\n\n## Riepilogo copiato per il cartello\n\nAl 7 luglio Ivo registra dodici germogli di Riccia in E2 e nove di Liscia in E3. Le cifre contano germogli osservati e non rappresentano percentuali: manca il numero dei semi messi inizialmente in ciascuna cassetta.\n\nLa pagina non chiarisce se il nome Cassone Est usato nei messaggi indichi E2 oppure E3. Non è noto quando sia stata spostata E3 sotto la tettoia."
+          },
+          {
+            "pageId": "defect-t04-s1",
+            "version": 2,
+            "title": "Quaderno delle cassette di Terra Comune",
+            "markdown": "# Quaderno delle cassette di Terra Comune\n\nPer il turno estivo del 2026, Cassone Est è il nome colloquiale della cassetta E2, con etichetta Riccia. La cassetta E3 porta invece l’etichetta Liscia. La corrispondenza viene annotata il 7 luglio 2026 perché nei messaggi del gruppo compaiono sia i nomi sia le sigle.\n\nIvo conta dodici germogli in E2 e nove in E3 il 7 luglio. I conteggi descrivono quanto osservato in quel momento; il quaderno non riporta il numero di semi iniziale e non permette di ricavare una percentuale di germinazione. Nessuna riga dichiara che Riccia dia una resa migliore di Liscia o che le cassette siano state trattate nello stesso modo.\n\nLa pagina del quaderno riguarda soltanto il turno estivo. Le sigle sono scritte su etichette rimovibili e questa annotazione non ricostruisce l’uso delle cassette nella primavera precedente. La tettoia compare nello schizzo dell’orto come riferimento spaziale, senza una cronologia degli spostamenti. La nota sui nomi aiuta a leggere i messaggi relativi al turno attuale senza estendere i conteggi a giorni differenti o trasformarli in istruzioni di coltivazione."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "variantId": "good_a",
+          "targetCriterion": null,
+          "after": {
+            "title": "Terra Comune — nomi delle cassette",
+            "type": "project",
+            "summary": "Conteggi del turno estivo e relazione documentata fra nomi delle cassette e sigle.",
+            "markdown": "# Terra Comune: nomi delle cassette di semina\n\nTerra Comune tiene un elenco delle cassette del piccolo orto condiviso per confrontare la semina di due varietà di lattuga. La pagina descrive i nomi usati nel turno estivo del 2026, senza ricostruire i turni precedenti o stabilire istruzioni generali di coltivazione.\n\nNel quaderno del 7 luglio, Ivo annota dodici germogli nella cassetta E2 e nove nella E3. La varietà indicata è rispettivamente Riccia e Liscia. Il [quaderno delle cassette](/documents/defect-t04-s1) riporta le etichette adottate per quel turno.\n\nI numeri sono conteggi di germogli presenti al momento dell’annotazione, non percentuali di germinazione: il numero iniziale dei semi non compare nella pagina. Il confronto non dimostra una resa migliore di una varietà.\n\nNel riepilogo di questa pagina, una riga priva del nome di chi conta rimane senza attribuzione; la vicinanza a una riga firmata non autorizza ad assegnarle lo stesso autore. Questa regola di lettura riguarda le trascrizioni del turno estivo.\n\nIl [quaderno delle cassette](/documents/defect-t04-s1), nella nota del 7 luglio 2026, identifica Cassone Est con E2, etichettata Riccia, per il turno estivo del 2026. Non è noto quando sia stata spostata E3 sotto la tettoia."
+          },
+          "mutationDescription": "Rimuove il riepilogo duplicato e risolve il dubbio sull’alias limitandolo al turno e alla data attestati."
+        },
+        {
+          "variantId": "good_b",
+          "targetCriterion": null,
+          "after": {
+            "title": "Terra Comune — nomi delle cassette",
+            "type": "project",
+            "summary": "Conteggi del turno estivo e relazione documentata fra nomi delle cassette e sigle.",
+            "markdown": "# Terra Comune: nomi delle cassette di semina\n\nTerra Comune tiene un elenco delle cassette del piccolo orto condiviso per confrontare la semina di due varietà di lattuga. La pagina descrive i nomi usati nel turno estivo del 2026, senza ricostruire i turni precedenti o stabilire istruzioni generali di coltivazione.\n\nNel quaderno del 7 luglio, Ivo annota dodici germogli nella cassetta E2 e nove nella E3. La varietà indicata è rispettivamente Riccia e Liscia. Il [quaderno delle cassette](/documents/defect-t04-s1) riporta le etichette adottate per quel turno.\n\nI numeri sono conteggi di germogli presenti al momento dell’annotazione, non percentuali di germinazione: il numero iniziale dei semi non compare nella pagina. Il confronto non dimostra una resa migliore di una varietà.\n\nNel riepilogo di questa pagina, una riga priva del nome di chi conta rimane senza attribuzione; la vicinanza a una riga firmata non autorizza ad assegnarle lo stesso autore. Questa regola di lettura riguarda le trascrizioni del turno estivo.\n\nLa pagina non chiarisce se il nome Cassone Est usato nei messaggi indichi E2 oppure E3. Non è noto quando sia stata spostata E3 sotto la tettoia."
+          },
+          "mutationDescription": "Rimuove solo la duplicazione dei conteggi e del limite sulle percentuali, senza cambiare altri contenuti."
+        },
+        {
+          "variantId": "unsupported",
+          "targetCriterion": "supported_by_evidence",
+          "after": {
+            "title": "Terra Comune — nomi delle cassette",
+            "type": "project",
+            "summary": "Conteggi del turno estivo e relazione documentata fra nomi delle cassette e sigle.",
+            "markdown": "# Terra Comune: nomi delle cassette di semina\n\nTerra Comune tiene un elenco delle cassette del piccolo orto condiviso per confrontare la semina di due varietà di lattuga. La pagina descrive i nomi usati nel turno estivo del 2026, senza ricostruire i turni precedenti o stabilire istruzioni generali di coltivazione.\n\nNel quaderno del 7 luglio, Ivo annota dodici germogli nella cassetta E2 e nove nella E3. La varietà indicata è rispettivamente Riccia e Liscia. Il [quaderno delle cassette](/documents/defect-t04-s1) riporta le etichette adottate per quel turno.\n\nI numeri sono conteggi di germogli presenti al momento dell’annotazione, non percentuali di germinazione: il numero iniziale dei semi non compare nella pagina. Il confronto non dimostra una resa migliore di una varietà.\n\nNel riepilogo di questa pagina, una riga priva del nome di chi conta rimane senza attribuzione; la vicinanza a una riga firmata non autorizza ad assegnarle lo stesso autore. Questa regola di lettura riguarda le trascrizioni del turno estivo.\n\nIl [quaderno delle cassette](/documents/defect-t04-s1), nella nota del 7 luglio 2026, identifica Cassone Est con E2, etichettata Riccia, già a partire dal turno primaverile del 2026. Non è noto quando sia stata spostata E3 sotto la tettoia."
+          },
+          "mutationDescription": "Estende alla primavera la corrispondenza fra nome e sigla documentata soltanto per il turno estivo."
+        },
+        {
+          "variantId": "loss",
+          "targetCriterion": "preserves_distinct_information",
+          "after": {
+            "title": "Terra Comune — nomi delle cassette",
+            "type": "project",
+            "summary": "Conteggi del turno estivo e relazione documentata fra nomi delle cassette e sigle.",
+            "markdown": "# Terra Comune: nomi delle cassette di semina\n\nTerra Comune tiene un elenco delle cassette del piccolo orto condiviso per confrontare la semina di due varietà di lattuga. La pagina descrive i nomi usati nel turno estivo del 2026, senza ricostruire i turni precedenti o stabilire istruzioni generali di coltivazione.\n\nNel quaderno del 7 luglio, Ivo annota dodici germogli nella cassetta E2 e nove nella E3. La varietà indicata è rispettivamente Riccia e Liscia. Il [quaderno delle cassette](/documents/defect-t04-s1) riporta le etichette adottate per quel turno.\n\nI numeri sono conteggi di germogli presenti al momento dell’annotazione, non percentuali di germinazione: il numero iniziale dei semi non compare nella pagina. Il confronto non dimostra una resa migliore di una varietà.\n\nIl [quaderno delle cassette](/documents/defect-t04-s1), nella nota del 7 luglio 2026, identifica Cassone Est con E2, etichettata Riccia, per il turno estivo del 2026. Non è noto quando sia stata spostata E3 sotto la tettoia."
+          },
+          "mutationDescription": "Elimina l’unica qualificazione che impedisce di attribuire righe anonime all’autore di una riga vicina."
+        },
+        {
+          "variantId": "human_action",
+          "targetCriterion": "no_new_human_action",
+          "after": {
+            "title": "Terra Comune — nomi delle cassette",
+            "type": "project",
+            "summary": "Conteggi del turno estivo e relazione documentata fra nomi delle cassette e sigle.",
+            "markdown": "# Terra Comune: nomi delle cassette di semina\n\nTerra Comune tiene un elenco delle cassette del piccolo orto condiviso per confrontare la semina di due varietà di lattuga. La pagina descrive i nomi usati nel turno estivo del 2026, senza ricostruire i turni precedenti o stabilire istruzioni generali di coltivazione.\n\nNel quaderno del 7 luglio, Ivo annota dodici germogli nella cassetta E2 e nove nella E3. La varietà indicata è rispettivamente Riccia e Liscia. Il [quaderno delle cassette](/documents/defect-t04-s1) riporta le etichette adottate per quel turno.\n\nI numeri sono conteggi di germogli presenti al momento dell’annotazione, non percentuali di germinazione: il numero iniziale dei semi non compare nella pagina. Il confronto non dimostra una resa migliore di una varietà.\n\nNel riepilogo di questa pagina, una riga priva del nome di chi conta rimane senza attribuzione; la vicinanza a una riga firmata non autorizza ad assegnarle lo stesso autore. Questa regola di lettura riguarda le trascrizioni del turno estivo.\n\nIl [quaderno delle cassette](/documents/defect-t04-s1), nella nota del 7 luglio 2026, identifica Cassone Est con E2, etichettata Riccia, per il turno estivo del 2026. Non è noto quando sia stata spostata E3 sotto la tettoia.\n\nPer rendere definitiva la corrispondenza dei nomi, resta il passaggio di conferma di Ivo sul cartello dell’orto."
+          },
+          "mutationDescription": "Aggiunge una conferma personale per rendere definitiva una corrispondenza che la fonte già documenta."
+        },
+        {
+          "variantId": "cosmetic",
+          "targetCriterion": "meaningful_improvement",
+          "after": {
+            "title": "Terra Comune — nomi delle cassette",
+            "type": "project",
+            "summary": "Conteggi del turno estivo e relazione documentata fra nomi delle cassette e sigle.",
+            "markdown": "# Terra Comune: nomi delle cassette di semina\n\nTerra Comune tiene un elenco delle cassette del piccolo orto condiviso per confrontare la semina di due varietà di lattuga. La pagina descrive i nomi usati nel turno estivo del 2026, senza ricostruire i turni precedenti o stabilire istruzioni generali di coltivazione.\n\nNel quaderno del 7 luglio, Ivo annota dodici germogli nella cassetta E2 e nove nella E3. Le varietà indicate sono, nello stesso ordine, Riccia e Liscia. Il [quaderno delle cassette](/documents/defect-t04-s1) riporta le etichette adottate per quel turno.\n\nI numeri sono conteggi di germogli presenti al momento dell’annotazione, non percentuali di germinazione: il numero iniziale dei semi non compare nella pagina. Il confronto non dimostra una resa migliore di una varietà.\n\nNel riepilogo di questa pagina, una riga priva del nome di chi conta rimane senza attribuzione; la vicinanza a una riga firmata non autorizza ad assegnarle lo stesso autore. Questa regola di lettura riguarda le trascrizioni del turno estivo.\n\n## Riepilogo copiato per il cartello\n\nAl 7 luglio Ivo registra dodici germogli di Riccia in E2 e nove di Liscia in E3. Le cifre contano germogli osservati e non rappresentano percentuali: manca il numero dei semi messi inizialmente in ciascuna cassetta.\n\nLa pagina non chiarisce se il nome Cassone Est usato nei messaggi indichi E2 oppure E3. Non è noto quando sia stata spostata E3 sotto la tettoia."
+          },
+          "mutationDescription": "Sostituisce una frase sulle varietà con una parafrasi, mantenendo duplicazione e dubbio già risolvibile."
+        }
+      ]
+    },
+    {
+      "familyId": "T05",
+      "title": "Memorie di Cortile — fotografia F17",
+      "category": "ruoli_e_incertezza",
+      "before": {
+        "title": "Memorie di Cortile — fotografia F17",
+        "type": "project",
+        "summary": "Attribuzioni della fotografia e della scansione, suffisso del file e limiti della documentazione.",
+        "markdown": "# Memorie di Cortile: fotografia della fontana\n\nL’archivio Memorie di Cortile descrive fotografie portate dagli abitanti per una piccola mostra di quartiere. Questa pagina riguarda la fotografia F17 della fontana, distinguendo l’autore dello scatto dalla persona che ha digitalizzato la stampa.\n\nSul retro della stampa F17 compare il nome Arturo con la data 12 agosto 1984. La scansione del 9 febbraio 2026 è stata eseguita da Daria. La [scheda della fotografia F17](/documents/defect-t05-s1) trascrive il retro e descrive il file prodotto.\n\nIl bordo bianco visibile nel file appartiene alla stampa e non è una cornice aggiunta dal programma di scansione. L’immagine è conservata in scala di grigi; nessuna annotazione consente di ricostruire i colori originali della scena.\n\nLa stampa esposta è una copia su carta opaca, mentre l’originale rimane nella busta color crema. Il cartellino da mostra riporta il codice F17 in basso a destra, così da non confonderlo con il nome dell’autore.\n\n## Dati trascritti anche per il catalogo\n\nF17 è la fotografia della fontana con il nome Arturo e la data 12 agosto 1984 sul retro. Daria ha effettuato la scansione il 9 febbraio 2026; il file conserva il bordo bianco della stampa ed è in scala di grigi.\n\nNon è ancora precisato qui se il suffisso v2 indichi una seconda fotografia. Rimane sconosciuto se la stampa sia un ritaglio di un negativo più ampio."
+      },
+      "evidence": {
+        "citations": [
+          {
+            "pageId": "defect-t05-target",
+            "version": 3,
+            "quote": "L’archivio Memorie di Cortile descrive fotografie portate dagli abitanti per una piccola mostra di quartiere. Questa pagina riguarda la fotografia F17 della fontana, distinguendo l’autore dello scatto dalla persona che ha digitalizzato la stampa."
+          },
+          {
+            "pageId": "defect-t05-s1",
+            "version": 2,
+            "quote": "Daria digitalizza F17 il 9 febbraio 2026."
+          },
+          {
+            "pageId": "defect-t05-s1",
+            "version": 2,
+            "quote": "Il suffisso v2 indica una seconda esportazione dello stesso file, con il nome normalizzato; non una fotografia differente."
+          }
+        ],
+        "sources": [
+          {
+            "pageId": "defect-t05-target",
+            "version": 3,
+            "title": "Memorie di Cortile — fotografia F17",
+            "summary": "Attribuzioni della fotografia e della scansione, suffisso del file e limiti della documentazione.",
+            "markdown": "# Memorie di Cortile: fotografia della fontana\n\nL’archivio Memorie di Cortile descrive fotografie portate dagli abitanti per una piccola mostra di quartiere. Questa pagina riguarda la fotografia F17 della fontana, distinguendo l’autore dello scatto dalla persona che ha digitalizzato la stampa.\n\nSul retro della stampa F17 compare il nome Arturo con la data 12 agosto 1984. La scansione del 9 febbraio 2026 è stata eseguita da Daria. La [scheda della fotografia F17](/documents/defect-t05-s1) trascrive il retro e descrive il file prodotto.\n\nIl bordo bianco visibile nel file appartiene alla stampa e non è una cornice aggiunta dal programma di scansione. L’immagine è conservata in scala di grigi; nessuna annotazione consente di ricostruire i colori originali della scena.\n\nLa stampa esposta è una copia su carta opaca, mentre l’originale rimane nella busta color crema. Il cartellino da mostra riporta il codice F17 in basso a destra, così da non confonderlo con il nome dell’autore.\n\n## Dati trascritti anche per il catalogo\n\nF17 è la fotografia della fontana con il nome Arturo e la data 12 agosto 1984 sul retro. Daria ha effettuato la scansione il 9 febbraio 2026; il file conserva il bordo bianco della stampa ed è in scala di grigi.\n\nNon è ancora precisato qui se il suffisso v2 indichi una seconda fotografia. Rimane sconosciuto se la stampa sia un ritaglio di un negativo più ampio."
+          },
+          {
+            "pageId": "defect-t05-s1",
+            "version": 2,
+            "title": "Scheda della fotografia F17 di Memorie di Cortile",
+            "markdown": "# Scheda della fotografia F17 di Memorie di Cortile\n\nLa trascrizione del retro della stampa F17 riporta Arturo, 12 agosto 1984. Il nome è associato allo scatto nell’inventario consegnato con la fotografia. Il soggetto è la fontana del cortile; questa scheda non ricostruisce gli altri scatti eventualmente realizzati nello stesso giorno.\n\nDaria digitalizza F17 il 9 febbraio 2026. Il file è in scala di grigi e include il bordo bianco della stampa. Il bordo non è stato creato aggiungendo una cornice durante la scansione. Non sono disponibili informazioni utili a ricostruire i colori della scena fotografata.\n\nIl suffisso v2 indica una seconda esportazione dello stesso file, con il nome normalizzato; non una fotografia differente. La nuova esportazione conserva la stessa area acquisita e non aggiunge una seconda ripresa della fontana. La data del 9 febbraio si riferisce alla digitalizzazione: non sostituisce quella riportata sul retro. I nomi Arturo e Daria identificano ruoli diversi e rimangono entrambi nel catalogo. La scheda consente di associare il file alla stampa consegnata all’archivio, senza indicare altre immagini dello stesso autore."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "variantId": "good_a",
+          "targetCriterion": null,
+          "after": {
+            "title": "Memorie di Cortile — fotografia F17",
+            "type": "project",
+            "summary": "Attribuzioni della fotografia e della scansione, suffisso del file e limiti della documentazione.",
+            "markdown": "# Memorie di Cortile: fotografia della fontana\n\nL’archivio Memorie di Cortile descrive fotografie portate dagli abitanti per una piccola mostra di quartiere. Questa pagina riguarda la fotografia F17 della fontana, distinguendo l’autore dello scatto dalla persona che ha digitalizzato la stampa.\n\nSul retro della stampa F17 compare il nome Arturo con la data 12 agosto 1984. La scansione del 9 febbraio 2026 è stata eseguita da Daria. La [scheda della fotografia F17](/documents/defect-t05-s1) trascrive il retro e descrive il file prodotto.\n\nIl bordo bianco visibile nel file appartiene alla stampa e non è una cornice aggiunta dal programma di scansione. L’immagine è conservata in scala di grigi; nessuna annotazione consente di ricostruire i colori originali della scena.\n\nLa stampa esposta è una copia su carta opaca, mentre l’originale rimane nella busta color crema. Il cartellino da mostra riporta il codice F17 in basso a destra, così da non confonderlo con il nome dell’autore.\n\nLa [scheda della fotografia F17](/documents/defect-t05-s1) chiarisce che v2 è una seconda esportazione dello stesso file con nome normalizzato, non una fotografia diversa. Rimane sconosciuto se la stampa sia un ritaglio di un negativo più ampio."
+          },
+          "mutationDescription": "Rimuove i dati duplicati e integra il significato documentato di v2, conservando ruoli, date e dubbio sul ritaglio."
+        },
+        {
+          "variantId": "good_b",
+          "targetCriterion": null,
+          "after": {
+            "title": "Memorie di Cortile — fotografia F17",
+            "type": "project",
+            "summary": "Attribuzioni della fotografia e della scansione, suffisso del file e limiti della documentazione.",
+            "markdown": "# Memorie di Cortile: fotografia della fontana\n\nL’archivio Memorie di Cortile descrive fotografie portate dagli abitanti per una piccola mostra di quartiere. Questa pagina riguarda la fotografia F17 della fontana, distinguendo l’autore dello scatto dalla persona che ha digitalizzato la stampa.\n\nSul retro della stampa F17 compare il nome Arturo con la data 12 agosto 1984. La scansione del 9 febbraio 2026 è stata eseguita da Daria. La [scheda della fotografia F17](/documents/defect-t05-s1) trascrive il retro e descrive il file prodotto.\n\nIl bordo bianco visibile nel file appartiene alla stampa e non è una cornice aggiunta dal programma di scansione. L’immagine è conservata in scala di grigi; nessuna annotazione consente di ricostruire i colori originali della scena.\n\nLa stampa esposta è una copia su carta opaca, mentre l’originale rimane nella busta color crema. Il cartellino da mostra riporta il codice F17 in basso a destra, così da non confonderlo con il nome dell’autore.\n\nNon è ancora precisato qui se il suffisso v2 indichi una seconda fotografia. Rimane sconosciuto se la stampa sia un ritaglio di un negativo più ampio."
+          },
+          "mutationDescription": "Rimuove soltanto la ripetizione dei dati per il catalogo, già disponibili integralmente nella parte iniziale."
+        },
+        {
+          "variantId": "unsupported",
+          "targetCriterion": "supported_by_evidence",
+          "after": {
+            "title": "Memorie di Cortile — fotografia F17",
+            "type": "project",
+            "summary": "Attribuzioni della fotografia e della scansione, suffisso del file e limiti della documentazione.",
+            "markdown": "# Memorie di Cortile: fotografia della fontana\n\nL’archivio Memorie di Cortile descrive fotografie portate dagli abitanti per una piccola mostra di quartiere. Questa pagina riguarda la fotografia F17 della fontana, distinguendo l’autore dello scatto dalla persona che ha digitalizzato la stampa.\n\nSul retro della stampa F17 compare il nome Arturo con la data 12 agosto 1984. La scansione eseguita da Daria è stata approvata da Arturo il 9 febbraio 2026. La [scheda della fotografia F17](/documents/defect-t05-s1) trascrive il retro e descrive il file prodotto.\n\nIl bordo bianco visibile nel file appartiene alla stampa e non è una cornice aggiunta dal programma di scansione. L’immagine è conservata in scala di grigi; nessuna annotazione consente di ricostruire i colori originali della scena.\n\nLa stampa esposta è una copia su carta opaca, mentre l’originale rimane nella busta color crema. Il cartellino da mostra riporta il codice F17 in basso a destra, così da non confonderlo con il nome dell’autore.\n\nLa [scheda della fotografia F17](/documents/defect-t05-s1) chiarisce che v2 è una seconda esportazione dello stesso file con nome normalizzato, non una fotografia diversa. Rimane sconosciuto se la stampa sia un ritaglio di un negativo più ampio."
+          },
+          "mutationDescription": "Inventa un’approvazione datata dell’autore della fotografia sul lavoro di digitalizzazione."
+        },
+        {
+          "variantId": "loss",
+          "targetCriterion": "preserves_distinct_information",
+          "after": {
+            "title": "Memorie di Cortile — fotografia F17",
+            "type": "project",
+            "summary": "Attribuzioni della fotografia e della scansione, suffisso del file e limiti della documentazione.",
+            "markdown": "# Memorie di Cortile: fotografia della fontana\n\nL’archivio Memorie di Cortile descrive fotografie portate dagli abitanti per una piccola mostra di quartiere. Questa pagina riguarda la fotografia F17 della fontana, distinguendo l’autore dello scatto dalla persona che ha digitalizzato la stampa.\n\nSul retro della stampa F17 compare il nome Arturo con la data 12 agosto 1984. La scansione del 9 febbraio 2026 è stata eseguita da Daria. La [scheda della fotografia F17](/documents/defect-t05-s1) trascrive il retro e descrive il file prodotto.\n\nIl bordo bianco visibile nel file appartiene alla stampa e non è una cornice aggiunta dal programma di scansione. L’immagine è conservata in scala di grigi; nessuna annotazione consente di ricostruire i colori originali della scena.\n\nLa stampa esposta è una copia su carta opaca, mentre l’originale rimane nella busta color crema. Il cartellino da mostra riporta il codice F17 in basso a destra, così da non confonderlo con il nome dell’autore.\n\nLa [scheda della fotografia F17](/documents/defect-t05-s1) chiarisce che v2 è una seconda esportazione dello stesso file con nome normalizzato, non una fotografia diversa."
+          },
+          "mutationDescription": "Elimina la domanda reale e irrisolta sull’eventuale ritaglio, che nessuna fonte superstite documenta o risolve."
+        },
+        {
+          "variantId": "human_action",
+          "targetCriterion": "no_new_human_action",
+          "after": {
+            "title": "Memorie di Cortile — fotografia F17",
+            "type": "project",
+            "summary": "Attribuzioni della fotografia e della scansione, suffisso del file e limiti della documentazione.",
+            "markdown": "# Memorie di Cortile: fotografia della fontana\n\nL’archivio Memorie di Cortile descrive fotografie portate dagli abitanti per una piccola mostra di quartiere. Questa pagina riguarda la fotografia F17 della fontana, distinguendo l’autore dello scatto dalla persona che ha digitalizzato la stampa.\n\nSul retro della stampa F17 compare il nome Arturo con la data 12 agosto 1984. La scansione del 9 febbraio 2026 è stata eseguita da Daria. La [scheda della fotografia F17](/documents/defect-t05-s1) trascrive il retro e descrive il file prodotto.\n\nIl bordo bianco visibile nel file appartiene alla stampa e non è una cornice aggiunta dal programma di scansione. L’immagine è conservata in scala di grigi; nessuna annotazione consente di ricostruire i colori originali della scena.\n\nLa stampa esposta è una copia su carta opaca, mentre l’originale rimane nella busta color crema. Il cartellino da mostra riporta il codice F17 in basso a destra, così da non confonderlo con il nome dell’autore.\n\nNon è ancora precisato qui se il suffisso v2 indichi una seconda fotografia. Rimane sconosciuto se la stampa sia un ritaglio di un negativo più ampio; Daria è indicata come referente per ottenere la risposta prima della mostra."
+          },
+          "mutationDescription": "Assegna una referente e una scadenza implicita per ottenere la risposta a un’incertezza preesistente."
+        },
+        {
+          "variantId": "cosmetic",
+          "targetCriterion": "meaningful_improvement",
+          "after": {
+            "title": "Memorie di Cortile — fotografia F17",
+            "type": "project",
+            "summary": "Attribuzioni della fotografia e della scansione, suffisso del file e limiti della documentazione.",
+            "markdown": "# Memorie di Cortile: fotografia della fontana\n\nL’archivio Memorie di Cortile descrive fotografie portate dagli abitanti per una piccola mostra di quartiere. La presente pagina descrive la fotografia F17 della fontana e distingue l’autore dello scatto dalla persona che ha digitalizzato la stampa.\n\nSul retro della stampa F17 compare il nome Arturo con la data 12 agosto 1984. La scansione del 9 febbraio 2026 è stata eseguita da Daria. La [scheda della fotografia F17](/documents/defect-t05-s1) trascrive il retro e descrive il file prodotto.\n\nIl bordo bianco visibile nel file appartiene alla stampa e non è una cornice aggiunta dal programma di scansione. L’immagine è conservata in scala di grigi; nessuna annotazione consente di ricostruire i colori originali della scena.\n\nLa stampa esposta è una copia su carta opaca, mentre l’originale rimane nella busta color crema. Il cartellino da mostra riporta il codice F17 in basso a destra, così da non confonderlo con il nome dell’autore.\n\n## Dati trascritti anche per il catalogo\n\nF17 è la fotografia della fontana con il nome Arturo e la data 12 agosto 1984 sul retro. Daria ha effettuato la scansione il 9 febbraio 2026; il file conserva il bordo bianco della stampa ed è in scala di grigi.\n\nNon è ancora precisato qui se il suffisso v2 indichi una seconda fotografia. Rimane sconosciuto se la stampa sia un ritaglio di un negativo più ampio."
+          },
+          "mutationDescription": "Cambia una frase introduttiva nel corpo senza risolvere ripetizioni o il significato del suffisso."
+        }
+      ]
+    },
+    {
+      "familyId": "T06",
+      "title": "Bussola Leggera — riferimenti del parco",
+      "category": "ambito_temporale_e_riferimenti",
+      "before": {
+        "title": "Bussola Leggera — riferimenti del parco",
+        "type": "project",
+        "summary": "Legenda del percorso nel parco delle Aie e limiti temporali del sopralluogo.",
+        "markdown": "# Bussola Leggera: percorso nel parco delle Aie\n\nBussola Leggera prepara un percorso di orientamento non competitivo nel parco delle Aie. Questa pagina descrive i riferimenti stampati sulla mappa per i partecipanti adulti, senza attribuire al percorso una certificazione di accessibilità o una durata garantita.\n\nLa mappa del 18 marzo 2026 indica il punto B accanto alla fontana e il punto C vicino al grande platano. Il [taccuino del sopralluogo](/documents/defect-t06-s1) documenta i riferimenti osservati da Lidia il 20 marzo e spiega i segni usati sulla mappa.\n\nIl percorso attraversa il vialetto di ghiaia fra la fontana e il platano. Il tempo di trenta minuti riportato da Lidia riguarda il suo giro del 20 marzo, senza soste per risolvere gli indizi; non è il tempo assegnato ai partecipanti.\n\nLa copia per la distribuzione usa una fascia arancione sul bordo inferiore. Le copie di lavoro hanno una fascia grigia e includono appunti che non fanno parte degli indizi del percorso.\n\n## Riepilogo ricopiato per la prova\n\nSulla mappa del 18 marzo B corrisponde alla fontana e C al grande platano. Lidia ha percorso il vialetto di ghiaia fra i due riferimenti il 20 marzo in un giro di trenta minuti senza fermarsi sugli indizi.\n\nLa pagina non chiarisce ancora cosa rappresenti il piccolo cerchio vuoto accanto a B. Resta sconosciuto se il cancello orientale sarà aperto durante l’incontro di aprile."
+      },
+      "evidence": {
+        "citations": [
+          {
+            "pageId": "defect-t06-target",
+            "version": 3,
+            "quote": "Bussola Leggera prepara un percorso di orientamento non competitivo nel parco delle Aie. Questa pagina descrive i riferimenti stampati sulla mappa per i partecipanti adulti, senza attribuire al percorso una certificazione di accessibilità o una durata garantita."
+          },
+          {
+            "pageId": "defect-t06-s1",
+            "version": 2,
+            "quote": "Il cerchio vuoto accanto a B rappresenta la vasca della fontana, non un punto di controllo aggiuntivo."
+          },
+          {
+            "pageId": "defect-t06-s1",
+            "version": 2,
+            "quote": "Il 20 marzo Lidia trova aperto il cancello orientale."
+          }
+        ],
+        "sources": [
+          {
+            "pageId": "defect-t06-target",
+            "version": 3,
+            "title": "Bussola Leggera — riferimenti del parco",
+            "summary": "Legenda del percorso nel parco delle Aie e limiti temporali del sopralluogo.",
+            "markdown": "# Bussola Leggera: percorso nel parco delle Aie\n\nBussola Leggera prepara un percorso di orientamento non competitivo nel parco delle Aie. Questa pagina descrive i riferimenti stampati sulla mappa per i partecipanti adulti, senza attribuire al percorso una certificazione di accessibilità o una durata garantita.\n\nLa mappa del 18 marzo 2026 indica il punto B accanto alla fontana e il punto C vicino al grande platano. Il [taccuino del sopralluogo](/documents/defect-t06-s1) documenta i riferimenti osservati da Lidia il 20 marzo e spiega i segni usati sulla mappa.\n\nIl percorso attraversa il vialetto di ghiaia fra la fontana e il platano. Il tempo di trenta minuti riportato da Lidia riguarda il suo giro del 20 marzo, senza soste per risolvere gli indizi; non è il tempo assegnato ai partecipanti.\n\nLa copia per la distribuzione usa una fascia arancione sul bordo inferiore. Le copie di lavoro hanno una fascia grigia e includono appunti che non fanno parte degli indizi del percorso.\n\n## Riepilogo ricopiato per la prova\n\nSulla mappa del 18 marzo B corrisponde alla fontana e C al grande platano. Lidia ha percorso il vialetto di ghiaia fra i due riferimenti il 20 marzo in un giro di trenta minuti senza fermarsi sugli indizi.\n\nLa pagina non chiarisce ancora cosa rappresenti il piccolo cerchio vuoto accanto a B. Resta sconosciuto se il cancello orientale sarà aperto durante l’incontro di aprile."
+          },
+          {
+            "pageId": "defect-t06-s1",
+            "version": 2,
+            "title": "Taccuino del sopralluogo di Bussola Leggera",
+            "markdown": "# Taccuino del sopralluogo di Bussola Leggera\n\nLidia compie il sopralluogo il 20 marzo 2026 usando la mappa datata 18 marzo. Il punto B indica la fontana, mentre C indica il grande platano; fra i due riferimenti passa il vialetto di ghiaia. Il giro annotato dura trenta minuti e viene svolto senza soste per risolvere gli indizi.\n\nIl cerchio vuoto accanto a B rappresenta la vasca della fontana, non un punto di controllo aggiuntivo. La legenda distingue questo simbolo dalle lettere dei punti e dagli indizi stampati per il gioco. I partecipanti non ricevono nel taccuino un tempo limite o una promessa sulla durata del loro giro.\n\nIl 20 marzo Lidia trova aperto il cancello orientale. Questa osservazione descrive il momento del sopralluogo e non stabilisce gli orari di apertura futuri. Il taccuino non contiene un accordo con chi gestisce il parco per l’incontro di aprile. La presenza di ghiaia viene registrata come caratteristica del vialetto, senza attestare che il percorso sia adatto a ogni condizione di mobilità. La mappa è riferita al gioco per adulti predisposto dal gruppo."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "variantId": "good_a",
+          "targetCriterion": null,
+          "after": {
+            "title": "Bussola Leggera — riferimenti del parco",
+            "type": "project",
+            "summary": "Legenda del percorso nel parco delle Aie e limiti temporali del sopralluogo.",
+            "markdown": "# Bussola Leggera: percorso nel parco delle Aie\n\nBussola Leggera prepara un percorso di orientamento non competitivo nel parco delle Aie. Questa pagina descrive i riferimenti stampati sulla mappa per i partecipanti adulti, senza attribuire al percorso una certificazione di accessibilità o una durata garantita.\n\nLa mappa del 18 marzo 2026 indica il punto B accanto alla fontana e il punto C vicino al grande platano. Il [taccuino del sopralluogo](/documents/defect-t06-s1) documenta i riferimenti osservati da Lidia il 20 marzo e spiega i segni usati sulla mappa.\n\nIl percorso attraversa il vialetto di ghiaia fra la fontana e il platano. Il tempo di trenta minuti riportato da Lidia riguarda il suo giro del 20 marzo, senza soste per risolvere gli indizi; non è il tempo assegnato ai partecipanti.\n\nLa copia per la distribuzione usa una fascia arancione sul bordo inferiore. Le copie di lavoro hanno una fascia grigia e includono appunti che non fanno parte degli indizi del percorso.\n\nIl [taccuino del sopralluogo](/documents/defect-t06-s1) identifica il cerchio vuoto accanto a B con la vasca della fontana, non con un controllo aggiuntivo. Resta sconosciuto se il cancello orientale sarà aperto durante l’incontro di aprile."
+          },
+          "mutationDescription": "Elimina il riepilogo duplicato e incorpora la legenda documentata, preservando il limite del sopralluogo e l’incertezza su aprile."
+        },
+        {
+          "variantId": "good_b",
+          "targetCriterion": null,
+          "after": {
+            "title": "Bussola Leggera — riferimenti del parco",
+            "type": "project",
+            "summary": "Legenda del percorso nel parco delle Aie e limiti temporali del sopralluogo.",
+            "markdown": "# Bussola Leggera: percorso nel parco delle Aie\n\nBussola Leggera prepara un percorso di orientamento non competitivo nel parco delle Aie. Questa pagina descrive i riferimenti stampati sulla mappa per i partecipanti adulti, senza attribuire al percorso una certificazione di accessibilità o una durata garantita.\n\nLa mappa del 18 marzo 2026 indica il punto B accanto alla fontana e il punto C vicino al grande platano. Il [taccuino del sopralluogo](/documents/defect-t06-s1) documenta i riferimenti osservati da Lidia il 20 marzo e spiega i segni usati sulla mappa.\n\nIl percorso attraversa il vialetto di ghiaia fra la fontana e il platano. Il tempo di trenta minuti riportato da Lidia riguarda il suo giro del 20 marzo, senza soste per risolvere gli indizi; non è il tempo assegnato ai partecipanti.\n\nLa copia per la distribuzione usa una fascia arancione sul bordo inferiore. Le copie di lavoro hanno una fascia grigia e includono appunti che non fanno parte degli indizi del percorso.\n\nLa pagina non chiarisce ancora cosa rappresenti il piccolo cerchio vuoto accanto a B. Resta sconosciuto se il cancello orientale sarà aperto durante l’incontro di aprile."
+          },
+          "mutationDescription": "Rimuove soltanto la ripetizione di riferimenti, date, vialetto e durata del giro."
+        },
+        {
+          "variantId": "unsupported",
+          "targetCriterion": "supported_by_evidence",
+          "after": {
+            "title": "Bussola Leggera — riferimenti del parco",
+            "type": "project",
+            "summary": "Legenda del percorso nel parco delle Aie e limiti temporali del sopralluogo.",
+            "markdown": "# Bussola Leggera: percorso nel parco delle Aie\n\nBussola Leggera prepara un percorso di orientamento non competitivo nel parco delle Aie. Questa pagina descrive i riferimenti stampati sulla mappa per i partecipanti adulti, senza attribuire al percorso una certificazione di accessibilità o una durata garantita.\n\nLa mappa del 18 marzo 2026 indica il punto B accanto alla fontana e il punto C vicino al grande platano. Il [taccuino del sopralluogo](/documents/defect-t06-s1) documenta i riferimenti osservati da Lidia il 20 marzo e spiega i segni usati sulla mappa.\n\nIl percorso attraversa il vialetto di ghiaia fra la fontana e il platano. Il tempo di trenta minuti riportato da Lidia riguarda il suo giro del 20 marzo, senza soste per risolvere gli indizi; non è il tempo assegnato ai partecipanti.\n\nLa copia per la distribuzione usa una fascia arancione sul bordo inferiore. Le copie di lavoro hanno una fascia grigia e includono appunti che non fanno parte degli indizi del percorso.\n\nIl [taccuino del sopralluogo](/documents/defect-t06-s1) identifica il cerchio vuoto accanto a B con la vasca della fontana, non con un controllo aggiuntivo. Il cancello orientale sarà aperto durante l’incontro di aprile, come stabilito dal sopralluogo di Lidia del 20 marzo."
+          },
+          "mutationDescription": "Trasforma l’osservazione del cancello aperto in una data in certezza sull’apertura futura."
+        },
+        {
+          "variantId": "loss",
+          "targetCriterion": "preserves_distinct_information",
+          "after": {
+            "title": "Bussola Leggera — riferimenti del parco",
+            "type": "project",
+            "summary": "Legenda del percorso nel parco delle Aie e limiti temporali del sopralluogo.",
+            "markdown": "# Bussola Leggera: percorso nel parco delle Aie\n\nBussola Leggera prepara un percorso di orientamento non competitivo nel parco delle Aie. Questa pagina descrive i riferimenti stampati sulla mappa per i partecipanti adulti, senza attribuire al percorso una certificazione di accessibilità o una durata garantita.\n\nLa mappa del 18 marzo 2026 indica il punto B accanto alla fontana e il punto C vicino al grande platano. Il [taccuino del sopralluogo](/documents/defect-t06-s1) documenta i riferimenti osservati da Lidia il 20 marzo e spiega i segni usati sulla mappa.\n\nIl percorso attraversa il vialetto di ghiaia fra la fontana e il platano. Il tempo di trenta minuti riportato da Lidia riguarda il suo giro del 20 marzo, senza soste per risolvere gli indizi; non è il tempo assegnato ai partecipanti.\n\nLa copia per la distribuzione usa una fascia grigia sul bordo inferiore. Le copie di lavoro hanno una fascia arancione e includono appunti che non fanno parte degli indizi del percorso.\n\nLa pagina non chiarisce ancora cosa rappresenti il piccolo cerchio vuoto accanto a B. Resta sconosciuto se il cancello orientale sarà aperto durante l’incontro di aprile."
+          },
+          "mutationDescription": "Scambia l’associazione fra colori delle fasce e uso delle copie, alterando un’informazione utile presente soltanto nella pagina storica."
+        },
+        {
+          "variantId": "human_action",
+          "targetCriterion": "no_new_human_action",
+          "after": {
+            "title": "Bussola Leggera — riferimenti del parco",
+            "type": "project",
+            "summary": "Legenda del percorso nel parco delle Aie e limiti temporali del sopralluogo.",
+            "markdown": "# Bussola Leggera: percorso nel parco delle Aie\n\nBussola Leggera prepara un percorso di orientamento non competitivo nel parco delle Aie. Questa pagina descrive i riferimenti stampati sulla mappa per i partecipanti adulti, senza attribuire al percorso una certificazione di accessibilità o una durata garantita.\n\nLa mappa del 18 marzo 2026 indica il punto B accanto alla fontana e il punto C vicino al grande platano. Il [taccuino del sopralluogo](/documents/defect-t06-s1) documenta i riferimenti osservati da Lidia il 20 marzo e spiega i segni usati sulla mappa.\n\nIl percorso attraversa il vialetto di ghiaia fra la fontana e il platano. Il tempo di trenta minuti riportato da Lidia riguarda il suo giro del 20 marzo, senza soste per risolvere gli indizi; non è il tempo assegnato ai partecipanti.\n\nLa copia per la distribuzione usa una fascia arancione sul bordo inferiore. Le copie di lavoro hanno una fascia grigia e includono appunti che non fanno parte degli indizi del percorso.\n\nIl [taccuino del sopralluogo](/documents/defect-t06-s1) identifica il cerchio vuoto accanto a B con la vasca della fontana, non con un controllo aggiuntivo. Resta sconosciuto se il cancello orientale sarà aperto durante l’incontro di aprile.\n\nL’indicazione sul cancello resta in attesa di riscontro del gestore; Lidia raccoglierà la conferma per l’incontro di aprile."
+          },
+          "mutationDescription": "Aggiunge una conferma da raccogliere dal gestore con Lidia incaricata, dove esisteva soltanto un’incertezza."
+        },
+        {
+          "variantId": "cosmetic",
+          "targetCriterion": "meaningful_improvement",
+          "after": {
+            "title": "Bussola Leggera — riferimenti del parco",
+            "type": "project",
+            "summary": "Legenda del percorso nel parco delle Aie e limiti temporali del sopralluogo.",
+            "markdown": "# Bussola Leggera: percorso nel parco delle Aie\n\nBussola Leggera prepara un percorso di orientamento non competitivo nel parco delle Aie. Questa pagina descrive i riferimenti stampati sulla mappa per i partecipanti adulti, senza attribuire al percorso una certificazione di accessibilità o una durata garantita.\n\nLa mappa del 18 marzo 2026 indica il punto B accanto alla fontana e il punto C vicino al grande platano. Il [taccuino del sopralluogo](/documents/defect-t06-s1) documenta i riferimenti osservati da Lidia il 20 marzo e spiega i segni usati sulla mappa.\n\nFra la fontana e il platano il percorso segue il vialetto di ghiaia. Il tempo di trenta minuti riportato da Lidia riguarda il suo giro del 20 marzo, senza soste per risolvere gli indizi; non è il tempo assegnato ai partecipanti.\n\nLa copia per la distribuzione usa una fascia arancione sul bordo inferiore. Le copie di lavoro hanno una fascia grigia e includono appunti che non fanno parte degli indizi del percorso.\n\n## Riepilogo ricopiato per la prova\n\nSulla mappa del 18 marzo B corrisponde alla fontana e C al grande platano. Lidia ha percorso il vialetto di ghiaia fra i due riferimenti il 20 marzo in un giro di trenta minuti senza fermarsi sugli indizi.\n\nLa pagina non chiarisce ancora cosa rappresenti il piccolo cerchio vuoto accanto a B. Resta sconosciuto se il cancello orientale sarà aperto durante l’incontro di aprile."
+          },
+          "mutationDescription": "Riordina le parole nella descrizione del vialetto senza consolidare alcuna informazione."
+        }
+      ]
+    }
+  ]
+}

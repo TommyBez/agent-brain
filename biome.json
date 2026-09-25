@@ -38,6 +38,14 @@
   },
   "overrides": [
     {
+      "includes": [
+        "scripts/fixtures/consolidation-release-v1.json",
+        "scripts/fixtures/consolidation-release-v2.json",
+        "scripts/fixtures/consolidation-release-v3.json"
+      ],
+      "formatter": { "enabled": false }
+    },
+    {
       "includes": ["components/ui/item.tsx"],
       "linter": {
         "rules": {

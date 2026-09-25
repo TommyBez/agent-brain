@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "approved": true,
+  "fixturePath": "scripts/fixtures/consolidation-release-v1.json",
+  "fixtureHash": "4af0462b39a78c9a971379bf0701ec99c2ca15b93569d4e876e4638727d8e0a9",
+  "reviewedAt": "2026-09-22T09:09:20.790Z",
+  "reviewer": "/root/release_writer",
+  "reviewType": "independent semantic and deterministic fixture review before model calls",
+  "priorReviewedHash": "e141d58f8bc8db0ee11741f02dda0c7eaa1f07738a81028b8e6b0f45b03c2d4d",
+  "verifiedCorrection": {
+    "caseId": "R02-V3",
+    "description": "The additional unsupported assertion that Chiara participates in the project was replaced with the supported statement that the meeting record mentions Chiara. The candidate now isolates the unresolved antecedent of the source pronoun."
+  },
+  "checks": {
+    "quotedPassages": 44,
+    "cases": 12,
+    "caseCounts": {
+      "valid": 4,
+      "invalid": 4,
+      "ambiguous": 4
+    },
+    "labeledCriteria": 28,
+    "allQuotesPresent": true,
+    "allContrastsResolved": true,
+    "labelsConsistent": true
+  },
+  "semanticFindings": [
+    "All four valid candidates improve a supported part of their target while preserving the documented conflict or ambiguous attribution.",
+    "The four invalid candidates respectively delete a unique requirement, add a human task, make a cosmetic-only change, or contradict an explicit permission.",
+    "The four ambiguous candidates resolve incompatible sources or unresolved references without supporting evidence. Their operational decision must remain do_not_apply."
+  ],
+  "interpretationLimits": [
+    "acceptableVerdicts=[fail,uncertain] evaluates appropriate non-approval; a fail on every ambiguous case is allowed and cannot establish that Kimi retains calibrated use of uncertain.",
+    "Only listed criteria are scored. Missing criteria are not_scored, never inferred pass.",
+    "This approval reviews dataset coherence and evidence. It is not an evaluation result or a release approval."
+  ],
+  "errors": []
+}

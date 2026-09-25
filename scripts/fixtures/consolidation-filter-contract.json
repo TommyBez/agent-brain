@@ -1,0 +1,921 @@
+{
+  "version": 1,
+  "scope": "jev-kimi-only",
+  "scenarios": [
+    {
+      "scenarioId": "C01",
+      "title": "Eliminare una duplicazione senza perdere una qualifica",
+      "target": {
+        "pageId": "project/atlante",
+        "version": 1,
+        "title": "Atlante",
+        "markdown": "# Atlante\n\nLuca Riva è il responsabile del progetto Atlante.\nMarta Neri coordina il design; non è la responsabile del progetto.\n\n## Riepilogo operativo\nLuca Riva è il responsabile del progetto Atlante.\n\nFonte: [Ruoli Atlante](decision/ruoli-atlante).\n",
+        "type": "project",
+        "summary": "Ruoli nel progetto Atlante."
+      },
+      "sources": [
+        {
+          "pageId": "decision/ruoli-atlante",
+          "version": 1,
+          "title": "Ruoli Atlante",
+          "markdown": "# Ruoli Atlante\nDecisione del 2 ottobre 2026: Luca Riva è responsabile del progetto Atlante.\nMarta Neri coordina il design e non ricopre il ruolo di responsabile del progetto.\n"
+        }
+      ],
+      "rules": [
+        {
+          "id": "C01-F1",
+          "description": "Luca è responsabile del progetto; Marta coordina il design senza essere responsabile.",
+          "evidence": [
+            {
+              "pageId": "decision/ruoli-atlante",
+              "quote": "Luca Riva è responsabile del progetto Atlante.\nMarta Neri coordina il design e non ricopre il ruolo di responsabile del progetto."
+            }
+          ]
+        },
+        {
+          "id": "C01-F2",
+          "description": "La fonte della decisione resta identificabile e raggiungibile.",
+          "evidence": [
+            {
+              "pageId": "project/atlante",
+              "quote": "Fonte: [Ruoli Atlante](decision/ruoli-atlante)."
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "designId": "C01-V1",
+          "label": "Deduplica mantenendo la formulazione",
+          "afterMarkdown": "# Atlante\n\nLuca Riva è il responsabile del progetto Atlante.\nMarta Neri coordina il design; non è la responsabile del progetto.\n\nFonte: [Ruoli Atlante](decision/ruoli-atlante).\n",
+          "expectedDecision": "accept",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "pass",
+              "rationale": "Elimina la seconda esposizione del ruolo di Luca, mantenendo entrambi i ruoli, la qualifica di Marta e il collegamento alla decisione."
+            },
+            "preserves_distinct_information": {
+              "verdict": "pass",
+              "rationale": "Le informazioni utili rimangono nel testo o nelle fonti invariate esplicitamente collegate."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "La modifica non aggiunge richieste, incarichi o conferme umane."
+            },
+            "meaningful_improvement": {
+              "verdict": "pass",
+              "rationale": "Elimina la seconda esposizione del ruolo di Luca, mantenendo entrambi i ruoli, la qualifica di Marta e il collegamento alla decisione."
+            }
+          },
+          "rationale": "Elimina la seconda esposizione del ruolo di Luca, mantenendo entrambi i ruoli, la qualifica di Marta e il collegamento alla decisione.",
+          "proof": [
+            {
+              "location": "before",
+              "quote": "## Riepilogo operativo\nLuca Riva è il responsabile del progetto Atlante."
+            },
+            {
+              "location": "after",
+              "quote": "Luca Riva è il responsabile del progetto Atlante.\nMarta Neri coordina il design; non è la responsabile del progetto."
+            }
+          ]
+        },
+        {
+          "designId": "C01-V2",
+          "label": "Deduplica con formulazione equivalente",
+          "afterMarkdown": "# Atlante\n\nMarta Neri coordina il design, senza essere responsabile del progetto. La responsabilità del progetto Atlante è di Luca Riva.\n\nFonte: [Ruoli Atlante](decision/ruoli-atlante).\n",
+          "expectedDecision": "accept",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "pass",
+              "rationale": "Elimina la seconda esposizione del ruolo di Luca, mantenendo entrambi i ruoli, la qualifica di Marta e il collegamento alla decisione."
+            },
+            "preserves_distinct_information": {
+              "verdict": "pass",
+              "rationale": "Le informazioni utili rimangono nel testo o nelle fonti invariate esplicitamente collegate."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "La modifica non aggiunge richieste, incarichi o conferme umane."
+            },
+            "meaningful_improvement": {
+              "verdict": "pass",
+              "rationale": "Elimina la seconda esposizione del ruolo di Luca, mantenendo entrambi i ruoli, la qualifica di Marta e il collegamento alla decisione."
+            }
+          },
+          "rationale": "Elimina la seconda esposizione del ruolo di Luca, mantenendo entrambi i ruoli, la qualifica di Marta e il collegamento alla decisione.",
+          "proof": [
+            {
+              "location": "before",
+              "quote": "## Riepilogo operativo\nLuca Riva è il responsabile del progetto Atlante."
+            },
+            {
+              "location": "after",
+              "quote": "Marta Neri coordina il design, senza essere responsabile del progetto. La responsabilità del progetto Atlante è di Luca Riva."
+            }
+          ]
+        },
+        {
+          "designId": "C01-V3",
+          "label": "Scambio dei ruoli",
+          "afterMarkdown": "# Atlante\n\nMarta Neri è la responsabile del progetto Atlante.\nLuca Riva coordina il design; non è il responsabile del progetto.\n\nFonte: [Ruoli Atlante](decision/ruoli-atlante).\n",
+          "expectedDecision": "reject",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "fail",
+              "rationale": "Assegna a Marta la responsabilità che la decisione attribuisce a Luca e a Luca il coordinamento del design assegnato a Marta."
+            }
+          },
+          "rationale": "Assegna a Marta la responsabilità che la decisione attribuisce a Luca e a Luca il coordinamento del design assegnato a Marta.",
+          "proof": [
+            {
+              "location": "source",
+              "pageId": "decision/ruoli-atlante",
+              "quote": "# Ruoli Atlante\nDecisione del 2 ottobre 2026: Luca Riva è responsabile del progetto Atlante.\nMarta Neri coordina il design e non ricopre il ruolo di responsabile del progetto.\n"
+            },
+            {
+              "location": "after",
+              "quote": "Marta Neri è la responsabile del progetto Atlante."
+            }
+          ],
+          "contrastWith": "C01-V1"
+        },
+        {
+          "designId": "C01-V4",
+          "label": "Eliminazione della provenienza",
+          "afterMarkdown": "# Atlante\n\nLuca Riva è il responsabile del progetto Atlante.\nMarta Neri coordina il design; non è la responsabile del progetto.\n",
+          "expectedDecision": "reject",
+          "expectedCriteria": {
+            "preserves_distinct_information": {
+              "verdict": "fail",
+              "rationale": "Elimina l’unico collegamento e l’attribuzione alla decisione del 2 ottobre: la provenienza e la cronologia non rimangono accessibili dalla pagina risultante."
+            }
+          },
+          "rationale": "Elimina l’unico collegamento e l’attribuzione alla decisione del 2 ottobre: la provenienza e la cronologia non rimangono accessibili dalla pagina risultante.",
+          "proof": [
+            {
+              "location": "before",
+              "quote": "Fonte: [Ruoli Atlante](decision/ruoli-atlante)."
+            },
+            {
+              "location": "after",
+              "quote": "Luca Riva è il responsabile del progetto Atlante.\nMarta Neri coordina il design; non è la responsabile del progetto."
+            }
+          ],
+          "contrastWith": "C01-V1"
+        },
+        {
+          "designId": "C01-V5",
+          "label": "Nuova conferma umana",
+          "afterMarkdown": "# Atlante\n\nLuca Riva è il responsabile del progetto Atlante.\nMarta Neri coordina il design; non è la responsabile del progetto.\n\nFonte: [Ruoli Atlante](decision/ruoli-atlante).\n\nChiedere a Luca Riva di confermare il proprio ruolo.\n",
+          "expectedDecision": "reject",
+          "expectedCriteria": {
+            "no_new_human_action": {
+              "verdict": "fail",
+              "rationale": "Introduce una richiesta di conferma a Luca che non esisteva nel documento iniziale."
+            }
+          },
+          "rationale": "Introduce una richiesta di conferma a Luca che non esisteva nel documento iniziale.",
+          "proof": [
+            {
+              "location": "after",
+              "quote": "Chiedere a Luca Riva di confermare il proprio ruolo."
+            }
+          ],
+          "contrastWith": "C01-V1"
+        }
+      ]
+    },
+    {
+      "scenarioId": "C02",
+      "title": "Aggiornare una data senza cancellare la decisione precedente",
+      "target": {
+        "pageId": "project/porto",
+        "version": 1,
+        "title": "Porto",
+        "markdown": "# Porto\n\n## Rilascio\nIl rilascio è previsto per il 10 ottobre 2026.\nLa data è stata stabilita il 1 ottobre 2026.\n\nFonti: [Piano iniziale](decision/porto-piano), [Rinvio approvato](decision/porto-rinvio).\n",
+        "type": "project",
+        "summary": "Pianificazione del rilascio di Porto."
+      },
+      "sources": [
+        {
+          "pageId": "decision/porto-piano",
+          "version": 1,
+          "title": "Piano iniziale Porto",
+          "markdown": "Decisione del 1 ottobre 2026: il rilascio di Porto è previsto per il 10 ottobre 2026.\n"
+        },
+        {
+          "pageId": "decision/porto-rinvio",
+          "version": 1,
+          "title": "Rinvio approvato Porto",
+          "markdown": "Decisione del 5 ottobre 2026: il rilascio di Porto è spostato dal 10 al 20 ottobre 2026 per completare i test di accessibilità. Questa decisione sostituisce la data del piano del 1 ottobre.\n"
+        }
+      ],
+      "rules": [
+        {
+          "id": "C02-F1",
+          "description": "Il piano del 1 ottobre fissava il rilascio al 10 ottobre.",
+          "evidence": [
+            {
+              "pageId": "decision/porto-piano",
+              "quote": "Decisione del 1 ottobre 2026: il rilascio di Porto è previsto per il 10 ottobre 2026."
+            }
+          ]
+        },
+        {
+          "id": "C02-F2",
+          "description": "Il rinvio al 20 è deciso il 5 ottobre per i test di accessibilità e sostituisce esplicitamente il piano.",
+          "evidence": [
+            {
+              "pageId": "decision/porto-rinvio",
+              "quote": "Decisione del 5 ottobre 2026: il rilascio di Porto è spostato dal 10 al 20 ottobre 2026 per completare i test di accessibilità. Questa decisione sostituisce la data del piano del 1 ottobre."
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "designId": "C02-V1",
+          "label": "Aggiornamento con cronologia",
+          "afterMarkdown": "# Porto\n\n## Rilascio\nIl rilascio è previsto per il 20 ottobre 2026.\nLa decisione del 5 ottobre 2026 ha sostituito la precedente data del 10 ottobre, stabilita nel piano del 1 ottobre, per completare i test di accessibilità.\n\nFonti: [Piano iniziale](decision/porto-piano), [Rinvio approvato](decision/porto-rinvio).\n",
+          "expectedDecision": "accept",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "pass",
+              "rationale": "Aggiorna la data attuale al 20 ottobre, conserva precedente data, date delle decisioni, ragione del rinvio e le due fonti."
+            },
+            "preserves_distinct_information": {
+              "verdict": "pass",
+              "rationale": "Le informazioni utili rimangono nel testo o nelle fonti invariate esplicitamente collegate."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "La modifica non aggiunge richieste, incarichi o conferme umane."
+            },
+            "meaningful_improvement": {
+              "verdict": "pass",
+              "rationale": "Aggiorna la data attuale al 20 ottobre, conserva precedente data, date delle decisioni, ragione del rinvio e le due fonti."
+            }
+          },
+          "rationale": "Aggiorna la data attuale al 20 ottobre, conserva precedente data, date delle decisioni, ragione del rinvio e le due fonti.",
+          "proof": [
+            {
+              "location": "source",
+              "pageId": "decision/porto-rinvio",
+              "quote": "Decisione del 5 ottobre 2026: il rilascio di Porto è spostato dal 10 al 20 ottobre 2026 per completare i test di accessibilità. Questa decisione sostituisce la data del piano del 1 ottobre."
+            },
+            {
+              "location": "after",
+              "quote": "## Rilascio\nIl rilascio è previsto per il 20 ottobre 2026.\nLa decisione del 5 ottobre 2026 ha sostituito la precedente data del 10 ottobre, stabilita nel piano del 1 ottobre, per completare i test di accessibilità."
+            }
+          ]
+        },
+        {
+          "designId": "C02-V2",
+          "label": "Aggiornamento in ordine cronologico",
+          "afterMarkdown": "# Porto\n\n## Rilascio\nIl piano del 1 ottobre 2026 prevedeva il rilascio il 10 ottobre. La decisione del 5 ottobre lo ha rinviato al 20 ottobre 2026 per completare i test di accessibilità: questa è la data attuale.\n\nFonti: [Piano iniziale](decision/porto-piano), [Rinvio approvato](decision/porto-rinvio).\n",
+          "expectedDecision": "accept",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "pass",
+              "rationale": "Aggiorna la data attuale al 20 ottobre, conserva precedente data, date delle decisioni, ragione del rinvio e le due fonti."
+            },
+            "preserves_distinct_information": {
+              "verdict": "pass",
+              "rationale": "Le informazioni utili rimangono nel testo o nelle fonti invariate esplicitamente collegate."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "La modifica non aggiunge richieste, incarichi o conferme umane."
+            },
+            "meaningful_improvement": {
+              "verdict": "pass",
+              "rationale": "Aggiorna la data attuale al 20 ottobre, conserva precedente data, date delle decisioni, ragione del rinvio e le due fonti."
+            }
+          },
+          "rationale": "Aggiorna la data attuale al 20 ottobre, conserva precedente data, date delle decisioni, ragione del rinvio e le due fonti.",
+          "proof": [
+            {
+              "location": "source",
+              "pageId": "decision/porto-rinvio",
+              "quote": "Decisione del 5 ottobre 2026: il rilascio di Porto è spostato dal 10 al 20 ottobre 2026 per completare i test di accessibilità. Questa decisione sostituisce la data del piano del 1 ottobre."
+            },
+            {
+              "location": "after",
+              "quote": "## Rilascio\nIl piano del 1 ottobre 2026 prevedeva il rilascio il 10 ottobre. La decisione del 5 ottobre lo ha rinviato al 20 ottobre 2026 per completare i test di accessibilità: questa è la data attuale."
+            }
+          ]
+        },
+        {
+          "designId": "C02-V3",
+          "label": "Data della decisione alterata",
+          "afterMarkdown": "# Porto\n\n## Rilascio\nIl rilascio è previsto per il 20 ottobre 2026.\nLa decisione del 1 ottobre 2026 ha sostituito la precedente data del 10 ottobre, stabilita nel piano del 1 ottobre, per completare i test di accessibilità.\n\nFonti: [Piano iniziale](decision/porto-piano), [Rinvio approvato](decision/porto-rinvio).\n",
+          "expectedDecision": "reject",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "fail",
+              "rationale": "Retrodata al 1 ottobre il rinvio che la fonte attribuisce esplicitamente al 5 ottobre."
+            }
+          },
+          "rationale": "Retrodata al 1 ottobre il rinvio che la fonte attribuisce esplicitamente al 5 ottobre.",
+          "proof": [
+            {
+              "location": "source",
+              "pageId": "decision/porto-rinvio",
+              "quote": "Decisione del 5 ottobre 2026"
+            },
+            {
+              "location": "after",
+              "quote": "La decisione del 1 ottobre 2026 ha sostituito"
+            }
+          ],
+          "contrastWith": "C02-V1"
+        },
+        {
+          "designId": "C02-V4",
+          "label": "Data del rilascio inventata",
+          "afterMarkdown": "# Porto\n\n## Rilascio\nIl rilascio è previsto per il 25 ottobre 2026.\nLa decisione del 5 ottobre 2026 ha sostituito la precedente data del 10 ottobre, stabilita nel piano del 1 ottobre, per completare i test di accessibilità.\n\nFonti: [Piano iniziale](decision/porto-piano), [Rinvio approvato](decision/porto-rinvio).\n",
+          "expectedDecision": "reject",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "fail",
+              "rationale": "Indica il 25 ottobre come data attuale, in contrasto con la decisione che stabilisce il 20."
+            }
+          },
+          "rationale": "Indica il 25 ottobre come data attuale, in contrasto con la decisione che stabilisce il 20.",
+          "proof": [
+            {
+              "location": "source",
+              "pageId": "decision/porto-rinvio",
+              "quote": "spostato dal 10 al 20 ottobre 2026"
+            },
+            {
+              "location": "after",
+              "quote": "Il rilascio è previsto per il 25 ottobre 2026."
+            }
+          ],
+          "contrastWith": "C02-V1"
+        },
+        {
+          "designId": "C02-V5",
+          "label": "Nuova conferma del rinvio",
+          "afterMarkdown": "# Porto\n\n## Rilascio\nIl rilascio è previsto per il 20 ottobre 2026.\nLa decisione del 5 ottobre 2026 ha sostituito la precedente data del 10 ottobre, stabilita nel piano del 1 ottobre, per completare i test di accessibilità.\n\nFonti: [Piano iniziale](decision/porto-piano), [Rinvio approvato](decision/porto-rinvio).\n\nChiedere al responsabile di confermare il rilascio del 20 ottobre.\n",
+          "expectedDecision": "reject",
+          "expectedCriteria": {
+            "no_new_human_action": {
+              "verdict": "fail",
+              "rationale": "Aggiunge un incarico umano per confermare una data che la fonte ha già deciso."
+            }
+          },
+          "rationale": "Aggiunge un incarico umano per confermare una data che la fonte ha già deciso.",
+          "proof": [
+            {
+              "location": "after",
+              "quote": "Chiedere al responsabile di confermare il rilascio del 20 ottobre."
+            }
+          ],
+          "contrastWith": "C02-V1"
+        }
+      ]
+    },
+    {
+      "scenarioId": "C03",
+      "title": "Chiudere una domanda quando la risposta è già documentata",
+      "target": {
+        "pageId": "project/faro",
+        "version": 1,
+        "title": "Faro",
+        "markdown": "# Faro\n\n## Titolarità\nChi è il proprietario del progetto Faro? Il nome non è ancora registrato qui.\n\nFonte disponibile: [Titolarità Faro](decision/titolarita-faro).\n",
+        "type": "project",
+        "summary": "Titolarità del progetto Faro."
+      },
+      "sources": [
+        {
+          "pageId": "decision/titolarita-faro",
+          "version": 1,
+          "title": "Titolarità Faro",
+          "markdown": "Dichiarazione del 4 ottobre 2026: Sara Conti è proprietaria del progetto Faro. Andrea Bassi è l’autore del documento di presentazione e non è proprietario del progetto.\n"
+        }
+      ],
+      "rules": [
+        {
+          "id": "C03-F1",
+          "description": "Sara è proprietaria; Andrea è autore e non proprietario.",
+          "evidence": [
+            {
+              "pageId": "decision/titolarita-faro",
+              "quote": "Dichiarazione del 4 ottobre 2026: Sara Conti è proprietaria del progetto Faro. Andrea Bassi è l’autore del documento di presentazione e non è proprietario del progetto."
+            }
+          ]
+        },
+        {
+          "id": "C03-F2",
+          "description": "Il 4 ottobre è la data della dichiarazione; nessuna data di acquisizione è attestata.",
+          "evidence": [
+            {
+              "pageId": "decision/titolarita-faro",
+              "quote": "Dichiarazione del 4 ottobre 2026: Sara Conti è proprietaria del progetto Faro."
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "designId": "C03-V1",
+          "label": "Risposta con fonte integrata",
+          "afterMarkdown": "# Faro\n\n## Titolarità\nSara Conti è proprietaria del progetto Faro, come riportato nella [dichiarazione del 4 ottobre 2026](decision/titolarita-faro).\n",
+          "expectedDecision": "accept",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "pass",
+              "rationale": "Sostituisce la domanda con la titolarità esplicita di Sara, mantiene data e collegamento della dichiarazione senza trasformarla in data di acquisizione."
+            },
+            "preserves_distinct_information": {
+              "verdict": "pass",
+              "rationale": "Le informazioni utili rimangono nel testo o nelle fonti invariate esplicitamente collegate."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "La modifica non aggiunge richieste, incarichi o conferme umane."
+            },
+            "meaningful_improvement": {
+              "verdict": "pass",
+              "rationale": "Sostituisce la domanda con la titolarità esplicita di Sara, mantiene data e collegamento della dichiarazione senza trasformarla in data di acquisizione."
+            }
+          },
+          "rationale": "Sostituisce la domanda con la titolarità esplicita di Sara, mantiene data e collegamento della dichiarazione senza trasformarla in data di acquisizione.",
+          "proof": [
+            {
+              "location": "before",
+              "quote": "Chi è il proprietario del progetto Faro?"
+            },
+            {
+              "location": "source",
+              "pageId": "decision/titolarita-faro",
+              "quote": "Sara Conti è proprietaria del progetto Faro."
+            },
+            {
+              "location": "after",
+              "quote": "## Titolarità\nSara Conti è proprietaria del progetto Faro, come riportato nella [dichiarazione del 4 ottobre 2026](decision/titolarita-faro).\n"
+            }
+          ]
+        },
+        {
+          "designId": "C03-V2",
+          "label": "Risposta con fonte separata",
+          "afterMarkdown": "# Faro\n\n## Titolarità\nLa proprietaria del progetto Faro è Sara Conti. La titolarità è attestata dalla dichiarazione del 4 ottobre 2026.\n\nFonte: [Titolarità Faro](decision/titolarita-faro).\n",
+          "expectedDecision": "accept",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "pass",
+              "rationale": "Sostituisce la domanda con la titolarità esplicita di Sara, mantiene data e collegamento della dichiarazione senza trasformarla in data di acquisizione."
+            },
+            "preserves_distinct_information": {
+              "verdict": "pass",
+              "rationale": "Le informazioni utili rimangono nel testo o nelle fonti invariate esplicitamente collegate."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "La modifica non aggiunge richieste, incarichi o conferme umane."
+            },
+            "meaningful_improvement": {
+              "verdict": "pass",
+              "rationale": "Sostituisce la domanda con la titolarità esplicita di Sara, mantiene data e collegamento della dichiarazione senza trasformarla in data di acquisizione."
+            }
+          },
+          "rationale": "Sostituisce la domanda con la titolarità esplicita di Sara, mantiene data e collegamento della dichiarazione senza trasformarla in data di acquisizione.",
+          "proof": [
+            {
+              "location": "before",
+              "quote": "Chi è il proprietario del progetto Faro?"
+            },
+            {
+              "location": "source",
+              "pageId": "decision/titolarita-faro",
+              "quote": "Sara Conti è proprietaria del progetto Faro."
+            },
+            {
+              "location": "after",
+              "quote": "## Titolarità\nLa proprietaria del progetto Faro è Sara Conti. La titolarità è attestata dalla dichiarazione del 4 ottobre 2026."
+            }
+          ]
+        },
+        {
+          "designId": "C03-V3",
+          "label": "Autore trasformato in proprietario",
+          "afterMarkdown": "# Faro\n\n## Titolarità\nAndrea Bassi è proprietario del progetto Faro, come riportato nella [dichiarazione del 4 ottobre 2026](decision/titolarita-faro).\n",
+          "expectedDecision": "reject",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "fail",
+              "rationale": "Assegna la proprietà ad Andrea, che la fonte indica esplicitamente come autore e non proprietario."
+            }
+          },
+          "rationale": "Assegna la proprietà ad Andrea, che la fonte indica esplicitamente come autore e non proprietario.",
+          "proof": [
+            {
+              "location": "source",
+              "pageId": "decision/titolarita-faro",
+              "quote": "Andrea Bassi è l’autore del documento di presentazione e non è proprietario del progetto."
+            },
+            {
+              "location": "after",
+              "quote": "Andrea Bassi è proprietario del progetto Faro"
+            }
+          ],
+          "contrastWith": "C03-V1"
+        },
+        {
+          "designId": "C03-V4",
+          "label": "Data di acquisizione inventata",
+          "afterMarkdown": "# Faro\n\n## Titolarità\nSara Conti ha acquisito la proprietà del progetto Faro il 4 ottobre 2026, come riportato nella [dichiarazione del 4 ottobre 2026](decision/titolarita-faro).\n",
+          "expectedDecision": "reject",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "fail",
+              "rationale": "Trasforma la data della dichiarazione in data di acquisizione della proprietà, che nessuna fonte specifica."
+            }
+          },
+          "rationale": "Trasforma la data della dichiarazione in data di acquisizione della proprietà, che nessuna fonte specifica.",
+          "proof": [
+            {
+              "location": "source",
+              "pageId": "decision/titolarita-faro",
+              "quote": "Dichiarazione del 4 ottobre 2026: Sara Conti è proprietaria del progetto Faro."
+            },
+            {
+              "location": "after",
+              "quote": "Sara Conti ha acquisito la proprietà del progetto Faro il 4 ottobre 2026"
+            }
+          ],
+          "contrastWith": "C03-V1"
+        },
+        {
+          "designId": "C03-V5",
+          "label": "Conferma richiesta dopo la risposta",
+          "afterMarkdown": "# Faro\n\n## Titolarità\nSara Conti è proprietaria del progetto Faro, come riportato nella [dichiarazione del 4 ottobre 2026](decision/titolarita-faro).\n\nChiedere a Sara Conti di confermare di essere proprietaria di Faro.\n",
+          "expectedDecision": "reject",
+          "expectedCriteria": {
+            "no_new_human_action": {
+              "verdict": "fail",
+              "rationale": "Dopo aver incorporato la risposta, introduce una nuova conferma da chiedere a Sara."
+            }
+          },
+          "rationale": "Dopo aver incorporato la risposta, introduce una nuova conferma da chiedere a Sara.",
+          "proof": [
+            {
+              "location": "after",
+              "quote": "Chiedere a Sara Conti di confermare di essere proprietaria di Faro."
+            }
+          ],
+          "contrastWith": "C03-V1"
+        }
+      ]
+    },
+    {
+      "scenarioId": "C04",
+      "title": "Rimuovere il diario di manutenzione, conservando il fatto e la fonte",
+      "target": {
+        "pageId": "project/mosaico",
+        "version": 1,
+        "title": "Mosaico",
+        "markdown": "# Mosaico\n\nIl referente operativo di Mosaico è Nina Sala.\nFonte: [Referente Mosaico](decision/referente-mosaico).\n\n## Controllo del consolidatore — 6 ottobre 2026\nLa pagina riporta Nina Sala come referente operativo. Nessuna nuova informazione.\n\n## Controllo del consolidatore — 7 ottobre 2026\nLa pagina riporta Nina Sala come referente operativo. Nessuna nuova informazione.\n\n## Controllo del consolidatore — 8 ottobre 2026\nLa pagina riporta Nina Sala come referente operativo. Nessuna nuova informazione.\n",
+        "type": "project",
+        "summary": "Referente operativo del progetto Mosaico."
+      },
+      "sources": [
+        {
+          "pageId": "decision/referente-mosaico",
+          "version": 1,
+          "title": "Referente Mosaico",
+          "markdown": "Decisione del 3 ottobre 2026: Nina Sala è nominata referente operativo di Mosaico.\n"
+        }
+      ],
+      "rules": [
+        {
+          "id": "C04-F1",
+          "description": "Nina è referente operativo per decisione del 3 ottobre; la decisione rimane raggiungibile.",
+          "evidence": [
+            {
+              "pageId": "decision/referente-mosaico",
+              "quote": "Decisione del 3 ottobre 2026: Nina Sala è nominata referente operativo di Mosaico."
+            }
+          ]
+        },
+        {
+          "id": "C04-F2",
+          "description": "Le tre note dei controlli ripetono il fatto e dichiarano di non aggiungere informazioni; le date delle letture non sono fatti di dominio da mantenere.",
+          "evidence": [
+            {
+              "pageId": "project/mosaico",
+              "quote": "La pagina riporta Nina Sala come referente operativo. Nessuna nuova informazione."
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "designId": "C04-V1",
+          "label": "Rimozione delle note ripetute",
+          "afterMarkdown": "# Mosaico\n\nIl referente operativo di Mosaico è Nina Sala.\nFonte: [Referente Mosaico](decision/referente-mosaico).\n",
+          "expectedDecision": "accept",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "pass",
+              "rationale": "Elimina tutte le note di controllo ridondanti; conserva il referente e l’accesso alla decisione del 3 ottobre. Le date delle sole letture 6, 7 e 8 non sono informazioni da conservare nel caso concordato."
+            },
+            "preserves_distinct_information": {
+              "verdict": "pass",
+              "rationale": "Le informazioni utili rimangono nel testo o nelle fonti invariate esplicitamente collegate."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "La modifica non aggiunge richieste, incarichi o conferme umane."
+            },
+            "meaningful_improvement": {
+              "verdict": "pass",
+              "rationale": "Elimina tutte le note di controllo ridondanti; conserva il referente e l’accesso alla decisione del 3 ottobre. Le date delle sole letture 6, 7 e 8 non sono informazioni da conservare nel caso concordato."
+            }
+          },
+          "rationale": "Elimina tutte le note di controllo ridondanti; conserva il referente e l’accesso alla decisione del 3 ottobre. Le date delle sole letture 6, 7 e 8 non sono informazioni da conservare nel caso concordato.",
+          "proof": [
+            {
+              "location": "before",
+              "quote": "## Controllo del consolidatore — 6 ottobre 2026"
+            },
+            {
+              "location": "after",
+              "quote": "Il referente operativo di Mosaico è Nina Sala.\nFonte: [Referente Mosaico](decision/referente-mosaico).\n"
+            },
+            {
+              "location": "source",
+              "pageId": "decision/referente-mosaico",
+              "quote": "Decisione del 3 ottobre 2026: Nina Sala è nominata referente operativo di Mosaico."
+            }
+          ]
+        },
+        {
+          "designId": "C04-V2",
+          "label": "Rimozione delle note con data della decisione esplicita",
+          "afterMarkdown": "# Mosaico\n\nNina Sala è il referente operativo di Mosaico, nominata con la [decisione del 3 ottobre 2026](decision/referente-mosaico).\n",
+          "expectedDecision": "accept",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "pass",
+              "rationale": "Elimina tutte le note di controllo ridondanti; conserva il referente e l’accesso alla decisione del 3 ottobre. Le date delle sole letture 6, 7 e 8 non sono informazioni da conservare nel caso concordato."
+            },
+            "preserves_distinct_information": {
+              "verdict": "pass",
+              "rationale": "Le informazioni utili rimangono nel testo o nelle fonti invariate esplicitamente collegate."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "La modifica non aggiunge richieste, incarichi o conferme umane."
+            },
+            "meaningful_improvement": {
+              "verdict": "pass",
+              "rationale": "Elimina tutte le note di controllo ridondanti; conserva il referente e l’accesso alla decisione del 3 ottobre. Le date delle sole letture 6, 7 e 8 non sono informazioni da conservare nel caso concordato."
+            }
+          },
+          "rationale": "Elimina tutte le note di controllo ridondanti; conserva il referente e l’accesso alla decisione del 3 ottobre. Le date delle sole letture 6, 7 e 8 non sono informazioni da conservare nel caso concordato.",
+          "proof": [
+            {
+              "location": "before",
+              "quote": "## Controllo del consolidatore — 6 ottobre 2026"
+            },
+            {
+              "location": "after",
+              "quote": "Nina Sala è il referente operativo di Mosaico, nominata con la [decisione del 3 ottobre 2026](decision/referente-mosaico).\n"
+            },
+            {
+              "location": "source",
+              "pageId": "decision/referente-mosaico",
+              "quote": "Decisione del 3 ottobre 2026: Nina Sala è nominata referente operativo di Mosaico."
+            }
+          ]
+        },
+        {
+          "designId": "C04-V3",
+          "label": "Fonte della nomina eliminata",
+          "afterMarkdown": "# Mosaico\n\nIl referente operativo di Mosaico è Nina Sala.\n",
+          "expectedDecision": "reject",
+          "expectedCriteria": {
+            "preserves_distinct_information": {
+              "verdict": "fail",
+              "rationale": "Rimuove l’unica attribuzione e il collegamento alla decisione della nomina: perde la provenienza e l’accesso alla data del 3 ottobre."
+            }
+          },
+          "rationale": "Rimuove l’unica attribuzione e il collegamento alla decisione della nomina: perde la provenienza e l’accesso alla data del 3 ottobre.",
+          "proof": [
+            {
+              "location": "before",
+              "quote": "Fonte: [Referente Mosaico](decision/referente-mosaico)."
+            },
+            {
+              "location": "source",
+              "pageId": "decision/referente-mosaico",
+              "quote": "Decisione del 3 ottobre 2026: Nina Sala è nominata referente operativo di Mosaico."
+            },
+            {
+              "location": "after",
+              "quote": "Il referente operativo di Mosaico è Nina Sala."
+            }
+          ],
+          "contrastWith": "C04-V1"
+        },
+        {
+          "designId": "C04-V4",
+          "label": "Cambio cosmetico che lascia tutte le note",
+          "afterMarkdown": "# Progetto Mosaico\n\nIl referente operativo di Mosaico è Nina Sala.\nFonte: [Referente Mosaico](decision/referente-mosaico).\n\n## Controllo del consolidatore — 6 ottobre 2026\nLa pagina riporta Nina Sala come referente operativo. Nessuna nuova informazione.\n\n## Controllo del consolidatore — 7 ottobre 2026\nLa pagina riporta Nina Sala come referente operativo. Nessuna nuova informazione.\n\n## Controllo del consolidatore — 8 ottobre 2026\nLa pagina riporta Nina Sala come referente operativo. Nessuna nuova informazione.\n",
+          "expectedDecision": "reject",
+          "expectedCriteria": {
+            "meaningful_improvement": {
+              "verdict": "fail",
+              "rationale": "Cambia soltanto il titolo Markdown e lascia intatte le tre note ridondanti: non realizza alcun beneficio di consolidamento."
+            }
+          },
+          "rationale": "Cambia soltanto il titolo Markdown e lascia intatte le tre note ridondanti: non realizza alcun beneficio di consolidamento.",
+          "proof": [
+            {
+              "location": "before",
+              "quote": "# Mosaico"
+            },
+            {
+              "location": "after",
+              "quote": "# Progetto Mosaico"
+            },
+            {
+              "location": "after",
+              "quote": "## Controllo del consolidatore — 8 ottobre 2026"
+            }
+          ]
+        },
+        {
+          "designId": "C04-V5",
+          "label": "Nuova conferma dopo la pulizia",
+          "afterMarkdown": "# Mosaico\n\nIl referente operativo di Mosaico è Nina Sala.\nFonte: [Referente Mosaico](decision/referente-mosaico).\n\nChiedere a Nina Sala di riconfermare il proprio incarico.\n",
+          "expectedDecision": "reject",
+          "expectedCriteria": {
+            "no_new_human_action": {
+              "verdict": "fail",
+              "rationale": "Rimuove le note ma aggiunge una richiesta umana di riconferma che non esisteva prima."
+            }
+          },
+          "rationale": "Rimuove le note ma aggiunge una richiesta umana di riconferma che non esisteva prima.",
+          "proof": [
+            {
+              "location": "after",
+              "quote": "Chiedere a Nina Sala di riconfermare il proprio incarico."
+            }
+          ],
+          "contrastWith": "C04-V1"
+        }
+      ]
+    },
+    {
+      "scenarioId": "C05",
+      "title": "Conservare un conflitto che le fonti non risolvono",
+      "target": {
+        "pageId": "project/vela",
+        "version": 1,
+        "title": "Vela",
+        "markdown": "# Vela\n\nIl verbale A, datato 6 ottobre 2026, indica il 20 ottobre come data del rilascio.\nIl verbale B, datato 6 ottobre 2026, indica il 22 ottobre come data del rilascio.\nLe fonti non stabiliscono quale delle due date prevalga.\n",
+        "type": "project",
+        "summary": "Due attestazioni discordanti sulla data di rilascio."
+      },
+      "sources": [],
+      "rules": [
+        {
+          "id": "C05-F1",
+          "description": "Il verbale A riporta il 20, il B il 22, entrambi il 6 ottobre; nessuna prevalenza è attestata.",
+          "evidence": [
+            {
+              "pageId": "project/vela",
+              "quote": "Il verbale A, datato 6 ottobre 2026, indica il 20 ottobre come data del rilascio.\nIl verbale B, datato 6 ottobre 2026, indica il 22 ottobre come data del rilascio.\nLe fonti non stabiliscono quale delle due date prevalga."
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "designId": "C05-V1",
+          "label": "Scelta arbitraria di una data",
+          "afterMarkdown": "# Vela\n\nIl rilascio di Vela è fissato al 20 ottobre 2026, come stabilito dal verbale A del 6 ottobre 2026.\n",
+          "expectedDecision": "reject",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "fail",
+              "rationale": "Elimina l’attestazione del verbale B e l’incertezza, trasformando una delle due date in data certa senza alcuna decisione di prevalenza."
+            },
+            "preserves_distinct_information": {
+              "verdict": "fail",
+              "rationale": "Elimina l’attestazione del verbale B e l’incertezza, trasformando una delle due date in data certa senza alcuna decisione di prevalenza."
+            }
+          },
+          "rationale": "Elimina l’attestazione del verbale B e l’incertezza, trasformando una delle due date in data certa senza alcuna decisione di prevalenza.",
+          "proof": [
+            {
+              "location": "before",
+              "quote": "Il verbale B, datato 6 ottobre 2026, indica il 22 ottobre come data del rilascio."
+            },
+            {
+              "location": "before",
+              "quote": "Le fonti non stabiliscono quale delle due date prevalga."
+            },
+            {
+              "location": "after",
+              "quote": "Il rilascio di Vela è fissato al 20 ottobre 2026"
+            }
+          ]
+        },
+        {
+          "designId": "C05-V2",
+          "label": "Conflitto trasformato in incarico umano",
+          "afterMarkdown": "# Vela\n\nIl verbale A, datato 6 ottobre 2026, indica il 20 ottobre come data del rilascio.\nIl verbale B, datato 6 ottobre 2026, indica il 22 ottobre come data del rilascio.\nLe fonti non stabiliscono quale delle due date prevalga.\n\nIl responsabile deve verificare i verbali e decidere quale data usare.\n",
+          "expectedDecision": "reject",
+          "expectedCriteria": {
+            "no_new_human_action": {
+              "verdict": "fail",
+              "rationale": "Conserva il conflitto ma aggiunge un nuovo obbligo di verifica e decisione a carico del responsabile."
+            }
+          },
+          "rationale": "Conserva il conflitto ma aggiunge un nuovo obbligo di verifica e decisione a carico del responsabile.",
+          "proof": [
+            {
+              "location": "after",
+              "quote": "Il responsabile deve verificare i verbali e decidere quale data usare."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "scenarioId": "C06",
+      "title": "Riconoscere che il lavoro è già finito",
+      "target": {
+        "pageId": "project/quarzo",
+        "version": 1,
+        "title": "Quarzo",
+        "markdown": "# Quarzo\n\nElena Rosi è responsabile del progetto Quarzo. Il progetto usa un archivio documentale interno.\nFonte: decisione di assetto del progetto del 2 ottobre 2026.\n",
+        "type": "project",
+        "summary": "Responsabilità e archivio del progetto Quarzo."
+      },
+      "sources": [],
+      "rules": [
+        {
+          "id": "C06-F1",
+          "description": "Elena è responsabile; l’archivio è interno; la fonte è la decisione del 2 ottobre.",
+          "evidence": [
+            {
+              "pageId": "project/quarzo",
+              "quote": "Elena Rosi è responsabile del progetto Quarzo. Il progetto usa un archivio documentale interno.\nFonte: decisione di assetto del progetto del 2 ottobre 2026."
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "designId": "C06-V1",
+          "label": "Riscrittura cosmetica senza lavoro utile",
+          "afterMarkdown": "# Progetto Quarzo\n\nElena Rosi è responsabile del progetto Quarzo. Il progetto usa un archivio documentale interno.\nFonte: decisione di assetto del progetto del 2 ottobre 2026.\n",
+          "expectedDecision": "reject",
+          "expectedCriteria": {
+            "meaningful_improvement": {
+              "verdict": "fail",
+              "rationale": "Cambia soltanto il titolo Markdown di una pagina già consolidata, senza correggere dati, risolvere domande o rimuovere duplicazioni."
+            }
+          },
+          "rationale": "Cambia soltanto il titolo Markdown di una pagina già consolidata, senza correggere dati, risolvere domande o rimuovere duplicazioni.",
+          "proof": [
+            {
+              "location": "before",
+              "quote": "# Quarzo"
+            },
+            {
+              "location": "after",
+              "quote": "# Progetto Quarzo"
+            }
+          ]
+        },
+        {
+          "designId": "C06-V2",
+          "label": "Richiesta umana inventata",
+          "afterMarkdown": "# Quarzo\n\nElena Rosi è responsabile del progetto Quarzo. Il progetto usa un archivio documentale interno.\nFonte: decisione di assetto del progetto del 2 ottobre 2026.\n\nChiedere a Elena Rosi di verificare che l’archivio sia ancora interno.\n",
+          "expectedDecision": "reject",
+          "expectedCriteria": {
+            "no_new_human_action": {
+              "verdict": "fail",
+              "rationale": "Introduce una richiesta di verifica assente nella pagina iniziale e non giustificata da nuove informazioni."
+            }
+          },
+          "rationale": "Introduce una richiesta di verifica assente nella pagina iniziale e non giustificata da nuove informazioni.",
+          "proof": [
+            {
+              "location": "after",
+              "quote": "Chiedere a Elena Rosi di verificare che l’archivio sia ancora interno."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

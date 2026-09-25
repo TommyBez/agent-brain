@@ -38,7 +38,14 @@ function retryAfterMilliseconds(value: string | null): number | null {
 export async function gatewayRequest<T>(
   path: "chat/completions" | "embeddings",
   body: unknown,
+  options: { timeoutMs?: number } = {},
 ): Promise<T> {
+  const timeoutMs = options.timeoutMs ?? REQUEST_TIMEOUT_MS;
+  if (!Number.isSafeInteger(timeoutMs) || timeoutMs <= 0) {
+    throw new GatewayRequestError("AI Gateway request timeout is invalid.", {
+      retryable: false,
+    });
+  }
   const key = process.env.AI_GATEWAY_API_KEY;
   if (!key) {
     throw new GatewayRequestError(
@@ -57,7 +64,7 @@ export async function gatewayRequest<T>(
       },
       body: JSON.stringify(body),
       cache: "no-store",
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      signal: AbortSignal.timeout(timeoutMs),
     });
   } catch {
     throw new GatewayRequestError("AI Gateway request failed or timed out.", {

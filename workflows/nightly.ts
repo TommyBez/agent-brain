@@ -1,55 +1,48 @@
 import { createHook, getWorkflowMetadata, sleep } from "workflow";
 import {
-  appendConsolidationToolResults,
-  CONSOLIDATION_LIMITS,
-  type ConsolidationToolResult,
-} from "@/lib/maintenance/consolidation";
+  applyCandidateRun,
+  assessCandidateRun,
+  finishCandidateRun,
+  generateCandidateRun,
+  prepareCandidateRun,
+} from "@/lib/maintenance/consolidation-steps";
 import { EMBEDDING_LIMITS } from "@/lib/maintenance/embedding-batch";
 import {
   beginJob,
   completeJob,
-  consolidationRound,
-  consolidationTool,
   embedBatch,
   nextEmbeddingBatch,
   pendingEmbeddingCount,
-  prepareConsolidation,
   publishExport,
   storeEmbeddingBatch,
   takeExportSnapshot,
 } from "@/lib/maintenance/steps";
-import type { ReadReceipt } from "@/lib/maintenance/tools";
 
 async function consolidate(ownerId: string) {
-  let state = await prepareConsolidation(ownerId);
-  const reads: Record<string, ReadReceipt> = {};
-  while (!state.completed) {
-    state = await consolidationRound(state);
-    if (state.completed) break;
-    const results: ConsolidationToolResult[] = [];
-    let writes = state.writes;
-    for (const call of state.pendingToolCalls) {
-      const result = await consolidationTool(
-        ownerId,
-        call,
-        reads,
-        writes < CONSOLIDATION_LIMITS.writes,
-      );
-      if (result.writeSucceeded) writes++;
-      if (result.read)
-        for (const ref of result.read.refs) reads[ref] = result.read.receipt;
-      results.push(result);
+  let state = await prepareCandidateRun(ownerId);
+  try {
+    state = await generateCandidateRun(state);
+    for (
+      let index = 0;
+      index < state.proposals.length && !state.halted;
+      index++
+    ) {
+      const evaluated = await assessCandidateRun(state, index);
+      state = evaluated.state;
+      if (state.mode === "apply" && evaluated.prepared) {
+        state = await applyCandidateRun(
+          ownerId,
+          state,
+          index,
+          evaluated.prepared,
+        );
+      }
     }
-    state = appendConsolidationToolResults(state, results);
+    return finishCandidateRun(state);
+  } catch {
+    // Keep earlier model judgments and writes visible if a later durable step fails.
+    return finishCandidateRun(state, true);
   }
-  return {
-    writes: state.writes,
-    rounds: state.rounds,
-    inputTokens: state.inputTokens,
-    outputTokens: state.outputTokens,
-    report: state.report,
-    budgetReached: state.budgetReached,
-  };
 }
 
 async function indexPages(ownerId: string) {
@@ -107,7 +100,9 @@ async function runPhase(
         ownerId,
         job.id,
         runId,
-        result.budgetReached ? "partial" : "succeeded",
+        result.budgetReached || result.fault || result.invalid > 0
+          ? "partial"
+          : "succeeded",
         result,
       );
     }

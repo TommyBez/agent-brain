@@ -1,0 +1,705 @@
+{
+  "version": 1,
+  "scope": "jev-kimi-release-heldout-v2",
+  "status": "frozen-before-model-calls",
+  "provenance": {
+    "synthetic": true,
+    "promptBlindAuthor": true,
+    "newCandidatePromptsRead": false,
+    "modelOutputsRead": false,
+    "providerCalls": 0,
+    "sharedWithPromptDeveloper": false,
+    "purpose": "Twelve new controlled proposals prepared independently of release-v2 prompt development; lock input and reference before model calls."
+  },
+  "decisionPolicy": {
+    "accept": "All four labeled criteria must pass and the operational decision must be accept.",
+    "reject": "A clear labeled violation requires reject; uncertainty is reported separately rather than counted correct.",
+    "do_not_apply": "Ambiguous source interpretations may produce reject or uncertain, never accept.",
+    "error": "Technical failures are never successful decisions.",
+    "missingCriterion": "not_scored",
+    "ambiguousCriterion": "acceptableVerdicts is a reference-side set only; it is never included in model input."
+  },
+  "scenarios": [
+    {
+      "scenarioId": "H01",
+      "title": "Distinguere dichiarazione di presenza, consegna ed evento di prova",
+      "target": {
+        "pageId": "project/velaria",
+        "version": 1,
+        "title": "Velaria",
+        "markdown": "# Velaria\n\n## Consegna\nQuestione aperta: che cosa risulta sulla presenza del ricevitore in laboratorio?\nIl campione di riferimento è R-4.\n\nFonte: [Verbale ricezione](event/velaria-ricezione).\n",
+        "type": "project",
+        "summary": "Consegna del ricevitore e campione di riferimento."
+      },
+      "sources": [
+        {
+          "pageId": "event/velaria-ricezione",
+          "version": 1,
+          "title": "Velaria — verbale ricezione",
+          "markdown": "# Verbale ricezione del 18 aprile 2027\nIl 18 aprile 2027 Nives Corso dichiara: «Il ricevitore è nel laboratorio».\nIl campione di riferimento è R-4. La prova elettrica sul ricevitore è stata eseguita il 16 aprile 2027.\n"
+        }
+      ],
+      "rules": [
+        {
+          "id": "H01-F1",
+          "description": "La data della dichiarazione riguarda la presenza nel laboratorio, non il giorno della consegna; un evento diverso ha data esplicita.",
+          "evidence": [
+            {
+              "pageId": "event/velaria-ricezione",
+              "quote": "Il 18 aprile 2027 Nives Corso dichiara: «Il ricevitore è nel laboratorio»."
+            },
+            {
+              "pageId": "event/velaria-ricezione",
+              "quote": "La prova elettrica sul ricevitore è stata eseguita il 16 aprile 2027."
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "designId": "H01-V1",
+          "label": "Incorpora lo stato dichiarato e la prova con la propria data",
+          "category": "valid",
+          "afterMarkdown": "# Velaria\n\n## Consegna\nNel verbale del 18 aprile 2027 Nives Corso dichiara che il ricevitore è nel laboratorio. La prova elettrica è stata eseguita il 16 aprile 2027.\nIl campione di riferimento è R-4.\n\nFonte: [Verbale ricezione](event/velaria-ricezione).\n",
+          "expectedDecision": "accept",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "pass",
+              "rationale": "Attribuisce la presenza alla dichiarazione e la prova alla data esplicitamente fornita, senza inventare una data di consegna."
+            },
+            "preserves_distinct_information": {
+              "verdict": "pass",
+              "rationale": "Campione, fonte, autore della dichiarazione e date delle due informazioni restano distinguibili."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "Non introduce richieste, incarichi, scadenze di verifica o nuove questioni umane."
+            },
+            "meaningful_improvement": {
+              "verdict": "pass",
+              "rationale": "Sostituisce una domanda sullo stato con il riscontro documentato e rende accessibile la data esplicita della prova."
+            }
+          },
+          "rationale": "Sostituisce una domanda sullo stato con il riscontro documentato e rende accessibile la data esplicita della prova.",
+          "proof": [
+            {
+              "location": "before",
+              "quote": "Questione aperta: che cosa risulta sulla presenza del ricevitore in laboratorio?"
+            },
+            {
+              "location": "source",
+              "quote": "# Verbale ricezione del 18 aprile 2027\nIl 18 aprile 2027 Nives Corso dichiara: «Il ricevitore è nel laboratorio».\nIl campione di riferimento è R-4. La prova elettrica sul ricevitore è stata eseguita il 16 aprile 2027.\n",
+              "pageId": "event/velaria-ricezione"
+            },
+            {
+              "location": "after",
+              "quote": "Nel verbale del 18 aprile 2027 Nives Corso dichiara che il ricevitore è nel laboratorio. La prova elettrica è stata eseguita il 16 aprile 2027."
+            }
+          ]
+        },
+        {
+          "designId": "H01-V2",
+          "label": "Trasforma la dichiarazione di presenza nella data della consegna",
+          "category": "invalid",
+          "afterMarkdown": "# Velaria\n\n## Consegna\nIl ricevitore è stato consegnato al laboratorio il 18 aprile 2027, come documentato da Nives Corso nel verbale di quel giorno. La prova elettrica è stata eseguita il 16 aprile 2027.\nIl campione di riferimento è R-4.\n\nFonte: [Verbale ricezione](event/velaria-ricezione).\n",
+          "expectedDecision": "reject",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "fail",
+              "rationale": "La fonte documenta presenza al 18 aprile e prova al 16 aprile; non data l’evento di consegna. La proposta assegna alla consegna la data della dichiarazione."
+            }
+          },
+          "rationale": "La fonte documenta presenza al 18 aprile e prova al 16 aprile; non data l’evento di consegna. La proposta assegna alla consegna la data della dichiarazione.",
+          "contrastWith": "H01-V1",
+          "proof": [
+            {
+              "location": "source",
+              "quote": "# Verbale ricezione del 18 aprile 2027\nIl 18 aprile 2027 Nives Corso dichiara: «Il ricevitore è nel laboratorio».\nIl campione di riferimento è R-4. La prova elettrica sul ricevitore è stata eseguita il 16 aprile 2027.\n",
+              "pageId": "event/velaria-ricezione"
+            },
+            {
+              "location": "after",
+              "quote": "Il ricevitore è stato consegnato al laboratorio il 18 aprile 2027, come documentato da Nives Corso nel verbale di quel giorno."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "scenarioId": "H02",
+      "title": "Aggregare verifiche con provenienze solo parzialmente condivise",
+      "target": {
+        "pageId": "project/lumenio",
+        "version": 1,
+        "title": "Lumenio",
+        "markdown": "# Lumenio\n\n## Revisione del 2 maggio 2027\nConsultato il registro accessi: gli operatori usano credenziali individuali.\n\n## Revisione del 5 maggio 2027\nConsultati il registro accessi e il rapporto di esportazione: gli operatori usano credenziali individuali; l’esportazione è automatica ogni lunedì.\n\nFonti: [Accessi](decision/lumenio-accessi), [Esportazione](decision/lumenio-esportazione), [Registro revisioni](event/lumenio-revisioni).\n",
+        "type": "project",
+        "summary": "Credenziali individuali ed esportazione automatica con revisione attribuita."
+      },
+      "sources": [
+        {
+          "pageId": "decision/lumenio-accessi",
+          "version": 1,
+          "title": "Lumenio — accessi",
+          "markdown": "# Accessi Lumenio\nGli operatori usano credenziali individuali.\n"
+        },
+        {
+          "pageId": "decision/lumenio-esportazione",
+          "version": 1,
+          "title": "Lumenio — esportazione",
+          "markdown": "# Rapporto di esportazione Lumenio del 5 maggio 2027\nL’esportazione è automatica ogni lunedì.\n"
+        },
+        {
+          "pageId": "event/lumenio-revisioni",
+          "version": 1,
+          "title": "Lumenio — registro revisioni",
+          "markdown": "# Revisioni Lumenio\n2 maggio 2027: consultato il registro accessi; riscontrate credenziali individuali per gli operatori.\n5 maggio 2027: consultati il registro accessi e il rapporto di esportazione; riscontrate credenziali individuali ed esportazione automatica ogni lunedì.\n"
+        }
+      ],
+      "rules": [
+        {
+          "id": "H02-F1",
+          "description": "Solo la seconda revisione cita il rapporto di esportazione; il fatto comune sulle credenziali compare in entrambe.",
+          "evidence": [
+            {
+              "pageId": "event/lumenio-revisioni",
+              "quote": "# Revisioni Lumenio\n2 maggio 2027: consultato il registro accessi; riscontrate credenziali individuali per gli operatori.\n5 maggio 2027: consultati il registro accessi e il rapporto di esportazione; riscontrate credenziali individuali ed esportazione automatica ogni lunedì.\n"
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "designId": "H02-V1",
+          "label": "Compatta il fatto comune e separa il riscontro aggiuntivo",
+          "category": "valid",
+          "afterMarkdown": "# Lumenio\n\nGli operatori usano credenziali individuali, come riscontrato nel registro accessi nelle revisioni del 2 e del 5 maggio 2027. La revisione del 5 maggio ha consultato anche il rapporto di esportazione, che documenta l’esportazione automatica ogni lunedì.\n\nFonti: [Accessi](decision/lumenio-accessi), [Esportazione](decision/lumenio-esportazione), [Registro revisioni](event/lumenio-revisioni).\n",
+          "expectedDecision": "accept",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "pass",
+              "rationale": "Combina le due osservazioni sulle credenziali e assegna rapporto ed esportazione solo alla revisione che li documenta."
+            },
+            "preserves_distinct_information": {
+              "verdict": "pass",
+              "rationale": "Entrambe le date e tutte le fonti restano collegate ai fatti che effettivamente sostengono."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "Non introduce richieste, incarichi, scadenze di verifica o nuove questioni umane."
+            },
+            "meaningful_improvement": {
+              "verdict": "pass",
+              "rationale": "Rimuove la seconda esposizione completa del fatto sulle credenziali e incorpora la distinta provenienza dell’esportazione."
+            }
+          },
+          "rationale": "Rimuove la seconda esposizione completa del fatto sulle credenziali e incorpora la distinta provenienza dell’esportazione.",
+          "proof": [
+            {
+              "location": "before",
+              "quote": "Consultato il registro accessi: gli operatori usano credenziali individuali."
+            },
+            {
+              "location": "source",
+              "quote": "# Revisioni Lumenio\n2 maggio 2027: consultato il registro accessi; riscontrate credenziali individuali per gli operatori.\n5 maggio 2027: consultati il registro accessi e il rapporto di esportazione; riscontrate credenziali individuali ed esportazione automatica ogni lunedì.\n",
+              "pageId": "event/lumenio-revisioni"
+            },
+            {
+              "location": "after",
+              "quote": "La revisione del 5 maggio ha consultato anche il rapporto di esportazione"
+            }
+          ]
+        },
+        {
+          "designId": "H02-V2",
+          "label": "Attribuisce tutte le fonti e tutti i riscontri a entrambe le revisioni",
+          "category": "invalid",
+          "afterMarkdown": "# Lumenio\n\nNelle revisioni del 2 e del 5 maggio 2027 sono stati consultati il registro accessi e il rapporto di esportazione; in entrambe sono state riscontrate credenziali individuali per gli operatori ed esportazione automatica ogni lunedì.\n\nFonti: [Accessi](decision/lumenio-accessi), [Esportazione](decision/lumenio-esportazione), [Registro revisioni](event/lumenio-revisioni).\n",
+          "expectedDecision": "reject",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "fail",
+              "rationale": "La formula in entrambe assegna alla prima revisione una fonte e un riscontro documentati soltanto per la seconda. I fatti attuali corretti non autorizzano la nuova associazione storica."
+            }
+          },
+          "rationale": "La formula in entrambe assegna alla prima revisione una fonte e un riscontro documentati soltanto per la seconda. I fatti attuali corretti non autorizzano la nuova associazione storica.",
+          "contrastWith": "H02-V1",
+          "proof": [
+            {
+              "location": "source",
+              "quote": "# Revisioni Lumenio\n2 maggio 2027: consultato il registro accessi; riscontrate credenziali individuali per gli operatori.\n5 maggio 2027: consultati il registro accessi e il rapporto di esportazione; riscontrate credenziali individuali ed esportazione automatica ogni lunedì.\n",
+              "pageId": "event/lumenio-revisioni"
+            },
+            {
+              "location": "after",
+              "quote": "in entrambe sono state riscontrate credenziali individuali per gli operatori ed esportazione automatica ogni lunedì."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "scenarioId": "H03",
+      "title": "Deduplicare la spiegazione senza cancellare una rilevazione distinta",
+      "target": {
+        "pageId": "project/radian",
+        "version": 1,
+        "title": "Radian",
+        "markdown": "# Radian\n\n## Misura del 7 giugno 2027, ore 09:00\nLa coda contiene zero messaggi. È una misura indipendente del monitor della coda; lo stato vuoto permette di avviare la manutenzione di quella finestra.\n\n## Misura del 7 giugno 2027, ore 15:00\nLa coda contiene zero messaggi. È una misura indipendente del monitor della coda; lo stato vuoto permette di avviare la manutenzione di quella finestra.\n\nFonte del metodo: [Protocollo di misura](procedure/radian-misure).\n",
+        "type": "project",
+        "summary": "Misure indipendenti della coda per finestre di manutenzione."
+      },
+      "sources": [
+        {
+          "pageId": "procedure/radian-misure",
+          "version": 1,
+          "title": "Radian — protocollo di misura",
+          "markdown": "# Protocollo Radian\nOgni finestra di manutenzione ha una misura indipendente della coda. Data, ora e numero di messaggi fanno parte del risultato di ciascuna misura.\nUno stato vuoto autorizza l’avvio della manutenzione soltanto per la finestra corrispondente. Questo protocollo descrive il metodo; non contiene i risultati delle misure.\n"
+        }
+      ],
+      "rules": [
+        {
+          "id": "H03-F1",
+          "description": "Il valore uguale non rende identiche le due misure: orari e finestre sono parte del dato. La seconda misura non è conservata nella fonte del metodo.",
+          "evidence": [
+            {
+              "pageId": "project/radian",
+              "quote": "## Misura del 7 giugno 2027, ore 15:00\nLa coda contiene zero messaggi."
+            },
+            {
+              "pageId": "procedure/radian-misure",
+              "quote": "Data, ora e numero di messaggi fanno parte del risultato di ciascuna misura."
+            },
+            {
+              "pageId": "procedure/radian-misure",
+              "quote": "Questo protocollo descrive il metodo; non contiene i risultati delle misure."
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "designId": "H03-V1",
+          "label": "Conserva entrambe le misure in una descrizione condivisa",
+          "category": "valid",
+          "afterMarkdown": "# Radian\n\nIl 7 giugno 2027 la coda contiene zero messaggi in due misure indipendenti, alle 09:00 e alle 15:00. Ogni misura proviene dal monitor della coda e lo stato vuoto permette di avviare la manutenzione della rispettiva finestra.\n\nFonte del metodo: [Protocollo di misura](procedure/radian-misure).\n",
+          "expectedDecision": "accept",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "pass",
+              "rationale": "I due valori, il giorno e i due orari sono presenti nel bersaglio; la fonte spiega la relazione con ciascuna finestra."
+            },
+            "preserves_distinct_information": {
+              "verdict": "pass",
+              "rationale": "Conserva due misure indipendenti, orari, valore e validità limitata alla rispettiva finestra."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "Non introduce richieste, incarichi, scadenze di verifica o nuove questioni umane."
+            },
+            "meaningful_improvement": {
+              "verdict": "pass",
+              "rationale": "Elimina la spiegazione duplicata del monitor e della manutenzione, mantenendo la coppia di misure."
+            }
+          },
+          "rationale": "Elimina la spiegazione duplicata del monitor e della manutenzione, mantenendo la coppia di misure.",
+          "proof": [
+            {
+              "location": "before",
+              "quote": "## Misura del 7 giugno 2027, ore 09:00"
+            },
+            {
+              "location": "before",
+              "quote": "## Misura del 7 giugno 2027, ore 15:00"
+            },
+            {
+              "location": "after",
+              "quote": "in due misure indipendenti, alle 09:00 e alle 15:00."
+            },
+            {
+              "location": "source",
+              "quote": "# Protocollo Radian\nOgni finestra di manutenzione ha una misura indipendente della coda. Data, ora e numero di messaggi fanno parte del risultato di ciascuna misura.\nUno stato vuoto autorizza l’avvio della manutenzione soltanto per la finestra corrispondente. Questo protocollo descrive il metodo; non contiene i risultati delle misure.\n",
+              "pageId": "procedure/radian-misure"
+            }
+          ]
+        },
+        {
+          "designId": "H03-V2",
+          "label": "Scambia il valore ripetuto per una misura ridondante",
+          "category": "invalid",
+          "afterMarkdown": "# Radian\n\nIl 7 giugno 2027 alle 09:00 la coda contiene zero messaggi. La misura proviene dal monitor della coda e lo stato vuoto permette di avviare la manutenzione della relativa finestra.\n\nFonte del metodo: [Protocollo di misura](procedure/radian-misure).\n",
+          "expectedDecision": "reject",
+          "expectedCriteria": {
+            "preserves_distinct_information": {
+              "verdict": "fail",
+              "rationale": "Elimina la rilevazione delle 15:00 e la sua finestra, un dato unico del bersaglio non presente nella fonte collegata. Conservare solo la misura delle 09:00 non preserva entrambe le osservazioni."
+            }
+          },
+          "rationale": "Elimina la rilevazione delle 15:00 e la sua finestra, un dato unico del bersaglio non presente nella fonte collegata. Conservare solo la misura delle 09:00 non preserva entrambe le osservazioni.",
+          "contrastWith": "H03-V1",
+          "proof": [
+            {
+              "location": "before",
+              "quote": "## Misura del 7 giugno 2027, ore 15:00\nLa coda contiene zero messaggi."
+            },
+            {
+              "location": "source",
+              "quote": "Questo protocollo descrive il metodo; non contiene i risultati delle misure.",
+              "pageId": "procedure/radian-misure"
+            },
+            {
+              "location": "after",
+              "quote": "Il 7 giugno 2027 alle 09:00 la coda contiene zero messaggi."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "scenarioId": "H04",
+      "title": "Chiudere un quesito con una risposta documentata senza creare una routine umana",
+      "target": {
+        "pageId": "project/tamarindo",
+        "version": 1,
+        "title": "Tamarindo",
+        "markdown": "# Tamarindo\n\n## Ripristino delle esportazioni\nQuestione aperta: quale archivio va usato per ripristinare le esportazioni del pilota?\n\nFonte: [Procedura ripristino](procedure/tamarindo-ripristino).\n",
+        "type": "project",
+        "summary": "Archivio da utilizzare per ripristinare le esportazioni del pilota."
+      },
+      "sources": [
+        {
+          "pageId": "procedure/tamarindo-ripristino",
+          "version": 1,
+          "title": "Tamarindo — procedura di ripristino",
+          "markdown": "# Procedura Tamarindo, approvata il 22 luglio 2027\nPer ripristinare le esportazioni del pilota si usa l’archivio export-vault-B, nella cartella pilot/export.\nLa copia operativa del martedì contiene le esportazioni fino alla chiusura del lunedì. L’archivio export-vault-A contiene soltanto i log diagnostici e non va usato come sorgente delle esportazioni.\n"
+        }
+      ],
+      "rules": [
+        {
+          "id": "H04-F1",
+          "description": "La procedura risponde al quesito, distingue i due archivi e delimita il contenuto temporale della copia.",
+          "evidence": [
+            {
+              "pageId": "procedure/tamarindo-ripristino",
+              "quote": "# Procedura Tamarindo, approvata il 22 luglio 2027\nPer ripristinare le esportazioni del pilota si usa l’archivio export-vault-B, nella cartella pilot/export.\nLa copia operativa del martedì contiene le esportazioni fino alla chiusura del lunedì. L’archivio export-vault-A contiene soltanto i log diagnostici e non va usato come sorgente delle esportazioni.\n"
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "designId": "H04-V1",
+          "label": "Incorpora la risposta completa anche se la pagina diventa più lunga",
+          "category": "valid",
+          "afterMarkdown": "# Tamarindo\n\n## Ripristino delle esportazioni\nSecondo la procedura approvata il 22 luglio 2027, le esportazioni del pilota si ripristinano da export-vault-B, cartella pilot/export. La copia operativa del martedì copre le esportazioni fino alla chiusura del lunedì; export-vault-A contiene soltanto log diagnostici.\n\nFonte: [Procedura ripristino](procedure/tamarindo-ripristino).\n",
+          "expectedDecision": "accept",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "pass",
+              "rationale": "Archivio, cartella, copertura temporale e distinzione dei log sono tutti documentati nella procedura."
+            },
+            "preserves_distinct_information": {
+              "verdict": "pass",
+              "rationale": "La domanda ormai risolta è sostituita dalla risposta; restano data di approvazione, limitazione temporale e fonte."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "Non introduce richieste, incarichi, scadenze di verifica o nuove questioni umane."
+            },
+            "meaningful_improvement": {
+              "verdict": "pass",
+              "rationale": "Rende direttamente disponibile la risposta utile al ripristino senza richiedere un intervento umano né limitarsi a rinominare il quesito."
+            }
+          },
+          "rationale": "Rende direttamente disponibile la risposta utile al ripristino senza richiedere un intervento umano né limitarsi a rinominare il quesito.",
+          "proof": [
+            {
+              "location": "before",
+              "quote": "Questione aperta: quale archivio va usato per ripristinare le esportazioni del pilota?"
+            },
+            {
+              "location": "source",
+              "quote": "# Procedura Tamarindo, approvata il 22 luglio 2027\nPer ripristinare le esportazioni del pilota si usa l’archivio export-vault-B, nella cartella pilot/export.\nLa copia operativa del martedì contiene le esportazioni fino alla chiusura del lunedì. L’archivio export-vault-A contiene soltanto i log diagnostici e non va usato come sorgente delle esportazioni.\n",
+              "pageId": "procedure/tamarindo-ripristino"
+            },
+            {
+              "location": "after",
+              "quote": "le esportazioni del pilota si ripristinano da export-vault-B, cartella pilot/export."
+            }
+          ]
+        },
+        {
+          "designId": "H04-V2",
+          "label": "Trasforma una risposta già documentata in un nuovo obbligo periodico",
+          "category": "invalid",
+          "afterMarkdown": "# Tamarindo\n\n## Ripristino delle esportazioni\nSecondo la procedura approvata il 22 luglio 2027, le esportazioni del pilota si ripristinano da export-vault-B, cartella pilot/export. La copia operativa del martedì copre le esportazioni fino alla chiusura del lunedì; export-vault-A contiene soltanto log diagnostici.\n\nNuova verifica assegnata al responsabile del pilota: confermare ogni martedì su questa pagina che export-vault-B sia ancora la sorgente corretta.\n\nFonte: [Procedura ripristino](procedure/tamarindo-ripristino).\n",
+          "expectedDecision": "reject",
+          "expectedCriteria": {
+            "no_new_human_action": {
+              "verdict": "fail",
+              "rationale": "La conferma settimanale è un incarico nuovo. Né il quesito originale né la procedura richiedono questo controllo periodico da parte del responsabile."
+            }
+          },
+          "rationale": "La conferma settimanale è un incarico nuovo. Né il quesito originale né la procedura richiedono questo controllo periodico da parte del responsabile.",
+          "contrastWith": "H04-V1",
+          "proof": [
+            {
+              "location": "before",
+              "quote": "# Tamarindo\n\n## Ripristino delle esportazioni\nQuestione aperta: quale archivio va usato per ripristinare le esportazioni del pilota?\n\nFonte: [Procedura ripristino](procedure/tamarindo-ripristino).\n"
+            },
+            {
+              "location": "source",
+              "quote": "# Procedura Tamarindo, approvata il 22 luglio 2027\nPer ripristinare le esportazioni del pilota si usa l’archivio export-vault-B, nella cartella pilot/export.\nLa copia operativa del martedì contiene le esportazioni fino alla chiusura del lunedì. L’archivio export-vault-A contiene soltanto i log diagnostici e non va usato come sorgente delle esportazioni.\n",
+              "pageId": "procedure/tamarindo-ripristino"
+            },
+            {
+              "location": "after",
+              "quote": "Nuova verifica assegnata al responsabile del pilota: confermare ogni martedì su questa pagina che export-vault-B sia ancora la sorgente corretta."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "scenarioId": "H05",
+      "title": "Conservare un quesito quando il verbale dà una data senza identificare l’attività",
+      "target": {
+        "pageId": "project/orbito",
+        "version": 1,
+        "title": "Orbito",
+        "markdown": "# Orbito\n\nLa sessione usa soltanto dati sintetici.\n\n## Sospensioni\nSono sospesi sia il caricamento campioni sia l’invio dei risultati. Per quale delle due attività termina venerdì la sospensione citata nel verbale? La delibera non specifica l’attività.\n\n## Riepilogo dei dati\nLa sessione usa soltanto dati sintetici.\n\nFonte: [Verbale sospensioni](event/orbito-sospensioni).\n",
+        "type": "project",
+        "summary": "Sospensioni della sessione e provenienza della data di fine."
+      },
+      "sources": [
+        {
+          "pageId": "event/orbito-sospensioni",
+          "version": 1,
+          "title": "Orbito — verbale sospensioni",
+          "markdown": "# Verbale Orbito del 2 settembre 2027\nLa sessione usa soltanto dati sintetici. Sono sospesi il caricamento campioni e l’invio dei risultati.\nDelibera: «La sospensione termina venerdì 3 settembre». Il testo approvato non nomina l’attività interessata e non contiene un rinvio a un punto numerato o a un allegato che la identifichi.\n"
+        }
+      ],
+      "rules": [
+        {
+          "id": "H05-F1",
+          "description": "La data di fine è documentata ma il suo referente può essere una delle due attività sospese; l’ambiguità è nell’ambito della delibera, non nell’assenza di un testo di risposta.",
+          "evidence": [
+            {
+              "pageId": "event/orbito-sospensioni",
+              "quote": "# Verbale Orbito del 2 settembre 2027\nLa sessione usa soltanto dati sintetici. Sono sospesi il caricamento campioni e l’invio dei risultati.\nDelibera: «La sospensione termina venerdì 3 settembre». Il testo approvato non nomina l’attività interessata e non contiene un rinvio a un punto numerato o a un allegato che la identifichi.\n"
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "designId": "H05-V1",
+          "label": "Elimina la ripetizione sui dati e conserva il quesito genuino",
+          "category": "valid",
+          "afterMarkdown": "# Orbito\n\nLa sessione usa soltanto dati sintetici.\n\n## Sospensioni\nSono sospesi sia il caricamento campioni sia l’invio dei risultati. Per quale delle due attività termina venerdì la sospensione citata nel verbale? La delibera non specifica l’attività.\n\nFonte: [Verbale sospensioni](event/orbito-sospensioni).\n",
+          "expectedDecision": "accept",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "pass",
+              "rationale": "La sola eliminazione della ripetizione non aggiunge affermazioni sul termine delle sospensioni."
+            },
+            "preserves_distinct_information": {
+              "verdict": "pass",
+              "rationale": "Restano le due attività, la data citata tramite fonte e la domanda preesistente sul referente irrisolto."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "Non introduce richieste, incarichi, scadenze di verifica o nuove questioni umane."
+            },
+            "meaningful_improvement": {
+              "verdict": "pass",
+              "rationale": "Rimuove una seconda esposizione del vincolo sui dati, senza fingere che la delibera risolva il quesito."
+            }
+          },
+          "rationale": "Rimuove una seconda esposizione del vincolo sui dati, senza fingere che la delibera risolva il quesito.",
+          "proof": [
+            {
+              "location": "before",
+              "quote": "## Riepilogo dei dati\nLa sessione usa soltanto dati sintetici."
+            },
+            {
+              "location": "after",
+              "quote": "Per quale delle due attività termina venerdì la sospensione citata nel verbale?"
+            },
+            {
+              "location": "source",
+              "quote": "# Verbale Orbito del 2 settembre 2027\nLa sessione usa soltanto dati sintetici. Sono sospesi il caricamento campioni e l’invio dei risultati.\nDelibera: «La sospensione termina venerdì 3 settembre». Il testo approvato non nomina l’attività interessata e non contiene un rinvio a un punto numerato o a un allegato che la identifichi.\n",
+              "pageId": "event/orbito-sospensioni"
+            }
+          ]
+        },
+        {
+          "designId": "H05-V2",
+          "label": "Attribuisce il termine della sospensione all’invio dei risultati",
+          "category": "ambiguous",
+          "afterMarkdown": "# Orbito\n\nLa sessione usa soltanto dati sintetici.\n\n## Sospensioni\nIl caricamento campioni e l’invio dei risultati sono sospesi. La sospensione dell’invio dei risultati termina venerdì 3 settembre 2027, secondo il verbale del 2 settembre.\n\nFonte: [Verbale sospensioni](event/orbito-sospensioni).\n",
+          "expectedDecision": "do_not_apply",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "acceptableVerdicts": [
+                "fail",
+                "uncertain"
+              ],
+              "rationale": "La delibera documenta un termine ma non identifica quale delle due attività sospese riguardi. La lettura invio risultati è compatibile ma non discriminata rispetto a caricamento campioni: non va presentata come risposta certa."
+            }
+          },
+          "rationale": "La delibera documenta un termine ma non identifica quale delle due attività sospese riguardi. La lettura invio risultati è compatibile ma non discriminata rispetto a caricamento campioni: non va presentata come risposta certa.",
+          "contrastWith": "H05-V1",
+          "proof": [
+            {
+              "location": "source",
+              "quote": "# Verbale Orbito del 2 settembre 2027\nLa sessione usa soltanto dati sintetici. Sono sospesi il caricamento campioni e l’invio dei risultati.\nDelibera: «La sospensione termina venerdì 3 settembre». Il testo approvato non nomina l’attività interessata e non contiene un rinvio a un punto numerato o a un allegato che la identifichi.\n",
+              "pageId": "event/orbito-sospensioni"
+            },
+            {
+              "location": "after",
+              "quote": "La sospensione dell’invio dei risultati termina venerdì 3 settembre 2027"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "scenarioId": "H06",
+      "title": "Risolvere il calendario concorde senza risolvere arbitrariamente una responsabilità discordante",
+      "target": {
+        "pageId": "project/selvara",
+        "version": 1,
+        "title": "Selvara",
+        "markdown": "# Selvara\n\n## Calendario e autorizzazione\nQuestione aperta: in quale giorno si svolge il collaudo?\nIl collaudo si svolge sul banco B-9.\n\nIl registro di laboratorio attribuisce la firma finale del collaudo ad Alma Sarti; il verbale del comitato, dello stesso giorno, la attribuisce a Dario Valli. I documenti non indicano priorità o sostituzione.\n\nFonti: [Registro laboratorio](event/selvara-laboratorio), [Verbale comitato](event/selvara-comitato).\n",
+        "type": "project",
+        "summary": "Calendario di collaudo e firma finale discordante tra due registri."
+      },
+      "sources": [
+        {
+          "pageId": "event/selvara-laboratorio",
+          "version": 1,
+          "title": "Selvara — registro laboratorio",
+          "markdown": "# Registro laboratorio del 8 ottobre 2027\nIl collaudo è fissato al 14 ottobre 2027 sul banco B-9.\nLa firma finale che autorizza la chiusura del collaudo spetta ad Alma Sarti.\n"
+        },
+        {
+          "pageId": "event/selvara-comitato",
+          "version": 1,
+          "title": "Selvara — verbale comitato",
+          "markdown": "# Verbale comitato del 8 ottobre 2027\nIl collaudo è fissato al 14 ottobre 2027 sul banco B-9.\nLa firma finale che autorizza la chiusura del collaudo spetta a Dario Valli.\n"
+        }
+      ],
+      "rules": [
+        {
+          "id": "H06-F1",
+          "description": "Le due fonti concordano su data e banco, quindi il calendario è risolvibile.",
+          "evidence": [
+            {
+              "pageId": "event/selvara-laboratorio",
+              "quote": "Il collaudo è fissato al 14 ottobre 2027 sul banco B-9."
+            },
+            {
+              "pageId": "event/selvara-comitato",
+              "quote": "Il collaudo è fissato al 14 ottobre 2027 sul banco B-9."
+            }
+          ]
+        },
+        {
+          "id": "H06-F2",
+          "description": "La responsabilità per la stessa firma è attribuita a persone diverse in due documenti contemporanei; nessuna evidenza stabilisce prevalenza.",
+          "evidence": [
+            {
+              "pageId": "event/selvara-laboratorio",
+              "quote": "La firma finale che autorizza la chiusura del collaudo spetta ad Alma Sarti."
+            },
+            {
+              "pageId": "event/selvara-comitato",
+              "quote": "La firma finale che autorizza la chiusura del collaudo spetta a Dario Valli."
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "designId": "H06-V1",
+          "label": "Incorpora il calendario e conserva il contrasto sulla firma",
+          "category": "valid",
+          "afterMarkdown": "# Selvara\n\n## Calendario e autorizzazione\nIl collaudo è fissato al 14 ottobre 2027 sul banco B-9, come documentato sia dal registro sia dal verbale dell’8 ottobre 2027.\n\nIl registro di laboratorio attribuisce la firma finale del collaudo ad Alma Sarti; il verbale del comitato, dello stesso giorno, la attribuisce a Dario Valli. I documenti non indicano priorità o sostituzione.\n\nFonti: [Registro laboratorio](event/selvara-laboratorio), [Verbale comitato](event/selvara-comitato).\n",
+          "expectedDecision": "accept",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "verdict": "pass",
+              "rationale": "Le fonti sostengono la data e il banco senza differenze; il testo mantiene attribuite le due responsabilità contrastanti."
+            },
+            "preserves_distinct_information": {
+              "verdict": "pass",
+              "rationale": "Conserva le date dei documenti, il contrasto irrisolto, i due nomi con le rispettive fonti e i link."
+            },
+            "no_new_human_action": {
+              "verdict": "pass",
+              "rationale": "Non introduce richieste, incarichi, scadenze di verifica o nuove questioni umane."
+            },
+            "meaningful_improvement": {
+              "verdict": "pass",
+              "rationale": "Sostituisce la domanda sul calendario con una risposta documentata, lasciando rappresentato il conflitto separato sulla firma."
+            }
+          },
+          "rationale": "Sostituisce la domanda sul calendario con una risposta documentata, lasciando rappresentato il conflitto separato sulla firma.",
+          "proof": [
+            {
+              "location": "before",
+              "quote": "Questione aperta: in quale giorno si svolge il collaudo?"
+            },
+            {
+              "location": "source",
+              "quote": "Il collaudo è fissato al 14 ottobre 2027 sul banco B-9.",
+              "pageId": "event/selvara-laboratorio"
+            },
+            {
+              "location": "after",
+              "quote": "Il collaudo è fissato al 14 ottobre 2027 sul banco B-9"
+            },
+            {
+              "location": "after",
+              "quote": "I documenti non indicano priorità o sostituzione."
+            }
+          ]
+        },
+        {
+          "designId": "H06-V2",
+          "label": "Fa prevalere il comitato senza un criterio di precedenza documentato",
+          "category": "ambiguous",
+          "afterMarkdown": "# Selvara\n\n## Calendario e autorizzazione\nIl collaudo è fissato al 14 ottobre 2027 sul banco B-9, come documentato sia dal registro sia dal verbale dell’8 ottobre 2027.\n\nLa firma finale che autorizza la chiusura del collaudo spetta a Dario Valli; Alma Sarti non è la firmataria finale.\n\nFonti: [Registro laboratorio](event/selvara-laboratorio), [Verbale comitato](event/selvara-comitato).\n",
+          "expectedDecision": "do_not_apply",
+          "expectedCriteria": {
+            "supported_by_evidence": {
+              "acceptableVerdicts": [
+                "fail",
+                "uncertain"
+              ],
+              "rationale": "Due fonti contemporanee sostengono responsabilità incompatibili per la stessa firma. Il titolo comitato non documenta una precedenza sul registro. La nuova esclusione di Alma trasforma in certezza una lettura che il corpus non risolve."
+            }
+          },
+          "rationale": "Due fonti contemporanee sostengono responsabilità incompatibili per la stessa firma. Il titolo comitato non documenta una precedenza sul registro. La nuova esclusione di Alma trasforma in certezza una lettura che il corpus non risolve.",
+          "contrastWith": "H06-V1",
+          "proof": [
+            {
+              "location": "source",
+              "quote": "# Registro laboratorio del 8 ottobre 2027\nIl collaudo è fissato al 14 ottobre 2027 sul banco B-9.\nLa firma finale che autorizza la chiusura del collaudo spetta ad Alma Sarti.\n",
+              "pageId": "event/selvara-laboratorio"
+            },
+            {
+              "location": "source",
+              "quote": "# Verbale comitato del 8 ottobre 2027\nIl collaudo è fissato al 14 ottobre 2027 sul banco B-9.\nLa firma finale che autorizza la chiusura del collaudo spetta a Dario Valli.\n",
+              "pageId": "event/selvara-comitato"
+            },
+            {
+              "location": "after",
+              "quote": "La firma finale che autorizza la chiusura del collaudo spetta a Dario Valli; Alma Sarti non è la firmataria finale."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -44,3 +44,6 @@ next-env.d.ts
 # Local package cache
 .pnpm-store/
 /.swc
+
+# Private local consolidation experiments (database snapshots and model output)
+/artifacts/consolidation/
