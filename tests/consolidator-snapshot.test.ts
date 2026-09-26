@@ -162,6 +162,44 @@ test("embedding completion does not invalidate unchanged evidence and judgments"
   );
 });
 
+test("adding an inbound link preserves target tasks while invalidating its source and corpus", () => {
+  const before = buildSnapshot([
+    page("a", "Riferimento a B."),
+    page("b", "Fatti di B."),
+    page("c", "Altri fatti."),
+  ]);
+  const link = {
+    id: "ab",
+    sourceId: "a",
+    targetId: "b",
+    type: "references" as const,
+    label: "B",
+  };
+  const after = buildSnapshot(
+    before.pages.map((entry) =>
+      entry.id === "a"
+        ? { ...entry, version: 2, links: [link] }
+        : entry.id === "b"
+          ? { ...entry, backlinks: [link] }
+          : entry,
+    ),
+  );
+  assert.notEqual(
+    after.id,
+    before.id,
+    "corpus-dependent searches must see the new source edge",
+  );
+  const previousTasks = createAnalysisTasks(before);
+  for (const task of createAnalysisTasks(after)) {
+    const previous = previousTasks.find(
+      (entry) => entry.pageIds.join() === task.pageIds.join(),
+    );
+    assert.ok(previous);
+    if (task.pageIds.includes("a")) assert.notEqual(task.id, previous.id);
+    else assert.equal(task.id, previous.id);
+  }
+});
+
 test("persisted JSON object ordering preserves snapshot and task identities", () => {
   const a = page("a", "Riferimento a B.");
   a.links = [

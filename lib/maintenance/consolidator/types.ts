@@ -57,6 +57,7 @@ export type AnalysisTask = {
   kind: "document" | "pair";
   pageIds: string[];
   unitIds: string[];
+  crossWindow?: [string[], string[]];
 };
 export type OperationKind =
   | "deduplicate"

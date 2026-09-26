@@ -25,6 +25,7 @@ export function fingerprint(value: unknown): string {
 
 export function pageEvidenceFingerprint({
   embeddedAt: _embeddedAt,
+  backlinks: _backlinks,
   ...evidence
 }: BrainPage): string {
   return fingerprint(evidence);
@@ -206,6 +207,7 @@ export function createAnalysisTasks(
     kind: AnalysisTask["kind"],
     pageIds: string[],
     unitIds: string[],
+    crossWindow?: AnalysisTask["crossWindow"],
   ) => {
     const selectedUnitIds = [...new Set(unitIds)];
     tasks.push({
@@ -214,10 +216,12 @@ export function createAnalysisTasks(
         kind,
         pages: pageIds.map((id) => pageEvidence.get(id)),
         unitIds: selectedUnitIds,
+        ...(crossWindow ? { crossWindow } : {}),
       }),
       kind,
       pageIds,
       unitIds: selectedUnitIds,
+      ...(crossWindow ? { crossWindow } : {}),
     });
   };
   for (let a = 0; a < pageWindows.length; a++) {
@@ -229,6 +233,7 @@ export function createAnalysisTasks(
             "document",
             [left.page.id],
             [...left.windows[i], ...left.windows[j]],
+            i === j ? undefined : [left.windows[i], left.windows[j]],
           );
       }
     }

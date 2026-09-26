@@ -566,8 +566,9 @@ export async function analyzeTask(
   };
   const questions: Record<string, Question> = {};
   const possibleCandidates: { candidate: Candidate; prefix: string }[] = [];
+  const firstWindow = task.crossWindow ? new Set(task.crossWindow[0]) : null;
   for (let index = 0; index < knownUnits.length; index++) {
-    if (task.kind === "document") {
+    if (task.kind === "document" && !firstWindow) {
       const prefix = `unit_${index}`;
       Object.assign(
         questions,
@@ -582,6 +583,8 @@ export async function analyzeTask(
       const a = knownUnits[index];
       const b = knownUnits[other];
       if (task.kind === "pair" && a.pageId === b.pageId) continue;
+      if (firstWindow && firstWindow.has(a.id) === firstWindow.has(b.id))
+        continue;
       const prefix = `pair_${index}_${other}`;
       Object.assign(
         questions,

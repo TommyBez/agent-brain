@@ -337,3 +337,46 @@ test("overlapping deduplication pairs cannot authorize a transitive deletion of 
     "a deferred proposal must be reanalysed after its original units changed",
   );
 });
+
+test("incoming backlinks do not invalidate a local plan on an unchanged target", () => {
+  const before = buildSnapshot([
+    page("a", "Fonte."),
+    page("b", "Fatto B.\n\nFatto B."),
+  ]);
+  const unitIds = before.units
+    .filter((unit) => unit.pageId === "b")
+    .map((unit) => unit.id);
+  const analysis = result(
+    finding(before, {
+      pageIds: ["b"],
+      unitIds,
+      evidenceUnitIds: unitIds,
+      retainedUnitId: unitIds[0],
+    }),
+  );
+  const [original] = planOperations(before, [analysis]);
+  assert.ok(original);
+  const link = {
+    id: "ab",
+    sourceId: "a",
+    targetId: "b",
+    type: "references" as const,
+    label: "B",
+  };
+  const after = buildSnapshot(
+    before.pages.map((entry) =>
+      entry.id === "a"
+        ? { ...entry, version: 2, links: [link] }
+        : { ...entry, backlinks: [link] },
+    ),
+  );
+  const [current] = planOperations(after, [analysis]);
+  assert.equal(current.id, original.id);
+  assert.deepEqual(current.readSet, original.readSet);
+  const corpusAnalysis = { ...analysis, corpusSnapshotId: before.id };
+  assert.notEqual(
+    planOperations(before, [corpusAnalysis])[0].id,
+    planOperations(after, [{ ...analysis, corpusSnapshotId: after.id }])[0].id,
+    "a plan that searched the corpus still follows the changed source edge",
+  );
+});
