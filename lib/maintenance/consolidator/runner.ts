@@ -1,3 +1,4 @@
+import { CapacityError, capacityVerification } from "./capacity";
 import type {
   AnalysisResult,
   AnalysisTask,
@@ -5,6 +6,7 @@ import type {
   ChangeSet,
   DecisionRecord,
   Draft,
+  DraftOutcome,
   OperationPlan,
   Snapshot,
   Verification,
@@ -31,6 +33,7 @@ export type RunSummary = {
   rejected: number;
   conflicts: number;
   errors: number;
+  capacityLimited: number;
   stoppedBy: "stable" | "limit" | "incomplete";
 };
 
@@ -42,13 +45,17 @@ export type RunnerSteps = {
   plan(
     snapshot: Snapshot,
     results: AnalysisResult[],
-  ): Promise<{ selected: OperationPlan[]; deferred: number }>;
+  ): Promise<{
+    selected: OperationPlan[];
+    deferred: number;
+    capacityLimited?: number;
+  }>;
   draft(
     snapshot: Snapshot,
     plan: OperationPlan,
     attempt: number,
     feedback?: string[],
-  ): Promise<Draft>;
+  ): Promise<DraftOutcome>;
   review(
     snapshot: Snapshot,
     plan: OperationPlan,
@@ -103,6 +110,7 @@ export async function runConsolidation(
     rejected: 0,
     conflicts: 0,
     errors: 0,
+    capacityLimited: 0,
     stoppedBy: "stable",
   };
   for (let wave = 0; wave < options.maxWaves; wave++) {
@@ -156,6 +164,15 @@ export async function runConsolidation(
       0,
     );
     let plans = await steps.plan(snapshot, all);
+    const accountCachedCapacity = () => {
+      const additional = Math.max(
+        0,
+        (plans.capacityLimited ?? 0) - summary.capacityLimited,
+      );
+      summary.capacityLimited += additional;
+      summary.unresolved += additional;
+    };
+    accountCachedCapacity();
     const planCapacity = plans.selected.length + plans.deferred;
     let attemptedPlans = 0;
     let changed = false;
@@ -171,16 +188,41 @@ export async function runConsolidation(
           operationId: initial.id,
           status: "error",
         };
+        let expansion = 0;
         try {
           let draft = await steps.draft(snapshot, plan, 0);
           let repair = 0;
-          let expansion = 0;
           while (true) {
+            if ("capacity" in draft) {
+              summary.capacityLimited++;
+              summary.unresolved++;
+              decision = {
+                operationId: initial.id,
+                status: "uncertain",
+                reason: "capacity",
+                verification: capacityVerification(draft.capacity),
+              };
+              break;
+            }
             if (draft.noChange) {
               decision = { operationId: initial.id, status: "no_change" };
               break;
             }
             const reviewed = await steps.review(snapshot, plan, draft);
+            if (reviewed.verification.capacity) {
+              summary.capacityLimited++;
+              summary.unresolved++;
+              decision = {
+                operationId: initial.id,
+                status: "uncertain",
+                reason: "capacity",
+                verification: reviewed.verification,
+                ...(reviewed.changeSet
+                  ? { changeSet: reviewed.changeSet }
+                  : {}),
+              };
+              break;
+            }
             if (reviewed.verification.incomplete) {
               summary.errors++;
               decision = {
@@ -257,16 +299,31 @@ export async function runConsolidation(
             };
             break;
           }
-        } catch {
-          summary.errors++;
-          decision = {
-            operationId: initial.id,
-            status: "error",
-            reason:
-              "Operation failed; document unchanged unless an idempotent writer receipt exists.",
-          };
+        } catch (error) {
+          if (error instanceof CapacityError) {
+            summary.capacityLimited++;
+            summary.unresolved++;
+            decision = {
+              operationId: initial.id,
+              status: "uncertain",
+              reason: "capacity",
+              verification: capacityVerification(error.capacity),
+            };
+          } else {
+            summary.errors++;
+            decision = {
+              operationId: initial.id,
+              status: "error",
+              reason:
+                "Operation failed; document unchanged unless an idempotent writer receipt exists.",
+            };
+          }
         }
-        await steps.record(`decision:${initial.id}`, {
+        const decisionKey =
+          expansion > 0
+            ? `decision:${initial.id}:${snapshot.id}`
+            : `decision:${initial.id}`;
+        await steps.record(decisionKey, {
           ...decision,
           evidenceVersions: plan.readSet,
         });
@@ -281,6 +338,7 @@ export async function runConsolidation(
       try {
         // The planner filters the terminal decisions recorded by this batch.
         plans = await steps.plan(snapshot, all);
+        accountCachedCapacity();
       } catch {
         summary.errors++;
         await steps.record(`planning-error:${snapshot.id}`, {
@@ -300,19 +358,25 @@ export async function runConsolidation(
       remaining: summary.remainingTasks,
       deferredPlans: plans.deferred,
       attemptedPlans,
+      capacityLimited: summary.capacityLimited,
     });
     if (summary.remainingTasks > 0 || summary.errors > 0) {
       summary.stoppedBy = "incomplete";
       break;
     }
     if (!changed && plans.deferred === 0) {
-      summary.stoppedBy = "stable";
+      summary.stoppedBy = summary.capacityLimited ? "incomplete" : "stable";
       break;
     }
     if (wave + 1 === options.maxWaves) summary.stoppedBy = "limit";
   }
-  if (summary.remainingTasks || summary.errors || summary.stoppedBy === "limit")
+  if (
+    summary.remainingTasks ||
+    summary.errors ||
+    summary.capacityLimited ||
+    summary.stoppedBy === "limit"
+  )
     summary.status = "partial";
-  summary.report = `Consolidation: ${summary.writes} page writes. Coverage: ${summary.totalTasks - summary.remainingTasks}/${summary.totalTasks} analysis tasks in the last pass. ${summary.unresolved} unresolved findings, ${summary.rejected} rejected proposals, ${summary.errors} technical errors. Stopped: ${summary.stoppedBy}.`;
+  summary.report = `Consolidation: ${summary.writes} page writes. Coverage: ${summary.totalTasks - summary.remainingTasks}/${summary.totalTasks} analysis tasks in the last pass. ${summary.unresolved} unresolved findings, ${summary.capacityLimited} capacity-limited operations, ${summary.rejected} rejected proposals, ${summary.errors} technical errors. Stopped: ${summary.stoppedBy}.`;
   return summary;
 }

@@ -11,9 +11,11 @@ import {
   createAnalysisTasks,
 } from "../lib/maintenance/consolidator/snapshot";
 import {
+  draftConsolidation,
   initializeConsolidation,
   planConsolidation,
   prepareConsolidationScan,
+  reviewConsolidation,
 } from "../lib/maintenance/consolidator/steps";
 import {
   applyConsolidationChangeSet,
@@ -25,10 +27,14 @@ import {
   readConsolidationRecord,
   saveConsolidationRecord,
 } from "../lib/maintenance/consolidator/store";
-import type {
-  AnalysisResult,
-  ChangeSet,
-  Finding,
+import {
+  type AnalysisResult,
+  type ChangeSet,
+  type Draft,
+  type Finding,
+  type OperationPlan,
+  POLICY,
+  type Snapshot,
 } from "../lib/maintenance/consolidator/types";
 import { indexPageFixture } from "./helpers/brain-embeddings";
 
@@ -63,6 +69,27 @@ function changeSet(pages: BrainPage[], evidence: BrainPage[] = []): ChangeSet {
       before,
       after: { ...before, markdown: `Consolidated: ${before.markdown}` },
     })),
+  };
+}
+
+function residueAnalysis(snapshot: Snapshot, pageId: string): AnalysisResult {
+  const unit = snapshot.units.find((entry) => entry.pageId === pageId);
+  assert.ok(unit);
+  return {
+    taskId: `residue:${unit.id}`,
+    findings: [
+      {
+        id: `residue:${unit.id}`,
+        kind: "remove_maintenance_residue",
+        status: "supported",
+        pageIds: [pageId],
+        unitIds: [unit.id],
+        evidenceUnitIds: [unit.id],
+        goal: "Remove activity-only residue.",
+      },
+    ],
+    judgments: [],
+    status: "complete",
   };
 }
 
@@ -503,8 +530,343 @@ test(
           });
           assert.deepEqual(
             await planConsolidation(owner, runId, snapshot.id, [result]),
-            { selected: [plan], deferred: 0 },
+            { selected: [plan], deferred: 0, capacityLimited: 0 },
           );
+        },
+      );
+
+      await t.test(
+        "scan reuses local analysis across unrelated writes and refreshes corpus-dependent analysis",
+        async () => {
+          const localPage = await create();
+          const corpusPage = await create();
+          const unrelatedPage = await create();
+          const snapshot = buildSnapshot([
+            localPage,
+            corpusPage,
+            unrelatedPage,
+          ]);
+          const runId = "analysis-cache-scope";
+          await saveConsolidationRecord(
+            owner,
+            runId,
+            `snapshot:${snapshot.id}`,
+            snapshot,
+          );
+          const tasks = createAnalysisTasks(snapshot);
+          const storedSnapshot = await readConsolidationRecord<Snapshot>(
+            owner,
+            runId,
+            `snapshot:${snapshot.id}`,
+          );
+          assert.ok(storedSnapshot);
+          assert.deepEqual(
+            createAnalysisTasks(storedSnapshot),
+            tasks,
+            "Persisting a snapshot as JSONB must preserve its task identities",
+          );
+          const localTask = tasks.find(
+            (task) =>
+              task.kind === "document" && task.pageIds[0] === localPage.id,
+          );
+          const corpusTask = tasks.find(
+            (task) =>
+              task.kind === "document" && task.pageIds[0] === corpusPage.id,
+          );
+          assert.ok(localTask && corpusTask);
+          const localResult: AnalysisResult = {
+            taskId: localTask.id,
+            findings: [],
+            judgments: [],
+            status: "complete",
+          };
+          const corpusResult: AnalysisResult = {
+            ...localResult,
+            taskId: corpusTask.id,
+            corpusSnapshotId: snapshot.id,
+          };
+          await saveConsolidationRecord(
+            owner,
+            runId,
+            `analysis:${localTask.id}`,
+            localResult,
+          );
+          await saveConsolidationRecord(
+            owner,
+            runId,
+            `analysis:${corpusTask.id}:${snapshot.id}`,
+            corpusResult,
+          );
+          const initial = await prepareConsolidationScan(
+            owner,
+            runId,
+            snapshot.id,
+            100,
+          );
+          assert.deepEqual(
+            new Set(initial.cached.map((result) => result.taskId)),
+            new Set([localTask.id, corpusTask.id]),
+          );
+          const changed = await brain.append(owner, {
+            ref: unrelatedPage.id,
+            expectedVersion: unrelatedPage.version,
+            markdown: "New evidence elsewhere in the corpus.",
+          });
+          const refreshed = buildSnapshot([localPage, corpusPage, changed]);
+          await saveConsolidationRecord(
+            owner,
+            runId,
+            `snapshot:${refreshed.id}`,
+            refreshed,
+          );
+          const next = await prepareConsolidationScan(
+            owner,
+            runId,
+            refreshed.id,
+            100,
+          );
+          assert.deepEqual(next.cached, [localResult]);
+          assert.ok(next.tasks.some((task) => task.id === corpusTask.id));
+          assert.ok(!next.tasks.some((task) => task.id === localTask.id));
+          const refreshedResult = {
+            ...corpusResult,
+            corpusSnapshotId: refreshed.id,
+          };
+          await saveConsolidationRecord(
+            owner,
+            runId,
+            `analysis:${corpusTask.id}:${refreshed.id}`,
+            refreshedResult,
+          );
+          const completed = await prepareConsolidationScan(
+            owner,
+            runId,
+            refreshed.id,
+            100,
+          );
+          assert.deepEqual(
+            completed.cached.find((result) => result.taskId === corpusTask.id),
+            refreshedResult,
+          );
+          assert.deepEqual(
+            await readConsolidationRecord(
+              owner,
+              runId,
+              `analysis:${corpusTask.id}:${snapshot.id}`,
+            ),
+            corpusResult,
+            "Refreshing corpus evidence retains the original immutable audit",
+          );
+        },
+      );
+
+      await t.test(
+        "planning counts cached capacity limits without selecting the same bounded work again",
+        async () => {
+          const target = await create();
+          const unrelated = await create();
+          const snapshot = buildSnapshot([target, unrelated]);
+          const runId = "capacity-decision-cache";
+          const result = residueAnalysis(snapshot, target.id);
+          const [plan] = planOperations(snapshot, [result]);
+          await saveConsolidationRecord(
+            owner,
+            runId,
+            `snapshot:${snapshot.id}`,
+            snapshot,
+          );
+          await saveConsolidationRecord(owner, runId, `decision:${plan.id}`, {
+            operationId: plan.id,
+            status: "uncertain",
+            reason: "capacity",
+            evidenceVersions: plan.readSet,
+          });
+          assert.deepEqual(
+            await planConsolidation(owner, runId, snapshot.id, [result]),
+            { selected: [], deferred: 0, capacityLimited: 1 },
+          );
+          const changed = await brain.append(owner, {
+            ref: unrelated.id,
+            expectedVersion: unrelated.version,
+            markdown: "An unrelated page changed.",
+          });
+          const refreshed = buildSnapshot([target, changed]);
+          await saveConsolidationRecord(
+            owner,
+            runId,
+            `snapshot:${refreshed.id}`,
+            refreshed,
+          );
+          assert.equal(planOperations(refreshed, [result])[0].id, plan.id);
+          assert.deepEqual(
+            await planConsolidation(owner, runId, refreshed.id, [result]),
+            { selected: [], deferred: 0, capacityLimited: 1 },
+          );
+          const updatedTarget = await brain.append(owner, {
+            ref: target.id,
+            expectedVersion: target.version,
+            markdown: "The operation's own evidence changed.",
+          });
+          const updated = buildSnapshot([updatedTarget, changed]);
+          await saveConsolidationRecord(
+            owner,
+            runId,
+            `snapshot:${updated.id}`,
+            updated,
+          );
+          const updatedResult = residueAnalysis(updated, target.id);
+          const updatedPlan = planOperations(updated, [updatedResult])[0];
+          assert.notEqual(updatedPlan.id, plan.id);
+          assert.deepEqual(
+            await planConsolidation(owner, runId, updated.id, [updatedResult]),
+            { selected: [updatedPlan], deferred: 0, capacityLimited: 0 },
+          );
+        },
+      );
+
+      await t.test(
+        "planning reconsiders a corpus-scoped uncertain decision when a new source appears",
+        async () => {
+          const target = await create();
+          const evidence = await create();
+          const snapshot = buildSnapshot([target, evidence]);
+          const runId = "expanded-decision-cache";
+          const result = residueAnalysis(snapshot, target.id);
+          const [plan] = planOperations(snapshot, [result]);
+          await saveConsolidationRecord(
+            owner,
+            runId,
+            `snapshot:${snapshot.id}`,
+            snapshot,
+          );
+          await saveConsolidationRecord(
+            owner,
+            runId,
+            `decision:${plan.id}:${snapshot.id}`,
+            {
+              operationId: plan.id,
+              status: "uncertain",
+              evidenceVersions: snapshot.pages.map((page) => ({
+                pageId: page.id,
+                version: page.version,
+              })),
+            },
+          );
+          assert.deepEqual(
+            await planConsolidation(owner, runId, snapshot.id, [result]),
+            { selected: [], deferred: 0, capacityLimited: 0 },
+          );
+          const newSource = await create();
+          const refreshed = buildSnapshot([target, evidence, newSource]);
+          await saveConsolidationRecord(
+            owner,
+            runId,
+            `snapshot:${refreshed.id}`,
+            refreshed,
+          );
+          assert.equal(planOperations(refreshed, [result])[0].id, plan.id);
+          assert.deepEqual(
+            await planConsolidation(owner, runId, refreshed.id, [result]),
+            { selected: [plan], deferred: 0, capacityLimited: 0 },
+          );
+        },
+      );
+
+      await t.test(
+        "production draft and review steps return size limits as serializable capacity outcomes",
+        async (t) => {
+          const provider = t.mock.method(globalThis, "fetch", async () => {
+            throw new Error("Capacity-limited steps must not call a provider");
+          });
+          const runId = "step-capacity-outcomes";
+          const prepare = async (characters: number) => {
+            const page = await brain.write(owner, {
+              expectedVersion: 0,
+              title: `Capacity fixture ${counter++}`,
+              type: "note",
+              markdown: "A".repeat(characters),
+            });
+            const snapshot = buildSnapshot([page]);
+            await saveConsolidationRecord(
+              owner,
+              runId,
+              `snapshot:${snapshot.id}`,
+              snapshot,
+            );
+            const unit = snapshot.units[0];
+            const plan: OperationPlan = {
+              id: `capacity:${page.id}`,
+              kind: "remove_maintenance_residue",
+              findingIds: [],
+              targetPageIds: [page.id],
+              targetUnitIds: [unit.id],
+              evidenceUnitIds: [unit.id],
+              readSet: [{ pageId: page.id, version: page.version }],
+              goal: "Remove activity-only residue.",
+            };
+            const draft: Draft = {
+              noChange: false,
+              links: [],
+              patches: [
+                {
+                  pageId: page.id,
+                  unitId: unit.id,
+                  before: unit.text,
+                  after: "Retained fact.",
+                },
+              ],
+            };
+            return { snapshot, plan, draft };
+          };
+          const large = await prepare(POLICY.evaluationCharacters + 10_000);
+          const editor = await draftConsolidation(
+            owner,
+            runId,
+            large.snapshot.id,
+            large.plan,
+            0,
+          );
+          assert.ok("capacity" in editor);
+          assert.equal(editor.capacity.stage, "editor");
+          assert.equal(
+            editor.capacity.limitCharacters,
+            POLICY.evaluationCharacters,
+          );
+          assert.deepEqual(JSON.parse(JSON.stringify(editor)), editor);
+          const materialization = await reviewConsolidation(
+            owner,
+            runId,
+            large.snapshot.id,
+            large.plan,
+            large.draft,
+          );
+          assert.equal(materialization.changeSet, null);
+          assert.equal(materialization.verification.status, "uncertain");
+          assert.equal(materialization.verification.incomplete, true);
+          assert.equal(
+            materialization.verification.capacity?.stage,
+            "materialization",
+          );
+          const bounded = await prepare(30_000);
+          const review = await reviewConsolidation(
+            owner,
+            runId,
+            bounded.snapshot.id,
+            bounded.plan,
+            bounded.draft,
+          );
+          assert.ok(review.changeSet);
+          assert.equal(review.verification.status, "uncertain");
+          assert.equal(review.verification.incomplete, true);
+          assert.equal(review.verification.capacity?.stage, "verification");
+          assert.equal(provider.mock.callCount(), 0);
+          for (const fixture of [large, bounded]) {
+            const current = await brain.read(owner, {
+              ref: fixture.snapshot.pages[0].id,
+            });
+            assert.equal(current.version, fixture.snapshot.pages[0].version);
+            assert.equal(current.markdown, fixture.snapshot.pages[0].markdown);
+          }
         },
       );
 

@@ -57,7 +57,7 @@ Un parser suddivide il Markdown in unità strutturali senza parafrasarlo: paragr
 
 Le date di creazione e aggiornamento della pagina sono metadati tecnici. Una data relativa a un evento o alla validità di un'affermazione deve essere sostenuta dal contenuto. L'autore di una revisione non diventa automaticamente la fonte del fatto.
 
-Per documenti che superano il limite di input effettivo si usano finestre di unità strutturali. Titoli e intestazioni di tabella viaggiano con i passaggi; le combinazioni tra finestre coprono anche passaggi distanti dello stesso documento. Una finestra incompleta non autorizza conclusioni sull'intero documento. Il run registra separatamente le unità e le coppie ancora da esaminare. L'editor e il verifier richiedono le pagine complete del proprio gruppo: se superano il limite, l'operazione risulta incompleta, senza troncamenti silenziosi.
+Per documenti che superano il limite di input effettivo si usano finestre di unità strutturali. Titoli e intestazioni di tabella viaggiano con i passaggi; le combinazioni tra finestre coprono anche passaggi distanti dello stesso documento. Una finestra incompleta non autorizza conclusioni sull'intero documento. Il run registra separatamente le unità e le coppie ancora da esaminare. L'editor e il verifier richiedono le pagine complete del proprio gruppo: se superano il limite, l'operazione resta incerta per capacità, senza troncamenti silenziosi. Questo esito non è un errore tecnico: viene riutilizzato a evidenze invariate, le altre operazioni proseguono e il run resta `partial`.
 
 ## 2. Scansione completa con Jev
 
@@ -187,7 +187,7 @@ Il readback verifica che lo stato salvato corrisponda al risultato già valutato
 
 ## 8. Riesame e fine del run
 
-Dopo ogni ondata di modifiche, il workflow ricostruisce lo snapshot e riesamina documenti e coppie. L'identità dei task include l'intero snapshot: una terza pagina può contenere evidenze pertinenti anche senza link. Le singole richieste Jev con input esattamente invariato restano riutilizzabili. Questo può far emergere un collegamento o una duplicazione prima nascosti dalla frammentazione.
+Dopo ogni ondata di modifiche, il workflow ricostruisce lo snapshot e riesamina documenti e coppie. L'identità dei task include le pagine del confronto e le relative unità. Le analisi concluse sul contesto locale restano riutilizzabili quando cambia una pagina estranea. Un'analisi che cerca evidenze nel resto del corpus include anche l'identità dello snapshot nella propria cache: una terza pagina può contenere prove pertinenti anche senza link. I piani dipendono dalle pagine effettivamente lette; una decisione che amplia ulteriormente il contesto durante la verifica resta associata allo snapshot esaminato. Le singole richieste Jev con input esattamente invariato restano riutilizzabili. Questo può far emergere un collegamento o una duplicazione prima nascosti dalla frammentazione.
 
 Se un batch lascia lo snapshot invariato, il runner può elaborare sullo stesso stato le proposte rinviate per un conflitto soltanto potenziale. Il numero iniziale di proposte limita il numero di batch; il planner esclude le decisioni terminali già registrate e seleziona almeno un piano quando ne rimangono. Una scrittura, un conflitto o un errore interrompono questo svuotamento dei batch; scritture e conflitti richiedono un nuovo snapshot. Gli esiti senza modifiche non consumano inutilmente una nuova wave di analisi.
 
@@ -219,12 +219,13 @@ Il codice vive sotto `lib/maintenance/consolidator/`: `snapshot.ts`, `questions.
 | Variabile | Default | Effetto |
 |---|---|---|
 | `CONSOLIDATION_MAX_WAVES` | `4` | Massimo di ondate, incluso il riesame finale. |
+| `CONSOLIDATION_MODEL` | `deepseek/deepseek-v4.1-flash` | Modello Gateway usato dall'editor per le bozze di testo. |
 | `CONSOLIDATION_TASK_BUDGET` | `2000` | Massimo di nuovi task di analisi per run; i risultati completi riutilizzati non consumano il limite. |
 | `CONSOLIDATION_CONCURRENCY` | `6` | Task di analisi concorrenti; ogni task raggruppa le domande in richieste limitate. |
 
-Il limite di task non esclude documenti dal piano: la copertura mancante produce `partial` e può essere ripresa. L'esame completo delle coppie cresce quadraticamente con il numero di pagine. La politica limita inoltre ogni unità a 2.400 caratteri, le finestre a circa 12.000, l'input di valutazione a 100.000 e le domande per richiesta a 48. I caratteri sono limiti applicativi, non una dichiarazione della capacità del modello.
+Il limite di task non esclude documenti dal piano: la copertura mancante produce `partial` e può essere ripresa. L'esame completo delle coppie cresce quadraticamente con il numero di pagine. La politica limita inoltre ogni unità a 2.400 caratteri, le finestre a circa 12.000 caratteri e 16 unità (massimo 32 unità per task), l'input di valutazione a 100.000 e le domande per richiesta a 48. Il limite sul numero di unità impedisce a migliaia di voci brevi di generare milioni di domande in un solo task; tutte le coppie restano coperte fra i task. Il batching calcola una sola volta la dimensione dello stato condiviso. I caratteri sono limiti applicativi, non una dichiarazione della capacità del modello.
 
-La tabella `brain_consolidation_records`, introdotta da `drizzle/0002_consolidation_records.sql`, conserva snapshot, richieste, giudizi, bozze, verifiche e ricevute. La migrazione va applicata con il percorso nativo `pnpm db:migrate`; non sono necessarie modifiche manuali al database. Il run usa il report della pagina Operations per contatori e stato, senza inserire rapporti nelle pagine del Brain.
+La tabella `brain_consolidation_records`, introdotta da `drizzle/0002_consolidation_records.sql`, conserva snapshot, richieste, giudizi, bozze, verifiche e ricevute. La migrazione `0003_consolidation_cache_index.sql` aggiunge un indice dedicato alle ricerche della cache fra run. Le migrazioni vanno applicate con il percorso nativo `pnpm db:migrate`; non sono necessarie modifiche manuali al database. Il run usa il report della pagina Operations per contatori e stato, senza inserire rapporti nelle pagine del Brain.
 
 Verifiche ripetibili:
 

@@ -79,6 +79,7 @@ export type Finding = {
 };
 export type AnalysisResult = {
   taskId: string;
+  corpusSnapshotId?: string;
   findings: Finding[];
   judgments: Judgment[];
   status: "complete" | "incomplete";
@@ -119,6 +120,13 @@ export type Draft = {
   noChange: boolean;
   summaryPatches?: SummaryPatch[];
 };
+export type CapacityLimit = {
+  stage: "editor" | "materialization" | "verification";
+  requiredCharacters: number;
+  limitCharacters: number;
+};
+/** Plain data survives a durable step boundary; Editor itself still returns Draft. */
+export type DraftOutcome = Draft | { capacity: CapacityLimit };
 export type MaterializedChange = { before: BrainPage; after: BrainPage };
 export type ChangeSet = {
   id: string;
@@ -131,6 +139,7 @@ export type Verification = {
   defects: string[];
   judgments: Judgment[];
   incomplete?: boolean;
+  capacity?: CapacityLimit;
 };
 export type Editor = (
   snapshot: Snapshot,
@@ -159,6 +168,7 @@ export const POLICY = {
   version: DEFAULT_DECISION_POLICY.id,
   maxUnitCharacters: 2400,
   windowCharacters: 12_000,
+  windowUnits: 16,
   evaluationCharacters: 100_000,
   questionsPerRequest: 48,
   concurrency: 6,

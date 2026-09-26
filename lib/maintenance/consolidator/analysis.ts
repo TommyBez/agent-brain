@@ -1,6 +1,6 @@
-import { createHash } from "node:crypto";
 import { type BrainPage, LINK_TYPES } from "../../brain/types";
 import { GatewayRequestError } from "../gateway";
+import { batchQuestions } from "./batching";
 import {
   analystGates,
   DEFAULT_DECISION_POLICY,
@@ -14,6 +14,7 @@ import {
   pairQuestions,
   residueQuestions,
 } from "./questions";
+import { fingerprint } from "./snapshot";
 import {
   type AnalysisResult,
   type AnalysisTask,
@@ -121,29 +122,16 @@ async function ask(
   evaluate: Evaluate,
 ): Promise<BatchResult> {
   const result: BatchResult = { answers: {}, judgments: [], errors: [] };
-  const batches: Record<string, Question>[] = [];
-  let current: Record<string, Question> = {};
-  for (const [id, question] of Object.entries(questions)) {
-    const next = { ...current, [id]: question };
-    if (
-      Object.keys(next).length > POLICY.questionsPerRequest ||
-      JSON.stringify({ state, questions: next }).length >
-        POLICY.evaluationCharacters
-    ) {
-      if (Object.keys(current).length) batches.push(current);
-      current = {};
-    }
-    if (
-      JSON.stringify({ state, questions: { [id]: question } }).length >
-      POLICY.evaluationCharacters
-    ) {
-      result.errors.push({
-        questionIds: [id],
-        reason: "evaluation_input_exceeds_policy",
-      });
-    } else current[id] = question;
-  }
-  if (Object.keys(current).length) batches.push(current);
+  const { batches, oversized } = batchQuestions(
+    state as unknown as Json,
+    questions,
+  );
+  result.errors.push(
+    ...oversized.map((id) => ({
+      questionIds: [id],
+      reason: "evaluation_input_exceeds_policy",
+    })),
+  );
   for (let offset = 0; offset < batches.length; offset += POLICY.concurrency) {
     const completed = await Promise.all(
       batches.slice(offset, offset + POLICY.concurrency).map(async (batch) => {
@@ -190,32 +178,14 @@ function candidateOperation(candidate: Candidate): Json {
   };
 }
 
-function findingId(snapshot: Snapshot, finding: Omit<Finding, "id">): string {
-  return createHash("sha256")
-    .update(
-      JSON.stringify([
-        POLICY.version,
-        snapshot.id,
-        finding.kind,
-        finding.unitIds,
-        finding.canonicalPageId,
-        finding.retainedUnitId,
-        finding.link,
-        finding.resolution,
-      ]),
-    )
-    .digest("hex");
-}
-
-function makeFinding(
-  snapshot: Snapshot,
-  finding: Omit<Finding, "id">,
-): Finding {
-  return { id: findingId(snapshot, finding), ...finding };
+function makeFinding(finding: Omit<Finding, "id">): Finding {
+  return {
+    id: fingerprint({ policy: POLICY.version, ...finding }),
+    ...finding,
+  };
 }
 
 function findingsFor(
-  snapshot: Snapshot,
   candidate: Candidate,
   answers: Answers,
   evidence: EvidenceUnit[],
@@ -231,7 +201,7 @@ function findingsFor(
   if (candidate.kind === "residue") {
     if (!possible(answers.residue)) return [];
     return [
-      makeFinding(snapshot, {
+      makeFinding({
         kind: "remove_maintenance_residue",
         status:
           sufficient && yes(answers.residue) && no(answers.distinct)
@@ -253,7 +223,7 @@ function findingsFor(
       return [];
     const link = candidate.link;
     return [
-      makeFinding(snapshot, {
+      makeFinding({
         kind: "add_link",
         status:
           sufficient &&
@@ -316,7 +286,7 @@ function findingsFor(
       !!retained &&
       (crossPage || (covered && localContext));
     findings.push(
-      makeFinding(snapshot, {
+      makeFinding({
         kind: crossPage ? "centralize" : "deduplicate",
         status: supported ? "supported" : "uncertain",
         pageIds,
@@ -359,7 +329,7 @@ function findingsFor(
       (relationship === "temporal" && resolved === "temporal") ||
       (relationship === "scope" && resolved === "scope");
     findings.push(
-      makeFinding(snapshot, {
+      makeFinding({
         kind: "reconcile",
         status:
           sufficient && sameEntity && appropriateRelation && validResolution
@@ -738,13 +708,7 @@ export async function analyzeTask(
       );
       record(assessment);
       if (assessment.errors.length) break;
-      findings = findingsFor(
-        snapshot,
-        candidate,
-        assessment.answers,
-        evidence,
-        policy,
-      );
+      findings = findingsFor(candidate, assessment.answers, evidence, policy);
       if (
         findings.every((finding) => finding.status === "supported") &&
         yes(assessment.answers.sufficient)
@@ -756,6 +720,7 @@ export async function analyzeTask(
           ? expandLocalPool(snapshot, knownPages, candidate, pool)
           : pool;
       if (pass > 0 || expanded.length === pool.length) {
+        result.corpusSnapshotId = snapshot.id;
         const corpus = await discoverCorpusEvidence(
           snapshot,
           knownPages,

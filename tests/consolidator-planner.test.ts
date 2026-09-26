@@ -106,7 +106,28 @@ test("a directed link writes only its source and retains both pages as versioned
   );
 });
 
-test("a third source change invalidates pair task and terminal plan identities", () => {
+test("link plan identity survives JSONB ordering of the snapshot and cached finding", () => {
+  const snapshot = buildSnapshot([page("a", "Cita B."), page("b", "Fonte B.")]);
+  const diagnosis = result(
+    finding(snapshot, {
+      kind: "add_link",
+      link: { sourceId: "a", targetId: "b", type: "references" },
+    }),
+  );
+  const roundtrip = JSON.parse(
+    JSON.stringify({ snapshot, diagnosis }),
+    (_key, value) =>
+      value && typeof value === "object" && !Array.isArray(value)
+        ? Object.fromEntries(Object.entries(value).reverse())
+        : value,
+  ) as { snapshot: Snapshot; diagnosis: AnalysisResult };
+  assert.equal(
+    planOperations(snapshot, [diagnosis])[0].id,
+    planOperations(roundtrip.snapshot, [roundtrip.diagnosis])[0].id,
+  );
+});
+
+test("unrelated edits preserve local plans but invalidate plans that searched the corpus", () => {
   const first = buildSnapshot([
     page("a", "The documented launch date is 3 March."),
     page("b", "The launch date is 3 March."),
@@ -128,7 +149,7 @@ test("a third source change invalidates pair task and terminal plan identities",
     createAnalysisTasks(snapshot).find(
       (task) => task.kind === "pair" && task.pageIds.join(",") === "a,b",
     );
-  assert.notEqual(pair(first)?.id, pair(second)?.id);
+  assert.equal(pair(first)?.id, pair(second)?.id);
   assert.deepEqual(
     pair(first)?.unitIds,
     pair(second)?.unitIds,
@@ -147,17 +168,49 @@ test("a third source change invalidates pair task and terminal plan identities",
   const [after] = planOperations(second, [result(diagnosis)]);
   assert.ok(before && after);
   assert.deepEqual(before.readSet, after.readSet);
-  assert.notEqual(
-    before.id,
-    after.id,
-    "cached rejection or uncertainty must not shadow newly changed external evidence",
-  );
+  assert.equal(before.id, after.id);
+  const [corpusBefore] = planOperations(first, [
+    { ...result(diagnosis), corpusSnapshotId: first.id },
+  ]);
+  const [corpusAfter] = planOperations(second, [
+    { ...result(diagnosis), corpusSnapshotId: second.id },
+  ]);
+  assert.notEqual(corpusBefore.id, corpusAfter.id);
   const replay = buildSnapshot(
     [...first.pages].reverse(),
     "2026-09-25T23:00:00.000Z",
   );
   assert.equal(replay.id, first.id);
   assert.equal(planOperations(replay, [result(diagnosis)])[0].id, before.id);
+});
+
+test("a plan changes identity when any page in its actual read set changes", () => {
+  const first = buildSnapshot([
+    page("a", "Duplicato.\n\nDuplicato."),
+    page("source", "Fonte del fatto."),
+  ]);
+  const second = buildSnapshot(
+    first.pages.map((entry) =>
+      entry.id === "source"
+        ? { ...entry, version: 2, markdown: "Fonte del fatto corretta." }
+        : entry,
+    ),
+  );
+  const makePlan = (snapshot: Snapshot) =>
+    planOperations(snapshot, [
+      result(
+        finding(snapshot, {
+          pageIds: ["a"],
+          unitIds: snapshot.units
+            .filter((unit) => unit.pageId === "a")
+            .map((unit) => unit.id),
+        }),
+      ),
+    ])[0];
+  const before = makePlan(first);
+  const after = makePlan(second);
+  assert.deepEqual(before.targetUnitIds, after.targetUnitIds);
+  assert.notEqual(before.id, after.id);
 });
 
 test("correction direction preserves original A/B order rather than sorting unit IDs", () => {

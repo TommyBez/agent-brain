@@ -1,4 +1,6 @@
 import { isDeepStrictEqual } from "node:util";
+import { batchQuestions } from "./batching";
+import { capacityVerification } from "./capacity";
 import {
   DEFAULT_DECISION_POLICY,
   type DecisionPolicy,
@@ -243,32 +245,22 @@ export async function verifyChangeSet(
     }
   });
 
-  const entries = Object.entries(questions);
-  const batches = Array.from(
-    { length: Math.ceil(entries.length / POLICY.questionsPerRequest) },
-    (_, index) =>
-      Object.fromEntries(
-        entries.slice(
-          index * POLICY.questionsPerRequest,
-          (index + 1) * POLICY.questionsPerRequest,
+  const { batches, oversized } = batchQuestions(state, questions);
+  if (oversized.length) {
+    const baseSize = JSON.stringify({ state, questions: {} }).length;
+    const requiredCharacters = oversized.reduce(
+      (largest, id) =>
+        Math.max(
+          largest,
+          baseSize + JSON.stringify({ [id]: questions[id] }).length - 2,
         ),
-      ),
-  );
-  if (
-    batches.some(
-      (batch) =>
-        JSON.stringify({ state, questions: batch }).length >
-        POLICY.evaluationCharacters,
-    )
-  ) {
-    return {
-      status: "uncertain",
-      incomplete: true,
-      defects: [
-        "Complete verification context exceeds capacity; no content or coverage was truncated.",
-      ],
-      judgments: [],
-    };
+      0,
+    );
+    return capacityVerification({
+      stage: "verification",
+      requiredCharacters,
+      limitCharacters: POLICY.evaluationCharacters,
+    });
   }
   const judgments: Verification["judgments"] = [];
   const defects: string[] = [];

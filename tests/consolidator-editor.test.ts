@@ -250,6 +250,44 @@ test("preserves URLs containing balanced parentheses across Markdown forms", () 
   assert.match(result.changes[0].after.markdown, /report\(2026\)/);
 });
 
+test("existing literal percent signs in links do not block unrelated edits", () => {
+  const snapshot = buildSnapshot([
+    page("a", "[Report](/pages/growth-100%).\n\nFatto.\n\nFatto."),
+  ]);
+  const result = materializeDraft(
+    snapshot,
+    planFor(snapshot),
+    replace(snapshot, 2, ""),
+  );
+  assert.equal(
+    result.changes[0].after.markdown,
+    "[Report](/pages/growth-100%).\n\nFatto.\n\n",
+  );
+});
+
+test("encoded local links resolve their targets and unknown targets still fail", () => {
+  const snapshot = buildSnapshot([
+    page("a", "Informazione."),
+    page("b", "Destinazione."),
+  ]);
+  const result = materializeDraft(
+    snapshot,
+    planFor(snapshot),
+    replace(snapshot, 0, "Informazione. Vedi [pagina](/pages/%62)."),
+  );
+  assert.match(result.changes[0].after.markdown, /\/pages\/%62/);
+  for (const path of ["/pages/%6dissing", "/pages/growth-100%"])
+    assert.throws(
+      () =>
+        materializeDraft(
+          snapshot,
+          planFor(snapshot),
+          replace(snapshot, 0, `Informazione. Vedi [pagina](${path}).`),
+        ),
+      /unknown local link target/,
+    );
+});
+
 test("constructs only planned typed links without calling a provider", async (t) => {
   const snapshot = buildSnapshot([
     page("a", "Anna lavora per Beta."),
@@ -306,12 +344,17 @@ test("DeepSeek receives strict JSON schema, complete scoped sources and no write
   const plan = planFor(snapshot);
   const draft = { ...replace(snapshot, 1, ""), summaryPatches: [] };
   const previousKey = process.env.AI_GATEWAY_API_KEY;
+  const previousModel = process.env.CONSOLIDATION_MODEL;
   process.env.AI_GATEWAY_API_KEY = "test-only";
+  delete process.env.CONSOLIDATION_MODEL;
   t.after(() => {
     if (previousKey === undefined) delete process.env.AI_GATEWAY_API_KEY;
     else process.env.AI_GATEWAY_API_KEY = previousKey;
+    if (previousModel === undefined) delete process.env.CONSOLIDATION_MODEL;
+    else process.env.CONSOLIDATION_MODEL = previousModel;
   });
   let responseContent = JSON.stringify(draft);
+  let expectedModel = "deepseek/deepseek-v4.1-flash";
   t.mock.method(
     globalThis,
     "fetch",
@@ -321,7 +364,7 @@ test("DeepSeek receives strict JSON schema, complete scoped sources and no write
         "https://ai-gateway.vercel.sh/v1/chat/completions",
       );
       const body = JSON.parse(String(init?.body));
-      assert.equal(body.model, "deepseek/deepseek-v4.1-flash");
+      assert.equal(body.model, expectedModel);
       assert.equal(body.response_format.json_schema.strict, true);
       assert.equal(
         body.response_format.json_schema.schema.additionalProperties,
@@ -352,6 +395,12 @@ test("DeepSeek receives strict JSON schema, complete scoped sources and no write
     await draftChanges(snapshot, plan, ["Preserva le eccezioni."]),
     draft,
   );
+  process.env.CONSOLIDATION_MODEL = "test/configured-editor";
+  expectedModel = "test/configured-editor";
+  assert.deepEqual(await draftChanges(snapshot, plan), draft);
+  process.env.CONSOLIDATION_MODEL = "";
+  expectedModel = "deepseek/deepseek-v4.1-flash";
+  assert.deepEqual(await draftChanges(snapshot, plan), draft);
   const invalidAnchor = {
     ...draft,
     patches: [{ ...draft.patches[0], before: "Incorrect original text" }],

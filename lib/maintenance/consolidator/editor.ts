@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { z } from "zod";
 import { type BrainPage, LINK_TYPES } from "../../brain/types";
 import { gatewayRequest } from "../gateway";
+import { CapacityError } from "./capacity";
 import {
   type ChangeSet,
   type Draft,
@@ -198,7 +199,12 @@ function references(markdown: string): Set<string> {
 function localTarget(reference: string, source: BrainPage, pages: BrainPage[]) {
   if (/^(?:[a-z][a-z\d+.-]*:|\/\/)/i.test(reference)) return undefined;
   const [path, fragment] = reference.split("#", 2);
-  const cleanPath = decodeURIComponent(path.split("?", 1)[0]);
+  let cleanPath = path.split("?", 1)[0];
+  try {
+    cleanPath = decodeURIComponent(cleanPath);
+  } catch {
+    // Existing Markdown may contain literal percent signs; retain its path.
+  }
   const key = cleanPath
     .replace(/^\/?pages\//, "")
     .replace(/^\.\//, "")
@@ -411,7 +417,11 @@ export function materializeDraft(
       lastStart = unit.start;
     }
     if (markdown.length > POLICY.evaluationCharacters)
-      invalid("result exceeds verification capacity");
+      throw new CapacityError(
+        "materialization",
+        markdown.length,
+        POLICY.evaluationCharacters,
+      );
     const after = structuredClone(before);
     after.markdown = markdown;
     const summaryPatch = summaryPatches.find((patch) => patch.pageId === id);
@@ -431,7 +441,7 @@ export function materializeDraft(
   return { id, plan, draft, changes };
 }
 
-/** DeepSeek is a constrained editor; all source content is untrusted evidence. */
+/** The configured model is a constrained editor; source content is untrusted evidence. */
 export async function draftChanges(
   snapshot: Snapshot,
   plan: OperationPlan,
@@ -459,8 +469,10 @@ export async function draftChanges(
   };
   const serialized = JSON.stringify(context);
   if (serialized.length > POLICY.evaluationCharacters)
-    throw new Error(
-      "Consolidation editor context exceeds capacity; context must not be truncated.",
+    throw new CapacityError(
+      "editor",
+      serialized.length,
+      POLICY.evaluationCharacters,
     );
   const response = await gatewayRequest<{
     choices?: {
@@ -468,7 +480,7 @@ export async function draftChanges(
       message?: { content?: string; refusal?: string };
     }[];
   }>("chat/completions", {
-    model: "deepseek/deepseek-v4.1-flash",
+    model: process.env.CONSOLIDATION_MODEL || "deepseek/deepseek-v4.1-flash",
     temperature: 0,
     messages: [
       {

@@ -8,7 +8,26 @@ import {
 } from "./types";
 
 export function fingerprint(value: unknown): string {
-  return createHash("sha256").update(JSON.stringify(value)).digest("hex");
+  return createHash("sha256")
+    .update(
+      JSON.stringify(value, (_key, item) =>
+        item && typeof item === "object" && !Array.isArray(item)
+          ? Object.fromEntries(
+              Object.keys(item)
+                .sort()
+                .map((key) => [key, item[key]]),
+            )
+          : item,
+      ),
+    )
+    .digest("hex");
+}
+
+export function pageEvidenceFingerprint({
+  embeddedAt: _embeddedAt,
+  ...evidence
+}: BrainPage): string {
+  return fingerprint(evidence);
 }
 
 /** Exact, non-overlapping UTF-16 ranges; context never becomes editable source. */
@@ -153,7 +172,11 @@ function windows(units: EvidenceUnit[]): string[][] {
   for (const unit of units) {
     const size =
       unit.text.length + unit.context.length + unit.headings.join("/").length;
-    if (current.length && characters + size > POLICY.windowCharacters) {
+    if (
+      current.length &&
+      (characters + size > POLICY.windowCharacters ||
+        current.length === POLICY.windowUnits)
+    ) {
       result.push(current);
       current = [];
       characters = 0;
@@ -171,6 +194,9 @@ export function createAnalysisTasks(
   changedPageIds?: string[],
 ): AnalysisTask[] {
   const changed = changedPageIds ? new Set(changedPageIds) : null;
+  const pageEvidence = new Map(
+    snapshot.pages.map((page) => [page.id, pageEvidenceFingerprint(page)]),
+  );
   const pageWindows = snapshot.pages.map((page) => ({
     page,
     windows: windows(snapshot.units.filter((unit) => unit.pageId === page.id)),
@@ -181,17 +207,17 @@ export function createAnalysisTasks(
     pageIds: string[],
     unitIds: string[],
   ) => {
+    const selectedUnitIds = [...new Set(unitIds)];
     tasks.push({
       id: fingerprint({
-        snapshotId: snapshot.id,
         policy: POLICY.version,
         kind,
-        pageIds,
-        unitIds,
+        pages: pageIds.map((id) => pageEvidence.get(id)),
+        unitIds: selectedUnitIds,
       }),
       kind,
       pageIds,
-      unitIds: [...new Set(unitIds)],
+      unitIds: selectedUnitIds,
     });
   };
   for (let a = 0; a < pageWindows.length; a++) {

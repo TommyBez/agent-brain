@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { BrainPage } from "../lib/brain/types";
-import { materializeDraft } from "../lib/maintenance/consolidator/editor";
+import { CapacityError } from "../lib/maintenance/consolidator/capacity";
+import {
+  draftChanges,
+  materializeDraft,
+} from "../lib/maintenance/consolidator/editor";
 import { buildSnapshot } from "../lib/maintenance/consolidator/snapshot";
 import type {
   Evaluate,
@@ -159,10 +163,9 @@ test("missing, unknown, malformed and uncertain judgments fail closed", async ()
     evaluator((id) => (id === "objective" ? Number.NaN : 1)),
     evaluator((id) => (id === "objective" ? 0.6 : 1)),
   ]) {
-    assert.equal(
-      (await verifyChangeSet(snapshot, changeSet, evaluate)).status,
-      "uncertain",
-    );
+    const result = await verifyChangeSet(snapshot, changeSet, evaluate);
+    assert.equal(result.status, "uncertain");
+    assert.equal(result.capacity, undefined);
   }
 });
 
@@ -317,8 +320,99 @@ test("oversized final contexts remain uncertain without dropping units or making
   });
   assert.equal(result.status, "uncertain");
   assert.equal(result.incomplete, true);
+  assert.equal(result.capacity?.stage, "verification");
+  assert.ok(result.capacity);
+  assert.ok(
+    result.capacity.requiredCharacters > result.capacity.limitCharacters,
+  );
   assert.match(result.defects[0], /capacity/);
   assert.deepEqual(result.judgments, []);
+});
+
+test("large complete contexts use smaller batches instead of a false capacity result", async () => {
+  const { snapshot: initial, plan: base } = fixture();
+  const snapshot = buildSnapshot([
+    {
+      ...initial.pages[0],
+      markdown: "Dettaglio distinto e importante. ".repeat(600),
+    },
+  ]);
+  const unit = snapshot.units[0];
+  const plan = {
+    ...base,
+    targetUnitIds: [unit.id],
+    evidenceUnitIds: snapshot.units.map((source) => source.id),
+  };
+  const changeSet = materializeDraft(snapshot, plan, {
+    noChange: false,
+    links: [],
+    patches: [
+      {
+        pageId: "a",
+        unitId: unit.id,
+        before: unit.text,
+        after: "Dettaglio distinto e importante. ",
+      },
+    ],
+  });
+  const sizes: number[] = [];
+  const evaluated = new Set<string>();
+  const result = await verifyChangeSet(snapshot, changeSet, async (request) => {
+    assert.ok(JSON.stringify(request).length <= 100_000);
+    sizes.push(Object.keys(request.questions).length);
+    for (const id of Object.keys(request.questions)) {
+      assert.equal(evaluated.has(id), false);
+      evaluated.add(id);
+    }
+    return evaluator()(request);
+  });
+  assert.equal(result.status, "accepted");
+  assert.equal(result.capacity, undefined);
+  assert.ok(sizes.length > 1);
+  assert.ok(sizes[0] < 48);
+  assert.equal(
+    [...evaluated].filter((id) => id.startsWith("preservation_")).length,
+    snapshot.units.length,
+  );
+});
+
+test("editor and materialized-size limits emit typed capacity before provider evaluation", async () => {
+  const { snapshot: initial, plan: base } = fixture();
+  const snapshot = buildSnapshot([
+    { ...initial.pages[0], markdown: "Dettaglio ".repeat(9990) },
+  ]);
+  const unit = snapshot.units[0];
+  const plan = {
+    ...base,
+    targetUnitIds: [unit.id],
+    evidenceUnitIds: snapshot.units.map((source) => source.id),
+  };
+  await assert.rejects(
+    draftChanges(snapshot, plan),
+    (error) =>
+      error instanceof CapacityError &&
+      error.capacity.stage === "editor" &&
+      error.capacity.requiredCharacters > error.capacity.limitCharacters,
+  );
+  assert.throws(
+    () =>
+      materializeDraft(snapshot, plan, {
+        noChange: false,
+        links: [],
+        patches: [
+          {
+            pageId: "a",
+            unitId: unit.id,
+            before: unit.text,
+            after: "Dettaglio ampliato ".repeat(200),
+          },
+        ],
+      }),
+    (error) =>
+      error instanceof CapacityError &&
+      error.capacity.stage === "materialization" &&
+      error.capacity.requiredCharacters > error.capacity.limitCharacters,
+  );
 });
 
 test("keeper judgment checks the selected survivor's distinct facts at its final location", async () => {

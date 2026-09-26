@@ -1,5 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import {
+  CapacityError,
+  capacityVerification,
+} from "../lib/maintenance/consolidator/capacity";
 import { selectIndependentPlans } from "../lib/maintenance/consolidator/planner";
 import {
   type RunnerSteps,
@@ -8,6 +12,7 @@ import {
 import type {
   AnalysisTask,
   ChangeSet,
+  DecisionRecord,
   OperationPlan,
   Snapshot,
 } from "../lib/maintenance/consolidator/types";
@@ -136,7 +141,7 @@ test("empty first expansion tier still reaches unlinked corpus evidence", async 
   assert.equal(reviews, 2);
   assert.equal(result.status, "succeeded");
   assert.equal(run.writes(), 1);
-  const record = run.records.find((record) => record.key === "decision:op")
+  const record = run.records.find((record) => record.key === "decision:op:s")
     ?.value as { evidenceVersions: unknown };
   assert.deepEqual(record.evidenceVersions, expanded.readSet);
 });
@@ -184,9 +189,47 @@ test("persistent uncertainty exhausts bounded evidence expansion without a write
   assert.equal(result.unresolved, 1);
   assert.equal(result.stoppedBy, "stable");
   assert.equal(run.writes(), 0);
-  const decision = run.records.find((record) => record.key === "decision:op")
+  const decision = run.records.find((record) => record.key === "decision:op:s")
     ?.value as { status: string };
   assert.equal(decision.status, "uncertain");
+});
+
+test("an empty evidence search cannot cache uncertainty across a later source addition", async () => {
+  const records = new Map<string, DecisionRecord>();
+  let current = snapshot;
+  let searches = 0;
+  const run = fake({
+    snapshot: async () => current,
+    plan: async () => ({
+      selected: records.has(`decision:${plan.id}:${current.id}`) ? [] : [plan],
+      deferred: 0,
+    }),
+    review: async () => ({
+      changeSet,
+      verification: {
+        status: "uncertain",
+        defects: ["Evidence insufficient."],
+        judgments: [],
+      },
+    }),
+    expand: async () => {
+      searches++;
+      return null;
+    },
+    record: async (key, value) => {
+      if (key.startsWith("decision:"))
+        records.set(key, value as DecisionRecord);
+    },
+  });
+  await runConsolidation(run.steps, options);
+  assert.equal(searches, 2);
+  assert.ok(records.has("decision:op:s"));
+  await runConsolidation(run.steps, options);
+  assert.equal(searches, 2, "unchanged corpus reuses the terminal search");
+  current = { ...snapshot, id: "with-new-source" };
+  await runConsolidation(run.steps, options);
+  assert.equal(searches, 4, "a new corpus permits the evidence search again");
+  assert.ok(records.has("decision:op:with-new-source"));
 });
 
 test("missing verification coverage is operational partial, never a cached semantic rejection", async () => {
@@ -196,7 +239,7 @@ test("missing verification coverage is operational partial, never a cached seman
       verification: {
         status: "uncertain",
         incomplete: true,
-        defects: ["Context too large."],
+        defects: ["Provider omitted an applicable judgment."],
         judgments: [],
       },
     }),
@@ -204,15 +247,136 @@ test("missing verification coverage is operational partial, never a cached seman
   const result = await runConsolidation(run.steps, options);
   assert.equal(result.status, "partial");
   assert.equal(result.errors, 1);
-  assert.equal(
-    (
-      run.records.find((record) => record.key === "decision:op")?.value as {
-        status: string;
-      }
-    ).status,
-    "error",
-  );
+  const decision = run.records.find((record) => record.key === "decision:op");
+  assert.ok(decision);
+  assert.equal((decision.value as DecisionRecord).status, "error");
+  assert.equal(result.capacityLimited, 0);
   assert.equal(run.writes(), 0);
+});
+
+test("deterministic capacity drains deferred useful plans and stays terminal on unchanged evidence", async () => {
+  const useful = { ...plan, id: "useful-after-capacity" };
+  const decisions = new Map<string, DecisionRecord>();
+  const reviewed: string[] = [];
+  const drafted: string[] = [];
+  let expansions = 0;
+  const run = fake({
+    plan: async () => {
+      const remaining = [plan, useful].filter(
+        (candidate) => !decisions.has(candidate.id),
+      );
+      const selected = selectIndependentPlans(remaining);
+      return {
+        selected: selected.selected,
+        deferred: selected.deferred.length,
+        capacityLimited: [...decisions.values()].filter(
+          (decision) => decision.reason === "capacity",
+        ).length,
+      };
+    },
+    draft: async (_snapshot, candidate) => {
+      drafted.push(candidate.id);
+      return draft;
+    },
+    review: async (_snapshot, candidate) => {
+      reviewed.push(candidate.id);
+      return candidate.id === plan.id
+        ? {
+            changeSet,
+            verification: capacityVerification({
+              stage: "verification",
+              requiredCharacters: 110_000,
+              limitCharacters: 100_000,
+            }),
+          }
+        : accepted;
+    },
+    expand: async () => {
+      expansions++;
+      return null;
+    },
+  });
+  const record = run.steps.record;
+  run.steps.record = async (key, value) => {
+    if (key.startsWith("decision:"))
+      decisions.set(
+        (value as DecisionRecord).operationId,
+        value as DecisionRecord,
+      );
+    await record(key, value);
+  };
+  const first = await runConsolidation(run.steps, options);
+  assert.equal(first.status, "partial");
+  assert.equal(first.stoppedBy, "incomplete");
+  assert.equal(first.errors, 0);
+  assert.equal(first.capacityLimited, 1);
+  assert.equal(first.unresolved, 1);
+  assert.equal(run.writes(), 1);
+  assert.equal(expansions, 0);
+  assert.deepEqual(reviewed, [plan.id, useful.id]);
+  assert.deepEqual(drafted, [plan.id, useful.id]);
+  assert.equal(decisions.get(plan.id)?.status, "uncertain");
+  assert.equal(decisions.get(plan.id)?.reason, "capacity");
+  assert.deepEqual(decisions.get(plan.id)?.evidenceVersions, plan.readSet);
+  const second = await runConsolidation(run.steps, options);
+  assert.equal(second.status, "partial");
+  assert.equal(second.errors, 0);
+  assert.equal(second.capacityLimited, 1);
+  assert.equal(second.unresolved, 1);
+  assert.equal(second.proposed, 0);
+  assert.equal(run.writes(), 1);
+  assert.deepEqual(reviewed, [plan.id, useful.id]);
+  assert.match(second.report, /1 capacity-limited operations/);
+});
+
+test("editor capacity survives a serialized draft outcome without being counted as a provider error", async () => {
+  const capacity = {
+    stage: "editor" as const,
+    requiredCharacters: 110_000,
+    limitCharacters: 100_000,
+  };
+  const run = fake({
+    draft: async () => JSON.parse(JSON.stringify({ capacity })),
+    review: async () => {
+      throw new Error("Capacity must stop before verification");
+    },
+  });
+  const result = await runConsolidation(run.steps, options);
+  assert.equal(result.status, "partial");
+  assert.equal(result.errors, 0);
+  assert.equal(result.capacityLimited, 1);
+  assert.equal(result.unresolved, 1);
+  const decision = run.records.find((record) => record.key === "decision:op");
+  assert.ok(decision);
+  assert.equal((decision.value as DecisionRecord).reason, "capacity");
+  assert.deepEqual(
+    (decision.value as DecisionRecord).verification?.capacity,
+    capacity,
+  );
+});
+
+test("a typed materialization limit is terminal while an actual provider failure remains retryable", async () => {
+  const capacityRun = fake({
+    review: async () => {
+      throw new CapacityError("materialization", 100_001, 100_000);
+    },
+  });
+  const capacityResult = await runConsolidation(capacityRun.steps, options);
+  assert.equal(capacityResult.errors, 0);
+  assert.equal(capacityResult.capacityLimited, 1);
+  const failedRun = fake({
+    review: async () => {
+      throw new Error("Provider response invalid");
+    },
+  });
+  const failedResult = await runConsolidation(failedRun.steps, options);
+  assert.equal(failedResult.errors, 1);
+  assert.equal(failedResult.capacityLimited, 0);
+  const decision = failedRun.records.find(
+    (record) => record.key === "decision:op",
+  );
+  assert.ok(decision);
+  assert.equal((decision.value as DecisionRecord).status, "error");
 });
 
 test("provider errors and unexamined tasks cannot report a successful no-op", async () => {
@@ -282,7 +446,9 @@ test("shared-read uncertain plans drain before a valid write, with every write f
           ? [plan]
           : current.id === "revision-2"
             ? [uncertain, useful].filter(
-                (candidate) => !terminal.has(candidate.id),
+                (candidate) =>
+                  !terminal.has(candidate.id) &&
+                  !terminal.has(`${candidate.id}:${current.id}`),
               )
             : [];
       const selected = selectIndependentPlans(candidates);

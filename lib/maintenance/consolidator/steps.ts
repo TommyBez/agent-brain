@@ -3,6 +3,8 @@ import { BrainError } from "../../brain/types";
 import { revalidateWorkspaceCache } from "../../workspace/cache";
 import { GatewayRequestError } from "../gateway";
 import { analyzeTask } from "./analysis";
+import { canReuseAnalysis, canReuseDecision } from "./cache";
+import { CapacityError, capacityVerification } from "./capacity";
 import { draftChanges, materializeDraft } from "./editor";
 import { evaluateJev, JEV_MODEL } from "./jev";
 import { planOperations, selectIndependentPlans } from "./planner";
@@ -23,6 +25,7 @@ import {
   type ChangeSet,
   type DecisionRecord,
   type Draft,
+  type DraftOutcome,
   type Evaluation,
   type EvaluationRequest,
   type OperationPlan,
@@ -137,12 +140,17 @@ export async function prepareConsolidationScan(
     Omit<AnalysisResult, "judgments">
   >(
     ownerId,
-    tasks.map((task) => `analysis:${task.id}`),
+    tasks.flatMap((task) => [
+      `analysis:${task.id}`,
+      `analysis:${task.id}:${snapshot.id}`,
+    ]),
     ["judgments"],
   );
   for (const task of tasks) {
-    const result = records.get(`analysis:${task.id}`);
-    if (result?.status === "complete")
+    const result =
+      records.get(`analysis:${task.id}:${snapshot.id}`) ??
+      records.get(`analysis:${task.id}`);
+    if (result && canReuseAnalysis(snapshot.id, result))
       cached.push({ ...result, judgments: [] });
     else pending.push(task);
   }
@@ -195,14 +203,14 @@ export async function analyzeConsolidationTask(
       await saveConsolidationRecord(
         ownerId,
         runId,
-        `analysis:${task.id}`,
+        `analysis:${task.id}${result.corpusSnapshotId ? `:${result.corpusSnapshotId}` : ""}`,
         result,
       );
     else
       await saveConsolidationRecord(
         ownerId,
         runId,
-        `incomplete-analysis:${task.id}`,
+        `incomplete-analysis:${task.id}:${snapshot.id}`,
         result,
       );
     // Full judgments remain in immutable audit storage. Replaying Workflow only
@@ -211,12 +219,6 @@ export async function analyzeConsolidationTask(
   } catch (error) {
     return failProvider(error);
   }
-}
-
-function terminalDecision(decision: DecisionRecord | null) {
-  return (
-    decision && ["rejected", "uncertain", "no_change"].includes(decision.status)
-  );
 }
 
 export async function planConsolidation(
@@ -229,17 +231,28 @@ export async function planConsolidation(
   const snapshot = await loadSnapshot(ownerId, runId, snapshotId);
   const plans = planOperations(snapshot, results);
   const remaining: OperationPlan[] = [];
+  let capacityLimited = 0;
   const decisions = await findConsolidationRecords<DecisionRecord>(
     ownerId,
-    plans.map((plan) => `decision:${plan.id}`),
+    plans.flatMap((plan) => [
+      `decision:${plan.id}`,
+      `decision:${plan.id}:${snapshot.id}`,
+    ]),
     ["changeSet", "verification"],
   );
   for (const plan of plans) {
-    if (!terminalDecision(decisions.get(`decision:${plan.id}`) ?? null))
-      remaining.push(plan);
+    const decision =
+      decisions.get(`decision:${plan.id}:${snapshot.id}`) ??
+      decisions.get(`decision:${plan.id}`);
+    if (!canReuseDecision(snapshot, decision)) remaining.push(plan);
+    else if (decision?.reason === "capacity") capacityLimited++;
   }
   const selected = selectIndependentPlans(remaining);
-  return { selected: selected.selected, deferred: selected.deferred.length };
+  return {
+    selected: selected.selected,
+    deferred: selected.deferred.length,
+    capacityLimited,
+  };
 }
 
 function scopedSnapshot(snapshot: Snapshot, plan: OperationPlan): Snapshot {
@@ -258,7 +271,7 @@ export async function draftConsolidation(
   plan: OperationPlan,
   attempt: number,
   feedback?: string[],
-) {
+): Promise<DraftOutcome> {
   "use step";
   const key = `draft:${fingerprint({ plan, attempt, feedback: feedback ?? [] })}`;
   const previous = await readConsolidationRecord<Draft>(ownerId, runId, key);
@@ -273,6 +286,7 @@ export async function draftConsolidation(
     await saveConsolidationRecord(ownerId, runId, key, draft);
     return draft;
   } catch (error) {
+    if (error instanceof CapacityError) return { capacity: error.capacity };
     return failProvider(error);
   }
 }
@@ -290,7 +304,12 @@ export async function reviewConsolidation(
   let changeSet: ChangeSet;
   try {
     changeSet = materializeDraft(scope, plan, draft);
-  } catch {
+  } catch (error) {
+    if (error instanceof CapacityError)
+      return {
+        changeSet: null,
+        verification: capacityVerification(error.capacity),
+      };
     return {
       changeSet: null,
       verification: {

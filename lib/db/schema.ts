@@ -716,6 +716,15 @@ export const brainConsolidationRecords = pgTable(
       columns: [table.ownerId, table.runId, table.kind, table.recordKey],
       name: "brain_consolidation_records_pkey",
     }),
+    index("brain_consolidation_records_cache_idx")
+      .using(
+        "btree",
+        table.ownerId.asc().nullsLast(),
+        table.recordKey.asc().nullsLast(),
+        table.createdAt.desc().nullsFirst(),
+        table.runId.desc().nullsFirst(),
+      )
+      .where(sql`kind = 'record'`),
     check(
       "brain_consolidation_records_kind_check",
       sql`kind = ANY (ARRAY['record'::text, 'receipt'::text])`,

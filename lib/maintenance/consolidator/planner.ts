@@ -1,4 +1,4 @@
-import { fingerprint } from "./snapshot";
+import { fingerprint, pageEvidenceFingerprint } from "./snapshot";
 import {
   type AnalysisResult,
   type Finding,
@@ -73,9 +73,11 @@ export function planOperations(
         ...evidence.flatMap((unit) => (unit ? [unit.pageId] : [])),
         ...(finding.link ? [finding.link.targetId] : []),
       ]);
-      const readSet = snapshot.pages
-        .filter((page) => readIds.has(page.id))
-        .map((page) => ({ pageId: page.id, version: page.version }));
+      const readPages = snapshot.pages.filter((page) => readIds.has(page.id));
+      const readSet = readPages.map((page) => ({
+        pageId: page.id,
+        version: page.version,
+      }));
       const shape = {
         kind: finding.kind,
         targetPageIds: targetPageIds.sort(),
@@ -101,7 +103,10 @@ export function planOperations(
       };
       const id = fingerprint({
         policy: POLICY.version,
-        snapshotId: snapshot.id,
+        pages: readPages.map(pageEvidenceFingerprint),
+        ...(result.corpusSnapshotId
+          ? { corpusSnapshotId: result.corpusSnapshotId }
+          : {}),
         ...shape,
       });
       const existing = plans.get(id);

@@ -4,6 +4,11 @@ import { setTimeout as delay } from "node:timers/promises";
 import nextEnv, { loadEnvConfig } from "@next/env";
 import type { BrainLink, BrainPage } from "../lib/brain/types";
 import { analyzeTask } from "../lib/maintenance/consolidator/analysis";
+import { canReuseDecision } from "../lib/maintenance/consolidator/cache";
+import {
+  CapacityError,
+  capacityVerification,
+} from "../lib/maintenance/consolidator/capacity";
 import {
   type DecisionPolicy,
   validateDecisionPolicy,
@@ -299,7 +304,7 @@ async function main() {
       snapshot: scoped(snapshot, plan),
       plan,
       feedback,
-      editor: "deepseek/deepseek-v4.1-flash",
+      editor: process.env.CONSOLIDATION_MODEL || "deepseek/deepseek-v4.1-flash",
       protocol: SCENARIO_VERSION,
     });
     const path = join(cacheDirectory, "drafts", `${key}.json`);
@@ -367,17 +372,19 @@ async function main() {
       return result;
     },
     async plan(snapshot, results) {
+      let capacityLimited = 0;
       const candidates = planOperations(snapshot, results).filter((plan) => {
-        const prior = decisions.get(plan.id);
-        return (
-          !prior ||
-          !["no_change", "rejected", "uncertain"].includes(prior.status)
-        );
+        const prior =
+          decisions.get(`${plan.id}:${snapshot.id}`) ?? decisions.get(plan.id);
+        if (!canReuseDecision(snapshot, prior)) return true;
+        if (prior?.reason === "capacity") capacityLimited++;
+        return false;
       });
       const selection = selectIndependentPlans(candidates);
       return {
         selected: selection.selected,
         deferred: selection.deferred.length,
+        capacityLimited,
       };
     },
     async draft(snapshot, plan, _attempt, feedback) {
@@ -390,6 +397,11 @@ async function main() {
       try {
         changeSet = materializeDraft(scoped(snapshot, plan), plan, draft);
       } catch (error) {
+        if (error instanceof CapacityError)
+          return {
+            changeSet: null,
+            verification: capacityVerification(error.capacity),
+          };
         return {
           changeSet: null,
           verification: {

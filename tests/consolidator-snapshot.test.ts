@@ -4,6 +4,7 @@ import type { BrainPage } from "../lib/brain/types";
 import {
   buildSnapshot,
   createAnalysisTasks,
+  fingerprint,
   segmentPage,
 } from "../lib/maintenance/consolidator/snapshot";
 import { POLICY } from "../lib/maintenance/consolidator/types";
@@ -107,7 +108,7 @@ test("skipped heading levels preserve scope without treating siblings as parents
   );
 });
 
-test("snapshot identity ignores read ordering and new wall-clock timestamps but protects expanded evidence", () => {
+test("task identities preserve unchanged page work while the corpus identity tracks other sources", () => {
   const a = page("a", "Primo.");
   const b = page("b", "Secondo.");
   const c = page("c", "Fonte originale.");
@@ -121,8 +122,29 @@ test("snapshot identity ignores read ordering and new wall-clock timestamps but 
   const pairId = (snapshot: typeof first) =>
     createAnalysisTasks(snapshot).find((task) => task.pageIds.join() === "a,b")
       ?.id;
-  assert.notEqual(pairId(first), pairId(second));
+  assert.notEqual(first.id, second.id);
+  assert.equal(pairId(first), pairId(second));
   assert.equal(a.markdown, "Primo.");
+});
+
+test("task identities include complete involved-page evidence beyond selected unit text", () => {
+  const first = buildSnapshot([page("a", "Primo."), page("b", "Secondo.")]);
+  const second = buildSnapshot(
+    first.pages.map((entry) =>
+      entry.id === "a"
+        ? { ...entry, summary: "Contesto aggiornato.", version: 2 }
+        : entry,
+    ),
+  );
+  const oldTasks = createAnalysisTasks(first);
+  for (const current of createAnalysisTasks(second)) {
+    const previous = oldTasks.find(
+      (task) => task.pageIds.join() === current.pageIds.join(),
+    );
+    assert.ok(previous);
+    if (current.pageIds.includes("a")) assert.notEqual(current.id, previous.id);
+    else assert.equal(current.id, previous.id);
+  }
 });
 
 test("embedding completion does not invalidate unchanged evidence and judgments", () => {
@@ -138,4 +160,27 @@ test("embedding completion does not invalidate unchanged evidence and judgments"
       .id,
     first.id,
   );
+});
+
+test("persisted JSON object ordering preserves snapshot and task identities", () => {
+  const a = page("a", "Riferimento a B.");
+  a.links = [
+    { id: "ab", sourceId: "a", targetId: "b", type: "references", label: "B" },
+  ];
+  const snapshot = buildSnapshot([a, page("b", "Fonte B.")]);
+  const roundtrip = JSON.parse(JSON.stringify(snapshot), (_key, value) =>
+    value && typeof value === "object" && !Array.isArray(value)
+      ? Object.fromEntries(Object.entries(value).reverse())
+      : value,
+  ) as typeof snapshot;
+  assert.equal(buildSnapshot(roundtrip.pages).id, snapshot.id);
+  assert.deepEqual(
+    createAnalysisTasks(roundtrip),
+    createAnalysisTasks(snapshot),
+  );
+  assert.equal(
+    fingerprint({ a: 1, b: { c: 2, d: 3 } }),
+    fingerprint({ b: { d: 3, c: 2 }, a: 1 }),
+  );
+  assert.notEqual(fingerprint(["a", "b"]), fingerprint(["b", "a"]));
 });
