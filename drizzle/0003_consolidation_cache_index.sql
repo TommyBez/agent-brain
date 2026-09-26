@@ -1,0 +1,1 @@
+CREATE INDEX "brain_consolidation_records_cache_idx" ON "brain_consolidation_records" USING btree ("owner_id","record_key","created_at" DESC NULLS FIRST,"run_id" DESC NULLS FIRST) WHERE kind = 'record';

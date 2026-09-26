@@ -123,7 +123,8 @@ function Details({
         : edge.targetId === selected.id
           ? edge.sourceId
           : null;
-    const node = otherId ? nodeById.get(otherId) : undefined;
+    if (!otherId) return [];
+    const node = nodeById.get(otherId);
     return node ? [{ edge, node }] : [];
   });
   const total = outgoing.length + incoming.length + linked.length;

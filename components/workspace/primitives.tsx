@@ -4,6 +4,7 @@ import {
   FileText,
   FolderOpen,
   LoaderCircle,
+  type LucideIcon,
   NotebookPen,
   Users,
 } from "lucide-react";
@@ -16,8 +17,9 @@ import {
   Empty as EmptyRoot,
   EmptyTitle,
 } from "@/components/ui/empty";
+import type { PageType } from "@/lib/brain/types";
 
-export const typeIcons = {
+export const typeIcons: Record<PageType, LucideIcon> = {
   person: Users,
   client: Building2,
   project: FolderOpen,
@@ -30,10 +32,10 @@ export function EntityIcon({
   type,
   size = 17,
 }: {
-  type: string;
+  type: PageType;
   size?: number;
 }) {
-  const Icon = typeIcons[type as keyof typeof typeIcons] ?? FileText;
+  const Icon = typeIcons[type];
   return <Icon size={size} strokeWidth={1.6} />;
 }
 

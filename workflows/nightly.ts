@@ -1,56 +1,16 @@
 import { createHook, getWorkflowMetadata, sleep } from "workflow";
-import {
-  appendConsolidationToolResults,
-  CONSOLIDATION_LIMITS,
-  type ConsolidationToolResult,
-} from "@/lib/maintenance/consolidation";
 import { EMBEDDING_LIMITS } from "@/lib/maintenance/embedding-batch";
 import {
   beginJob,
   completeJob,
-  consolidationRound,
-  consolidationTool,
   embedBatch,
   nextEmbeddingBatch,
   pendingEmbeddingCount,
-  prepareConsolidation,
   publishExport,
   storeEmbeddingBatch,
   takeExportSnapshot,
 } from "@/lib/maintenance/steps";
-import type { ReadReceipt } from "@/lib/maintenance/tools";
-
-async function consolidate(ownerId: string) {
-  let state = await prepareConsolidation(ownerId);
-  const reads: Record<string, ReadReceipt> = {};
-  while (!state.completed) {
-    state = await consolidationRound(state);
-    if (state.completed) break;
-    const results: ConsolidationToolResult[] = [];
-    let writes = state.writes;
-    for (const call of state.pendingToolCalls) {
-      const result = await consolidationTool(
-        ownerId,
-        call,
-        reads,
-        writes < CONSOLIDATION_LIMITS.writes,
-      );
-      if (result.writeSucceeded) writes++;
-      if (result.read)
-        for (const ref of result.read.refs) reads[ref] = result.read.receipt;
-      results.push(result);
-    }
-    state = appendConsolidationToolResults(state, results);
-  }
-  return {
-    writes: state.writes,
-    rounds: state.rounds,
-    inputTokens: state.inputTokens,
-    outputTokens: state.outputTokens,
-    report: state.report,
-    budgetReached: state.budgetReached,
-  };
-}
+import { consolidate } from "./consolidation";
 
 async function indexPages(ownerId: string) {
   let indexedPages = 0;
@@ -102,14 +62,8 @@ async function runPhase(
   if (job.skip) return { id: job.id, status: job.status, skipped: true };
   try {
     if (kind === "consolidation") {
-      const result = await consolidate(ownerId);
-      return await completeJob(
-        ownerId,
-        job.id,
-        runId,
-        result.budgetReached ? "partial" : "succeeded",
-        result,
-      );
+      const result = await consolidate(ownerId, runId);
+      return await completeJob(ownerId, job.id, runId, result.status, result);
     }
     if (kind === "embeddings") {
       const result = await indexPages(ownerId);

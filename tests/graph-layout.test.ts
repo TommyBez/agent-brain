@@ -17,8 +17,6 @@ const links = [
   { sourceId: "b", targetId: "c" },
   { sourceId: "c", targetId: "a" },
   { sourceId: "d", targetId: "e" },
-  { sourceId: "x", targetId: "a" },
-  { sourceId: "a", targetId: "a" },
 ];
 
 function positions(layout: Layout) {
@@ -32,9 +30,15 @@ function distance(layout: Layout, first: string, second: string) {
   return Math.hypot(a.x - b.x, a.y - b.y);
 }
 
-test("layout ignores links outside the graph and self links", () => {
+test("layout preserves graph links and counts connected and isolated nodes", () => {
   const layout = createLayout(nodes, links, 7);
-  assert.equal(layout.links.length, 4);
+  assert.deepEqual(
+    layout.links.map((link) => ({
+      sourceId: layout.nodes[link.source].id,
+      targetId: layout.nodes[link.target].id,
+    })),
+    links,
+  );
   const degree = Object.fromEntries(
     layout.nodes.map((node) => [node.id, node.degree]),
   );

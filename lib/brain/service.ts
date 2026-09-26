@@ -1,4 +1,5 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
+import { isDeepStrictEqual } from "node:util";
 import type { Pool, PoolClient, QueryResultRow } from "pg";
 import { getPool, transaction } from "../db";
 import { CHUNKER_VERSION, chunkPage } from "./chunks";
@@ -108,7 +109,7 @@ async function pageFromRow(
     `SELECT l.*, target.title AS target_title, target.slug AS target_slug, source.title AS source_title, source.slug AS source_slug
     FROM brain_links l JOIN brain_pages target ON target.owner_id=l.owner_id AND target.id=l.target_id
     JOIN brain_pages source ON source.owner_id=l.owner_id AND source.id=l.source_id
-    WHERE l.owner_id=$1 AND (l.source_id=$2 OR l.target_id=$2) ORDER BY l.type, target.title`,
+    WHERE l.owner_id=$1 AND (l.source_id=$2 OR l.target_id=$2) ORDER BY l.type, target.title, l.source_id, l.target_id, l.id`,
     [ownerId, row.id],
   );
   const links = result.rows.map(link);
@@ -147,43 +148,6 @@ async function recordRevision(
   );
 }
 
-interface WriteOptions {
-  /** Internal durable-step identity. Never supplied through MCP tool input. */
-  operationKey?: string;
-}
-
-function validateOperationKey(operationKey: string | undefined) {
-  if (
-    operationKey !== undefined &&
-    (typeof operationKey !== "string" ||
-      operationKey.length > 256 ||
-      operationKey.trim().length === 0)
-  )
-    throw new BrainError(
-      "INVALID_OPERATION_KEY",
-      "An internal operation key must contain 1–256 characters and cannot be blank.",
-    );
-}
-
-async function replayOperation(
-  db: PoolClient,
-  ownerId: string,
-  operationKey: string | undefined,
-): Promise<BrainPage | null> {
-  if (operationKey === undefined) return null;
-  // Serialize retries before taking page locks. Hash collisions only serialize
-  // unrelated operations; the full owner and key still identify the receipt.
-  await db.query("SELECT pg_advisory_xact_lock(hashtext($1), hashtext($2))", [
-    ownerId,
-    operationKey,
-  ]);
-  const result = await db.query<{ snapshot: BrainPage }>(
-    "SELECT snapshot FROM brain_revisions WHERE owner_id=$1 AND operation_key=$2",
-    [ownerId, operationKey],
-  );
-  return result.rows[0]?.snapshot ?? null;
-}
-
 export async function read(
   ownerId: string,
   input: unknown,
@@ -197,18 +161,153 @@ export async function read(
   });
 }
 
+/** A complete, owner-scoped corpus from one committed database snapshot. */
+export async function readConsolidationPages(
+  ownerId: string,
+): Promise<BrainPage[]> {
+  assertOwner(ownerId);
+  return transaction(async (db) => {
+    await db.query("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY");
+    const result = await db.query<PageRow>(
+      "SELECT * FROM brain_pages WHERE owner_id=$1 ORDER BY id",
+      [ownerId],
+    );
+    const pages: BrainPage[] = [];
+    for (const row of result.rows)
+      pages.push(await pageFromRow(db, ownerId, row));
+    return pages;
+  });
+}
+
+function pageContent(page: BrainPage) {
+  return {
+    id: page.id,
+    slug: page.slug,
+    type: page.type,
+    title: page.title,
+    summary: page.summary,
+    markdown: page.markdown,
+    aliases: page.aliases,
+    tags: page.tags,
+    links: page.links
+      .map(({ sourceId, targetId, type, label }) => ({
+        sourceId,
+        targetId,
+        type,
+        label,
+      }))
+      .sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b))),
+  };
+}
+
+/** Internal helper: the caller owns the transaction and its group receipt. */
+export async function writeConsolidationPages(
+  db: PoolClient,
+  ownerId: string,
+  changes: { before: BrainPage; after: BrainPage }[],
+  readSet: { pageId: string; version: number }[],
+  operationKey: string,
+): Promise<
+  | { status: "applied"; pages: BrainPage[] }
+  | { status: "conflict"; pageIds: string[] }
+> {
+  assertOwner(ownerId);
+  const expected = new Map(
+    readSet.map(({ pageId, version }) => [pageId, version]),
+  );
+  // A stable order prevents concurrent consolidation groups taking opposite
+  // locks. NO KEY UPDATE also permits ordinary link inserts' FK key-share locks.
+  const locked = await db.query<PageRow>(
+    "SELECT * FROM brain_pages WHERE owner_id=$1 AND id=ANY($2::uuid[]) ORDER BY id FOR NO KEY UPDATE",
+    [ownerId, [...expected.keys()].sort()],
+  );
+  const current = new Map(locked.rows.map((row) => [row.id, row]));
+  const conflicts = [...expected]
+    .filter(([id, version]) => current.get(id)?.version !== version)
+    .map(([id]) => id);
+  if (conflicts.length)
+    return { status: "conflict", pageIds: conflicts.sort() };
+  for (const { before } of changes) {
+    const row = current.get(before.id);
+    if (
+      !row ||
+      !isDeepStrictEqual(
+        pageContent(await pageFromRow(db, ownerId, row)),
+        pageContent(before),
+      )
+    )
+      throw new BrainError(
+        "INVALID_CHANGE_SET",
+        "The original page does not match the versioned database content.",
+      );
+  }
+  const updated: PageRow[] = [];
+  for (const { before, after } of [...changes].sort((a, b) =>
+    a.before.id.localeCompare(b.before.id),
+  )) {
+    const result = await db.query<PageRow>(
+      `UPDATE brain_pages SET markdown=$3,summary=$4,version=version+1,updated_at=now()
+       WHERE owner_id=$1 AND id=$2 AND version=$5 RETURNING *`,
+      [ownerId, before.id, after.markdown, after.summary, before.version],
+    );
+    if (!result.rows[0])
+      throw new BrainError(
+        "VERSION_CONFLICT",
+        "The page changed during consolidation.",
+        409,
+      );
+    updated.push(result.rows[0]);
+    // Preserve existing link IDs/provenance and add only the verified edges.
+    for (const edge of after.links) {
+      if (
+        before.links.some(
+          (existing) =>
+            existing.targetId === edge.targetId && existing.type === edge.type,
+        )
+      )
+        continue;
+      await db.query(
+        "INSERT INTO brain_links (owner_id,source_id,target_id,type,label) VALUES ($1,$2,$3,$4,$5)",
+        [ownerId, before.id, edge.targetId, edge.type, edge.label],
+      );
+    }
+  }
+  const pages: BrainPage[] = [];
+  // Read back after ALL group updates so every revision sees the final graph.
+  for (const row of updated) {
+    const saved = await pageFromRow(db, ownerId, row);
+    const after = changes.find((change) => change.before.id === row.id)?.after;
+    if (!after || !isDeepStrictEqual(pageContent(saved), pageContent(after)))
+      throw new BrainError(
+        "READBACK_MISMATCH",
+        "Saved consolidation content differs from the verified result.",
+        500,
+      );
+    const revisionKey = `consolidation:${createHash("sha256")
+      .update(JSON.stringify([operationKey, row.id]))
+      .digest("hex")}`;
+    await recordRevision(
+      db,
+      ownerId,
+      saved,
+      "write",
+      "Verified knowledge consolidation",
+      "nightly-consolidation",
+      revisionKey,
+    );
+    pages.push(saved);
+  }
+  return { status: "applied", pages };
+}
+
 export async function write(
   ownerId: string,
   input: unknown,
-  options: WriteOptions = {},
 ): Promise<BrainPage> {
   assertOwner(ownerId);
-  validateOperationKey(options.operationKey);
   const data = schemas.writeSchema.parse(input);
   try {
     return await transaction(async (db) => {
-      const replay = await replayOperation(db, ownerId, options.operationKey);
-      if (replay) return replay;
       const existing = data.id
         ? await rowForRef(db, ownerId, data.id, true)
         : null;
@@ -277,7 +376,6 @@ export async function write(
         existing ? "write" : "create",
         data.reason,
         data.source,
-        options.operationKey,
       );
       return page;
     });
@@ -300,14 +398,10 @@ export async function write(
 export async function append(
   ownerId: string,
   input: unknown,
-  options: WriteOptions = {},
 ): Promise<BrainPage> {
   assertOwner(ownerId);
-  validateOperationKey(options.operationKey);
   const data = schemas.appendSchema.parse(input);
   return transaction(async (db) => {
-    const replay = await replayOperation(db, ownerId, options.operationKey);
-    if (replay) return replay;
     const current = await rowForRef(db, ownerId, data.ref, true);
     assertVersion(current.version, data.expectedVersion);
     const markdown = `${current.markdown.trimEnd()}\n\n${data.markdown}\n`;
@@ -321,15 +415,7 @@ export async function append(
       [ownerId, current.id, markdown],
     );
     const page = await pageFromRow(db, ownerId, result.rows[0]);
-    await recordRevision(
-      db,
-      ownerId,
-      page,
-      "append",
-      data.reason,
-      data.source,
-      options.operationKey,
-    );
+    await recordRevision(db, ownerId, page, "append", data.reason, data.source);
     return page;
   });
 }

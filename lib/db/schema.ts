@@ -697,6 +697,49 @@ export const brainJobs = pgTable(
   ],
 );
 
+// Operational snapshots, judgments and atomic application receipts. These rows
+// never enter brain_pages, graph retrieval or the knowledge embedding index.
+export const brainConsolidationRecords = pgTable(
+  "brain_consolidation_records",
+  {
+    ownerId: text("owner_id").notNull(),
+    runId: text("run_id").notNull(),
+    kind: text().notNull(),
+    recordKey: text("record_key").notNull(),
+    payload: jsonb().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.ownerId, table.runId, table.kind, table.recordKey],
+      name: "brain_consolidation_records_pkey",
+    }),
+    index("brain_consolidation_records_cache_idx")
+      .using(
+        "btree",
+        table.ownerId.asc().nullsLast(),
+        table.recordKey.asc().nullsLast(),
+        table.createdAt.desc().nullsFirst(),
+        table.runId.desc().nullsFirst(),
+      )
+      .where(sql`kind = 'record'`),
+    check(
+      "brain_consolidation_records_kind_check",
+      sql`kind = ANY (ARRAY['record'::text, 'receipt'::text])`,
+    ),
+    check(
+      "brain_consolidation_records_run_id_check",
+      sql`char_length(run_id) BETWEEN 1 AND 256`,
+    ),
+    check(
+      "brain_consolidation_records_record_key_check",
+      sql`char_length(record_key) BETWEEN 1 AND 256`,
+    ),
+  ],
+);
+
 export const brainIdentities = pgTable(
   "brain_identities",
   {

@@ -36,7 +36,7 @@ function retryAfterMilliseconds(value: string | null): number | null {
 
 /** One bounded request. The durable workflow, rather than an in-memory loop, retries. */
 export async function gatewayRequest<T>(
-  path: "chat/completions" | "embeddings",
+  path: "chat/completions" | "embeddings" | "evaluate",
   body: unknown,
 ): Promise<T> {
   const key = process.env.AI_GATEWAY_API_KEY;
