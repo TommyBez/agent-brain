@@ -133,10 +133,7 @@ export function segmentPage(page: BrainPage): EvidenceUnit[] {
 }
 
 /** Sorting and cloning make snapshot identity independent from read ordering. */
-export function buildSnapshot(
-  pages: BrainPage[],
-  createdAt = new Date().toISOString(),
-): Snapshot {
+export function buildSnapshot(pages: BrainPage[]): Snapshot {
   const ordered = structuredClone(pages).sort((a, b) =>
     a.id.localeCompare(b.id),
   );
@@ -160,7 +157,7 @@ export function buildSnapshot(
         ({ embeddedAt: _embeddedAt, ...evidence }) => evidence,
       ),
     }),
-    createdAt,
+    createdAt: new Date().toISOString(),
     pages: ordered,
     units: ordered.flatMap(segmentPage),
   };
@@ -190,11 +187,7 @@ function windows(units: EvidenceUnit[]): string[][] {
 }
 
 /** Includes cross-window pairs within a long document, not just adjacent windows. */
-export function createAnalysisTasks(
-  snapshot: Snapshot,
-  changedPageIds?: string[],
-): AnalysisTask[] {
-  const changed = changedPageIds ? new Set(changedPageIds) : null;
+export function createAnalysisTasks(snapshot: Snapshot): AnalysisTask[] {
   const pageEvidence = new Map(
     snapshot.pages.map((page) => [page.id, pageEvidenceFingerprint(page)]),
   );
@@ -226,21 +219,17 @@ export function createAnalysisTasks(
   };
   for (let a = 0; a < pageWindows.length; a++) {
     const left = pageWindows[a];
-    if (!changed || changed.has(left.page.id)) {
-      for (let i = 0; i < left.windows.length; i++) {
-        for (let j = i; j < left.windows.length; j++)
-          add(
-            "document",
-            [left.page.id],
-            [...left.windows[i], ...left.windows[j]],
-            i === j ? undefined : [left.windows[i], left.windows[j]],
-          );
-      }
+    for (let i = 0; i < left.windows.length; i++) {
+      for (let j = i; j < left.windows.length; j++)
+        add(
+          "document",
+          [left.page.id],
+          [...left.windows[i], ...left.windows[j]],
+          i === j ? undefined : [left.windows[i], left.windows[j]],
+        );
     }
     for (let b = a + 1; b < pageWindows.length; b++) {
       const right = pageWindows[b];
-      if (changed && !changed.has(left.page.id) && !changed.has(right.page.id))
-        continue;
       for (const l of left.windows)
         for (const r of right.windows)
           add("pair", [left.page.id, right.page.id], [...l, ...r]);

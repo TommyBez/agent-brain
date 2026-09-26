@@ -1,213 +1,165 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import frozenProfile from "../docs/consolidator-calibration-profile-2026-09-25.json";
+import type { BrainPage } from "../lib/brain/types";
 import {
   analystGates,
-  DEFAULT_DECISION_POLICY,
-  type DecisionPolicy,
+  DECISION_POLICY,
   DISCOVERY_FLOOR,
-  SEED_DECISION_POLICY,
-  validateDecisionPolicy,
-  verificationFamily,
   verificationThreshold,
 } from "../lib/maintenance/consolidator/decision-policy";
 import { materializeDraft } from "../lib/maintenance/consolidator/editor";
-import { type Evaluate, POLICY } from "../lib/maintenance/consolidator/types";
+import { buildSnapshot } from "../lib/maintenance/consolidator/snapshot";
+import {
+  type Evaluate,
+  type OperationPlan,
+  POLICY,
+} from "../lib/maintenance/consolidator/types";
 import { verifyChangeSet } from "../lib/maintenance/consolidator/verifier";
-import { calibrationCases } from "./helpers/consolidation-calibration-cases";
 
-test("probability and optional concentration gates remain distinct and preserve raw answers", () => {
-  const answer = {
-    type: "choice" as const,
-    choice: "same",
-    probabilities: { same: 0.86, different: 0.07, insufficient: 0.07 },
-    confidence: 0.75,
+function page(id: string, markdown: string): BrainPage {
+  return {
+    id,
+    slug: id,
+    title: id,
+    markdown,
+    type: "note",
+    summary: "",
+    aliases: [],
+    tags: [],
+    version: 1,
+    createdAt: "2026-01-01T00:00:00Z",
+    updatedAt: "2026-01-01T00:00:00Z",
+    embeddedAt: null,
+    links: [],
+    backlinks: [],
   };
-  const original = structuredClone(answer);
-  const policy = {
-    ...SEED_DECISION_POLICY,
-    analyst: {
-      yes: 0.8,
-      no: 0.2,
-      choiceProbability: 0.8,
-      choiceConfidence: null,
+}
+
+function verificationFixtures() {
+  const snapshot = buildSnapshot([
+    page("a", "Ricavo: 450 euro.\n\nFonte: pagina b.\n\nRicavo: 450 euro."),
+    page("b", "Il ricavo è 450 euro."),
+  ]);
+  const removed = snapshot.units.filter((unit) => unit.pageId === "a")[2];
+  const plan: OperationPlan = {
+    id: "deduplicate",
+    kind: "deduplicate",
+    findingIds: ["duplicate"],
+    targetPageIds: ["a"],
+    targetUnitIds: [removed.id],
+    evidenceUnitIds: snapshot.units.map((unit) => unit.id),
+    readSet: snapshot.pages.map((entry) => ({
+      pageId: entry.id,
+      version: entry.version,
+    })),
+    goal: "Elimina il ricavo ripetuto conservando la fonte.",
+  };
+  const text = materializeDraft(snapshot, plan, {
+    noChange: false,
+    links: [],
+    patches: [
+      { pageId: "a", unitId: removed.id, before: removed.text, after: "" },
+    ],
+  });
+  const linkPlan: OperationPlan = {
+    ...plan,
+    id: "link",
+    kind: "add_link",
+    findingIds: ["source-reference"],
+    targetUnitIds: [],
+    link: { sourceId: "a", targetId: "b", type: "references" },
+    goal: "Collega la pagina alla fonte citata.",
+  };
+  const link = materializeDraft(snapshot, linkPlan, {
+    noChange: false,
+    patches: [],
+    links: [{ sourceId: "a", targetId: "b", type: "references", label: "" }],
+  });
+  return { snapshot, text, link };
+}
+
+test("decision thresholds retain their production values and cache identity", () => {
+  assert.deepEqual(DECISION_POLICY, {
+    id: "consolidator-calibrated-4541df1d389a34d0",
+    analyst: { yes: 0.8, no: 0.2, choiceProbability: 0.8 },
+    verifier: {
+      objective: 0.8,
+      integrity: 0.65,
+      link: 0.9,
+      conduct: 0.8,
+      reject: 0.1,
     },
-  };
-  assert.equal(
-    analystGates(SEED_DECISION_POLICY).certainChoice(answer),
-    undefined,
-  );
-  assert.equal(analystGates(policy).certainChoice(answer), "same");
-  assert.equal(
-    analystGates(policy).yes({ type: "boolean", probability: 0.79 }),
-    false,
-  );
-  assert.equal(
-    analystGates(policy).no({ type: "boolean", probability: 0.21 }),
-    false,
-  );
-  assert.deepEqual(answer, original);
+  });
+  assert.equal(POLICY.version, DECISION_POLICY.id);
   assert.equal(DISCOVERY_FLOOR, 0.1);
 });
 
-test("verification threshold families do not let objective or link scores compensate for lost knowledge", () => {
-  const policy = {
-    ...SEED_DECISION_POLICY,
-    verifier: {
-      objective: 0.7,
-      integrity: 0.9,
-      link: 0.8,
-      conduct: 0.95,
-      reject: 0.1,
-    },
-  };
-  assert.equal(verificationThreshold("objective", policy), 0.7);
+test("verification criteria use their own threshold families", () => {
+  assert.equal(verificationThreshold("objective"), 0.8);
   for (const id of [
     "preservation_0",
     "summary_quantities_1",
     "keeper",
     "coherence",
-    "future_rule",
   ])
-    assert.equal(verificationThreshold(id, policy), 0.9);
-  assert.equal(verificationThreshold("link_target_identity_0", policy), 0.8);
-  assert.equal(verificationThreshold("no_human_work", policy), 0.95);
-  assert.equal(verificationFamily("no_diary"), "conduct");
+    assert.equal(verificationThreshold(id), 0.65);
+  assert.equal(verificationThreshold("link_target_identity_0"), 0.9);
+  assert.equal(verificationThreshold("no_human_work"), 0.8);
+  assert.equal(verificationThreshold("no_diary"), 0.8);
 });
 
-test("invalid calibrated profiles cannot overlap or contain non-probabilities", () => {
-  assert.deepEqual(
-    validateDecisionPolicy(SEED_DECISION_POLICY),
-    SEED_DECISION_POLICY,
+test("analyst probability boundaries are inclusive and ignore concentration without changing answers", () => {
+  const { yes, no, choiceProbability } = DECISION_POLICY.analyst;
+  assert.equal(analystGates.yes({ type: "boolean", probability: yes }), true);
+  assert.equal(
+    analystGates.yes({ type: "boolean", probability: yes - 0.001 }),
+    false,
   );
-  assert.throws(() =>
-    validateDecisionPolicy({
-      ...SEED_DECISION_POLICY,
-      analyst: { ...SEED_DECISION_POLICY.analyst, yes: Number.NaN },
-    }),
+  assert.equal(analystGates.no({ type: "boolean", probability: no }), true);
+  assert.equal(
+    analystGates.no({ type: "boolean", probability: no + 0.001 }),
+    false,
   );
-  assert.throws(() =>
-    validateDecisionPolicy({
-      ...SEED_DECISION_POLICY,
-      analyst: { ...SEED_DECISION_POLICY.analyst, yes: 0.1 },
-    }),
-  );
-  assert.throws(() =>
-    validateDecisionPolicy({
-      ...SEED_DECISION_POLICY,
-      verifier: { ...SEED_DECISION_POLICY.verifier, integrity: 0.1 },
-    }),
-  );
-});
-
-function malformedPolicies(): unknown[] {
-  const seed = SEED_DECISION_POLICY;
-  const invalid: unknown[] = [
-    null,
-    undefined,
-    [],
-    {},
-    { ...seed, id: " " },
-    { ...seed, analyst: null },
-    { ...seed, verifier: {} },
-    { ...seed, verifier: [] },
-    { ...seed, obsoleteThreshold: 0.5 },
-  ];
-  for (const section of ["analyst", "verifier"] as const) {
-    for (const field of Object.keys(seed[section])) {
-      const missing = { ...seed[section] } as Record<string, unknown>;
-      delete missing[field];
-      invalid.push({ ...seed, [section]: missing });
-      for (const value of [
-        undefined,
-        "0.9",
-        Number.NaN,
-        Number.POSITIVE_INFINITY,
-        -0.1,
-        1.1,
-        false,
-        {},
-        ...(field === "choiceConfidence" ? [] : [null]),
-      ]) {
-        invalid.push({
-          ...seed,
-          [section]: { ...seed[section], [field]: value },
-        });
-      }
-    }
-  }
-  return invalid;
-}
-
-test("policy validation requires every numeric field and permits null only for optional concentration", () => {
-  for (const invalid of malformedPolicies()) {
-    assert.throws(
-      () => validateDecisionPolicy(invalid as DecisionPolicy),
-      /Invalid/,
+  for (const confidence of [0, 1, null]) {
+    const answer = {
+      type: "choice" as const,
+      choice: "same",
+      probabilities: {
+        same: choiceProbability,
+        different: 1 - choiceProbability,
+      },
+      confidence,
+    };
+    const original = structuredClone(answer);
+    assert.equal(analystGates.certainChoice(answer), "same");
+    assert.deepEqual(answer, original);
+    assert.equal(
+      analystGates.certainChoice({
+        ...answer,
+        probabilities: {
+          same: choiceProbability - 0.001,
+          different: 1 - choiceProbability + 0.001,
+        },
+      }),
+      undefined,
     );
   }
-  const valid = {
-    ...SEED_DECISION_POLICY,
-    analyst: { ...SEED_DECISION_POLICY.analyst, choiceConfidence: null },
-  };
-  assert.equal(validateDecisionPolicy(valid), valid);
 });
 
-test("runtime default exactly matches the frozen calibrated policy and cache identity", () => {
-  assert.deepEqual(DEFAULT_DECISION_POLICY, frozenProfile.policy);
-  assert.equal(POLICY.version, frozenProfile.policy.id);
-  assert.equal(
-    validateDecisionPolicy(DEFAULT_DECISION_POLICY),
-    DEFAULT_DECISION_POLICY,
-  );
-});
-
-test("calibrated analyst boundaries use the configured probability bands without an implicit concentration gate", () => {
-  const gates = analystGates(DEFAULT_DECISION_POLICY);
-  const { yes, no, choiceProbability } = DEFAULT_DECISION_POLICY.analyst;
-  assert.equal(gates.yes({ type: "boolean", probability: yes }), true);
-  assert.equal(gates.yes({ type: "boolean", probability: yes - 0.001 }), false);
-  assert.equal(gates.no({ type: "boolean", probability: no }), true);
-  assert.equal(gates.no({ type: "boolean", probability: no + 0.001 }), false);
-  const choice = (probability: number) => ({
-    type: "choice" as const,
-    choice: "same",
-    probabilities: { same: probability, different: 1 - probability },
-    confidence: 0,
-  });
-  assert.equal(gates.certainChoice(choice(choiceProbability)), "same");
-  assert.equal(
-    gates.certainChoice(choice(choiceProbability - 0.001)),
-    undefined,
-  );
-});
-
-test("every calibrated verifier family enforces its own inclusive boundary and rejects a lone failed criterion", async () => {
-  const fixtures = calibrationCases();
-  const text = fixtures.find(
-    (entry) => entry.id === "calibration-irrigation-exception-safe",
-  );
-  const link = fixtures.find(
-    (entry) => entry.id === "calibration-namesake-employer-safe",
-  );
-  assert.ok(text);
-  assert.ok(link);
-  for (const [family, criterion, fixture] of [
+test("every verifier family enforces its inclusive boundary and rejects a lone failed criterion", async () => {
+  const { snapshot, text, link } = verificationFixtures();
+  for (const [family, criterion, changeSet] of [
     ["objective", "objective", text],
     ["integrity", "preservation_0", text],
     ["conduct", "no_human_work", text],
     ["link", "link_direction_0", link],
   ] as const) {
-    const threshold = DEFAULT_DECISION_POLICY.verifier[family];
-    const changeSet = materializeDraft(
-      fixture.snapshot,
-      fixture.plan,
-      fixture.draft,
-    );
+    const threshold = DECISION_POLICY.verifier[family];
     for (const [probability, status] of [
       [threshold, "accepted"],
       [threshold - 0.001, "uncertain"],
-      [DEFAULT_DECISION_POLICY.verifier.reject, "rejected"],
+      [DECISION_POLICY.verifier.reject + 0.001, "uncertain"],
+      [DECISION_POLICY.verifier.reject, "rejected"],
     ] as const) {
       let criterionObserved = false;
       const evaluate: Evaluate = async (request) => ({
@@ -227,12 +179,7 @@ test("every calibrated verifier family enforces its own inclusive boundary and r
           }),
         ),
       });
-      // Exercise the production default path, not an explicitly injected test policy.
-      const verification = await verifyChangeSet(
-        fixture.snapshot,
-        changeSet,
-        evaluate,
-      );
+      const verification = await verifyChangeSet(snapshot, changeSet, evaluate);
       assert.ok(
         criterionObserved,
         `${family}: the targeted criterion must be evaluated`,

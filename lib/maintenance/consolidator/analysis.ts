@@ -1,12 +1,7 @@
 import { type BrainPage, LINK_TYPES } from "../../brain/types";
 import { GatewayRequestError } from "../gateway";
 import { batchQuestions } from "./batching";
-import {
-  analystGates,
-  DEFAULT_DECISION_POLICY,
-  type DecisionPolicy,
-  DISCOVERY_FLOOR,
-} from "./decision-policy";
+import { analystGates, DISCOVERY_FLOOR } from "./decision-policy";
 import { validateEvaluation } from "./jev";
 import {
   booleanQuestion,
@@ -189,9 +184,8 @@ function findingsFor(
   candidate: Candidate,
   answers: Answers,
   evidence: EvidenceUnit[],
-  policy: DecisionPolicy,
 ): Finding[] {
-  const { yes, no, certainChoice } = analystGates(policy);
+  const { yes, no, certainChoice } = analystGates;
   const unitIds = candidate.units.map((unit) => unit.id);
   const evidenceUnitIds = uniqueUnits(evidence).map((unit) => unit.id);
   const pageIds = [
@@ -527,9 +521,8 @@ export async function analyzeTask(
   snapshot: Snapshot,
   task: AnalysisTask,
   evaluate: Evaluate,
-  policy: DecisionPolicy = DEFAULT_DECISION_POLICY,
 ): Promise<AnalysisResult> {
-  const { yes, certainChoice } = analystGates(policy);
+  const { yes, certainChoice } = analystGates;
   const result: AnalysisResult = {
     taskId: task.id,
     findings: [],
@@ -711,7 +704,7 @@ export async function analyzeTask(
       );
       record(assessment);
       if (assessment.errors.length) break;
-      findings = findingsFor(candidate, assessment.answers, evidence, policy);
+      findings = findingsFor(candidate, assessment.answers, evidence);
       if (
         findings.every((finding) => finding.status === "supported") &&
         yes(assessment.answers.sufficient)

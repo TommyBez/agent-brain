@@ -1,5 +1,5 @@
 import type { BrainPage, LinkType } from "../../brain/types";
-import { DEFAULT_DECISION_POLICY } from "./decision-policy";
+import { DECISION_POLICY } from "./decision-policy";
 
 export type Json =
   | null
@@ -126,7 +126,7 @@ export type CapacityLimit = {
   requiredCharacters: number;
   limitCharacters: number;
 };
-/** Plain data survives a durable step boundary; Editor itself still returns Draft. */
+/** Plain data survives a durable step boundary. */
 export type DraftOutcome = Draft | { capacity: CapacityLimit };
 export type MaterializedChange = { before: BrainPage; after: BrainPage };
 export type ChangeSet = {
@@ -142,11 +142,6 @@ export type Verification = {
   incomplete?: boolean;
   capacity?: CapacityLimit;
 };
-export type Editor = (
-  snapshot: Snapshot,
-  plan: OperationPlan,
-  feedback?: string[],
-) => Promise<Draft>;
 export type ApplyResult =
   | { status: "applied" | "replayed"; pages: BrainPage[] }
   | { status: "conflict"; pageIds: string[] };
@@ -166,7 +161,7 @@ export type DecisionRecord = {
 };
 
 export const POLICY = {
-  version: DEFAULT_DECISION_POLICY.id,
+  version: DECISION_POLICY.id,
   maxUnitCharacters: 2400,
   windowCharacters: 12_000,
   windowUnits: 16,

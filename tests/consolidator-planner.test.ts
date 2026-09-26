@@ -176,10 +176,7 @@ test("unrelated edits preserve local plans but invalidate plans that searched th
     { ...result(diagnosis), corpusSnapshotId: second.id },
   ]);
   assert.notEqual(corpusBefore.id, corpusAfter.id);
-  const replay = buildSnapshot(
-    [...first.pages].reverse(),
-    "2026-09-25T23:00:00.000Z",
-  );
+  const replay = buildSnapshot([...first.pages].reverse());
   assert.equal(replay.id, first.id);
   assert.equal(planOperations(replay, [result(diagnosis)])[0].id, before.id);
 });

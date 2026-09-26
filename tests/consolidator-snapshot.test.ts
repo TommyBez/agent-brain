@@ -112,8 +112,8 @@ test("task identities preserve unchanged page work while the corpus identity tra
   const a = page("a", "Primo.");
   const b = page("b", "Secondo.");
   const c = page("c", "Fonte originale.");
-  const first = buildSnapshot([a, b, c], "2026-09-25");
-  assert.equal(first.id, buildSnapshot([c, b, a], "2026-09-26").id);
+  const first = buildSnapshot([a, b, c]);
+  assert.equal(first.id, buildSnapshot([c, b, a]).id);
   const second = buildSnapshot([
     a,
     b,

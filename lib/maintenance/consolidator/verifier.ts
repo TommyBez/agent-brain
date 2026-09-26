@@ -1,11 +1,7 @@
 import { isDeepStrictEqual } from "node:util";
 import { batchQuestions } from "./batching";
 import { capacityVerification } from "./capacity";
-import {
-  DEFAULT_DECISION_POLICY,
-  type DecisionPolicy,
-  verificationThreshold,
-} from "./decision-policy";
+import { DECISION_POLICY, verificationThreshold } from "./decision-policy";
 import { projectEvidencePage } from "./editor";
 import { fingerprint, segmentPage } from "./snapshot";
 import {
@@ -38,7 +34,6 @@ export async function verifyChangeSet(
   snapshot: Snapshot,
   changeSet: ChangeSet,
   evaluate: Evaluate,
-  policy: DecisionPolicy = DEFAULT_DECISION_POLICY,
 ): Promise<Verification> {
   if (!changeSet.changes.length) {
     return {
@@ -286,10 +281,11 @@ export async function verifyChangeSet(
       ) {
         incomplete = true;
         defects.push(`Missing or invalid judgment: ${labels.get(id)}.`);
-      } else if (answer.probability < verificationThreshold(id, policy)) {
-        if (answer.probability <= policy.verifier.reject) rejected = true;
+      } else if (answer.probability < verificationThreshold(id)) {
+        if (answer.probability <= DECISION_POLICY.verifier.reject)
+          rejected = true;
         defects.push(
-          `${answer.probability <= policy.verifier.reject ? "Failed" : "Uncertain"} criterion: ${labels.get(id)}.`,
+          `${answer.probability <= DECISION_POLICY.verifier.reject ? "Failed" : "Uncertain"} criterion: ${labels.get(id)}.`,
         );
       }
     }

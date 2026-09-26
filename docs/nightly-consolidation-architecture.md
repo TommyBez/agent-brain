@@ -1,8 +1,6 @@
 # Consolidamento notturno: architettura e flusso
 
-Implementazione del 25 settembre 2026, definita dai requisiti di questa conversazione e dalla documentazione corrente di TypeSafe. Il nuovo flusso è integrato nel workflow notturno e salva automaticamente le modifiche che superano tutte le verifiche applicabili. Non richiede un'attivazione separata delle scritture. Questa implementazione non è stata distribuita in produzione.
-
-Risultati e limiti delle prove: [verifica iniziale](./consolidator-validation-2026-09-25.md) e [calibrazione delle soglie](./consolidator-calibration-2026-09-25.md).
+Il consolidatore è integrato nel workflow notturno e salva automaticamente le modifiche che superano tutte le verifiche applicabili. Non richiede un'attivazione separata delle scritture.
 
 ## Obiettivo
 
@@ -110,7 +108,7 @@ La sola somiglianza tematica non autorizza un link; il tipo `relates_to` richied
 
 ## 4. Piano deterministico degli interventi
 
-Il planner combina i giudizi applicabili senza medie che permettano a un beneficio di compensare una perdita di informazione. Le soglie sono separate dall'inferenza in `decision-policy.ts`: bande positive/negative per l'analyst, soglia Choice e filtro opzionale sulla confidence; quattro famiglie per il verifier (obiettivo, integrità, link e assenza di diario/lavoro umano). Il [profilo congelato](./consolidator-calibration-profile-2026-09-25.json) contiene i valori selezionati esclusivamente sui casi di calibrazione. I [risultati indipendenti e i limiti](./consolidator-calibration-2026-09-25.md) restano distinti dalla scelta delle soglie. Le probabilità originali rimangono disponibili per riesaminare la politica senza nuove inferenze sugli stessi input. La cache dei giudizi dipende da modello e richiesta esatta; le decisioni e i piani includono anche la versione della politica.
+Il planner combina i giudizi applicabili senza medie che permettano a un beneficio di compensare una perdita di informazione. Le soglie operative sono definite in `decision-policy.ts`: l'analyst considera positive probabilità almeno pari a `0.8`, negative quelle al massimo pari a `0.2` e accetta una Choice quando la probabilità dell'opzione scelta è almeno `0.8`. Il verifier richiede almeno `0.8` per l'obiettivo, `0.65` per l'integrità, `0.9` per i link e `0.8` per l'assenza di diario o lavoro umano; un criterio al massimo pari a `0.1` rifiuta l'operazione. Le risposte fra rifiuto e accettazione restano incerte. La cache dei giudizi dipende da modello e richiesta esatta; le decisioni e i piani includono anche la versione della politica.
 
 Le operazioni della prima versione sono:
 
@@ -237,15 +235,7 @@ pnpm db:check
 pnpm build
 ```
 
-I test del writer richiedono esplicitamente `BRAIN_TEST_DATABASE_URL` verso un database temporaneo con le migrazioni applicate. Il test live dei provider usa soltanto fixture inventate: `node --import tsx scripts/evaluate-consolidator.ts --live`. Non legge né scrive il corpus del Brain. I test con risposte simulate verificano il comportamento del codice; le prove live verificano anche i contratti dei provider e producono risultati semantici da valutare separatamente.
-
-## Valutazione della qualità
-
-Analisi, produzione delle bozze, verifica, writer e riesame sono implementati. La disponibilità di questi componenti e il passaggio dei test del codice non dimostrano, da soli, la qualità delle decisioni dei modelli.
-
-La valutazione usa casi con risultato atteso definito: duplicati esatti e parziali; dettagli e fonti complementari; omonimi; link veri e semplicemente tematici; correzioni esplicite; evoluzioni temporali; conflitti indecidibili; documenti lunghi; operazioni sovrapposte; modifiche concorrenti; nuovi punti aperti e resoconti introdotti dall'editor. Le scritture delle prove vengono applicate esclusivamente a dati sintetici in memoria o in un database temporaneo isolato.
-
-Si misurano separatamente problemi rilevati, interventi utili completati, interventi sbagliati accettati, interventi utili respinti, casi irrisolti ed errori tecnici. Le prove sequenziali devono mostrare che il corpus migliora e poi si stabilizza, senza perdita di conoscenza né spostamenti oscillanti. I test vengono eseguiti anche su testi italiani; l'output tipizzato non garantisce la correttezza semantica.
+I test del writer richiedono esplicitamente `BRAIN_TEST_DATABASE_URL` verso un database temporaneo con le migrazioni applicate. I test con risposte simulate verificano il comportamento del codice e le soglie operative; non misurano la qualità semantica dei modelli.
 
 ## Documentazione consultata
 
