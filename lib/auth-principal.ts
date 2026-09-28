@@ -174,14 +174,7 @@ export async function requireSessionPrincipal(request: Request) {
       "Use a browser session to manage credentials.",
       403,
     );
-  const principal = await getPrincipal(request);
-  if (principal.kind !== "session")
-    throw new AuthError(
-      "session_required",
-      "Use a browser session to manage credentials.",
-      403,
-    );
-  return principal;
+  return getPrincipal(request);
 }
 
 export function authErrorResponse(error: unknown) {

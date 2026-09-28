@@ -1,15 +1,8 @@
-import { FatalError, getStepMetadata, RetryableError } from "workflow";
+import { FatalError, RetryableError } from "workflow";
 import * as brain from "@/lib/brain/service";
 import { BrainError } from "@/lib/brain/types";
-import { BRAIN_INSTRUCTIONS } from "@/lib/mcp/server";
 import { exportBrain } from "@/lib/operations";
 import { revalidateWorkspaceCache } from "@/lib/workspace/cache";
-import {
-  type ConsolidationState,
-  type ConsolidationToolCall,
-  createConsolidationState,
-  requestConsolidationRound,
-} from "./consolidation";
 import {
   affordableBatch,
   EMBEDDING_LIMITS,
@@ -28,11 +21,6 @@ import {
   type WorkflowJobKind,
   workflowExportAttemptKey,
 } from "./jobs";
-import {
-  consolidationTools,
-  executeConsolidationTool,
-  type ReadReceipt,
-} from "./tools";
 
 function providerError(error: unknown): never {
   if (error instanceof GatewayRequestError) {
@@ -65,47 +53,6 @@ export async function completeJob(
   "use step";
   await finishWorkflowJob(ownerId, id, runId, status, result, error);
   return { id, status, result, ...(error ? { error } : {}) };
-}
-
-export async function prepareConsolidation(ownerId: string) {
-  "use step";
-  const [gapReport, changedPages] = await Promise.all([
-    brain.gapAnalysis(ownerId),
-    brain.listPages(ownerId, { limit: 30 }),
-  ]);
-  return createConsolidationState({
-    gapReport,
-    changedPages,
-    procedure: BRAIN_INSTRUCTIONS,
-    tools: consolidationTools(),
-  });
-}
-
-export async function consolidationRound(state: ConsolidationState) {
-  "use step";
-  try {
-    return await requestConsolidationRound(state);
-  } catch (error) {
-    return providerError(error);
-  }
-}
-
-export async function consolidationTool(
-  ownerId: string,
-  call: ConsolidationToolCall,
-  reads: Record<string, ReadReceipt>,
-  canWrite: boolean,
-) {
-  "use step";
-  const result = await executeConsolidationTool(
-    ownerId,
-    call,
-    `workflow:${getStepMetadata().stepId}`,
-    reads,
-    canWrite,
-  );
-  if (result.writeSucceeded) revalidateWorkspaceCache(ownerId);
-  return result;
 }
 
 export async function nextEmbeddingBatch(

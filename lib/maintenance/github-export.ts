@@ -347,29 +347,14 @@ export async function exportBrainToGitHub(
   for (const page of [...snapshot.pages].sort((left, right) =>
     compare(left.slug, right.slug),
   )) {
-    if (
-      !/^[a-z0-9]+(?:[/-][a-z0-9]+)*$/.test(page.slug) ||
-      typeof page.markdown !== "string"
-    )
+    if (!/^[a-z0-9]+(?:[/-][a-z0-9]+)*$/.test(page.slug))
       throw new GitHubExportError("Invalid page in the export snapshot.");
     const path = `${page.slug}.md`;
-    if (pageFiles.has(path))
-      throw new GitHubExportError(
-        "Export snapshot contains duplicate page paths.",
-      );
     const { markdown, ...fields } = page;
     const frontmatter = {
       ...fields,
       links: orderedLinks.filter((link) => link.sourceId === page.id),
     };
-    if (
-      Object.keys(frontmatter).some(
-        (key) => !/^[A-Za-z][A-Za-z0-9]*$/.test(key),
-      )
-    )
-      throw new GitHubExportError(
-        "Invalid page metadata in the export snapshot.",
-      );
     pageFiles.set(
       path,
       `---\n${Object.keys(frontmatter)

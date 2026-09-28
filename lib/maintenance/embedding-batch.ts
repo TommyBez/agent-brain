@@ -49,17 +49,18 @@ export function parseEmbeddingResponse(
         .length(batch.chunks.length),
     })
     .parse(response);
-  const byIndex = new Map(data.map((item) => [item.index, item.embedding]));
+  const indices = new Set(data.map((item) => item.index));
   if (
-    byIndex.size !== batch.chunks.length ||
+    indices.size !== batch.chunks.length ||
     data.some((item) => item.index >= batch.chunks.length)
   )
     throw new Error(
       "Embedding response indices do not match the requested batch.",
     );
-  return batch.chunks.map((chunk, index) => {
-    const embedding = byIndex.get(index);
-    if (!embedding) throw new Error("Embedding response is incomplete.");
-    return { contentHash: chunk.contentHash, embedding };
-  });
+  return data
+    .sort((a, b) => a.index - b.index)
+    .map(({ index, embedding }) => ({
+      contentHash: batch.chunks[index].contentHash,
+      embedding,
+    }));
 }
