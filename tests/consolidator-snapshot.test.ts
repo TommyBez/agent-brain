@@ -54,38 +54,23 @@ test("segmentation preserves every source character, Unicode, fences and table h
   );
 });
 
-test("every unit pair is covered, including distant windows within long pages", () => {
+test("complete pages and every unordered page pair are covered exactly once", () => {
   const snapshot = buildSnapshot([
-    page(
-      "a",
-      Array.from(
-        { length: 18 },
-        (_, i) => `${i}: ${"a".repeat(2200)}\n\n`,
-      ).join(""),
-    ),
-    page("b", "Testo distinto."),
-    page("c", "Altra pagina."),
+    page("a", "- fact\n".repeat(500)),
+    page("b", "Another fact."),
+    page("c", "Third fact."),
   ]);
   const tasks = createAnalysisTasks(snapshot);
-  for (let i = 0; i < snapshot.units.length; i++) {
-    assert.ok(
-      tasks.some((task) => task.unitIds.includes(snapshot.units[i].id)),
-    );
-    for (let j = i + 1; j < snapshot.units.length; j++) {
-      assert.ok(
-        tasks.some(
-          (task) =>
-            task.unitIds.includes(snapshot.units[i].id) &&
-            task.unitIds.includes(snapshot.units[j].id),
-        ),
-        `missing ${i},${j}`,
-      );
-    }
-  }
-  assert.equal(new Set(tasks.map((task) => task.id)).size, tasks.length);
-  assert.ok(
-    tasks.some((task) => task.kind === "pair" && task.pageIds.join() === "b,c"),
-  );
+  assert.equal(tasks.length, 6);
+  assert.deepEqual(tasks.map((task) => task.pageIds.join(",")).sort(), [
+    "a",
+    "a,b",
+    "a,c",
+    "b",
+    "b,c",
+    "c",
+  ]);
+  assert.equal(new Set(tasks.map((task) => task.id)).size, 6);
 });
 
 test("skipped heading levels preserve scope without treating siblings as parents", () => {

@@ -3,11 +3,11 @@ import {
   analyzeConsolidationTask,
   applyConsolidation,
   draftConsolidation,
-  expandConsolidation,
   finishConsolidation,
   initializeConsolidation,
   planConsolidation,
   prepareConsolidationScan,
+  queueConsolidation,
   recordConsolidation,
   reviewConsolidation,
   snapshotConsolidation,
@@ -36,8 +36,7 @@ export async function consolidate(ownerId: string, runId: string) {
         ),
       review: (snapshot, plan, draft) =>
         reviewConsolidation(ownerId, runId, snapshot.id, plan, draft),
-      expand: (snapshot, plan, depth) =>
-        expandConsolidation(ownerId, runId, snapshot.id, plan, depth),
+      queue: (taskIds) => queueConsolidation(ownerId, taskIds),
       apply: (changeSet) => applyConsolidation(ownerId, runId, changeSet),
       record: (key, value) => recordConsolidation(ownerId, runId, key, value),
     },

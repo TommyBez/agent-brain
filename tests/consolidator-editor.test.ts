@@ -344,17 +344,21 @@ test("DeepSeek receives strict JSON schema, complete scoped sources and no write
   const plan = planFor(snapshot);
   const draft = { ...replace(snapshot, 1, ""), summaryPatches: [] };
   const previousKey = process.env.AI_GATEWAY_API_KEY;
-  const previousModel = process.env.CONSOLIDATION_MODEL;
   process.env.AI_GATEWAY_API_KEY = "test-only";
-  delete process.env.CONSOLIDATION_MODEL;
   t.after(() => {
     if (previousKey === undefined) delete process.env.AI_GATEWAY_API_KEY;
     else process.env.AI_GATEWAY_API_KEY = previousKey;
-    if (previousModel === undefined) delete process.env.CONSOLIDATION_MODEL;
-    else process.env.CONSOLIDATION_MODEL = previousModel;
   });
-  let responseContent = JSON.stringify(draft);
-  let expectedModel = "deepseek/deepseek-v4.1-flash";
+  const proposal = {
+    ...draft,
+    patches: draft.patches.map(({ pageId, unitId, after }) => ({
+      pageId,
+      unitId,
+      after,
+    })),
+  };
+  let responseContent = JSON.stringify(proposal);
+  const expectedModel = "deepseek/deepseek-v4.1-flash";
   t.mock.method(
     globalThis,
     "fetch",
@@ -365,6 +369,7 @@ test("DeepSeek receives strict JSON schema, complete scoped sources and no write
       );
       const body = JSON.parse(String(init?.body));
       assert.equal(body.model, expectedModel);
+      assert.equal(body.max_tokens, 8192);
       assert.equal(body.response_format.json_schema.strict, true);
       assert.equal(
         body.response_format.json_schema.schema.additionalProperties,
@@ -395,22 +400,30 @@ test("DeepSeek receives strict JSON schema, complete scoped sources and no write
     await draftChanges(snapshot, plan, ["Preserva le eccezioni."]),
     draft,
   );
-  process.env.CONSOLIDATION_MODEL = "test/configured-editor";
-  expectedModel = "test/configured-editor";
-  assert.deepEqual(await draftChanges(snapshot, plan), draft);
-  process.env.CONSOLIDATION_MODEL = "";
-  expectedModel = "deepseek/deepseek-v4.1-flash";
-  assert.deepEqual(await draftChanges(snapshot, plan), draft);
+  responseContent = JSON.stringify({
+    ...proposal,
+    patches: [
+      {
+        pageId: "a",
+        unitId: snapshot.units[0].id,
+        after: "Un fatto unico.\n\n",
+      },
+    ],
+  });
+  const exactOriginal = await draftChanges(snapshot, plan);
+  assert.equal(exactOriginal.patches[0].before, snapshot.units[0].text);
+  assert.ok(exactOriginal.patches[0].before.endsWith("\n\n"));
+  assert.doesNotThrow(() => materializeDraft(snapshot, plan, exactOriginal));
   const invalidAnchor = {
-    ...draft,
-    patches: [{ ...draft.patches[0], before: "Incorrect original text" }],
+    ...proposal,
+    patches: [{ ...proposal.patches[0], unitId: "unknown-unit" }],
   };
   responseContent = JSON.stringify(invalidAnchor);
   const repairableDraft = await draftChanges(snapshot, plan);
-  assert.deepEqual(repairableDraft, invalidAnchor);
+  assert.equal(repairableDraft.patches[0].before, "");
   assert.throws(
     () => materializeDraft(snapshot, plan, repairableDraft),
-    /exact unit/,
+    /schema|outside planned|unknown/,
   );
   responseContent = JSON.stringify({ ...draft, title: "Unauthorized title" });
   await assert.rejects(draftChanges(snapshot, plan), /schema/);

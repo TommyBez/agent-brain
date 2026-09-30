@@ -56,8 +56,6 @@ export type AnalysisTask = {
   id: string;
   kind: "document" | "pair";
   pageIds: string[];
-  unitIds: string[];
-  crossWindow?: [string[], string[]];
 };
 export type OperationKind =
   | "deduplicate"
@@ -80,7 +78,7 @@ export type Finding = {
 };
 export type AnalysisResult = {
   taskId: string;
-  corpusSnapshotId?: string;
+  dependencies?: { pageId: string; fingerprint: string | null }[];
   findings: Finding[];
   judgments: Judgment[];
   status: "complete" | "incomplete";
@@ -127,7 +125,8 @@ export type CapacityLimit = {
   limitCharacters: number;
 };
 /** Plain data survives a durable step boundary. */
-export type DraftOutcome = Draft | { capacity: CapacityLimit };
+export type RunHalt = { halt: "budget" | "provider" };
+export type DraftOutcome = Draft | { capacity: CapacityLimit } | RunHalt;
 export type MaterializedChange = { before: BrainPage; after: BrainPage };
 export type ChangeSet = {
   id: string;
@@ -157,19 +156,14 @@ export type DecisionRecord = {
   reason?: string;
   changeSet?: ChangeSet;
   verification?: Verification;
-  evidenceVersions?: VersionRef[];
+  evidenceFingerprints?: { pageId: string; fingerprint: string }[];
 };
 
 export const POLICY = {
   version: DECISION_POLICY.id,
   maxUnitCharacters: 2400,
-  windowCharacters: 12_000,
-  windowUnits: 16,
   evaluationCharacters: 100_000,
   questionsPerRequest: 48,
-  concurrency: 6,
-  contextExpansions: 2,
   draftRepairs: 1,
-  maxWaves: 4,
   tasksPerRun: 2000,
 } as const;

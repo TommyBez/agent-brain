@@ -1,4 +1,3 @@
-import { CapacityError, capacityVerification } from "./capacity";
 import type {
   AnalysisResult,
   AnalysisTask,
@@ -8,6 +7,7 @@ import type {
   Draft,
   DraftOutcome,
   OperationPlan,
+  RunHalt,
   Snapshot,
   Verification,
 } from "./types";
@@ -15,6 +15,7 @@ import type {
 export type Scan = {
   tasks: AnalysisTask[];
   cached: AnalysisResult[];
+  order: string[];
   total: number;
   remaining: number;
 };
@@ -22,7 +23,6 @@ export type RunSummary = {
   report: string;
   status: "succeeded" | "partial";
   writes: number;
-  waves: number;
   evaluatedTasks: number;
   reusedTasks: number;
   totalTasks: number;
@@ -34,14 +34,21 @@ export type RunSummary = {
   conflicts: number;
   errors: number;
   capacityLimited: number;
-  stoppedBy: "stable" | "limit" | "incomplete";
+  stoppedBy:
+    | "stable"
+    | "budget"
+    | "provider"
+    | "incomplete"
+    | "limit"
+    | "changed";
 };
-
-/** Callbacks are durable steps in production and explicit fakes in unit tests. */
 export type RunnerSteps = {
   snapshot(): Promise<Snapshot>;
-  scan(snapshot: Snapshot, remainingBudget: number): Promise<Scan>;
-  analyze(snapshot: Snapshot, task: AnalysisTask): Promise<AnalysisResult>;
+  scan(snapshot: Snapshot, taskBudget: number): Promise<Scan>;
+  analyze(
+    snapshot: Snapshot,
+    task: AnalysisTask,
+  ): Promise<AnalysisResult | RunHalt>;
   plan(
     snapshot: Snapshot,
     results: AnalysisResult[],
@@ -60,46 +67,23 @@ export type RunnerSteps = {
     snapshot: Snapshot,
     plan: OperationPlan,
     draft: Draft,
-  ): Promise<{ changeSet: ChangeSet | null; verification: Verification }>;
-  expand(
-    snapshot: Snapshot,
-    plan: OperationPlan,
-    depth: number,
-  ): Promise<OperationPlan | null>;
+  ): Promise<
+    { changeSet: ChangeSet | null; verification: Verification } | RunHalt
+  >;
   apply(changeSet: ChangeSet): Promise<ApplyResult>;
   record(key: string, value: unknown): Promise<void>;
+  queue(taskIds: string[]): Promise<void>;
 };
 
-async function mapBounded<T, R>(
-  items: T[],
-  concurrency: number,
-  task: (item: T) => Promise<R>,
-): Promise<R[]> {
-  const result: R[] = [];
-  // Fixed batches are deterministic across Workflow replays.
-  for (let index = 0; index < items.length; index += concurrency) {
-    result.push(
-      ...(await Promise.all(items.slice(index, index + concurrency).map(task))),
-    );
-  }
-  return result;
-}
-
+/** One snapshot per night. Complete each intervention before spending on the next task. */
 export async function runConsolidation(
   steps: RunnerSteps,
-  options: {
-    maxWaves: number;
-    taskBudget: number;
-    concurrency: number;
-    repairs: number;
-    expansions: number;
-  },
+  options: { taskBudget: number; repairs: number },
 ): Promise<RunSummary> {
   const summary: RunSummary = {
     report: "",
     status: "succeeded",
     writes: 0,
-    waves: 0,
     evaluatedTasks: 0,
     reusedTasks: 0,
     totalTasks: 0,
@@ -113,270 +97,175 @@ export async function runConsolidation(
     capacityLimited: 0,
     stoppedBy: "stable",
   };
-  for (let wave = 0; wave < options.maxWaves; wave++) {
-    summary.waves++;
-    const snapshot = await steps.snapshot();
-    const scan = await steps.scan(
-      snapshot,
-      Math.max(0, options.taskBudget - summary.evaluatedTasks),
-    );
-    summary.totalTasks = scan.total;
-    summary.reusedTasks += scan.cached.length;
-    summary.remainingTasks = scan.remaining;
-    const results = await mapBounded(
-      scan.tasks,
-      options.concurrency,
-      async (task) => {
-        try {
-          const result = await steps.analyze(snapshot, task);
-          if (result.status === "incomplete") {
-            summary.errors++;
-            summary.remainingTasks++;
-          }
-          return result;
-        } catch {
-          summary.errors++;
-          summary.remainingTasks++;
-          await steps.record(`analysis-error:${snapshot.id}:${task.id}`, {
-            taskId: task.id,
-            status: "error",
-          });
-          return {
-            taskId: task.id,
-            findings: [],
-            judgments: [],
-            status: "incomplete",
-          } satisfies AnalysisResult;
+  const snapshot = await steps.snapshot();
+  const scan = await steps.scan(snapshot, options.taskBudget);
+  summary.totalTasks = scan.total;
+  const tasks = new Map(scan.tasks.map((task) => [task.id, task]));
+  const cached = new Map(scan.cached.map((result) => [result.taskId, result]));
+  const remaining = new Set(scan.order);
+  const changed = new Set<string>();
+  const completedReads = new Map<string, string[]>();
+  for (const id of scan.order) {
+    const task = tasks.get(id);
+    let result = cached.get(id);
+    const reads =
+      result?.dependencies?.map((ref) => ref.pageId) ?? task?.pageIds ?? [];
+    if (reads.some((id) => changed.has(id))) continue;
+    try {
+      if (!result) {
+        if (!task) continue; // Unscheduled work remains in the durable queue.
+        const analyzed = await steps.analyze(snapshot, task);
+        if ("halt" in analyzed) {
+          summary.stoppedBy = analyzed.halt;
+          break;
         }
-      },
-    );
-    summary.evaluatedTasks += scan.tasks.length;
-    const all = [...scan.cached, ...results];
-    summary.findings += all.reduce(
-      (count, result) => count + result.findings.length,
-      0,
-    );
-    summary.unresolved += all.reduce(
-      (count, result) =>
-        count +
-        result.findings.filter((finding) => finding.status === "uncertain")
-          .length,
-      0,
-    );
-    let plans = await steps.plan(snapshot, all);
-    const accountCachedCapacity = () => {
-      const additional = Math.max(
-        0,
-        (plans.capacityLimited ?? 0) - summary.capacityLimited,
+        result = analyzed;
+        summary.evaluatedTasks++;
+      } else summary.reusedTasks++;
+      completedReads.set(
+        id,
+        result.dependencies?.map((ref) => ref.pageId) ?? reads,
       );
-      summary.capacityLimited += additional;
-      summary.unresolved += additional;
-    };
-    accountCachedCapacity();
-    const planCapacity = plans.selected.length + plans.deferred;
-    let attemptedPlans = 0;
-    let changed = false;
-    // Rejections and no-ops do not evolve the snapshot. Drain their deferred
-    // neighbours without spending a mutation wave or repeating analysis.
-    // The planner selects at least one remaining plan in each batch.
-    for (let batch = 0; batch < planCapacity; batch++) {
-      for (const initial of plans.selected) {
-        attemptedPlans++;
+      summary.findings += result.findings.length;
+      summary.unresolved += result.findings.filter(
+        (finding) => finding.status === "uncertain",
+      ).length;
+      if (result.status === "incomplete") {
+        summary.errors++;
+        continue;
+      }
+      // A specifically referenced evidence page may have been edited earlier tonight.
+      if (result.dependencies?.some((ref) => changed.has(ref.pageId))) continue;
+      if (!result.findings.some((finding) => finding.status === "supported")) {
+        remaining.delete(id);
+        continue;
+      }
+      const plans = await steps.plan(snapshot, [result]);
+      summary.capacityLimited += plans.capacityLimited ?? 0;
+      let deferred = plans.deferred > 0;
+      for (const plan of plans.selected) {
+        if (plan.readSet.some((ref) => changed.has(ref.pageId))) {
+          deferred = true;
+          continue;
+        }
         summary.proposed++;
-        let plan = initial;
-        let decision: DecisionRecord = {
-          operationId: initial.id,
-          status: "error",
-        };
-        let expansion = 0;
-        try {
-          let draft = await steps.draft(snapshot, plan, 0);
-          let repair = 0;
-          while (true) {
-            if ("capacity" in draft) {
-              summary.capacityLimited++;
-              summary.unresolved++;
-              decision = {
-                operationId: initial.id,
-                status: "uncertain",
-                reason: "capacity",
-                verification: capacityVerification(draft.capacity),
-              };
-              break;
-            }
-            if (draft.noChange) {
-              decision = { operationId: initial.id, status: "no_change" };
-              break;
-            }
-            const reviewed = await steps.review(snapshot, plan, draft);
-            if (reviewed.verification.capacity) {
-              summary.capacityLimited++;
-              summary.unresolved++;
-              decision = {
-                operationId: initial.id,
-                status: "uncertain",
-                reason: "capacity",
-                verification: reviewed.verification,
-                ...(reviewed.changeSet
-                  ? { changeSet: reviewed.changeSet }
-                  : {}),
-              };
-              break;
-            }
-            if (reviewed.verification.incomplete) {
-              summary.errors++;
-              decision = {
-                operationId: initial.id,
-                status: "error",
-                verification: reviewed.verification,
-                reason:
-                  "Verification coverage incomplete; operation was not applied.",
-              };
-              break;
-            }
-            if (
-              reviewed.verification.status === "accepted" &&
-              reviewed.changeSet
-            ) {
-              const applied = await steps.apply(reviewed.changeSet);
-              if (applied.status === "conflict") {
-                summary.conflicts++;
-                decision = {
-                  operationId: initial.id,
-                  status: "conflict",
-                  reason:
-                    "Evidence or target changed; reanalyse current state.",
-                };
-                changed = true;
-              } else {
-                summary.writes += applied.pages.length;
-                changed = true;
-                decision = {
-                  operationId: initial.id,
-                  status: "applied",
-                  ...reviewed,
-                  changeSet: reviewed.changeSet,
-                };
-              }
-              break;
-            }
-            if (
-              reviewed.verification.status === "uncertain" &&
-              expansion < options.expansions
-            ) {
-              let expanded: OperationPlan | null = null;
-              while (!expanded && expansion < options.expansions) {
-                expanded = await steps.expand(snapshot, plan, ++expansion);
-              }
-              if (expanded) {
-                plan = expanded;
-                continue;
-              }
-            }
-            if (
-              reviewed.verification.status === "rejected" &&
-              repair < options.repairs
-            ) {
-              draft = await steps.draft(
-                snapshot,
-                plan,
-                ++repair,
-                reviewed.verification.defects,
-              );
-              continue;
-            }
-            if (reviewed.verification.status === "uncertain")
-              summary.unresolved++;
-            else summary.rejected++;
+        let draft = await steps.draft(snapshot, plan, 0);
+        let decision: DecisionRecord | undefined;
+        for (let attempt = 0; ; attempt++) {
+          if ("halt" in draft) {
+            summary.stoppedBy = draft.halt;
+            break;
+          }
+          if ("capacity" in draft) {
+            summary.capacityLimited++;
             decision = {
-              operationId: initial.id,
-              status:
-                reviewed.verification.status === "uncertain"
-                  ? "uncertain"
-                  : "rejected",
-              verification: reviewed.verification,
-              ...(reviewed.changeSet ? { changeSet: reviewed.changeSet } : {}),
+              operationId: plan.id,
+              status: "uncertain",
+              reason: "capacity",
             };
             break;
           }
-        } catch (error) {
-          if (error instanceof CapacityError) {
-            summary.capacityLimited++;
-            summary.unresolved++;
-            decision = {
-              operationId: initial.id,
-              status: "uncertain",
-              reason: "capacity",
-              verification: capacityVerification(error.capacity),
-            };
-          } else {
-            summary.errors++;
-            decision = {
-              operationId: initial.id,
-              status: "error",
-              reason:
-                "Operation failed; document unchanged unless an idempotent writer receipt exists.",
-            };
+          if (draft.noChange) {
+            decision = { operationId: plan.id, status: "no_change" };
+            break;
           }
+          const reviewed = await steps.review(snapshot, plan, draft);
+          if ("halt" in reviewed) {
+            summary.stoppedBy = reviewed.halt;
+            break;
+          }
+          if (reviewed.verification.incomplete) {
+            summary.errors++;
+            deferred = true;
+            break;
+          }
+          if (
+            reviewed.verification.status === "accepted" &&
+            reviewed.changeSet
+          ) {
+            const applied = await steps.apply(reviewed.changeSet);
+            if (applied.status === "conflict") {
+              summary.conflicts++;
+              deferred = true;
+              for (const pageId of applied.pageIds) changed.add(pageId);
+              decision = { operationId: plan.id, status: "conflict" };
+            } else {
+              summary.writes += applied.pages.length;
+              for (const pageId of plan.targetPageIds) changed.add(pageId);
+              deferred = true;
+              decision = {
+                operationId: plan.id,
+                status: "applied",
+                changeSet: reviewed.changeSet,
+                verification: reviewed.verification,
+              };
+            }
+            break;
+          }
+          if (
+            reviewed.verification.status === "rejected" &&
+            attempt < options.repairs
+          ) {
+            draft = await steps.draft(
+              snapshot,
+              plan,
+              attempt + 1,
+              reviewed.verification.defects,
+            );
+            continue;
+          }
+          if (reviewed.verification.status === "rejected") summary.rejected++;
+          else summary.unresolved++;
+          if (reviewed.verification.capacity) summary.capacityLimited++;
+          decision = {
+            operationId: plan.id,
+            status:
+              reviewed.verification.status === "rejected"
+                ? "rejected"
+                : "uncertain",
+            verification: reviewed.verification,
+            ...(reviewed.verification.capacity ? { reason: "capacity" } : {}),
+          };
+          break;
         }
-        const decisionKey =
-          expansion > 0
-            ? `decision:${initial.id}:${snapshot.id}`
-            : `decision:${initial.id}`;
-        await steps.record(decisionKey, {
-          ...decision,
-          evidenceVersions: plan.readSet,
-        });
+        if (decision)
+          await steps.record(`decision:${plan.id}`, {
+            ...decision,
+            evidenceFingerprints: result.dependencies?.filter(
+              (ref): ref is { pageId: string; fingerprint: string } =>
+                ref.fingerprint !== null &&
+                plan.readSet.some((read) => read.pageId === ref.pageId),
+            ),
+          });
+        if (summary.stoppedBy === "budget" || summary.stoppedBy === "provider")
+          break;
       }
-      if (
-        changed ||
-        summary.errors > 0 ||
-        summary.remainingTasks > 0 ||
-        plans.deferred === 0
-      )
+      // Invalidate earlier completed work if a later write changes its evidence.
+      for (const [taskId, pageIds] of completedReads)
+        if (pageIds.some((pageId) => changed.has(pageId)))
+          remaining.add(taskId);
+      if (summary.stoppedBy === "budget" || summary.stoppedBy === "provider")
         break;
-      try {
-        // The planner filters the terminal decisions recorded by this batch.
-        plans = await steps.plan(snapshot, all);
-        accountCachedCapacity();
-      } catch {
-        summary.errors++;
-        await steps.record(`planning-error:${snapshot.id}`, {
-          status: "error",
-          reason: "Deferred planning failed; the snapshot was not advanced.",
-          attemptedPlans,
-          planCapacity,
-        });
-        break;
-      }
-    }
-    await steps.record(`coverage:${wave}`, {
-      snapshotId: snapshot.id,
-      total: scan.total,
-      evaluated: scan.tasks.length,
-      reused: scan.cached.length,
-      remaining: summary.remainingTasks,
-      deferredPlans: plans.deferred,
-      attemptedPlans,
-      capacityLimited: summary.capacityLimited,
-    });
-    if (summary.remainingTasks > 0 || summary.errors > 0) {
+      if (!deferred) remaining.delete(id);
+      await steps.queue([...remaining]);
+    } catch {
+      summary.errors++;
       summary.stoppedBy = "incomplete";
+      await steps.record(`task-error:${id}`, { taskId: id, status: "error" });
+      // Exhausted provider retries must not repeat the same failure across the corpus.
       break;
     }
-    if (!changed && plans.deferred === 0) {
-      summary.stoppedBy = summary.capacityLimited ? "incomplete" : "stable";
-      break;
-    }
-    if (wave + 1 === options.maxWaves) summary.stoppedBy = "limit";
   }
-  if (
-    summary.remainingTasks ||
-    summary.errors ||
-    summary.capacityLimited ||
-    summary.stoppedBy === "limit"
-  )
+  summary.remainingTasks = remaining.size;
+  if (summary.stoppedBy === "stable" && remaining.size)
+    summary.stoppedBy = summary.errors
+      ? "incomplete"
+      : changed.size
+        ? "changed"
+        : "limit";
+  if (remaining.size || summary.errors || summary.capacityLimited)
     summary.status = "partial";
-  summary.report = `Consolidation: ${summary.writes} page writes. Coverage: ${summary.totalTasks - summary.remainingTasks}/${summary.totalTasks} analysis tasks in the last pass. ${summary.unresolved} unresolved findings, ${summary.capacityLimited} capacity-limited operations, ${summary.rejected} rejected proposals, ${summary.errors} technical errors. Stopped: ${summary.stoppedBy}.`;
+  await steps.queue([...remaining]);
+  summary.report = `Consolidation: ${summary.writes} page writes, ${summary.evaluatedTasks} analysed tasks, ${summary.reusedTasks} reused, ${summary.remainingTasks} queued. ${summary.unresolved} unresolved findings, ${summary.errors} errors. Stopped: ${summary.stoppedBy}.`;
   return summary;
 }

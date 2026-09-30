@@ -1,12 +1,18 @@
+import { pageEvidenceFingerprint } from "./snapshot";
 import type { AnalysisResult, DecisionRecord, Snapshot } from "./types";
 
 export function canReuseAnalysis(
-  snapshotId: string,
-  result: Pick<AnalysisResult, "status" | "corpusSnapshotId"> | undefined,
+  snapshot: Snapshot,
+  result: Pick<AnalysisResult, "status" | "dependencies"> | undefined,
 ): boolean {
   return (
     result?.status === "complete" &&
-    (!result.corpusSnapshotId || result.corpusSnapshotId === snapshotId)
+    (result.dependencies ?? []).every((ref) => {
+      const page = snapshot.pages.find(
+        (page) => page.id === ref.pageId || page.slug === ref.pageId,
+      );
+      return (page ? pageEvidenceFingerprint(page) : null) === ref.fingerprint;
+    })
   );
 }
 
@@ -17,10 +23,12 @@ export function canReuseDecision(
   return Boolean(
     decision &&
       ["rejected", "uncertain", "no_change"].includes(decision.status) &&
-      decision.evidenceVersions?.every(
-        (ref) =>
-          snapshot.pages.find((page) => page.id === ref.pageId)?.version ===
-          ref.version,
-      ),
+      decision.evidenceFingerprints?.every((ref) => {
+        const page = snapshot.pages.find((page) => page.id === ref.pageId);
+        return (
+          page !== undefined &&
+          pageEvidenceFingerprint(page) === ref.fingerprint
+        );
+      }),
   );
 }

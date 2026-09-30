@@ -9,6 +9,7 @@ import { planOperations } from "../lib/maintenance/consolidator/planner";
 import {
   buildSnapshot,
   createAnalysisTasks,
+  pageEvidenceFingerprint,
 } from "../lib/maintenance/consolidator/snapshot";
 import {
   draftConsolidation,
@@ -116,7 +117,7 @@ test(
           const runId = "automatic-initialization";
           const options = await initializeConsolidation(owner, runId);
           assert.equal("mode" in options, false);
-          assert.ok(options.maxWaves > 0);
+          assert.equal("maxWaves" in options, false);
           assert.ok(options.taskBudget > 0);
           assert.deepEqual(await readConsolidationRecord(owner, runId, "run"), {
             status: "started",
@@ -403,7 +404,7 @@ test(
       );
 
       await t.test(
-        "production steps load exact snapshots and keep legacy previews eligible for automatic application",
+        "production steps load exact snapshots and plan automatic application",
         async () => {
           const snapshot = buildSnapshot([await create(), await create()]);
           const runId = "step-snapshot";
@@ -520,14 +521,6 @@ test(
             status: "complete",
           };
           const [plan] = planOperations(snapshot, [result]);
-          // A legacy preview records an uncommitted proposal, never a completed
-          // operation. Removing the mode switch must keep it eligible to apply.
-          await saveConsolidationRecord(owner, runId, `decision:${plan.id}`, {
-            operationId: plan.id,
-            status: "preview",
-            evidenceVersions: plan.readSet,
-            verification: { judgments: ["Heavy audit retained"] },
-          });
           assert.deepEqual(
             await planConsolidation(owner, runId, snapshot.id, [result]),
             { selected: [plan], deferred: 0, capacityLimited: 0 },
@@ -536,7 +529,7 @@ test(
       );
 
       await t.test(
-        "scan reuses local analysis across unrelated writes and refreshes corpus-dependent analysis",
+        "scan reuses local analysis across unrelated writes and refreshes referenced-source analysis",
         async () => {
           const localPage = await create();
           const corpusPage = await create();
@@ -583,7 +576,12 @@ test(
           const corpusResult: AnalysisResult = {
             ...localResult,
             taskId: corpusTask.id,
-            corpusSnapshotId: snapshot.id,
+            dependencies: [
+              {
+                pageId: unrelatedPage.id,
+                fingerprint: pageEvidenceFingerprint(unrelatedPage),
+              },
+            ],
           };
           await saveConsolidationRecord(
             owner,
@@ -594,7 +592,7 @@ test(
           await saveConsolidationRecord(
             owner,
             runId,
-            `analysis:${corpusTask.id}:${snapshot.id}`,
+            `analysis:${corpusTask.id}`,
             corpusResult,
           );
           const initial = await prepareConsolidationScan(
@@ -630,12 +628,17 @@ test(
           assert.ok(!next.tasks.some((task) => task.id === localTask.id));
           const refreshedResult = {
             ...corpusResult,
-            corpusSnapshotId: refreshed.id,
+            dependencies: [
+              {
+                pageId: changed.id,
+                fingerprint: pageEvidenceFingerprint(changed),
+              },
+            ],
           };
           await saveConsolidationRecord(
             owner,
-            runId,
-            `analysis:${corpusTask.id}:${refreshed.id}`,
+            `${runId}-next`,
+            `analysis:${corpusTask.id}`,
             refreshedResult,
           );
           const completed = await prepareConsolidationScan(
@@ -652,7 +655,7 @@ test(
             await readConsolidationRecord(
               owner,
               runId,
-              `analysis:${corpusTask.id}:${snapshot.id}`,
+              `analysis:${corpusTask.id}`,
             ),
             corpusResult,
             "Refreshing corpus evidence retains the original immutable audit",
@@ -679,7 +682,14 @@ test(
             operationId: plan.id,
             status: "uncertain",
             reason: "capacity",
-            evidenceVersions: plan.readSet,
+            evidenceFingerprints: snapshot.pages
+              .filter((page) =>
+                plan.readSet.some((ref) => ref.pageId === page.id),
+              )
+              .map((page) => ({
+                pageId: page.id,
+                fingerprint: pageEvidenceFingerprint(page),
+              })),
           });
           assert.deepEqual(
             await planConsolidation(owner, runId, snapshot.id, [result]),
@@ -720,54 +730,6 @@ test(
           assert.deepEqual(
             await planConsolidation(owner, runId, updated.id, [updatedResult]),
             { selected: [updatedPlan], deferred: 0, capacityLimited: 0 },
-          );
-        },
-      );
-
-      await t.test(
-        "planning reconsiders a corpus-scoped uncertain decision when a new source appears",
-        async () => {
-          const target = await create();
-          const evidence = await create();
-          const snapshot = buildSnapshot([target, evidence]);
-          const runId = "expanded-decision-cache";
-          const result = residueAnalysis(snapshot, target.id);
-          const [plan] = planOperations(snapshot, [result]);
-          await saveConsolidationRecord(
-            owner,
-            runId,
-            `snapshot:${snapshot.id}`,
-            snapshot,
-          );
-          await saveConsolidationRecord(
-            owner,
-            runId,
-            `decision:${plan.id}:${snapshot.id}`,
-            {
-              operationId: plan.id,
-              status: "uncertain",
-              evidenceVersions: snapshot.pages.map((page) => ({
-                pageId: page.id,
-                version: page.version,
-              })),
-            },
-          );
-          assert.deepEqual(
-            await planConsolidation(owner, runId, snapshot.id, [result]),
-            { selected: [], deferred: 0, capacityLimited: 0 },
-          );
-          const newSource = await create();
-          const refreshed = buildSnapshot([target, evidence, newSource]);
-          await saveConsolidationRecord(
-            owner,
-            runId,
-            `snapshot:${refreshed.id}`,
-            refreshed,
-          );
-          assert.equal(planOperations(refreshed, [result])[0].id, plan.id);
-          assert.deepEqual(
-            await planConsolidation(owner, runId, refreshed.id, [result]),
-            { selected: [plan], deferred: 0, capacityLimited: 0 },
           );
         },
       );
@@ -840,6 +802,7 @@ test(
             large.plan,
             large.draft,
           );
+          assert.ok(!("halt" in materialization));
           assert.equal(materialization.changeSet, null);
           assert.equal(materialization.verification.status, "uncertain");
           assert.equal(materialization.verification.incomplete, true);
@@ -855,6 +818,7 @@ test(
             bounded.plan,
             bounded.draft,
           );
+          assert.ok(!("halt" in review));
           assert.ok(review.changeSet);
           assert.equal(review.verification.status, "uncertain");
           assert.equal(review.verification.incomplete, true);

@@ -92,3 +92,5 @@ export async function gatewayRequest<T>(
     });
   }
 }
+
+export type GatewayCall = typeof gatewayRequest;
