@@ -22,23 +22,27 @@ import type {
   Snapshot,
 } from "./types";
 
-/** Resolve only explicit references to existing Brain pages; never search the corpus with Jev. */
-export function referencedPages(
-  snapshot: Snapshot,
-  pages: BrainPage[],
-): BrainPage[] {
-  const references = new Set(
+function explicitReferences(pages: BrainPage[]): Set<string> {
+  return new Set(
     pages.flatMap((page) => [
       ...page.links
         .filter(
           (link) => link.type === "references" || link.type === "decided_in",
         )
         .map((link) => link.targetId),
-      ...[...page.markdown.matchAll(/\/pages\/([\w/-]+)/g)].map(
-        (match) => match[1],
+      ...[...page.markdown.matchAll(/\/pages\/([\w/-]+)/g)].map((match) =>
+        match[1].replace(/\/+$/, ""),
       ),
     ]),
   );
+}
+
+/** Resolve only explicit references to existing Brain pages; never search the corpus with Jev. */
+export function referencedPages(
+  snapshot: Snapshot,
+  pages: BrainPage[],
+): BrainPage[] {
+  const references = explicitReferences(pages);
   return snapshot.pages.filter(
     (page) =>
       !pages.some((source) => source.id === page.id) &&
@@ -69,6 +73,14 @@ export async function analyzeTask(
     dependencies,
   };
   const state = { pages: pages.map(evidencePage) };
+  // Supply the full content once as ordered passages, with page metadata for context.
+  const passageState = {
+    pages: pages.map((page) => {
+      const { markdown: _, ...metadata } = evidencePage(page);
+      return metadata;
+    }),
+    units: units.map(({ context: _, ...unit }) => unit),
+  };
   const depend = (sources: BrainPage[]) => {
     for (const page of sources)
       if (!dependencies.some((ref) => ref.pageId === page.id))
@@ -120,12 +132,12 @@ export async function analyzeTask(
     }[kind];
     // Linear localization, only after a positive whole-page signal.
     const localization = await ask(
-      { ...state, units },
+      passageState,
       Object.fromEntries(
         units.map((_, i) => [
           `passage_${i}`,
           booleanQuestion(
-            `Select whether units[${i}] ${instruction}. Use its complete page context. This question identifies an edit target, not permission to remove it.`,
+            `Select whether units[${i}] ${instruction}. All passages of each page are supplied in units in source order; use them as the complete page context. This question identifies an edit target, not permission to remove it.`,
           ),
         ]),
       ),
@@ -167,10 +179,14 @@ export async function analyzeTask(
         for (let start = 0; start < candidates.length; start += 254) {
           const options = candidates.slice(start, start + 254);
           const answers = await ask(
-            { ...state, anchor, candidates: options },
+            {
+              ...passageState,
+              anchor: anchor.id,
+              candidates: options.map((unit) => unit.id),
+            },
             {
               partner: choiceQuestion(
-                `Which passage in candidates ${kind === "duplicate" ? "repeats factual information from anchor" : "makes a claim apparently incompatible with anchor about the same entity and scope"}? Identify the counterpart only; a supported correction or deletion is NOT required. Select none when no counterpart exists; shared topic alone is insufficient.`,
+                `Which passage in candidates ${kind === "duplicate" ? "repeats factual information from anchor" : "makes a claim apparently incompatible with anchor about the same entity and scope"}? anchor and candidates are IDs of passages in units. Identify the counterpart only; a supported correction or deletion is NOT required. Select none when no counterpart exists; shared topic alone is insufficient.`,
                 Object.fromEntries([
                   ["none", "No suitable partner."],
                   ...options.map((unit, index) => [
@@ -208,19 +224,7 @@ export async function analyzeTask(
       ) {
         const sources = referencedPages(snapshot, pages);
         depend(sources);
-        const refs = new Set(
-          pages.flatMap((page) => [
-            ...page.links
-              .filter(
-                (link) =>
-                  link.type === "references" || link.type === "decided_in",
-              )
-              .map((link) => link.targetId),
-            ...[...page.markdown.matchAll(/\/pages\/([\w/-]+)/g)].map(
-              (match) => match[1],
-            ),
-          ]),
-        );
+        const refs = explicitReferences(pages);
         for (const ref of refs)
           if (
             !snapshot.pages.some((page) => page.id === ref || page.slug === ref)

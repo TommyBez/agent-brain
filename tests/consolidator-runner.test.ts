@@ -66,7 +66,7 @@ function fake(overrides: Partial<RunnerSteps> = {}) {
     scan: async () => ({
       tasks: [first],
       cached: [],
-      order: [first.id],
+      reused: 0,
       total: 1,
       remaining: 0,
     }),
@@ -105,15 +105,15 @@ test("accepted writes happen automatically, with no global rescan in the same ni
   assert.equal(result.writes, 1);
   assert.deepEqual(run.events, ["snapshot", "analyze", "draft", "apply"]);
   assert.equal(result.stoppedBy, "changed");
-  assert.deepEqual(run.queues.at(-1), [first.id]);
+  assert.deepEqual(run.queues, [[]]);
 });
 
 test("cached negative screening needs neither a model nor a planning step", async () => {
   const run = fake({
     scan: async () => ({
       tasks: [],
-      cached: [analysis(first.id, false)],
-      order: [first.id],
+      cached: [],
+      reused: 1,
       total: 1,
       remaining: 0,
     }),
@@ -134,7 +134,7 @@ for (const halt of ["budget", "provider"] as const)
       scan: async () => ({
         tasks,
         cached: [],
-        order: tasks.map((task) => task.id),
+        reused: 0,
         total: tasks.length,
         remaining: 0,
       }),
@@ -155,7 +155,7 @@ test("budget exhaustion during verification never writes or caches a terminal re
   assert.equal(result.writes, 0);
   assert.equal(result.stoppedBy, "budget");
   assert.equal(run.records.length, 0);
-  assert.deepEqual(run.queues.at(-1), [first.id]);
+  assert.deepEqual(run.queues, [[]]);
 });
 
 test("one bounded repair is followed by a fresh verification", async () => {
@@ -208,7 +208,7 @@ test("a write defers subsequent comparisons involving that page", async () => {
     scan: async () => ({
       tasks: [first, pair],
       cached: [],
-      order: [first.id, pair.id],
+      reused: 0,
       total: 2,
       remaining: 0,
     }),
@@ -228,7 +228,7 @@ test("exhausted technical retries stop the corpus instead of producing one failu
     scan: async () => ({
       tasks,
       cached: [],
-      order: tasks.map((task) => task.id),
+      reused: 0,
       total: tasks.length,
       remaining: 0,
     }),
@@ -250,4 +250,23 @@ test("incomplete analysis remains queued and cannot be mistaken for a negative",
   const result = await runConsolidation(run.steps, options);
   assert.equal(result.writes, 0);
   assert.equal(result.remainingTasks, 1);
+});
+
+test("queue completion is one bounded delta and leaves unscheduled tasks pending", async () => {
+  const selected = tasks.slice(0, 2);
+  const run = fake({
+    scan: async () => ({
+      tasks: selected,
+      cached: [],
+      reused: 100,
+      total: 5102,
+      remaining: 5000,
+    }),
+    analyze: async (_snapshot, task) => analysis(task.id, false),
+  });
+  const result = await runConsolidation(run.steps, options);
+  assert.deepEqual(run.queues, [selected.map((task) => task.id)]);
+  assert.equal(result.remainingTasks, 5000);
+  assert.equal(result.reusedTasks, 100);
+  assert.equal(result.stoppedBy, "limit");
 });

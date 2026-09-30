@@ -95,7 +95,7 @@ test("an unsupported preparation cannot authorize deleting the localized passage
 
 test("contradictions consult only explicit sources and cache their semantic dependencies", async () => {
   const { snapshot: initial, task } = pair(
-    "Atlas uses PostgreSQL. See /pages/decision/source.",
+    "Atlas uses PostgreSQL. See /pages/decision/source/#details.",
     "Atlas uses MySQL.",
   );
   const source = page(
@@ -159,7 +159,7 @@ test("contradictions consult only explicit sources and cache their semantic depe
 
 test("a specifically missing source invalidates the unresolved result when it becomes available", async () => {
   const { snapshot, task } = pair(
-    "Current state A. See /pages/source.",
+    "Current state A. See /pages/source/.",
     "Current state B.",
   );
   const result = await analyzeTask(
@@ -231,4 +231,36 @@ test("oversized full pages remain incomplete instead of being silently truncated
   );
   assert.equal(calls, 0);
   assert.equal(result.status, "incomplete");
+});
+
+test("long positive pages fit localization and partner requests without duplicated text", async () => {
+  const markdown = Array.from(
+    { length: 32 },
+    (_, i) => `Passage ${i}: ${"x".repeat(1800)} unique-marker-${i}.`,
+  ).join("\n\n");
+  const snapshot = buildSnapshot([page("long", markdown)]);
+  const calls: EvaluationRequest[] = [];
+  const result = await analyzeTask(
+    snapshot,
+    createAnalysisTasks(snapshot)[0],
+    evaluator((id) => {
+      if (["duplicate", "actionable", "passage_0", "passage_1"].includes(id))
+        return 1;
+      if (id === "partner") return "p0";
+      if (id === "destination") return "equivalent";
+      return 0;
+    }, calls),
+  );
+  assert.equal(result.status, "complete");
+  assert.equal(result.findings[0].status, "supported");
+  const localized = calls.filter(
+    (call) => call.questions.passage_0 || call.questions.partner,
+  );
+  assert.ok(localized.length >= 2);
+  for (const request of localized) {
+    const serialized = JSON.stringify(request.state);
+    assert.equal(serialized.split("unique-marker-0.").length - 1, 1);
+    assert.equal(serialized.split("unique-marker-31.").length - 1, 1);
+    assert.ok(JSON.stringify(request).length < 100_000);
+  }
 });

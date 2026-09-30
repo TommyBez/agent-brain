@@ -149,6 +149,10 @@ test(
     assert.equal(third.reusedTasks, 3);
     assert.equal(third.remainingTasks, 0);
     assert.equal(provider.mock.callCount(), calls);
+    const { readConsolidationQueue } = await import(
+      "../lib/maintenance/consolidator/store"
+    );
+    assert.deepEqual(await readConsolidationQueue(owner), []);
     const costs = await getPool().query(
       "SELECT count(*)::int AS calls,sum(actual_nano)::text AS cost FROM brain_consolidation_spend WHERE owner_id=$1",
       [owner],

@@ -16,6 +16,7 @@ import {
   initializeConsolidation,
   planConsolidation,
   prepareConsolidationScan,
+  queueConsolidation,
   reviewConsolidation,
 } from "../lib/maintenance/consolidator/steps";
 import {
@@ -25,6 +26,7 @@ import {
   findConsolidationRecords,
   finishConsolidationRun,
   readConsolidationPages,
+  readConsolidationQueue,
   readConsolidationRecord,
   saveConsolidationRecord,
 } from "../lib/maintenance/consolidator/store";
@@ -445,7 +447,21 @@ test(
           assert.equal(scan.total, 3);
           assert.equal(scan.tasks.length, 1);
           assert.equal(scan.remaining, 1);
-          assert.deepEqual(scan.cached, [{ ...original, judgments: [] }]);
+          assert.deepEqual(scan.cached, []);
+          assert.equal(scan.reused, 1);
+          assert.equal("order" in scan, false);
+          assert.deepEqual(
+            await readConsolidationQueue(owner),
+            tasks.slice(1).map((task) => task.id),
+          );
+          await queueConsolidation(owner, [scan.tasks[0].id]);
+          assert.deepEqual(
+            await readConsolidationQueue(owner),
+            tasks.slice(2).map((task) => task.id),
+          );
+          // Replaying the completion delta preserves the unscheduled tail.
+          await queueConsolidation(owner, [scan.tasks[0].id]);
+          assert.equal((await readConsolidationQueue(owner)).length, 1);
           assert.deepEqual(
             await readConsolidationRecord(
               owner,
@@ -601,9 +617,11 @@ test(
             snapshot.id,
             100,
           );
-          assert.deepEqual(
-            new Set(initial.cached.map((result) => result.taskId)),
-            new Set([localTask.id, corpusTask.id]),
+          assert.equal(initial.reused, 2);
+          assert.ok(
+            initial.tasks.every(
+              (task) => task.id !== localTask.id && task.id !== corpusTask.id,
+            ),
           );
           const changed = await brain.append(owner, {
             ref: unrelatedPage.id,
@@ -623,7 +641,8 @@ test(
             refreshed.id,
             100,
           );
-          assert.deepEqual(next.cached, [localResult]);
+          assert.deepEqual(next.cached, []);
+          assert.equal(next.reused, 1);
           assert.ok(next.tasks.some((task) => task.id === corpusTask.id));
           assert.ok(!next.tasks.some((task) => task.id === localTask.id));
           const refreshedResult = {
@@ -647,10 +666,8 @@ test(
             refreshed.id,
             100,
           );
-          assert.deepEqual(
-            completed.cached.find((result) => result.taskId === corpusTask.id),
-            refreshedResult,
-          );
+          assert.equal(completed.reused, 2);
+          assert.ok(!completed.tasks.some((task) => task.id === corpusTask.id));
           assert.deepEqual(
             await readConsolidationRecord(
               owner,

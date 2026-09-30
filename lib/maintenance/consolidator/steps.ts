@@ -147,32 +147,55 @@ export async function prepareConsolidationScan(
     tasks.map((task) => `analysis:${task.id}`),
     ["judgments"],
   );
+  let reused = 0;
   for (const task of tasks) {
     const result = records.get(`analysis:${task.id}`);
-    if (result && canReuseAnalysis(snapshot, result))
+    if (result && canReuseAnalysis(snapshot, result)) {
+      reused++;
+      if (!result.findings.some((finding) => finding.status === "supported"))
+        continue;
       cached.push({ ...result, judgments: [] });
-    else pending.push(task);
+    }
+    pending.push(task);
   }
+  const cachedPlans = new Map(
+    cached.map((result) => [result.taskId, planOperations(snapshot, [result])]),
+  );
+  const decisions = await findConsolidationRecords<DecisionRecord>(
+    ownerId,
+    [...cachedPlans.values()].flatMap((plans) =>
+      plans.map((plan) => `decision:${plan.id}`),
+    ),
+    ["changeSet", "verification"],
+  );
+  const completed = new Set(
+    [...cachedPlans]
+      .filter(([, plans]) =>
+        plans.every((plan) =>
+          canReuseDecision(snapshot, decisions.get(`decision:${plan.id}`)),
+        ),
+      )
+      .map(([id]) => id),
+  );
+  const outstanding = pending.filter((task) => !completed.has(task.id));
   const prior = await readConsolidationQueue(ownerId);
-  const byId = new Map(tasks.map((task) => [task.id, task]));
+  const byId = new Map(outstanding.map((task) => [task.id, task]));
   const order = [
-    ...new Set([...prior, ...tasks.map((task) => task.id)]),
+    ...new Set([...prior, ...outstanding.map((task) => task.id)]),
   ].filter((id) => byId.has(id));
-  // Persist the order before any paid work, including plans awaiting application.
+  // Store outstanding work once; only the bounded scheduled subset crosses the step boundary.
   await saveConsolidationQueue(ownerId, order);
-  const pendingIds = new Set(pending.map((task) => task.id));
   const selected = order
-    .flatMap((id) => {
-      const task = byId.get(id);
-      return task && pendingIds.has(id) ? [task] : [];
-    })
-    .slice(0, budget);
+    .slice(0, budget)
+    .map((id) => byId.get(id))
+    .filter((task): task is AnalysisTask => task !== undefined);
+  const selectedIds = new Set(selected.map((task) => task.id));
   return {
     tasks: selected,
-    cached,
-    order,
+    cached: cached.filter((result) => selectedIds.has(result.taskId)),
+    reused,
     total: tasks.length,
-    remaining: pending.length - selected.length,
+    remaining: outstanding.length - selected.length,
   };
 }
 
@@ -384,7 +407,15 @@ export async function finishConsolidation(
   await finishConsolidationRun(ownerId, runId, summary);
 }
 
-export async function queueConsolidation(ownerId: string, taskIds: string[]) {
+export async function queueConsolidation(
+  ownerId: string,
+  completedTaskIds: string[],
+) {
   "use step";
-  await saveConsolidationQueue(ownerId, taskIds);
+  const completed = new Set(completedTaskIds);
+  const pending = await readConsolidationQueue(ownerId);
+  await saveConsolidationQueue(
+    ownerId,
+    pending.filter((id) => !completed.has(id)),
+  );
 }

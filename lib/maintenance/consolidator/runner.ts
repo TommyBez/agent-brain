@@ -15,7 +15,7 @@ import type {
 export type Scan = {
   tasks: AnalysisTask[];
   cached: AnalysisResult[];
-  order: string[];
+  reused: number;
   total: number;
   remaining: number;
 };
@@ -72,7 +72,7 @@ export type RunnerSteps = {
   >;
   apply(changeSet: ChangeSet): Promise<ApplyResult>;
   record(key: string, value: unknown): Promise<void>;
-  queue(taskIds: string[]): Promise<void>;
+  queue(completedTaskIds: string[]): Promise<void>;
 };
 
 /** One snapshot per night. Complete each intervention before spending on the next task. */
@@ -100,20 +100,20 @@ export async function runConsolidation(
   const snapshot = await steps.snapshot();
   const scan = await steps.scan(snapshot, options.taskBudget);
   summary.totalTasks = scan.total;
-  const tasks = new Map(scan.tasks.map((task) => [task.id, task]));
   const cached = new Map(scan.cached.map((result) => [result.taskId, result]));
-  const remaining = new Set(scan.order);
+  const order = scan.tasks.map((task) => task.id);
+  const remaining = new Set(order);
+  summary.reusedTasks = scan.reused;
   const changed = new Set<string>();
   const completedReads = new Map<string, string[]>();
-  for (const id of scan.order) {
-    const task = tasks.get(id);
+  for (const task of scan.tasks) {
+    const id = task.id;
     let result = cached.get(id);
     const reads =
-      result?.dependencies?.map((ref) => ref.pageId) ?? task?.pageIds ?? [];
+      result?.dependencies?.map((ref) => ref.pageId) ?? task.pageIds;
     if (reads.some((id) => changed.has(id))) continue;
     try {
       if (!result) {
-        if (!task) continue; // Unscheduled work remains in the durable queue.
         const analyzed = await steps.analyze(snapshot, task);
         if ("halt" in analyzed) {
           summary.stoppedBy = analyzed.halt;
@@ -121,7 +121,7 @@ export async function runConsolidation(
         }
         result = analyzed;
         summary.evaluatedTasks++;
-      } else summary.reusedTasks++;
+      }
       completedReads.set(
         id,
         result.dependencies?.map((ref) => ref.pageId) ?? reads,
@@ -247,7 +247,6 @@ export async function runConsolidation(
       if (summary.stoppedBy === "budget" || summary.stoppedBy === "provider")
         break;
       if (!deferred) remaining.delete(id);
-      await steps.queue([...remaining]);
     } catch {
       summary.errors++;
       summary.stoppedBy = "incomplete";
@@ -256,16 +255,16 @@ export async function runConsolidation(
       break;
     }
   }
-  summary.remainingTasks = remaining.size;
-  if (summary.stoppedBy === "stable" && remaining.size)
+  summary.remainingTasks = scan.remaining + remaining.size;
+  if (summary.stoppedBy === "stable" && summary.remainingTasks)
     summary.stoppedBy = summary.errors
       ? "incomplete"
       : changed.size
         ? "changed"
         : "limit";
-  if (remaining.size || summary.errors || summary.capacityLimited)
+  if (summary.remainingTasks || summary.errors || summary.capacityLimited)
     summary.status = "partial";
-  await steps.queue([...remaining]);
+  await steps.queue(order.filter((id) => !remaining.has(id)));
   summary.report = `Consolidation: ${summary.writes} page writes, ${summary.evaluatedTasks} analysed tasks, ${summary.reusedTasks} reused, ${summary.remainingTasks} queued. ${summary.unresolved} unresolved findings, ${summary.errors} errors. Stopped: ${summary.stoppedBy}.`;
   return summary;
 }

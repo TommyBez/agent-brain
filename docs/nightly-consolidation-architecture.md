@@ -62,8 +62,10 @@ operative, non una garanzia statistica di accuratezza.
 
 ## Coda e spesa
 
-La coda persistente conserva le attività non completate e le riprende prima
-delle nuove. `CONSOLIDATION_TASK_BUDGET` limita le attività per esecuzione
+La coda persistente conserva soltanto le attività ancora da completare e le riprende
+prima delle nuove. Il workflow riceve solo il sottoinsieme schedulato; a fine giro
+trasmette gli ID completati e li rimuove dalla coda, lasciando intatta la parte
+non schedulata. Non riscrive la coda dopo ogni intervento. `CONSOLIDATION_TASK_BUDGET` limita le attività per esecuzione
 (default 2000). Un contenuto oltre il limite della richiesta resta incompleto:
 non viene troncato silenziosamente.
 
