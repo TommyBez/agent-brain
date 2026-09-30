@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { failureMessage } from "../lib/maintenance/consolidator/diagnostics";
 import {
   type RunnerSteps,
   runConsolidation,
@@ -222,7 +223,7 @@ test("a write defers subsequent comparisons involving that page", async () => {
   assert.equal(result.remainingTasks, 2);
 });
 
-test("exhausted technical retries stop the corpus instead of producing one failure per pair", async () => {
+test("three consecutive exhausted gateway failures stop dispatch", async () => {
   let calls = 0;
   const run = fake({
     scan: async () => ({
@@ -234,12 +235,19 @@ test("exhausted technical retries stop the corpus instead of producing one failu
     }),
     analyze: async () => {
       calls++;
-      throw new Error("503");
+      throw new Error(
+        failureMessage({
+          category: "gateway",
+          code: "http_503",
+          retryable: true,
+        }),
+      );
     },
   });
   const result = await runConsolidation(run.steps, options);
-  assert.equal(calls, 1);
-  assert.equal(result.errors, 1);
+  assert.equal(calls, 3);
+  assert.equal(result.errors, 3);
+  assert.equal(result.stoppedBy, "provider");
   assert.equal(result.remainingTasks, tasks.length);
 });
 
@@ -269,4 +277,135 @@ test("queue completion is one bounded delta and leaves unscheduled tasks pending
   assert.equal(result.remainingTasks, 5000);
   assert.equal(result.reusedTasks, 100);
   assert.equal(result.stoppedBy, "limit");
+});
+
+for (const stage of ["analyze", "draft", "review", "apply"] as const) {
+  test(`isolated ${stage} failure leaves failed task queued and processes independent work`, async () => {
+    let calls = 0;
+    const run = fake({
+      scan: async () => ({
+        tasks,
+        cached: [],
+        reused: 0,
+        total: tasks.length,
+        remaining: 0,
+      }),
+      analyze: async (_snapshot, task) => ({
+        ...analysis(task.id, task.id === first.id),
+        dependencies: task.pageIds.map((pageId) => ({
+          pageId,
+          fingerprint: "test",
+        })),
+      }),
+    });
+    if (stage === "analyze") {
+      const original = run.steps.analyze;
+      run.steps.analyze = async (snapshot, task) => {
+        if (calls++ === 0)
+          throw new Error("private content must not be logged");
+        return original(snapshot, task);
+      };
+    } else {
+      run.steps[stage] = async () => {
+        throw new Error("private content must not be logged");
+      };
+    }
+    const result = await runConsolidation(run.steps, options);
+    assert.equal(result.errors, 1);
+    assert.equal(result.status, "partial");
+    assert.equal(result.stoppedBy, "incomplete");
+    assert.ok(result.evaluatedTasks > 1);
+    assert.ok(!run.queues[0].includes(first.id));
+    assert.ok(run.queues[0].length > 0);
+    assert.doesNotMatch(JSON.stringify(run.records), /private content/);
+    assert.ok(JSON.stringify(run.records).includes('"stage"'));
+  });
+}
+
+test("successful tasks reset the consecutive gateway failure counter", async () => {
+  let calls = 0;
+  const run = fake({
+    scan: async () => ({
+      tasks,
+      cached: [],
+      reused: 0,
+      total: tasks.length,
+      remaining: 0,
+    }),
+    analyze: async (_snapshot, task) => {
+      if (calls++ % 2 === 0)
+        throw new Error(
+          failureMessage({
+            category: "gateway",
+            code: "http_503",
+            retryable: true,
+          }),
+        );
+      return analysis(task.id, false);
+    },
+  });
+  const result = await runConsolidation(run.steps, options);
+  assert.equal(calls, tasks.length);
+  assert.equal(result.stoppedBy, "incomplete");
+});
+
+test("invalid Jev responses do not trip the Gateway outage cutoff", async () => {
+  let calls = 0;
+  const run = fake({
+    scan: async () => ({
+      tasks,
+      cached: [],
+      reused: 0,
+      total: tasks.length,
+      remaining: 0,
+    }),
+    analyze: async () => {
+      calls++;
+      throw new Error(
+        failureMessage({
+          category: "jev",
+          code: "choice_mass",
+          retryable: false,
+        }),
+      );
+    },
+  });
+  const result = await runConsolidation(run.steps, options);
+  assert.equal(calls, tasks.length);
+  assert.equal(result.errors, tasks.length);
+  assert.equal(result.remainingTasks, tasks.length);
+  assert.equal(result.stoppedBy, "incomplete");
+});
+
+test("incomplete analysis interrupts the consecutive Gateway failure streak", async () => {
+  let calls = 0;
+  const run = fake({
+    scan: async () => ({
+      tasks,
+      cached: [],
+      reused: 0,
+      total: tasks.length,
+      remaining: 0,
+    }),
+    analyze: async (_snapshot, task) => {
+      const index = calls++;
+      if (index === 1)
+        return { ...analysis(task.id, false), status: "incomplete" };
+      if ([0, 2, 3].includes(index))
+        throw new Error(
+          failureMessage({
+            category: "gateway",
+            code: "http_503",
+            retryable: true,
+          }),
+        );
+      return analysis(task.id, false);
+    },
+  });
+  const result = await runConsolidation(run.steps, options);
+  assert.equal(calls, tasks.length);
+  assert.equal(result.stoppedBy, "incomplete");
+  assert.equal(result.errors, 4);
+  assert.equal(result.remainingTasks, 4);
+  assert.deepEqual(run.queues, [tasks.slice(4).map((task) => task.id)]);
 });

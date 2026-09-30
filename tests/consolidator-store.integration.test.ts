@@ -501,7 +501,7 @@ test(
                  try {
                    await assert.rejects(
                      analyzeConsolidationTask(process.argv[1], process.argv[2], process.argv[3], {}),
-                     error => error instanceof RetryableError && error.message === 'Consolidation database is temporarily unavailable.',
+                     error => error instanceof RetryableError && error.message === 'Consolidation failure [database:57P03:retry]',
                    );
                  } finally { pool.query = query; }
                } finally { await getPool().end(); }

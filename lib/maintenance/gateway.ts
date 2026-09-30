@@ -3,6 +3,7 @@ const REQUEST_TIMEOUT_MS = 120_000;
 
 /** Safe to persist in job diagnostics; provider response bodies are never included. */
 export class GatewayRequestError extends Error {
+  readonly reason: string;
   readonly retryable: boolean;
   readonly status: number | null;
   readonly retryAfterMs: number | null;
@@ -10,6 +11,7 @@ export class GatewayRequestError extends Error {
   constructor(
     message: string,
     options: {
+      reason?: "configuration" | "transport" | "timeout" | "invalid_json";
       retryable: boolean;
       status?: number;
       retryAfterMs?: number | null;
@@ -17,6 +19,9 @@ export class GatewayRequestError extends Error {
   ) {
     super(message);
     this.name = "GatewayRequestError";
+    this.reason =
+      options.reason ??
+      (options.status ? `http_${options.status}` : "transport");
     this.retryable = options.retryable;
     this.status = options.status ?? null;
     this.retryAfterMs = options.retryAfterMs ?? null;
@@ -43,7 +48,7 @@ export async function gatewayRequest<T>(
   if (!key) {
     throw new GatewayRequestError(
       "AI_GATEWAY_API_KEY is required for nightly maintenance.",
-      { retryable: false },
+      { retryable: false, reason: "configuration" },
     );
   }
 
@@ -59,8 +64,12 @@ export async function gatewayRequest<T>(
       cache: "no-store",
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
-  } catch {
+  } catch (error) {
     throw new GatewayRequestError("AI Gateway request failed or timed out.", {
+      reason:
+        error instanceof Error && error.name === "TimeoutError"
+          ? "timeout"
+          : "transport",
       retryable: true,
     });
   }
@@ -88,6 +97,7 @@ export async function gatewayRequest<T>(
     return (await response.json()) as T;
   } catch {
     throw new GatewayRequestError("AI Gateway returned invalid JSON.", {
+      reason: "invalid_json",
       retryable: true,
     });
   }
