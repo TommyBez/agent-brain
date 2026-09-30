@@ -107,6 +107,7 @@ export async function beginWorkflowJob(
   kind: WorkflowJobKind,
   runDate: string,
   workflowRunId: string,
+  rerunFrom?: string,
 ): Promise<WorkflowJob & { skip: boolean }> {
   assertOwner(ownerId);
   validateRunDate(runDate);
@@ -128,7 +129,17 @@ export async function beginWorkflowJob(
       [ownerId, kind, runDate],
     );
     const current = rows[0];
-    if (current.status === "succeeded" || current.status === "partial")
+    // A manual request replaces only the pass observed when it was submitted.
+    // A duplicate queued request or replay must not rerun a newer completed pass.
+    const requestedRerun =
+      kind === "consolidation" &&
+      rerunFrom !== undefined &&
+      current.workflowRunId === rerunFrom &&
+      workflowRunId !== rerunFrom;
+    if (
+      (current.status === "succeeded" || current.status === "partial") &&
+      !requestedRerun
+    )
       return { ...current, skip: true };
     if (current.status === "running" && current.workflowRunId === workflowRunId)
       return { ...current, skip: false };

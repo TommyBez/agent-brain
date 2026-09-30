@@ -27,7 +27,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const principal = await requireSessionPrincipal(request);
-    const run = await startNightlyMaintenance(principal.ownerId);
+    const run = await startNightlyMaintenance(principal.ownerId, "manual");
     return Response.json(run, {
       status: run.completed ? 200 : 202,
       headers: { "Cache-Control": "no-store" },

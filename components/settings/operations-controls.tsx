@@ -42,9 +42,7 @@ export function OperationsControls({ active }: { active: boolean }) {
         if (result.error) setError(result.error);
         else
           setNotice(
-            result.completed
-              ? "Today's maintenance has already run. Completed work will not repeat."
-              : "Maintenance is running on Vercel. You can leave this page; results appear below.",
+            "Maintenance is running on Vercel. You can leave this page; results appear below.",
           );
       } catch {
         setError("Unable to start maintenance. Try again.");
