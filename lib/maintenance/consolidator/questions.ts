@@ -15,101 +15,68 @@ export function choiceQuestion(
   return { type: "choice", instructions: instructions + RULES, criteria };
 }
 
-export function residueQuestions(path: string): Record<string, Question> {
-  return {
-    residue: booleanQuestion(
-      `Does ${path}.text consist only of a consolidator's maintenance report, activity diary, or newly assigned human follow-up, rather than subject knowledge? Use ${path}.context and ${path}.headings to interpret its role. An original unresolved factual uncertainty is subject knowledge, not maintenance residue.`,
+export function screeningQuestions(pair: boolean): Record<string, Question> {
+  const scope = pair ? "across pages[0] and pages[1]" : "within pages[0]";
+  const questions: Record<string, Question> = {
+    duplicate: booleanQuestion(
+      `Is there substantial repeated factual information ${scope} that could benefit from consolidation? Shared topic alone is not duplication. Identify existence, not a specific deletion.`,
     ),
-    distinct: booleanQuestion(
-      `Does ${path}.text contain any distinct useful subject knowledge, factual uncertainty, original request, source association, or context that would be lost if this entire unit were deleted? Interpret it with ${path}.context and the supplied evidence.`,
+    conflict: booleanQuestion(
+      `Are there apparently incompatible claims ${scope} about the same entity and scope that require correction or clarification of their periods or scopes? A supported resolution is not required to flag the issue.`,
     ),
   };
+  if (pair) {
+    questions.link_ab = booleanQuestion(
+      "Does the text of pages[0] and pages[1] support a specific useful directed relationship from pages[0] to pages[1] missing from pages[0].links? Shared topic alone does not establish a relationship.",
+    );
+    questions.link_ba = booleanQuestion(
+      "Does the text of pages[0] and pages[1] support a specific useful directed relationship from pages[1] to pages[0] missing from pages[1].links? Shared topic alone does not establish a relationship.",
+    );
+  } else
+    questions.residue = booleanQuestion(
+      "Does pages[0] contain a consolidator maintenance diary or an agent-added human follow-up that could be removed while preserving subject knowledge? Original user requests and genuine factual uncertainty are knowledge, not residue.",
+    );
+  return questions;
 }
 
-export function pairQuestions(
-  a: string,
-  b: string,
-  crossPage: boolean,
+export function preparationQuestions(
+  kind: "duplicate" | "conflict" | "residue",
 ): Record<string, Question> {
+  if (kind === "residue")
+    return {
+      removable: booleanQuestion(
+        "Can target[0] be removed in its entirety without losing any distinct subject knowledge, original request, factual uncertainty, useful citation or necessary local context? Only consolidator activity and agent-added human follow-up may be removed.",
+      ),
+    };
+  if (kind === "duplicate")
+    return {
+      destination: choiceQuestion(
+        "Where should the shared information in target[0] and target[1] be retained, considering their complete containing pages? Choose the appropriate canonical home, not the more recent technical timestamp. Select equivalent when both locations are equally suitable; code will break the tie deterministically.",
+        {
+          a: "Retain shared information at target[0].",
+          b: "Retain shared information at target[1].",
+          equivalent: "Both locations are equally suitable canonical homes.",
+          none: "Neither location is a supported destination for consolidation.",
+        },
+      ),
+      actionable: booleanQuestion(
+        "Can these two passages be merged into one passage that preserves the facts from BOTH? Consolidate only their repeated facts; carry over every additional detail and source. For different pages, preserve necessary context with a reference to the retained page.",
+      ),
+    };
   return {
-    entity: choiceQuestion(
-      `Within the supplied corpus, do the claims compared in ${a}.text and ${b}.text refer to the same subject entity? Use their context/headings and pages. Within one page, its explicit common subject and complete pages[].fullText are identity evidence; repeated attributed assertions there do not require independent real-world identity verification. Across pages, shared names alone do not establish identity.`,
-      {
-        same: "The compared claims address the same identifiable entity.",
-        different:
-          "The compared claims address different entities, including homonyms.",
-        none: "No comparable subject or claim is present.",
-        insufficient: "The supplied evidence does not establish identity.",
-      },
-    ),
-    overlap: booleanQuestion(
-      `Do ${a}.text and ${b}.text express overlapping factual information about the same subject, including each unit's context, scope and period? Topic similarity alone is not overlap.`,
-    ),
-    a_in_b: booleanQuestion(
-      `Is every factual detail in ${a}.text represented in ${b}.text, including source associations, event time, uncertainty, conditions, exceptions and negations? Compare the text and context of both units; information elsewhere does not count as being in ${b}.text.`,
-    ),
-    b_in_a: booleanQuestion(
-      `Is every factual detail in ${b}.text represented in ${a}.text, including source associations, event time, uncertainty, conditions, exceptions and negations? Compare the text and context of both units; information elsewhere does not count as being in ${a}.text.`,
-    ),
-    a_distinct: booleanQuestion(
-      `Does ${a}.text contain any useful information or source association absent from ${b}.text? Interpret both units with their context and headings.`,
-    ),
-    b_distinct: booleanQuestion(
-      `Does ${b}.text contain any useful information or source association absent from ${a}.text? Interpret both units with their context and headings.`,
-    ),
-    a_context: booleanQuestion(
-      `Would removing ${a}.text from its present location harm comprehension or remove necessary local context, even if all its information remains in ${b}.text? Read the page's complete pages[].fullText when contextComplete is true, plus ${a}.context and headings. Simply repeating a self-contained statement does not make that occurrence necessary for comprehension.`,
-    ),
-    b_context: booleanQuestion(
-      `Would removing ${b}.text from its present location harm comprehension or remove necessary local context, even if all its information remains in ${a}.text? Read the page's complete pages[].fullText when contextComplete is true, plus ${b}.context and headings. Simply repeating a self-contained statement does not make that occurrence necessary for comprehension.`,
-    ),
-    destination: choiceQuestion(
-      `If overlapping information from ${a}.text and ${b}.text is consolidated, which ${crossPage ? "page's subject is the appropriate canonical home" : "unit is the appropriate place to retain the information"}? Inspect both units' contexts/headings and pages. Length, assertiveness and technical update timestamps confer no authority.`,
-      {
-        a: `The ${crossPage ? "page containing" : "location of"} ${a} is the appropriate destination.`,
-        b: `The ${crossPage ? "page containing" : "location of"} ${b} is the appropriate destination.`,
-        equivalent:
-          "Both destinations are equally appropriate; a stable deterministic tie-break is harmless.",
-        none: "There is no overlapping information appropriate to consolidate at either destination.",
-        insufficient: "The evidence does not establish a suitable destination.",
-      },
-    ),
-    relationship: choiceQuestion(
-      `How do the concrete claims in ${a}.text and ${b}.text relate? Interpret their subjects, contexts, scopes and event periods. Classify temporal/scope differences only when they could otherwise be confused as a conflict.`,
-      {
-        compatible: "The claims are compatible and need no reconciliation.",
-        scope:
-          "The apparent conflict is explained by a documented difference of scope.",
-        temporal:
-          "The apparent conflict is explained by documented successive states.",
-        conflict:
-          "The claims are actually incompatible for the same entity, scope and period.",
-        none: "The units have no comparable claims.",
-        insufficient:
-          "Evidence is insufficient to determine whether these claims conflict.",
-      },
-    ),
     resolution: choiceQuestion(
-      `If ${a}.text and ${b}.text appear incompatible, what resolution is established by their content and the supplied evidence? Distinct authoritative sources that disagree do not justify choosing a winner. A quoted original source that unequivocally disproves its transcription may justify correction without saying 'correction'.`,
+      "Which intervention on target[0] and target[1] is established by pages and supplied sources? Technical update timestamps, confidence of tone and disagreement alone never justify choosing a winner.",
       {
-        a: `Evidence establishes the claim in ${a}.text and authorizes correcting the incompatible claim in ${b}.text.`,
-        b: `Evidence establishes the claim in ${b}.text and authorizes correcting the incompatible claim in ${a}.text.`,
+        a: "Evidence establishes target[0]'s claim and explicitly supports correcting the incompatible claim in target[1].",
+        b: "Evidence establishes target[1]'s claim and explicitly supports correcting the incompatible claim in target[0].",
         temporal:
-          "Evidence documents the successive states and their actual periods of validity.",
+          "Evidence documents successive factual states; clarify their actual periods while preserving history.",
         scope:
-          "Evidence documents distinct scopes that make both claims valid.",
-        none: "There is no conflict needing resolution.",
-        insufficient: "A conflict may exist but no resolution is established.",
+          "Evidence establishes different scopes; clarify the distinction without discarding either fact.",
+        insufficient:
+          "An intervention needs a specifically referenced source not supplied here.",
+        none: "No supported useful correction or clarification can be made from the evidence.",
       },
-    ),
-    correction: booleanQuestion(
-      `Do ${a}.text, ${b}.text or the supplied evidence explicitly correct a compared claim OR contain an original cited source that unequivocally disproves the Brain's transcription of that source? A newer page, confidence of tone or disagreement between distinct sources is not proof.`,
-    ),
-    transition: booleanQuestion(
-      `Do ${a}.text, ${b}.text or the supplied evidence document the start/end or succession of the compared factual states with their periods of validity? Page update timestamps do not count.`,
-    ),
-    scope: booleanQuestion(
-      `Do ${a}.text, ${b}.text or the supplied evidence establish the exact difference of scope that explains the apparent conflict? Different wording alone does not establish different scope.`,
     ),
   };
 }
@@ -130,18 +97,3 @@ export const RELATION_MEANINGS: Record<LinkType, string> = {
     "the source replaces the target, supported by substantive succession evidence, not page update time",
   collaborates_with: "the source entity collaborates with the target entity",
 };
-
-export function linkQuestions(
-  sourcePath: string,
-  targetPath: string,
-  type: LinkType,
-): Record<string, Question> {
-  return {
-    relation: booleanQuestion(
-      `Do the supplied units support this exact directed relation from ${sourcePath} to ${targetPath}: ${type}, meaning ${RELATION_MEANINGS[type]}? Use the page identities and actual content in units; do not infer a relation from existing graph links or shared topics.`,
-    ),
-    identity: booleanQuestion(
-      `For the proposed ${type} relation from ${sourcePath} to ${targetPath}, do the references in units unambiguously identify these exact source and target entities? Compare page titles, aliases and substantive content. Homonyms, ambiguous aliases and nearby mentions are insufficient.`,
-    ),
-  };
-}

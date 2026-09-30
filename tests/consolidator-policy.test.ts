@@ -4,7 +4,7 @@ import type { BrainPage } from "../lib/brain/types";
 import {
   analystGates,
   DECISION_POLICY,
-  DISCOVERY_FLOOR,
+  SCREENING_THRESHOLD,
   verificationThreshold,
 } from "../lib/maintenance/consolidator/decision-policy";
 import { materializeDraft } from "../lib/maintenance/consolidator/editor";
@@ -80,8 +80,8 @@ function verificationFixtures() {
 
 test("decision thresholds retain their production values and cache identity", () => {
   assert.deepEqual(DECISION_POLICY, {
-    id: "consolidator-calibrated-4541df1d389a34d0",
-    analyst: { yes: 0.8, no: 0.2, choiceProbability: 0.8 },
+    id: "page-consolidator-v1",
+    analyst: { yes: 0.8, choiceProbability: 0.8 },
     verifier: {
       objective: 0.8,
       integrity: 0.65,
@@ -91,7 +91,7 @@ test("decision thresholds retain their production values and cache identity", ()
     },
   });
   assert.equal(POLICY.version, DECISION_POLICY.id);
-  assert.equal(DISCOVERY_FLOOR, 0.1);
+  assert.equal(SCREENING_THRESHOLD, 0.5);
 });
 
 test("verification criteria use their own threshold families", () => {
@@ -109,15 +109,10 @@ test("verification criteria use their own threshold families", () => {
 });
 
 test("analyst probability boundaries are inclusive and ignore concentration without changing answers", () => {
-  const { yes, no, choiceProbability } = DECISION_POLICY.analyst;
+  const { yes, choiceProbability } = DECISION_POLICY.analyst;
   assert.equal(analystGates.yes({ type: "boolean", probability: yes }), true);
   assert.equal(
     analystGates.yes({ type: "boolean", probability: yes - 0.001 }),
-    false,
-  );
-  assert.equal(analystGates.no({ type: "boolean", probability: no }), true);
-  assert.equal(
-    analystGates.no({ type: "boolean", probability: no + 0.001 }),
     false,
   );
   for (const confidence of [0, 1, null]) {

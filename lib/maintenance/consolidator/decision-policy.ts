@@ -1,10 +1,9 @@
 import type { Answer } from "./types";
 
 export const DECISION_POLICY = {
-  id: "consolidator-calibrated-4541df1d389a34d0",
+  id: "page-consolidator-v1",
   analyst: {
     yes: 0.8,
-    no: 0.2,
     choiceProbability: 0.8,
   },
   verifier: {
@@ -16,16 +15,13 @@ export const DECISION_POLICY = {
   },
 } as const;
 
-/** Evidence discovery includes candidates below the authorization thresholds. */
-export const DISCOVERY_FLOOR = 0.1;
+/** Screening routes work; it never authorizes a mutation. */
+export const SCREENING_THRESHOLD = 0.5;
 
 export const analystGates = {
   yes: (answer: Answer | undefined) =>
     answer?.type === "boolean" &&
     answer.probability >= DECISION_POLICY.analyst.yes,
-  no: (answer: Answer | undefined) =>
-    answer?.type === "boolean" &&
-    answer.probability <= DECISION_POLICY.analyst.no,
   certainChoice: (answer: Answer | undefined): string | undefined =>
     answer?.type === "choice" &&
     answer.probabilities[answer.choice] >=

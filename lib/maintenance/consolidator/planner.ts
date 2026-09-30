@@ -104,10 +104,8 @@ export function planOperations(
       const id = fingerprint({
         policy: POLICY.version,
         pages: readPages.map(pageEvidenceFingerprint),
-        ...(result.corpusSnapshotId
-          ? { corpusSnapshotId: result.corpusSnapshotId }
-          : {}),
         ...shape,
+        readSet: readPages.map((page) => page.id),
       });
       const existing = plans.get(id);
       if (existing) existing.findingIds.push(finding.id);
@@ -133,7 +131,7 @@ function correctionUnits(finding: Finding): string[] {
   return [...finding.unitIds];
 }
 
-/** Every edit depending on an edited evidence page is reanalysed next wave. */
+/** Every edit depending on an edited evidence page is reanalysed next run. */
 export function selectIndependentPlans(plans: OperationPlan[]): {
   selected: OperationPlan[];
   deferred: OperationPlan[];

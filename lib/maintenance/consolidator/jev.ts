@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { GatewayRequestError, gatewayRequest } from "../gateway";
+import {
+  type GatewayCall,
+  GatewayRequestError,
+  gatewayRequest,
+} from "../gateway";
 import {
   type Answer,
   type Evaluation,
@@ -162,6 +166,7 @@ export function validateEvaluation(
 /** HTTP contract: https://vercel.com/docs/ai-gateway/modalities/evaluation */
 export async function evaluateJev(
   request: EvaluationRequest,
+  send: GatewayCall = gatewayRequest,
 ): Promise<Evaluation> {
   const questionCount = Object.keys(request.questions).length;
   if (
@@ -176,6 +181,6 @@ export async function evaluateJev(
   }
   return parseEvaluation(
     request,
-    await gatewayRequest<unknown>("evaluate", { model: JEV_MODEL, ...request }),
+    await send<unknown>("evaluate", { model: JEV_MODEL, ...request }),
   );
 }

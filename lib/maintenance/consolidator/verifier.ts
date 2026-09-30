@@ -114,10 +114,20 @@ export async function verifyChangeSet(
       },
     }),
   ) as Json;
+  const objectives = {
+    deduplicate:
+      "Compare originalPages with resultPages: has the factual repetition between the identified target passages been removed by keeping their shared information once and retaining their additional details? Judge the final text, not whether the original passage IDs still occur in resultUnits.",
+    centralize:
+      "Is the repeated knowledge now consolidated at operation.canonicalPageId, with its distinct details preserved and useful destination references and necessary local context in the other affected pages?",
+    reconcile:
+      "Do resultPages implement the evidence-backed correction or temporal/scope distinction specified by operation.resolution for the target claims? Mere rewording without resolving that specific incompatibility does not satisfy this requirement.",
+    remove_maintenance_residue:
+      "Has the identified consolidator diary or agent-added human follow-up been removed from resultPages while retaining the subject knowledge?",
+    add_link:
+      "Does the final page group contain the specific directed relationship specified by operation.link that was missing from the original group?",
+  };
   const questions: Record<string, Question> = {
-    objective: question(
-      "Does resultPages actually accomplish the specific operation.goal and operation.kind for the identified target units? Mere rewording or a whitespace-only change does not resolve a duplicate, missing link or contradiction. Judge the complete final group, not an intermediate destination. For centralize, the information must be at canonicalPageId with useful references and necessary local context retained elsewhere.",
-    ),
+    objective: question(objectives[plan.kind]),
     coherence: question(
       "Compared with originalPages, is resultPages free of newly introduced incompatible claims about the same subject, scope and period? Existing unresolved source conflicts must not be hidden by unjustified certainty.",
     ),

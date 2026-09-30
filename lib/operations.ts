@@ -118,7 +118,7 @@ export async function operationsStatus(ownerId: string) {
     {
       name: "Consolidation models",
       status: process.env.AI_GATEWAY_API_KEY ? "ready" : "missing",
-      detail: `Jev analysis and verification → ${process.env.CONSOLIDATION_MODEL || "deepseek/deepseek-v4.1-flash"} editing. Verified changes are applied automatically.`,
+      detail: `Jev analysis and verification → deepseek/deepseek-v4.1-flash editing. Verified changes are applied automatically.`,
     },
     {
       name: "Daily database snapshots",

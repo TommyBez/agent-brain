@@ -828,3 +828,25 @@ export const brainPageChunks = pgTable(
     check("brain_page_chunks_token_count_check", sql`token_count > 0`),
   ],
 );
+
+export const brainConsolidationSpend = pgTable(
+  "brain_consolidation_spend",
+  {
+    id: uuid().defaultRandom().primaryKey(),
+    ownerId: text("owner_id").notNull(),
+    runId: text("run_id").notNull(),
+    model: text().notNull(),
+    day: date().notNull(),
+    reservedNano: bigint("reserved_nano", { mode: "number" }).notNull(),
+    actualNano: bigint("actual_nano", { mode: "number" }),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [index("brain_consolidation_spend_day_idx").on(table.day)],
+);
+
+export const brainConsolidationQueue = pgTable("brain_consolidation_queue", {
+  ownerId: text("owner_id").primaryKey(),
+  taskIds: jsonb("task_ids").$type<string[]>().notNull(),
+});

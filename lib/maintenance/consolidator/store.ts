@@ -288,3 +288,25 @@ export async function applyConsolidationChangeSet(
     return result;
   });
 }
+
+/** The nightly owner lock serializes queue updates; old task IDs are discarded on scan. */
+export async function readConsolidationQueue(
+  ownerId: string,
+): Promise<string[]> {
+  const result = await getPool().query<{ task_ids: string[] }>(
+    "SELECT task_ids FROM brain_consolidation_queue WHERE owner_id=$1",
+    [ownerId],
+  );
+  return result.rows[0]?.task_ids ?? [];
+}
+
+export async function saveConsolidationQueue(
+  ownerId: string,
+  taskIds: string[],
+): Promise<void> {
+  await getPool().query(
+    `INSERT INTO brain_consolidation_queue(owner_id,task_ids) VALUES ($1,$2::jsonb)
+    ON CONFLICT(owner_id) DO UPDATE SET task_ids=EXCLUDED.task_ids`,
+    [ownerId, JSON.stringify(taskIds)],
+  );
+}

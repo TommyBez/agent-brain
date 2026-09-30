@@ -23,12 +23,33 @@ export function fingerprint(value: unknown): string {
     .digest("hex");
 }
 
-export function pageEvidenceFingerprint({
-  embeddedAt: _embeddedAt,
-  backlinks: _backlinks,
-  ...evidence
-}: BrainPage): string {
-  return fingerprint(evidence);
+/** Only source-owned semantic data participates in model inputs and cache keys. */
+export function evidencePage(page: BrainPage) {
+  return {
+    id: page.id,
+    slug: page.slug,
+    title: page.title,
+    type: page.type,
+    summary: page.summary,
+    aliases: page.aliases,
+    tags: page.tags,
+    markdown: page.markdown,
+    links: page.links
+      .map(({ sourceId, targetId, type, label }) => ({
+        sourceId,
+        targetId,
+        type,
+        label,
+      }))
+      .sort(
+        (a, b) =>
+          a.targetId.localeCompare(b.targetId) || a.type.localeCompare(b.type),
+      ),
+  };
+}
+
+export function pageEvidenceFingerprint(page: BrainPage): string {
+  return fingerprint(evidencePage(page));
 }
 
 /** Exact, non-overlapping UTF-16 ranges; context never becomes editable source. */
@@ -118,7 +139,7 @@ export function segmentPage(page: BrainPage): EvidenceUnit[] {
       const context = contexts[contextIndex];
       const source = text.slice(start, end);
       units.push({
-        id: `${page.id}:${page.version}:${start}:${fingerprint(source).slice(0, 12)}`,
+        id: `${page.id}:${start}:${fingerprint(source).slice(0, 12)}`,
         pageId: page.id,
         start,
         end,
@@ -163,77 +184,22 @@ export function buildSnapshot(pages: BrainPage[]): Snapshot {
   };
 }
 
-function windows(units: EvidenceUnit[]): string[][] {
-  const result: string[][] = [];
-  let current: string[] = [];
-  let characters = 0;
-  for (const unit of units) {
-    const size =
-      unit.text.length + unit.context.length + unit.headings.join("/").length;
-    if (
-      current.length &&
-      (characters + size > POLICY.windowCharacters ||
-        current.length === POLICY.windowUnits)
-    ) {
-      result.push(current);
-      current = [];
-      characters = 0;
-    }
-    current.push(unit.id);
-    characters += size;
-  }
-  if (current.length) result.push(current);
-  return result.length ? result : [[]];
-}
-
-/** Includes cross-window pairs within a long document, not just adjacent windows. */
+/** A task always owns one complete page or one unordered pair, never windows. */
 export function createAnalysisTasks(snapshot: Snapshot): AnalysisTask[] {
-  const pageEvidence = new Map(
-    snapshot.pages.map((page) => [page.id, pageEvidenceFingerprint(page)]),
-  );
-  const pageWindows = snapshot.pages.map((page) => ({
-    page,
-    windows: windows(snapshot.units.filter((unit) => unit.pageId === page.id)),
-  }));
   const tasks: AnalysisTask[] = [];
-  const add = (
-    kind: AnalysisTask["kind"],
-    pageIds: string[],
-    unitIds: string[],
-    crossWindow?: AnalysisTask["crossWindow"],
-  ) => {
-    const selectedUnitIds = [...new Set(unitIds)];
+  const add = (pages: BrainPage[]) =>
     tasks.push({
       id: fingerprint({
         policy: POLICY.version,
-        kind,
-        pages: pageIds.map((id) => pageEvidence.get(id)),
-        unitIds: selectedUnitIds,
-        ...(crossWindow ? { crossWindow } : {}),
+        pages: pages.map(pageEvidenceFingerprint),
       }),
-      kind,
-      pageIds,
-      unitIds: selectedUnitIds,
-      ...(crossWindow ? { crossWindow } : {}),
+      kind: pages.length === 1 ? "document" : "pair",
+      pageIds: pages.map((page) => page.id),
     });
-  };
-  for (let a = 0; a < pageWindows.length; a++) {
-    const left = pageWindows[a];
-    for (let i = 0; i < left.windows.length; i++) {
-      for (let j = i; j < left.windows.length; j++)
-        add(
-          "document",
-          [left.page.id],
-          [...left.windows[i], ...left.windows[j]],
-          i === j ? undefined : [left.windows[i], left.windows[j]],
-        );
-    }
-    for (let b = a + 1; b < pageWindows.length; b++) {
-      const right = pageWindows[b];
-      for (const l of left.windows)
-        for (const r of right.windows)
-          add("pair", [left.page.id, right.page.id], [...l, ...r]);
-    }
+  for (let a = 0; a < snapshot.pages.length; a++) {
+    add([snapshot.pages[a]]);
+    for (let b = a + 1; b < snapshot.pages.length; b++)
+      add([snapshot.pages[a], snapshot.pages[b]]);
   }
   return tasks;
 }

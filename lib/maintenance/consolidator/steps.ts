@@ -3,6 +3,7 @@ import { BrainError } from "../../brain/types";
 import { revalidateWorkspaceCache } from "../../workspace/cache";
 import { GatewayRequestError } from "../gateway";
 import { analyzeTask } from "./analysis";
+import { BudgetExhaustedError, budgetedGateway } from "./budget";
 import { canReuseAnalysis, canReuseDecision } from "./cache";
 import { CapacityError, capacityVerification } from "./capacity";
 import { draftChanges, materializeDraft } from "./editor";
@@ -16,7 +17,9 @@ import {
   findConsolidationRecords,
   finishConsolidationRun,
   readConsolidationPages,
+  readConsolidationQueue,
   readConsolidationRecord,
+  saveConsolidationQueue,
   saveConsolidationRecord,
 } from "./store";
 import {
@@ -30,10 +33,18 @@ import {
   type EvaluationRequest,
   type OperationPlan,
   POLICY,
+  type RunHalt,
   type Snapshot,
   type Verification,
 } from "./types";
 import { verifyChangeSet } from "./verifier";
+
+function haltFor(error: unknown): RunHalt | null {
+  if (error instanceof BudgetExhaustedError) return { halt: "budget" };
+  if (error instanceof GatewayRequestError && error.status === 402)
+    return { halt: "provider" };
+  return null;
+}
 
 function failProvider(error: unknown): never {
   if (error instanceof FatalError || error instanceof RetryableError)
@@ -81,19 +92,12 @@ export async function initializeConsolidation(ownerId: string, runId: string) {
   "use step";
   await beginConsolidationRun(ownerId, runId);
   return {
-    maxWaves: integerSetting("CONSOLIDATION_MAX_WAVES", POLICY.maxWaves, 100),
     taskBudget: integerSetting(
       "CONSOLIDATION_TASK_BUDGET",
       POLICY.tasksPerRun,
       1_000_000,
     ),
-    concurrency: integerSetting(
-      "CONSOLIDATION_CONCURRENCY",
-      POLICY.concurrency,
-      32,
-    ),
     repairs: POLICY.draftRepairs,
-    expansions: POLICY.contextExpansions,
   };
 }
 
@@ -140,25 +144,58 @@ export async function prepareConsolidationScan(
     Omit<AnalysisResult, "judgments">
   >(
     ownerId,
-    tasks.flatMap((task) => [
-      `analysis:${task.id}`,
-      `analysis:${task.id}:${snapshot.id}`,
-    ]),
+    tasks.map((task) => `analysis:${task.id}`),
     ["judgments"],
   );
+  let reused = 0;
   for (const task of tasks) {
-    const result =
-      records.get(`analysis:${task.id}:${snapshot.id}`) ??
-      records.get(`analysis:${task.id}`);
-    if (result && canReuseAnalysis(snapshot.id, result))
+    const result = records.get(`analysis:${task.id}`);
+    if (result && canReuseAnalysis(snapshot, result)) {
+      reused++;
+      if (!result.findings.some((finding) => finding.status === "supported"))
+        continue;
       cached.push({ ...result, judgments: [] });
-    else pending.push(task);
+    }
+    pending.push(task);
   }
+  const cachedPlans = new Map(
+    cached.map((result) => [result.taskId, planOperations(snapshot, [result])]),
+  );
+  const decisions = await findConsolidationRecords<DecisionRecord>(
+    ownerId,
+    [...cachedPlans.values()].flatMap((plans) =>
+      plans.map((plan) => `decision:${plan.id}`),
+    ),
+    ["changeSet", "verification"],
+  );
+  const completed = new Set(
+    [...cachedPlans]
+      .filter(([, plans]) =>
+        plans.every((plan) =>
+          canReuseDecision(snapshot, decisions.get(`decision:${plan.id}`)),
+        ),
+      )
+      .map(([id]) => id),
+  );
+  const outstanding = pending.filter((task) => !completed.has(task.id));
+  const prior = await readConsolidationQueue(ownerId);
+  const byId = new Map(outstanding.map((task) => [task.id, task]));
+  const order = [
+    ...new Set([...prior, ...outstanding.map((task) => task.id)]),
+  ].filter((id) => byId.has(id));
+  // Store outstanding work once; only the bounded scheduled subset crosses the step boundary.
+  await saveConsolidationQueue(ownerId, order);
+  const selected = order
+    .slice(0, budget)
+    .map((id) => byId.get(id))
+    .filter((task): task is AnalysisTask => task !== undefined);
+  const selectedIds = new Set(selected.map((task) => task.id));
   return {
-    tasks: pending.slice(0, budget),
-    cached,
+    tasks: selected,
+    cached: cached.filter((result) => selectedIds.has(result.taskId)),
+    reused,
     total: tasks.length,
-    remaining: Math.max(0, pending.length - budget),
+    remaining: outstanding.length - selected.length,
   };
 }
 
@@ -170,7 +207,10 @@ async function evaluatePersisted(
   const key = `evaluation:${fingerprint({ model: JEV_MODEL, request })}`;
   const previous = await findConsolidationRecord<Evaluation>(ownerId, key);
   if (previous) return previous;
-  const evaluation = await evaluateJev(request);
+  const evaluation = await evaluateJev(
+    request,
+    budgetedGateway(ownerId, runId),
+  );
   try {
     await saveConsolidationRecord(ownerId, runId, key, evaluation);
   } catch (error) {
@@ -203,7 +243,7 @@ export async function analyzeConsolidationTask(
       await saveConsolidationRecord(
         ownerId,
         runId,
-        `analysis:${task.id}${result.corpusSnapshotId ? `:${result.corpusSnapshotId}` : ""}`,
+        `analysis:${task.id}`,
         result,
       );
     else
@@ -217,7 +257,7 @@ export async function analyzeConsolidationTask(
     // needs findings/status, not copies of every model input for every task.
     return { ...result, judgments: [] };
   } catch (error) {
-    return failProvider(error);
+    return haltFor(error) ?? failProvider(error);
   }
 }
 
@@ -234,16 +274,11 @@ export async function planConsolidation(
   let capacityLimited = 0;
   const decisions = await findConsolidationRecords<DecisionRecord>(
     ownerId,
-    plans.flatMap((plan) => [
-      `decision:${plan.id}`,
-      `decision:${plan.id}:${snapshot.id}`,
-    ]),
+    plans.map((plan) => `decision:${plan.id}`),
     ["changeSet", "verification"],
   );
   for (const plan of plans) {
-    const decision =
-      decisions.get(`decision:${plan.id}:${snapshot.id}`) ??
-      decisions.get(`decision:${plan.id}`);
+    const decision = decisions.get(`decision:${plan.id}`);
     if (!canReuseDecision(snapshot, decision)) remaining.push(plan);
     else if (decision?.reason === "capacity") capacityLimited++;
   }
@@ -282,12 +317,13 @@ export async function draftConsolidation(
       scopedSnapshot(snapshot, plan),
       plan,
       feedback,
+      budgetedGateway(ownerId, runId),
     );
     await saveConsolidationRecord(ownerId, runId, key, draft);
     return draft;
   } catch (error) {
     if (error instanceof CapacityError) return { capacity: error.capacity };
-    return failProvider(error);
+    return haltFor(error) ?? failProvider(error);
   }
 }
 
@@ -333,40 +369,8 @@ export async function reviewConsolidation(
     );
     return { changeSet, verification: { ...verification, judgments: [] } };
   } catch (error) {
-    return failProvider(error);
+    return haltFor(error) ?? failProvider(error);
   }
-}
-
-export async function expandConsolidation(
-  ownerId: string,
-  runId: string,
-  snapshotId: string,
-  plan: OperationPlan,
-  depth: number,
-): Promise<OperationPlan | null> {
-  "use step";
-  const snapshot = await loadSnapshot(ownerId, runId, snapshotId);
-  const read = new Set(plan.readSet.map((ref) => ref.pageId));
-  const additional =
-    depth === 1
-      ? snapshot.pages
-          .filter((page) => read.has(page.id))
-          .flatMap((page) => [
-            ...page.links.map((link) => link.targetId),
-            ...page.backlinks.map((link) => link.sourceId),
-          ])
-      : snapshot.pages.map((page) => page.id);
-  for (const id of additional) read.add(id);
-  if (read.size === plan.readSet.length) return null;
-  const pages = snapshot.pages.filter((page) => read.has(page.id));
-  if (JSON.stringify(pages).length > POLICY.evaluationCharacters) return null;
-  return {
-    ...plan,
-    readSet: pages.map((page) => ({ pageId: page.id, version: page.version })),
-    evidenceUnitIds: snapshot.units
-      .filter((unit) => read.has(unit.pageId))
-      .map((unit) => unit.id),
-  };
 }
 
 export async function applyConsolidation(
@@ -401,4 +405,17 @@ export async function finishConsolidation(
 ) {
   "use step";
   await finishConsolidationRun(ownerId, runId, summary);
+}
+
+export async function queueConsolidation(
+  ownerId: string,
+  completedTaskIds: string[],
+) {
+  "use step";
+  const completed = new Set(completedTaskIds);
+  const pending = await readConsolidationQueue(ownerId);
+  await saveConsolidationQueue(
+    ownerId,
+    pending.filter((id) => !completed.has(id)),
+  );
 }
