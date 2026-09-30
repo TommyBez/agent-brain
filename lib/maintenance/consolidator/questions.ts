@@ -60,7 +60,7 @@ export function preparationQuestions(
         },
       ),
       actionable: booleanQuestion(
-        "Can these two passages be merged into one passage that preserves the facts from BOTH? Consolidate only their repeated facts; carry over every additional detail and source. For different pages, preserve necessary context with a reference to the retained page.",
+        "Would consolidating the repeated factual information in these exact two target passages meaningfully improve the pages while preserving every distinct detail and source from BOTH? The same factual claim must actually occur in both targets. A claim and its source attribution are complementary, not duplicate knowledge; matching citation dates, source labels or headings alone are insufficient. A useful local introduction or summary may repeat a fact without needing removal. A cosmetic rewrite or simply moving complementary facts together is not a useful consolidation. For different pages, the result must preserve necessary local context with a useful reference to the retained page.",
       ),
     };
   return {

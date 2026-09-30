@@ -168,7 +168,10 @@ export async function analyzeTask(
     const pairs: EvidenceUnit[][] = [];
     const seen = new Set<string>();
     if (kind === "residue") pairs.push(...selected.map((unit) => [unit]));
-    else
+    else {
+      const selections: { anchor: EvidenceUnit; options: EvidenceUnit[] }[] =
+        [];
+      const questions: Record<string, Question> = {};
       for (const anchor of selected) {
         const candidates = selected.filter(
           (unit) =>
@@ -178,39 +181,36 @@ export async function analyzeTask(
         // Choice accepts at most 255 options, including none. Every option is visited.
         for (let start = 0; start < candidates.length; start += 254) {
           const options = candidates.slice(start, start + 254);
-          const answers = await ask(
-            {
-              ...passageState,
-              anchor: anchor.id,
-              candidates: options.map((unit) => unit.id),
-            },
-            {
-              partner: choiceQuestion(
-                `Which passage in candidates ${kind === "duplicate" ? "repeats factual information from anchor" : "makes a claim apparently incompatible with anchor about the same entity and scope"}? anchor and candidates are IDs of passages in units. Identify the counterpart only; a supported correction or deletion is NOT required. Select none when no counterpart exists; shared topic alone is insufficient.`,
-                Object.fromEntries([
-                  ["none", "No suitable partner."],
-                  ...options.map((unit, index) => [
-                    `p${index}`,
-                    `candidates[${index}] (passage ${unit.id})`,
-                  ]),
-                ]),
-              ),
-            },
+          const id = `partner_${selections.length}`;
+          selections.push({ anchor, options });
+          questions[id] = choiceQuestion(
+            `For anchor passage ${anchor.id} in units, which of the candidate passages listed in this question's choices ${kind === "duplicate" ? "repeats factual information from that anchor" : "makes a claim apparently incompatible with that anchor about the same entity and scope"}? Identify the counterpart only; a supported correction or deletion is NOT required. Select none when no counterpart exists; shared topic alone is insufficient.`,
+            Object.fromEntries([
+              ["none", "No suitable partner."],
+              ...options.map((unit, index) => [
+                `p${index}`,
+                `Passage ${unit.id} in units.`,
+              ]),
+            ]),
           );
-          if (result.errors?.length) return result;
-          const choice =
-            answers.partner?.type === "choice"
-              ? answers.partner.choice
-              : undefined;
-          if (!choice || choice === "none") continue;
-          const partner = options[Number(choice.slice(1))];
-          const key = [anchor.id, partner.id].sort().join("|");
-          if (!seen.has(key)) {
-            pairs.push([anchor, partner]);
-            seen.add(key);
-          }
         }
       }
+      // These selections are independent and share the same complete page state.
+      // Anchor/candidate identities belong in each question, not just its opaque key.
+      const answers = await ask(passageState, questions);
+      if (result.errors?.length) return result;
+      for (const [index, { anchor, options }] of selections.entries()) {
+        const answer = answers[`partner_${index}`];
+        const choice = answer?.type === "choice" ? answer.choice : undefined;
+        if (!choice || choice === "none") continue;
+        const partner = options[Number(choice.slice(1))];
+        const key = [anchor.id, partner.id].sort().join("|");
+        if (!seen.has(key)) {
+          pairs.push([anchor, partner]);
+          seen.add(key);
+        }
+      }
+    }
     for (const target of pairs) {
       let evidencePages = pages;
       let preparation = await ask(

@@ -183,6 +183,53 @@ test("does not make semantic calls when the draft makes no change", async () => 
   assert.deepEqual(result.judgments, []);
 });
 
+test("an unachieved objective stops before integrity calls; a passing objective still requires them", async () => {
+  const base = fixture();
+  const snapshot = buildSnapshot([
+    {
+      ...base.snapshot.pages[0],
+      markdown: `${base.snapshot.pages[0].markdown}\n\n${Array.from({ length: 8 }, (_, i) => `Qualificazione ${i}.`).join("\n\n")}`,
+    },
+  ]);
+  const removed = snapshot.units[2];
+  const plan = {
+    ...base.plan,
+    targetUnitIds: [removed.id],
+    evidenceUnitIds: snapshot.units.map((unit) => unit.id),
+  };
+  const changeSet = materializeDraft(snapshot, plan, {
+    noChange: false,
+    links: [],
+    patches: [
+      { pageId: "a", unitId: removed.id, before: removed.text, after: "" },
+    ],
+  });
+  for (const [probability, status] of [
+    [0.16, "uncertain"],
+    [0.05, "rejected"],
+  ] as const) {
+    const requests: EvaluationRequest[] = [];
+    const result = await verifyChangeSet(
+      snapshot,
+      changeSet,
+      async (request) => {
+        requests.push(request);
+        return evaluator(() => probability)(request);
+      },
+    );
+    assert.equal(result.status, status);
+    assert.equal(requests.length, 1);
+    assert.deepEqual(Object.keys(requests[0].questions), ["objective"]);
+  }
+  const requests: EvaluationRequest[] = [];
+  const result = await verifyChangeSet(snapshot, changeSet, async (request) => {
+    requests.push(request);
+    return evaluator((id) => (id === "provenance_0" ? 0 : 1))(request);
+  });
+  assert.ok(requests.length > 1);
+  assert.equal(result.status, "rejected");
+});
+
 test("correction exemptions remain explicit, localized and evidence-bound", async () => {
   const { snapshot, plan } = fixture();
   const target = snapshot.units[0];
@@ -211,6 +258,11 @@ test("correction exemptions remain explicit, localized and evidence-bound", asyn
       operation: { correctionUnitIds: string[] };
     };
     assert.deepEqual(state.operation.correctionUnitIds, [target.id]);
+    if (
+      Object.keys(request.questions).length === 1 &&
+      request.questions.objective
+    )
+      return evaluator()(request);
     assert.match(
       request.questions.preservation_0.instructions,
       /this exact unit ID is in operation.correctionUnitIds/,
@@ -437,6 +489,11 @@ test("keeper judgment checks the selected survivor's distinct facts at its final
     };
     assert.equal(state.operation.retainedUnitId, keeper.id);
     assert.deepEqual(state.operation.targetUnitIds, [removed.id, keeper.id]);
+    if (
+      Object.keys(request.questions).length === 1 &&
+      request.questions.objective
+    )
+      return evaluator()(request);
     assert.match(
       request.questions.keeper.instructions,
       /final resultPages page a/,
@@ -683,11 +740,12 @@ test("empty-label link-only edits use exact page proofs and require all six appl
     "link_relation_0",
     "link_direction_0",
   ].sort();
+  const checked = new Set<string>();
   const result = await verifyChangeSet(
     snapshot,
     changeSet,
     evaluator((id, request) => {
-      assert.deepEqual(Object.keys(request.questions).sort(), expected);
+      for (const key of Object.keys(request.questions)) checked.add(key);
       const state = request.state as {
         exactInvariance: {
           noNewProse: boolean;
@@ -710,6 +768,7 @@ test("empty-label link-only edits use exact page proofs and require all six appl
     }),
   );
   assert.equal(result.status, "accepted");
+  assert.deepEqual([...checked].sort(), expected);
   const uncertainRelation = await verifyChangeSet(
     snapshot,
     changeSet,
@@ -749,6 +808,7 @@ test("a nonempty added link label still requires human-work and diary judgments"
     snapshot,
     changeSet,
     evaluator((id, request) => {
+      if (id === "objective") return 1;
       assert.ok(request.questions.no_human_work);
       assert.ok(request.questions.no_diary);
       return id === "no_human_work" ? 0 : 1;

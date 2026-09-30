@@ -1,15 +1,40 @@
 /** Safe diagnostics survive Workflow error serialization without storing prompts or SQL. */
 export type FailureDiagnostic = {
-  category: "jev" | "gateway" | "database" | "internal";
+  category: "jev" | "editor" | "gateway" | "database" | "internal";
   code: string;
   retryable: boolean;
 };
+
+export class EditorResponseError extends Error {
+  readonly name = "EditorResponseError";
+
+  constructor(
+    readonly reason:
+      | "invalid_choices"
+      | "truncated_output"
+      | "refused_output"
+      | "unexpected_finish_reason"
+      | "missing_content"
+      | "invalid_json"
+      | "invalid_schema",
+    readonly usage: {
+      prompt_tokens?: number;
+      completion_tokens?: number;
+      reasoning_tokens?: number;
+    },
+    readonly generationId?: string,
+  ) {
+    super(
+      `Invalid consolidation draft: ${reason.replaceAll("_", " ").replace("json", "JSON")}`,
+    );
+  }
+}
 
 export function failureDiagnostic(error: unknown): FailureDiagnostic {
   if (!(error instanceof Error))
     return { category: "internal", code: "unknown", retryable: false };
   const encoded = error.message.match(
-    /Consolidation failure \[(jev|gateway|database|internal):([A-Za-z0-9_]+):(retry|fatal)\]/,
+    /Consolidation failure \[(jev|editor|gateway|database|internal):([A-Za-z0-9_]+):(retry|fatal)\]/,
   );
   if (encoded)
     return {
@@ -19,6 +44,8 @@ export function failureDiagnostic(error: unknown): FailureDiagnostic {
     };
   if (error.name === "JevResponseError" && "reason" in error)
     return { category: "jev", code: String(error.reason), retryable: false };
+  if (error instanceof EditorResponseError)
+    return { category: "editor", code: error.reason, retryable: false };
   if (error.name === "GatewayRequestError" && "status" in error)
     return {
       category: "gateway",
