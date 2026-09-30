@@ -1,0 +1,1 @@
+ALTER TABLE "brain_consolidation_spend" DROP COLUMN "reserved_nano";

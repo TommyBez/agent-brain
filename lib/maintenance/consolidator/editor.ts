@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { z } from "zod";
 import { type BrainPage, LINK_TYPES } from "../../brain/types";
 import { type GatewayCall, gatewayRequest } from "../gateway";
-import { EDITOR_MODEL, EDITOR_OUTPUT_TOKENS } from "./budget";
+import { EDITOR_MODEL } from "./budget";
 import { CapacityError } from "./capacity";
 import { EditorResponseError } from "./diagnostics";
 import {
@@ -343,6 +343,17 @@ export function materializeDraft(
     !summaryPatches.length
   )
     invalid("empty change");
+  if (
+    plan.kind === "add_link" &&
+    !draft.noChange &&
+    (draft.patches.length ||
+      summaryPatches.length ||
+      draft.links.length !== 1 ||
+      draft.links[0].label !== "")
+  )
+    invalid(
+      "link-only changes must contain exactly the planned unlabeled link",
+    );
   const changes: ChangeSet["changes"] = [];
   const patchIds = new Set<string>();
   const validatedPatches = draft.patches.map((patch) => {
@@ -491,7 +502,6 @@ export async function draftChanges(
     };
   }>("chat/completions", {
     model: EDITOR_MODEL,
-    max_tokens: EDITOR_OUTPUT_TOKENS,
     temperature: 0,
     messages: [
       {

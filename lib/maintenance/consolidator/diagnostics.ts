@@ -31,9 +31,13 @@ export class EditorResponseError extends Error {
 }
 
 export function failureDiagnostic(error: unknown): FailureDiagnostic {
-  if (!(error instanceof Error))
-    return { category: "internal", code: "unknown", retryable: false };
-  const encoded = error.message.match(
+  const message =
+    typeof error === "string"
+      ? error
+      : error !== null && typeof error === "object" && "message" in error
+        ? String(error.message)
+        : "";
+  const encoded = message.match(
     /Consolidation failure \[(jev|editor|gateway|database|internal):([A-Za-z0-9_]+):(retry|fatal)\]/,
   );
   if (encoded)
@@ -42,6 +46,11 @@ export function failureDiagnostic(error: unknown): FailureDiagnostic {
       code: encoded[2],
       retryable: encoded[3] === "retry",
     };
+  if (!(error instanceof Error)) {
+    if (error !== null && typeof error === "object" && "cause" in error)
+      return failureDiagnostic(error.cause);
+    return { category: "internal", code: "unknown", retryable: false };
+  }
   if (error.name === "JevResponseError" && "reason" in error)
     return { category: "jev", code: String(error.reason), retryable: false };
   if (error instanceof EditorResponseError)

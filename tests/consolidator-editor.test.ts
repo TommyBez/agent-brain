@@ -370,7 +370,9 @@ test("DeepSeek receives strict JSON schema, complete scoped sources and no write
       );
       const body = JSON.parse(String(init?.body));
       assert.equal(body.model, expectedModel);
-      assert.equal(body.max_tokens, 8192);
+      assert.equal(body.max_tokens, undefined);
+      assert.equal(body.max_completion_tokens, undefined);
+      assert.equal(body.providerOptions, undefined);
       assert.equal(body.response_format.json_schema.strict, true);
       assert.equal(
         body.response_format.json_schema.schema.additionalProperties,

@@ -1,7 +1,7 @@
 import type { Answer } from "./types";
 
 export const DECISION_POLICY = {
-  id: "page-consolidator-v2",
+  id: "page-consolidator-v3",
   analyst: {
     yes: 0.8,
     choiceProbability: 0.8,
@@ -9,14 +9,13 @@ export const DECISION_POLICY = {
   verifier: {
     objective: 0.8,
     integrity: 0.65,
-    link: 0.9,
     conduct: 0.8,
     reject: 0.1,
   },
 } as const;
 
 /** Screening routes work; it never authorizes a mutation. */
-export const SCREENING_THRESHOLD = 0.5;
+export const SCREENING_THRESHOLD = 0.8;
 
 export const analystGates = {
   yes: (answer: Answer | undefined) =>
@@ -35,6 +34,5 @@ export function verificationThreshold(questionId: string): number {
   if (questionId === "objective") return verifier.objective;
   if (questionId === "no_human_work" || questionId === "no_diary")
     return verifier.conduct;
-  if (questionId.startsWith("link_")) return verifier.link;
   return verifier.integrity;
 }
