@@ -4,17 +4,10 @@ import {
   actualCost,
   DAILY_BUDGET_NANO,
   EDITOR_MODEL,
-  reserveCost,
 } from "../lib/maintenance/consolidator/budget";
 
-test("daily ceiling is one dollar and reservations include bounded editor output", () => {
+test("daily spending target remains one dollar", () => {
   assert.equal(DAILY_BUDGET_NANO, 1e9);
-  assert.ok(reserveCost({ model: EDITOR_MODEL, messages: [] }) >= 8192 * 1200);
-  assert.ok(
-    reserveCost({ model: "typesafe-ai/jev", state: "é".repeat(1000) }) >
-      6000 * 42,
-  );
-  assert.throws(() => reserveCost({ model: "unpriced/model" }), /Unpriced/);
 });
 
 test("actual spend prefers Gateway cost and includes both editor input and output", () => {

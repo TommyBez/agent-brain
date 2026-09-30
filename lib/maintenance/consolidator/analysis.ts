@@ -201,7 +201,7 @@ export async function analyzeTask(
       if (result.errors?.length) return result;
       for (const [index, { anchor, options }] of selections.entries()) {
         const answer = answers[`partner_${index}`];
-        const choice = answer?.type === "choice" ? answer.choice : undefined;
+        const choice = analystGates.certainChoice(answer);
         if (!choice || choice === "none") continue;
         const partner = options[Number(choice.slice(1))];
         const key = [anchor.id, partner.id].sort().join("|");

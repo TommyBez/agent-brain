@@ -1,22 +1,12 @@
-import { getPool, transaction } from "../../db";
+import { getPool } from "../../db";
 import { type GatewayCall, gatewayRequest } from "../gateway";
 
 export const DAILY_BUDGET_NANO = 1_000_000_000;
 export const EDITOR_MODEL = "deepseek/deepseek-v4.1-flash";
-export const EDITOR_OUTPUT_TOKENS = 8192;
 export class BudgetExhaustedError extends Error {
   constructor() {
     super("Daily consolidation budget exhausted");
   }
-}
-
-/** UTF-8 bytes plus framing reserve deliberately overestimate text tokenization. */
-export function reserveCost(body: Record<string, unknown>): number {
-  const input = Buffer.byteLength(JSON.stringify(body), "utf8") + 4096;
-  if (body.model === "typesafe-ai/jev") return input * 42;
-  if (body.model === EDITOR_MODEL)
-    return input * 300 + EDITOR_OUTPUT_TOKENS * 1200;
-  throw new Error("Unpriced consolidation model");
 }
 
 function object(value: unknown): Record<string, unknown> {
@@ -51,28 +41,24 @@ export function actualCost(raw: unknown, model: string): number | null {
   return null;
 }
 
-/** Global UTC-day ceiling, shared by owners, workflows, physical attempts and retries. */
-export async function reserveSpend(
+/** Start a physical attempt while recorded UTC-day spend is below the target.
+ * In-flight and unknown costs do not reserve credit; a completed call may overshoot.
+ */
+export async function startSpend(
   ownerId: string,
   runId: string,
   model: string,
-  amount: number,
 ): Promise<string> {
-  return transaction(async (db) => {
-    await db.query(
-      "SELECT pg_advisory_xact_lock(hashtext('consolidation-daily-spend'))",
-    );
-    const spent = await db.query<{ spent: string }>(
-      `SELECT COALESCE(sum(COALESCE(actual_nano,reserved_nano)),0)::text AS spent FROM brain_consolidation_spend WHERE day=(now() AT TIME ZONE 'UTC')::date`,
-    );
-    if (Number(spent.rows[0].spent) + amount > DAILY_BUDGET_NANO)
-      throw new BudgetExhaustedError();
-    const result = await db.query<{ id: string }>(
-      `INSERT INTO brain_consolidation_spend(owner_id,run_id,model,day,reserved_nano) VALUES ($1,$2,$3,(now() AT TIME ZONE 'UTC')::date,$4) RETURNING id`,
-      [ownerId, runId, model, amount],
-    );
-    return result.rows[0].id;
-  });
+  const result = await getPool().query<{ id: string }>(
+    `INSERT INTO brain_consolidation_spend(owner_id,run_id,model,day)
+     SELECT $1,$2,$3,(now() AT TIME ZONE 'UTC')::date
+     WHERE (SELECT COALESCE(sum(actual_nano),0) FROM brain_consolidation_spend
+            WHERE day=(now() AT TIME ZONE 'UTC')::date) < $4
+     RETURNING id`,
+    [ownerId, runId, model, DAILY_BUDGET_NANO],
+  );
+  if (!result.rows.length) throw new BudgetExhaustedError();
+  return result.rows[0].id;
 }
 
 export function budgetedGateway(ownerId: string, runId: string): GatewayCall {
@@ -80,10 +66,8 @@ export function budgetedGateway(ownerId: string, runId: string): GatewayCall {
     path: Parameters<GatewayCall>[0],
     body: unknown,
   ): Promise<T> => {
-    const request = object(body);
-    const model = String(request.model);
-    const id = await reserveSpend(ownerId, runId, model, reserveCost(request));
-    // Unknown outcomes keep their reservation; a retry is another physical attempt.
+    const model = String(object(body).model);
+    const id = await startSpend(ownerId, runId, model);
     const response = await gatewayRequest<T>(path, body);
     const cost = actualCost(response, model);
     if (cost !== null)

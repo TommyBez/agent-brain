@@ -111,6 +111,21 @@ test("verifies all original and final units with separate qualifiers and without
   assert.ok(
     state.originalUnits.some((unit) => unit.id === snapshot.units[1].id),
   );
+  assert.equal(
+    JSON.stringify(requests[0].state).split(
+      "Il dato vale solo per l'Italia, escluse le imposte.",
+    ).length - 1,
+    2,
+  );
+  const metadata = requests[0].state as {
+    originalPages: Record<string, unknown>[];
+    resultPages: Record<string, unknown>[];
+  };
+  assert.ok(
+    [...metadata.originalPages, ...metadata.resultPages].every(
+      (page) => page.markdown === undefined,
+    ),
+  );
   assert.equal(state.operation.findingIds, undefined);
   assert.equal(state.operation.judgments, undefined);
   assert.match(
@@ -296,49 +311,84 @@ test("provider transport failures remain technical errors rather than negative s
   );
 });
 
-test("typed links require separate identity, relation and direction judgments", async () => {
+test("planned links are accepted after deterministic materialization without Jev", async () => {
   const { snapshot: original, plan } = fixture();
   const snapshot = buildSnapshot([
     ...original.pages,
-    {
-      ...original.pages[0],
-      id: "b",
-      slug: "b",
-      title: "Fonte ricavi",
-      markdown: "La pagina ricavi fa riferimento a questa fonte.",
-    },
+    { ...original.pages[0], id: "b", slug: "b", title: "Fonte ricavi" },
   ]);
   const linkPlan: OperationPlan = {
     ...plan,
     kind: "add_link",
+    targetUnitIds: [],
     link: { sourceId: "a", targetId: "b", type: "references" },
     readSet: snapshot.pages.map((page) => ({
       pageId: page.id,
       version: page.version,
     })),
   };
-  const changeSet = materializeDraft(snapshot, linkPlan, {
+  const draft = {
     noChange: false,
     patches: [],
-    links: [{ sourceId: "a", targetId: "b", type: "references", label: "" }],
+    links: [
+      { sourceId: "a", targetId: "b", type: "references" as const, label: "" },
+    ],
+  };
+  const changeSet = materializeDraft(snapshot, linkPlan, draft);
+  const result = await verifyChangeSet(snapshot, changeSet, async () => {
+    throw new Error("A planned deterministic link must not call Jev");
   });
-  const evaluated = new Set<string>();
-  const result = await verifyChangeSet(
-    snapshot,
-    changeSet,
-    evaluator((id) => {
-      evaluated.add(id);
-      return id === "link_direction_0" ? 0 : 1;
-    }),
+  assert.deepEqual(result, { status: "accepted", defects: [], judgments: [] });
+  assert.equal(changeSet.changes[0].after.markdown, original.pages[0].markdown);
+  assert.equal(changeSet.changes[0].after.summary, original.pages[0].summary);
+  assert.deepEqual(
+    changeSet.changes[0].after.links.map(
+      ({ sourceId, targetId, type, label }) => ({
+        sourceId,
+        targetId,
+        type,
+        label,
+      }),
+    ),
+    draft.links,
   );
-  assert.equal(result.status, "rejected");
-  for (const criterion of [
-    "source_identity",
-    "target_identity",
-    "relation",
-    "direction",
-  ])
-    assert.ok(evaluated.has(`link_${criterion}_0`));
+  assert.throws(
+    () =>
+      materializeDraft(snapshot, linkPlan, {
+        ...draft,
+        links: [{ ...draft.links[0], type: "works_at" }],
+      }),
+    /unplanned link/,
+  );
+  assert.throws(
+    () =>
+      materializeDraft(snapshot, linkPlan, {
+        ...draft,
+        links: [{ ...draft.links[0], label: "Unsupported new prose" }],
+      }),
+    /planned unlabeled link/,
+  );
+  assert.throws(
+    () =>
+      materializeDraft(snapshot, linkPlan, {
+        ...draft,
+        patches: changeSet.draft.patches.concat({
+          pageId: "a",
+          unitId: original.units[0].id,
+          before: original.units[0].text,
+          after: "Changed prose",
+        }),
+      }),
+    /planned unlabeled link/,
+  );
+  assert.throws(
+    () =>
+      materializeDraft(snapshot, linkPlan, {
+        ...draft,
+        links: [...draft.links, ...draft.links],
+      }),
+    /planned unlabeled link/,
+  );
 });
 
 test("oversized final contexts remain uncertain without dropping units or making partial evaluations", async () => {
@@ -651,9 +701,16 @@ test("summary corrections are checked for preservation, support, qualifiers, nec
     evaluator((id, request) => {
       if (id !== "summary_coherence_0") return 1;
       const state = request.state as {
-        resultPages: { markdown: string; summary: string }[];
+        resultPages: { id: string; summary: string }[];
+        resultUnits: { pageId: string; text: string }[];
       };
-      assert.match(state.resultPages[0].markdown, /4500/);
+      assert.match(
+        state.resultUnits
+          .filter((unit) => unit.pageId === state.resultPages[0].id)
+          .map((unit) => unit.text)
+          .join(""),
+        /4500/,
+      );
       assert.equal(state.resultPages[0].summary, "Ricavo italiano: 450 euro.");
       return 0;
     }),
@@ -697,121 +754,6 @@ test("residue URL exception still requires explicit proof that original subject 
         /residue label alone never authorizes its loss/,
       );
       return 0;
-    }),
-  );
-  assert.equal(result.status, "rejected");
-});
-
-test("empty-label link-only edits use exact page proofs and require all six applicable semantic checks", async () => {
-  const { snapshot: initial, plan: base } = fixture();
-  const snapshot = buildSnapshot([
-    { ...initial.pages[0], markdown: "Ada lavora per Beta." },
-    {
-      ...initial.pages[0],
-      id: "b",
-      slug: "b",
-      title: "Beta",
-      markdown: "Beta è l'azienda per cui lavora Ada.",
-    },
-  ]);
-  const plan: OperationPlan = {
-    ...base,
-    kind: "add_link",
-    targetUnitIds: [],
-    evidenceUnitIds: snapshot.units.map((unit) => unit.id),
-    readSet: snapshot.pages.map((page) => ({
-      pageId: page.id,
-      version: page.version,
-    })),
-    link: { sourceId: "a", targetId: "b", type: "works_at" },
-    goal: "Aggiungi la relazione di impiego documentata.",
-  };
-  assert.ok(plan.link);
-  const changeSet = materializeDraft(snapshot, plan, {
-    noChange: false,
-    patches: [],
-    links: [{ ...plan.link, label: "" }],
-  });
-  const expected = [
-    "objective",
-    "coherence",
-    "link_source_identity_0",
-    "link_target_identity_0",
-    "link_relation_0",
-    "link_direction_0",
-  ].sort();
-  const checked = new Set<string>();
-  const result = await verifyChangeSet(
-    snapshot,
-    changeSet,
-    evaluator((id, request) => {
-      for (const key of Object.keys(request.questions)) checked.add(key);
-      const state = request.state as {
-        exactInvariance: {
-          noNewProse: boolean;
-          pages: {
-            pageId: string;
-            originalContextHash: string;
-            resultContextHash: string;
-          }[];
-        };
-      };
-      assert.equal(state.exactInvariance.noNewProse, true);
-      assert.deepEqual(
-        state.exactInvariance.pages.map((proof) => proof.pageId),
-        ["a", "b"],
-      );
-      for (const proof of state.exactInvariance.pages)
-        assert.equal(proof.originalContextHash, proof.resultContextHash);
-      // An irrelevant prose criterion would veto here if it were still requested.
-      return expected.includes(id) ? 1 : 0;
-    }),
-  );
-  assert.equal(result.status, "accepted");
-  assert.deepEqual([...checked].sort(), expected);
-  const uncertainRelation = await verifyChangeSet(
-    snapshot,
-    changeSet,
-    evaluator((id) => (id === "link_relation_0" ? 0.87 : 1)),
-  );
-  assert.equal(uncertainRelation.status, "uncertain");
-  assert.ok(
-    uncertainRelation.defects.some((defect) =>
-      defect.includes("link:relation:"),
-    ),
-  );
-});
-
-test("a nonempty added link label still requires human-work and diary judgments", async () => {
-  const { snapshot: initial, plan: base } = fixture();
-  const snapshot = buildSnapshot([
-    ...initial.pages,
-    { ...initial.pages[0], id: "b", slug: "b", title: "Beta" },
-  ]);
-  const plan: OperationPlan = {
-    ...base,
-    kind: "add_link",
-    targetUnitIds: [],
-    readSet: snapshot.pages.map((page) => ({
-      pageId: page.id,
-      version: page.version,
-    })),
-    link: { sourceId: "a", targetId: "b", type: "references" },
-  };
-  assert.ok(plan.link);
-  const changeSet = materializeDraft(snapshot, plan, {
-    noChange: false,
-    patches: [],
-    links: [{ ...plan.link, label: "Chiedere conferma al proprietario" }],
-  });
-  const result = await verifyChangeSet(
-    snapshot,
-    changeSet,
-    evaluator((id, request) => {
-      if (id === "objective") return 1;
-      assert.ok(request.questions.no_human_work);
-      assert.ok(request.questions.no_diary);
-      return id === "no_human_work" ? 0 : 1;
     }),
   );
   assert.equal(result.status, "rejected");

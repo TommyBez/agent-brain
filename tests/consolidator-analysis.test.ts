@@ -95,7 +95,7 @@ test("a positive duplicate is localized then given a destination and preservatio
     evaluator(
       (id) =>
         id.startsWith("passage_")
-          ? 0.71
+          ? 0.8
           : id === "duplicate" || id === "actionable"
             ? 1
             : id.startsWith("partner_")
@@ -304,5 +304,75 @@ test("long positive pages fit localization and partner requests without duplicat
     assert.equal(serialized.split("unique-marker-0.").length - 1, 1);
     assert.equal(serialized.split("unique-marker-31.").length - 1, 1);
     assert.ok(JSON.stringify(request).length < 100_000);
+  }
+});
+
+test("screening below 80% ends the task without localization or preparation", async () => {
+  const { snapshot, task } = pair();
+  for (const probability of [0.5, 0.79, 0.799]) {
+    const calls: EvaluationRequest[] = [];
+    const result = await analyzeTask(
+      snapshot,
+      task,
+      evaluator(() => probability, calls),
+    );
+    assert.equal(calls.length, 1);
+    assert.deepEqual(result.findings, []);
+  }
+});
+
+test("localization below 80% cannot generate partner or preparation requests", async () => {
+  const { snapshot, task } = pair();
+  const calls: EvaluationRequest[] = [];
+  const result = await analyzeTask(
+    snapshot,
+    task,
+    evaluator((id) => {
+      if (id === "duplicate") return 0.8;
+      if (id.startsWith("passage_")) return 0.799;
+      return 0;
+    }, calls),
+  );
+  assert.equal(calls.length, 2);
+  assert.equal(result.findings[0].status, "uncertain");
+  assert.deepEqual(result.findings[0].unitIds, []);
+});
+
+test("partner probability, rather than distribution confidence, gates preparation at 80%", async () => {
+  const { snapshot, task } = pair();
+  for (const probability of [0.79, 0.8]) {
+    const calls: EvaluationRequest[] = [];
+    const answer = evaluator((id) => {
+      if (
+        id === "duplicate" ||
+        id === "actionable" ||
+        id.startsWith("passage_")
+      )
+        return 0.8;
+      if (id.startsWith("partner_")) return "p0";
+      if (id === "destination") return "a";
+      return 0;
+    }, calls);
+    const result = await analyzeTask(snapshot, task, async (request) => {
+      const response = await answer(request);
+      for (const [id, value] of Object.entries(response.answers)) {
+        if (id.startsWith("partner_") && value.type === "choice") {
+          value.probabilities = { p0: probability, none: 1 - probability };
+          value.confidence = probability < 0.8 ? 1 : 0;
+        }
+        if (id === "destination" && value.type === "choice") {
+          value.probabilities = { a: 0.4, b: 0.3, equivalent: 0.2, none: 0.1 };
+          value.confidence = 0;
+        }
+      }
+      return response;
+    });
+    assert.equal(
+      calls.some((call) => call.questions.actionable !== undefined),
+      probability >= 0.8,
+    );
+    assert.equal(result.findings.length, probability >= 0.8 ? 1 : 0);
+    if (probability >= 0.8)
+      assert.equal(result.findings[0].status, "supported");
   }
 });

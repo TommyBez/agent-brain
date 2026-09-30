@@ -5,12 +5,12 @@ import { getPool } from "../lib/db";
 import {
   BudgetExhaustedError,
   budgetedGateway,
-  reserveSpend,
+  startSpend,
 } from "../lib/maintenance/consolidator/budget";
 
 const database = process.env.BRAIN_TEST_DATABASE_URL;
 test(
-  "daily spend reservations are atomic across owners and runs and survive unknown outcomes",
+  "recorded spend gates new calls across owners and runs, allows overshoot and ignores unknown costs",
   { skip: !database },
   async (t) => {
     assert.ok(database);
@@ -40,36 +40,36 @@ test(
       await setup.query(`DROP SCHEMA ${schema} CASCADE`);
       await setup.end();
     });
-    const calls = await Promise.allSettled(
-      Array.from({ length: 20 }, (_, i) =>
-        reserveSpend(
-          i % 2 ? owner : other,
-          `run-${i}`,
-          "typesafe-ai/jev",
-          100_000_000,
-        ),
-      ),
-    );
-    assert.equal(
-      calls.filter((call) => call.status === "fulfilled").length,
-      10,
-    );
-    assert.ok(
-      calls
-        .filter((call) => call.status === "rejected")
-        .every((call) => call.reason instanceof BudgetExhaustedError),
-    );
-    const total = await pool.query(
-      "SELECT sum(reserved_nano)::text AS total FROM brain_consolidation_spend WHERE owner_id=ANY($1::text[])",
-      [[owner, other]],
-    );
-    assert.equal(total.rows[0].total, "1000000000");
+    const priorId = await startSpend(other, "prior-run", "typesafe-ai/jev");
     await pool.query(
-      "DELETE FROM brain_consolidation_spend WHERE owner_id=ANY($1::text[])",
-      [[owner, other]],
+      "UPDATE brain_consolidation_spend SET actual_nano=999999999 WHERE id=$1",
+      [priorId],
     );
+    const fetch = t.mock.method(globalThis, "fetch", async () =>
+      Response.json({ providerMetadata: { gateway: { cost: "0.05" } } }),
+    );
+    const response = await budgetedGateway(owner, "overshoot-run")("evaluate", {
+      model: "typesafe-ai/jev",
+      state: "A fact",
+      questions: {},
+    });
+    assert.ok(response);
+    await assert.rejects(
+      budgetedGateway(other, "blocked-run")("evaluate", {
+        model: "typesafe-ai/jev",
+        state: "A fact",
+        questions: {},
+      }),
+      BudgetExhaustedError,
+    );
+    assert.equal(fetch.mock.callCount(), 1);
+    const total = await pool.query(
+      "SELECT sum(actual_nano)::text AS total FROM brain_consolidation_spend",
+    );
+    assert.equal(total.rows[0].total, "1049999999");
+    await pool.query("DELETE FROM brain_consolidation_spend");
 
-    const fetch = t.mock.method(globalThis, "fetch", async () => {
+    fetch.mock.mockImplementation(async () => {
       throw new Error("Unknown provider outcome");
     });
     const send = budgetedGateway(owner, "retry-run");
@@ -82,15 +82,11 @@ test(
         }),
       );
     const unknown = await pool.query(
-      "SELECT reserved_nano,actual_nano FROM brain_consolidation_spend WHERE owner_id=$1",
+      "SELECT actual_nano FROM brain_consolidation_spend WHERE owner_id=$1",
       [owner],
     );
     assert.equal(unknown.rowCount, 2);
-    assert.ok(
-      unknown.rows.every(
-        (row) => Number(row.reserved_nano) > 0 && row.actual_nano === null,
-      ),
-    );
+    assert.ok(unknown.rows.every((row) => row.actual_nano === null));
 
     fetch.mock.mockImplementation(async () =>
       Response.json({ providerMetadata: { gateway: { cost: "0.000042" } } }),

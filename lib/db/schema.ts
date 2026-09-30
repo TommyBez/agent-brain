@@ -837,7 +837,6 @@ export const brainConsolidationSpend = pgTable(
     runId: text("run_id").notNull(),
     model: text().notNull(),
     day: date().notNull(),
-    reservedNano: bigint("reserved_nano", { mode: "number" }).notNull(),
     actualNano: bigint("actual_nano", { mode: "number" }),
     createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
       .defaultNow()

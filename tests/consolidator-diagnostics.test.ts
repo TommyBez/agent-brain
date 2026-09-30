@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { runInNewContext } from "node:vm";
 import {
   EditorResponseError,
   failureDiagnostic,
@@ -22,6 +23,20 @@ test("Jev reason and Gateway status survive message-only Workflow serialization"
       failureDiagnostic(new Error(failureMessage(diagnostic))),
       diagnostic,
     );
+    assert.deepEqual(
+      failureDiagnostic({ message: failureMessage(diagnostic) }),
+      diagnostic,
+    );
+    assert.deepEqual(
+      failureDiagnostic({ cause: { message: failureMessage(diagnostic) } }),
+      diagnostic,
+    );
+    assert.deepEqual(failureDiagnostic(failureMessage(diagnostic)), diagnostic);
+    const workflowError = runInNewContext("new Error(message)", {
+      message: failureMessage(diagnostic),
+    });
+    assert.equal(workflowError instanceof Error, false);
+    assert.deepEqual(failureDiagnostic(workflowError), diagnostic);
     assert.doesNotMatch(failureMessage(diagnostic), /private/);
   }
   assert.equal(

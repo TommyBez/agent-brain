@@ -61,37 +61,22 @@ function verificationFixtures() {
       { pageId: "a", unitId: removed.id, before: removed.text, after: "" },
     ],
   });
-  const linkPlan: OperationPlan = {
-    ...plan,
-    id: "link",
-    kind: "add_link",
-    findingIds: ["source-reference"],
-    targetUnitIds: [],
-    link: { sourceId: "a", targetId: "b", type: "references" },
-    goal: "Collega la pagina alla fonte citata.",
-  };
-  const link = materializeDraft(snapshot, linkPlan, {
-    noChange: false,
-    patches: [],
-    links: [{ sourceId: "a", targetId: "b", type: "references", label: "" }],
-  });
-  return { snapshot, text, link };
+  return { snapshot, text };
 }
 
-test("decision thresholds retain their values under the revised workflow policy", () => {
+test("selection policy advances while text verification thresholds retain their values", () => {
   assert.deepEqual(DECISION_POLICY, {
-    id: "page-consolidator-v2",
+    id: "page-consolidator-v3",
     analyst: { yes: 0.8, choiceProbability: 0.8 },
     verifier: {
       objective: 0.8,
       integrity: 0.65,
-      link: 0.9,
       conduct: 0.8,
       reject: 0.1,
     },
   });
   assert.equal(POLICY.version, DECISION_POLICY.id);
-  assert.equal(SCREENING_THRESHOLD, 0.5);
+  assert.equal(SCREENING_THRESHOLD, 0.8);
 });
 
 test("verification criteria use their own threshold families", () => {
@@ -103,7 +88,6 @@ test("verification criteria use their own threshold families", () => {
     "coherence",
   ])
     assert.equal(verificationThreshold(id), 0.65);
-  assert.equal(verificationThreshold("link_target_identity_0"), 0.9);
   assert.equal(verificationThreshold("no_human_work"), 0.8);
   assert.equal(verificationThreshold("no_diary"), 0.8);
 });
@@ -142,12 +126,11 @@ test("analyst probability boundaries are inclusive and ignore concentration with
 });
 
 test("every verifier family enforces its inclusive boundary and rejects a lone failed criterion", async () => {
-  const { snapshot, text, link } = verificationFixtures();
+  const { snapshot, text } = verificationFixtures();
   for (const [family, criterion, changeSet] of [
     ["objective", "objective", text],
     ["integrity", "preservation_0", text],
     ["conduct", "no_human_work", text],
-    ["link", "link_direction_0", link],
   ] as const) {
     const threshold = DECISION_POLICY.verifier[family];
     for (const [probability, status] of [
