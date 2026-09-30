@@ -34,7 +34,10 @@ semantici alle domande o alle regole richiedono di aggiornarla.
 2. **Localizzazione Jev.** Solo per un problema segnalato, individua i passaggi
    interessati e i relativi controparti. Questo passaggio seleziona indirizzi
    modificabili, non autorizza cancellazioni. La soglia di selezione è 0,5;
-   il testo integrale rimane disponibile come contesto.
+   il testo integrale rimane disponibile come contesto. Le scelte delle controparti
+   sono indipendenti e condividono richieste da massimo 48 domande, rispettando
+   anche il limite di dimensione. Ogni domanda identifica esplicitamente il proprio
+   passaggio e i candidati; il contesto completo viene inviato una volta per gruppo.
 3. **Preparazione Jev.** Stabilisce l'intervento concreto: dove conservare le
    informazioni duplicate e se è possibile preservarne tutti i dettagli; quale
    correzione o distinzione temporale/di ambito è sostenuta dalle fonti; oppure
@@ -43,14 +46,24 @@ semantici alle domande o alle regole richiedono di aggiornarla.
    corpus. Se le prove non bastano registra un esito incerto senza modificare
    le pagine né chiedere risposte all'utente. Per i collegamenti sceglie invece
    una relazione tipizzata, direzionale e assente dal grafo.
+   Una fusione deve eliminare una ripetizione fattuale concreta e migliorare le
+   pagine: una frase e la sua attribuzione alla fonte non sono due copie del fatto.
 4. **Modifica.** DeepSeek v4.1 Flash riceve un piano delimitato per le modifiche
    testuali e restituisce gli ID dei passaggi con il nuovo testo. Il codice recupera
-   il testo originale dallo snapshot, senza farlo ricopiare al modello.
+   il testo originale dallo snapshot, senza farlo ricopiare al modello, e conserva
+   i separatori originali di riga/paragrafo nelle sostituzioni non vuote.
    I collegamenti vengono costruiti dal codice. Il piano conserva
    le versioni lette per rilevare modifiche concorrenti prima della scrittura.
 5. **Verifica Jev.** Confronta fonti, obiettivo e proposta, controllando preservazione
    delle informazioni, sostegno delle nuove affermazioni, assenza di diario e
-   lavoro umano aggiunto. È ammessa una sola riparazione della proposta.
+   lavoro umano aggiunto. Quando la verifica richiede più chiamate, valuta prima
+   l'obiettivo: un esito insufficiente o incompleto interrompe i controlli successivi.
+   Un esito positivo richiede comunque tutti i controlli di integrità prima della
+   scrittura. Le verifiche piccole restano in una sola chiamata.
+   È ammessa una sola riparazione della proposta rifiutata; un esito incerto non
+   avvia una riparazione automatica.
+   La direzione di un collegamento viene valutata secondo il significato della
+   relazione: per una collaborazione reciproca non è richiesto che l'inverso sia falso.
 6. **Applicazione atomica.** Solo una proposta accettata viene scritta. Gli altri
    interventi che dipendono dalle pagine appena cambiate restano per il giro
    successivo, che acquisirà un nuovo snapshot. Non ci sono ondate ripetute
@@ -97,7 +110,11 @@ I record `task-error` conservano attività, pagine, operazione, fase e categoria
 dell'errore. I log associano questi dati al run; per le valutazioni includono anche
 l'impronta della richiesta e distinguono lettura della cache, chiamata/validazione
 e salvataggio. I codici identificano il motivo Jev, lo stato HTTP o il tipo di
-problema Gateway, e lo SQLSTATE del database. Non vengono registrati prompt,
+problema Gateway, lo SQLSTATE del database e il motivo delle risposte editor non
+valide (troncamento, rifiuto, JSON o schema errato). I log degli errori editor
+includono l'utilizzo dei token, compresi quelli di ragionamento quando disponibili,
+e l'ID di generazione per risalire al dettaglio nel Gateway.
+Non vengono registrati prompt,
 risposte dei modelli, query SQL o credenziali nei messaggi di errore.
 Se non è possibile salvare il record di errore, il guasto risale al workflow:
 non si dichiara completato un giro di cui non si può conservare lo stato.

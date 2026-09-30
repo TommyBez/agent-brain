@@ -44,6 +44,48 @@ test("negative screening sends full pages in one request with exactly four indep
   assert.deepEqual(result.findings, []);
 });
 
+test("independent partner selections share page state and batch without losing anchors", async () => {
+  const snapshot = buildSnapshot([
+    page(
+      "a",
+      Array.from({ length: 60 }, (_, i) => `Passage ${i}.`).join("\n\n"),
+    ),
+  ]);
+  const calls: EvaluationRequest[] = [];
+  await analyzeTask(
+    snapshot,
+    createAnalysisTasks(snapshot)[0],
+    evaluator((id) => {
+      if (id === "duplicate" || id.startsWith("passage_")) return 1;
+      if (id.startsWith("partner_")) return "none";
+      return 0;
+    }, calls),
+  );
+  const partners = calls.filter((call) =>
+    Object.keys(call.questions).some((id) => id.startsWith("partner_")),
+  );
+  assert.ok(partners.length < 60);
+  assert.equal(
+    partners.flatMap((call) => Object.keys(call.questions)).length,
+    60,
+  );
+  const instructions = partners.flatMap((call) =>
+    Object.values(call.questions).map((question) => question.instructions),
+  );
+  for (const unit of snapshot.units)
+    assert.equal(
+      instructions.filter((text) =>
+        text.includes(`anchor passage ${unit.id} in units`),
+      ).length,
+      1,
+    );
+  for (const call of partners) {
+    assert.ok(Object.keys(call.questions).length <= 48);
+    assert.ok(JSON.stringify(call).length <= 100_000);
+    assert.equal(JSON.stringify(call.state).split("Passage 59.").length - 1, 1);
+  }
+});
+
 test("a positive duplicate is localized then given a destination and preservation constraint", async () => {
   const { snapshot, task } = pair();
   const calls: EvaluationRequest[] = [];
@@ -56,7 +98,7 @@ test("a positive duplicate is localized then given a destination and preservatio
           ? 0.71
           : id === "duplicate" || id === "actionable"
             ? 1
-            : id === "partner"
+            : id.startsWith("partner_")
               ? "p0"
               : id === "destination"
                 ? "a"
@@ -64,7 +106,7 @@ test("a positive duplicate is localized then given a destination and preservatio
       calls,
     ),
   );
-  assert.ok(calls.some((call) => call.questions.partner));
+  assert.ok(calls.some((call) => call.questions.partner_0));
   assert.ok(calls.some((call) => call.questions.destination));
   assert.equal(calls.filter((call) => call.questions.duplicate).length, 1);
   assert.equal(result.findings.length, 1);
@@ -82,7 +124,7 @@ test("an unsupported preparation cannot authorize deleting the localized passage
     evaluator((id) =>
       id === "duplicate" || id.startsWith("passage_")
         ? 1
-        : id === "partner"
+        : id.startsWith("partner_")
           ? "p0"
           : id === "destination"
             ? "a"
@@ -111,7 +153,7 @@ test("contradictions consult only explicit sources and cache their semantic depe
     task,
     evaluator((id, request) => {
       if (id === "conflict" || id.startsWith("passage_")) return 1;
-      if (id === "partner") return "p0";
+      if (id.startsWith("partner_")) return "p0";
       if (id === "resolution")
         return JSON.stringify(request.state).includes("completed its migration")
           ? "a"
@@ -168,7 +210,7 @@ test("a specifically missing source invalidates the unresolved result when it be
     evaluator((id) =>
       id === "conflict" || id.startsWith("passage_")
         ? 1
-        : id === "partner"
+        : id.startsWith("partner_")
           ? "p0"
           : id === "resolution"
             ? "insufficient"
@@ -246,7 +288,7 @@ test("long positive pages fit localization and partner requests without duplicat
     evaluator((id) => {
       if (["duplicate", "actionable", "passage_0", "passage_1"].includes(id))
         return 1;
-      if (id === "partner") return "p0";
+      if (id.startsWith("partner_")) return "p0";
       if (id === "destination") return "equivalent";
       return 0;
     }, calls),
@@ -254,7 +296,7 @@ test("long positive pages fit localization and partner requests without duplicat
   assert.equal(result.status, "complete");
   assert.equal(result.findings[0].status, "supported");
   const localized = calls.filter(
-    (call) => call.questions.passage_0 || call.questions.partner,
+    (call) => call.questions.passage_0 || call.questions.partner_0,
   );
   assert.ok(localized.length >= 2);
   for (const request of localized) {

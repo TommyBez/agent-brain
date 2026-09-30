@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  EditorResponseError,
   failureDiagnostic,
   failureMessage,
 } from "../lib/maintenance/consolidator/diagnostics";
@@ -9,6 +10,7 @@ import { GatewayRequestError } from "../lib/maintenance/gateway";
 
 test("Jev reason and Gateway status survive message-only Workflow serialization", () => {
   for (const error of [
+    new EditorResponseError("truncated_output", { completion_tokens: 8192 }),
     new JevResponseError("choice_mass"),
     new GatewayRequestError("private response", {
       status: 503,

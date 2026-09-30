@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { BrainPage } from "../lib/brain/types";
+import { EditorResponseError } from "../lib/maintenance/consolidator/diagnostics";
 import {
   draftChanges,
   materializeDraft,
@@ -450,6 +451,97 @@ test("planned keeper cannot be deleted and its selected order stays intact", () 
     snapshot.units[0].id,
   ]);
   assert.equal(result.changes[0].after.markdown, keeper.text);
+});
+
+test("editor replacements preserve source paragraph and list separators", async () => {
+  const snapshot = buildSnapshot([
+    page("a", "Introduzione.\n\n## Profilo\n- Primo.\n- Secondo.\n"),
+  ]);
+  const targets = [snapshot.units[0], snapshot.units[2]];
+  const draft = await draftChanges(
+    snapshot,
+    planFor(snapshot),
+    [],
+    async <T>() =>
+      ({
+        choices: [
+          {
+            finish_reason: "stop",
+            message: {
+              content: JSON.stringify({
+                noChange: false,
+                links: [],
+                summaryPatches: [],
+                patches: targets.map((unit) => ({
+                  pageId: "a",
+                  unitId: unit.id,
+                  after: `${unit.text.trimEnd()} Aggiornato.  `,
+                })),
+              }),
+            },
+          },
+        ],
+      }) as T,
+  );
+  const materialized = materializeDraft(snapshot, planFor(snapshot), draft);
+  assert.equal(
+    materialized.changes[0].after.markdown,
+    "Introduzione. Aggiornato.\n\n## Profilo\n- Primo. Aggiornato.\n- Secondo.\n",
+  );
+});
+
+test("editor response failures retain distinct causes without storing response content", async () => {
+  const snapshot = buildSnapshot([page("a", "Originale.")]);
+  const usage = {
+    prompt_tokens: 1200,
+    completion_tokens: 8192,
+    completion_tokens_details: { reasoning_tokens: 8000 },
+  };
+  for (const [reason, choices] of [
+    ["invalid_choices", []],
+    [
+      "truncated_output",
+      [{ finish_reason: "length", message: { content: "PRIVATE" } }],
+    ],
+    [
+      "refused_output",
+      [{ finish_reason: "stop", message: { refusal: "PRIVATE" } }],
+    ],
+    [
+      "unexpected_finish_reason",
+      [{ finish_reason: "tool_calls", message: { content: "PRIVATE" } }],
+    ],
+    ["missing_content", [{ finish_reason: "stop", message: {} }]],
+    [
+      "invalid_json",
+      [{ finish_reason: "stop", message: { content: "PRIVATE" } }],
+    ],
+    [
+      "invalid_schema",
+      [{ finish_reason: "stop", message: { content: '{"PRIVATE":true}' } }],
+    ],
+  ] as const) {
+    await assert.rejects(
+      draftChanges(
+        snapshot,
+        planFor(snapshot),
+        [],
+        async <T>() => ({ choices, usage, id: "gen_example" }) as T,
+      ),
+      (error: unknown) => {
+        assert.ok(error instanceof EditorResponseError);
+        assert.equal(error.reason, reason);
+        assert.equal(error.generationId, "gen_example");
+        assert.deepEqual(error.usage, {
+          prompt_tokens: 1200,
+          completion_tokens: 8192,
+          reasoning_tokens: 8000,
+        });
+        assert.doesNotMatch(JSON.stringify(error), /PRIVATE/);
+        return true;
+      },
+    );
+  }
 });
 
 test("bounded summary patches keep factual corrections coherent and preserve other metadata", () => {

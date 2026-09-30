@@ -3,6 +3,7 @@ import { batchQuestions } from "./batching";
 import { capacityVerification } from "./capacity";
 import { DECISION_POLICY, verificationThreshold } from "./decision-policy";
 import { projectEvidencePage } from "./editor";
+import { RELATION_MEANINGS } from "./questions";
 import { fingerprint, segmentPage } from "./snapshot";
 import {
   type ChangeSet,
@@ -238,7 +239,7 @@ export async function verifyChangeSet(
       source_identity: `Do the evidence passages supporting addedLinks[${index}] refer to the exact entity represented by source page ${link.sourceId}, rather than a namesake or a different scope?`,
       target_identity: `Do the evidence passages supporting addedLinks[${index}] refer to the exact entity represented by target page ${link.targetId}, rather than a namesake or a different scope?`,
       relation: `Do originalPages establish exactly the specific relation ${link.type} in addedLinks[${index}]? It must be useful and supported by evidence, not merely thematic similarity. Its label must add no unsupported claims.`,
-      direction: `Do originalPages establish the direction of addedLinks[${index}] as ${link.type} from ${link.sourceId} TO ${link.targetId}, rather than the inverse direction?`,
+      direction: `Do originalPages support addedLinks[${index}] from source ${link.sourceId} TO target ${link.targetId}, where ${link.type} means "${RELATION_MEANINGS[link.type]}"? Judge this source-to-target assertion. The inverse assertion need not be false: a mutual relationship such as collaboration can hold in both directions. For an asymmetric relationship, the source and target must occupy the specified roles.`,
     };
     for (const [criterion, instruction] of Object.entries(criteria)) {
       const id = `link_${criterion}_${index}`;
@@ -250,7 +251,18 @@ export async function verifyChangeSet(
     }
   });
 
-  const { batches, oversized } = batchQuestions(state, questions);
+  // A proposal must achieve its purpose before we pay for detailed integrity checks.
+  // Passing this gate never authorizes a write: all remaining checks still apply.
+  const { batches: fullBatches, oversized } = batchQuestions(state, questions);
+  const { objective, ...detailQuestions } = questions;
+  // A small review already fits in one request; splitting it would cost more.
+  const batches =
+    fullBatches.length > 1
+      ? [
+          ...batchQuestions(state, { objective }).batches,
+          ...batchQuestions(state, detailQuestions).batches,
+        ]
+      : fullBatches;
   if (oversized.length) {
     const baseSize = JSON.stringify({ state, questions: {} }).length;
     const requiredCharacters = oversized.reduce(
@@ -299,6 +311,7 @@ export async function verifyChangeSet(
         );
       }
     }
+    if ("objective" in batch && defects.length) break;
   }
   return {
     status: rejected ? "rejected" : defects.length ? "uncertain" : "accepted",

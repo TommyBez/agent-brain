@@ -4,6 +4,7 @@ import { type BrainPage, LINK_TYPES } from "../../brain/types";
 import { type GatewayCall, gatewayRequest } from "../gateway";
 import { EDITOR_MODEL, EDITOR_OUTPUT_TOKENS } from "./budget";
 import { CapacityError } from "./capacity";
+import { EditorResponseError } from "./diagnostics";
 import {
   type ChangeSet,
   type Draft,
@@ -478,10 +479,16 @@ export async function draftChanges(
       POLICY.evaluationCharacters,
     );
   const response = await send<{
+    id?: string;
     choices?: {
       finish_reason?: string;
       message?: { content?: string; refusal?: string };
     }[];
+    usage?: {
+      prompt_tokens?: number;
+      completion_tokens?: number;
+      completion_tokens_details?: { reasoning_tokens?: number };
+    };
   }>("chat/completions", {
     model: EDITOR_MODEL,
     max_tokens: EDITOR_OUTPUT_TOKENS,
@@ -508,34 +515,57 @@ export async function draftChanges(
       },
     },
   });
-  const choice = response.choices?.[0];
-  if (
-    response.choices?.length !== 1 ||
-    choice?.finish_reason !== "stop" ||
-    choice.message?.refusal ||
-    typeof choice.message?.content !== "string"
-  )
-    invalid("incomplete or refused editor response");
+  function responseError(reason: EditorResponseError["reason"]): never {
+    throw new EditorResponseError(
+      reason,
+      {
+        prompt_tokens: response.usage?.prompt_tokens,
+        completion_tokens: response.usage?.completion_tokens,
+        reasoning_tokens:
+          response.usage?.completion_tokens_details?.reasoning_tokens,
+      },
+      response.id,
+    );
+  }
+  if (response.choices?.length !== 1) responseError("invalid_choices");
+  const choice = response.choices[0];
+  if (choice.finish_reason === "length") responseError("truncated_output");
+  if (choice.message?.refusal || choice.finish_reason === "content_filter")
+    responseError("refused_output");
+  if (choice.finish_reason !== "stop")
+    responseError("unexpected_finish_reason");
+  const content = choice.message?.content;
+  if (typeof content !== "string") responseError("missing_content");
   let raw: unknown;
   try {
-    raw = JSON.parse(choice.message.content);
+    raw = JSON.parse(content);
   } catch {
-    invalid("editor returned invalid JSON");
+    responseError("invalid_json");
   }
   const parsed = editorDraftSchema.safeParse(raw);
-  if (!parsed.success) invalid("editor output does not match schema");
+  if (!parsed.success) responseError("invalid_schema");
   // The mandatory review step materializes this schema-valid proposal. Returning
   // invalid anchors to that step permits its one bounded repair; nothing writes here.
   // Unknown model-selected IDs receive an empty original and are rejected by review.
   return {
     ...parsed.data,
-    patches: parsed.data.patches.map((patch) => ({
-      ...patch,
-      before:
+    patches: parsed.data.patches.map((patch) => {
+      const before =
         snapshot.units.find(
           (unit) => unit.id === patch.unitId && unit.pageId === patch.pageId,
-        )?.text ?? "",
-    })),
+        )?.text ?? "";
+      // Source separators belong to the application. Missing model-generated
+      // newlines must not merge the replacement with an untouched heading/list.
+      const separator = before.match(/[\t ]*\r?\n\s*$/)?.[0];
+      return {
+        ...patch,
+        before,
+        after:
+          separator && patch.after.trim()
+            ? patch.after.trimEnd() + separator
+            : patch.after,
+      };
+    }),
     summaryPatches: parsed.data.summaryPatches.map((patch) => ({
       ...patch,
       before:

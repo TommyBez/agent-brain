@@ -78,9 +78,9 @@ function verificationFixtures() {
   return { snapshot, text, link };
 }
 
-test("decision thresholds retain their production values and cache identity", () => {
+test("decision thresholds retain their values under the revised workflow policy", () => {
   assert.deepEqual(DECISION_POLICY, {
-    id: "page-consolidator-v1",
+    id: "page-consolidator-v2",
     analyst: { yes: 0.8, choiceProbability: 0.8 },
     verifier: {
       objective: 0.8,

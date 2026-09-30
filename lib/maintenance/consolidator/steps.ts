@@ -6,7 +6,11 @@ import { analyzeTask } from "./analysis";
 import { BudgetExhaustedError, budgetedGateway } from "./budget";
 import { canReuseAnalysis, canReuseDecision } from "./cache";
 import { CapacityError, capacityVerification } from "./capacity";
-import { failureDiagnostic, failureMessage } from "./diagnostics";
+import {
+  EditorResponseError,
+  failureDiagnostic,
+  failureMessage,
+} from "./diagnostics";
 import { draftChanges, materializeDraft } from "./editor";
 import { evaluateJev, JEV_MODEL } from "./jev";
 import { planOperations, selectIndependentPlans } from "./planner";
@@ -53,6 +57,9 @@ function failProvider(error: unknown): never {
   const diagnostic = failureDiagnostic(error);
   console.error("consolidation.step_error", {
     ...diagnostic,
+    ...(error instanceof EditorResponseError
+      ? { usage: error.usage, generationId: error.generationId }
+      : {}),
     frames:
       error instanceof Error
         ? error.stack
