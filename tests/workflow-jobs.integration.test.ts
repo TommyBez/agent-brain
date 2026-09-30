@@ -295,6 +295,14 @@ test(
                 .skip,
               true,
             );
+            await queueWorkflowJobs(owner, date, "original");
+            const queued = (await dailyWorkflowStatus(owner, date)).find(
+              (job) => job.kind === "consolidation",
+            );
+            assert.equal(queued?.status, "queued");
+            assert.equal(queued?.workflowRunId, "original");
+            assert.equal(queued?.attempts, 1);
+            assert.equal(queued?.result, null);
             const manual = await beginWorkflowJob(
               owner,
               "consolidation",
@@ -304,6 +312,13 @@ test(
             );
             assert.equal(manual.skip, false);
             assert.equal(manual.attempts, 2);
+            await queueWorkflowJobs(owner, date, "original");
+            assert.equal(
+              (await dailyWorkflowStatus(owner, date)).find(
+                (job) => job.kind === "consolidation",
+              )?.status,
+              "running",
+            );
             assert.equal(manual.result, null);
             assert.deepEqual(
               await beginWorkflowJob(
@@ -341,6 +356,13 @@ test(
                 )
               ).skip,
               true,
+            );
+            await queueWorkflowJobs(owner, date, "original");
+            assert.equal(
+              (await dailyWorkflowStatus(owner, date)).find(
+                (job) => job.kind === "consolidation",
+              )?.status,
+              "succeeded",
             );
             const next = await beginWorkflowJob(
               owner,

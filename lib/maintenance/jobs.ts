@@ -90,15 +90,28 @@ async function requeueStaleDownstreamJobs(
 }
 
 /** Show all stages as queued before the asynchronously started workflow wakes. */
-export async function queueWorkflowJobs(ownerId: string, runDate: string) {
+export async function queueWorkflowJobs(
+  ownerId: string,
+  runDate: string,
+  rerunFrom?: string,
+) {
   assertOwner(ownerId);
   validateRunDate(runDate);
-  await getPool().query(
-    `INSERT INTO brain_jobs (owner_id,kind,run_date)
-     SELECT $1,kind,$2::date FROM unnest($3::text[]) AS kind
-     ON CONFLICT (owner_id,kind,run_date) DO NOTHING`,
-    [ownerId, runDate, WORKFLOW_JOB_KINDS],
-  );
+  await transaction(async (db) => {
+    await db.query(
+      `INSERT INTO brain_jobs (owner_id,kind,run_date)
+       SELECT $1,kind,$2::date FROM unnest($3::text[]) AS kind
+       ON CONFLICT (owner_id,kind,run_date) DO NOTHING`,
+      [ownerId, runDate, WORKFLOW_JOB_KINDS],
+    );
+    if (rerunFrom !== undefined)
+      await db.query(
+        `UPDATE brain_jobs SET status='queued',started_at=NULL,finished_at=NULL,result=NULL,error=NULL
+         WHERE owner_id=$1 AND run_date=$2::date AND kind='consolidation'
+           AND workflow_run_id=$3 AND status IN ('succeeded','partial')`,
+        [ownerId, runDate, rerunFrom],
+      );
+  });
 }
 
 /** The caller holds the owner's Workflow lock while executing this daily pass. */

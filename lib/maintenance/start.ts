@@ -26,12 +26,12 @@ export async function startNightlyMaintenance(
   } catch (error) {
     if (!HookNotFoundError.is(error)) throw error;
   }
-  await queueWorkflowJobs(ownerId, runDate);
   const rerunConsolidationFrom =
     trigger === "manual"
       ? (jobs.find((job) => job.kind === "consolidation")?.workflowRunId ??
         undefined)
       : undefined;
+  await queueWorkflowJobs(ownerId, runDate, rerunConsolidationFrom);
   const run = await start(nightlyMaintenance, [
     ownerId,
     runDate,
