@@ -37,9 +37,10 @@ export async function beginJob(
   kind: WorkflowJobKind,
   runDate: string,
   runId: string,
+  rerunFrom?: string,
 ) {
   "use step";
-  return beginWorkflowJob(ownerId, kind, runDate, runId);
+  return beginWorkflowJob(ownerId, kind, runDate, runId, rerunFrom);
 }
 
 export async function completeJob(

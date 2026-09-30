@@ -93,3 +93,13 @@ preview, espansioni globali delle prove o override del modello editor.
 
 Il deployment applica le migrazioni attraverso il normale `vercel-build`.
 La verifica locale usa PostgreSQL isolato e la build di produzione Turbopack.
+
+## Avvio manuale
+
+Il pulsante Run maintenance e POST /api/operations richiedono un nuovo passaggio
+di consolidamento anche dopo un esito succeeded o partial nello stesso giorno.
+Un workflow già attivo viene riutilizzato. La richiesta identifica il passaggio
+precedente: richieste duplicate in attesa del lock non ripetono un nuovo passaggio
+già completato. Embedding ed export vengono aggiornati tramite il normale flusso
+a valle. Il cron continua a saltare i job giornalieri già conclusi. Cache e
+registro della spesa restano condivisi: un rilancio non azzera il tetto giornaliero.

@@ -117,8 +117,9 @@ export function OperationsSummary({ data }: { data: OperationsData }) {
         <div className="mb-5 space-y-2">
           <h2 className="text-xl font-semibold">Recent maintenance</h2>
           <p className="text-sm text-muted-foreground">
-            Vercel starts each night at 02:00 UTC. Run maintenance starts
-            today's work or retries failures; completed work is kept.
+            Vercel starts each night at 02:00 UTC. Run maintenance requests a
+            new consolidation pass, even after today's work has finished. If a
+            run is already active, it continues without starting another.
           </p>
         </div>
         {data.jobs.length ? (

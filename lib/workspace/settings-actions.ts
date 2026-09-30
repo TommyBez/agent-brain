@@ -45,7 +45,7 @@ export async function revokeTokenAction(id: string) {
 export async function runMaintenanceAction() {
   const user = await getWorkspaceUser();
   try {
-    const run = await startNightlyMaintenance(user.id);
+    const run = await startNightlyMaintenance(user.id, "manual");
     revalidatePath("/operations");
     return { completed: run.completed };
   } catch {

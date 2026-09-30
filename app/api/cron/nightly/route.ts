@@ -16,7 +16,7 @@ export async function GET(request: Request) {
       { error: "Owner account has not been bootstrapped." },
       { status: 503 },
     );
-  const run = await startNightlyMaintenance(rows[0].id);
+  const run = await startNightlyMaintenance(rows[0].id, "scheduled");
   return Response.json(run, {
     status: run.completed ? 200 : 202,
     headers: { "Cache-Control": "no-store" },

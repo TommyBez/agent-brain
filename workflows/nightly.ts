@@ -57,8 +57,9 @@ async function runPhase(
   kind: "consolidation" | "embeddings" | "export",
   runDate: string,
   runId: string,
+  rerunFrom?: string,
 ) {
-  const job = await beginJob(ownerId, kind, runDate, runId);
+  const job = await beginJob(ownerId, kind, runDate, runId, rerunFrom);
   if (job.skip) return { id: job.id, status: job.status, skipped: true };
   try {
     if (kind === "consolidation") {
@@ -92,7 +93,11 @@ async function runPhase(
   }
 }
 
-export async function nightlyMaintenance(ownerId: string, runDate: string) {
+export async function nightlyMaintenance(
+  ownerId: string,
+  runDate: string,
+  rerunConsolidationFrom?: string,
+) {
   "use workflow";
   // A durable owner lock serializes runs across dates as well as duplicate deliveries.
   // Waiting consumes no running function. Completed daily jobs are skipped below.
@@ -112,6 +117,7 @@ export async function nightlyMaintenance(ownerId: string, runDate: string) {
       "consolidation",
       runDate,
       runId,
+      rerunConsolidationFrom,
     ).catch(() => ({
       status: "failed",
       error: "Consolidation bookkeeping failed.",

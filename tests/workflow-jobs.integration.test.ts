@@ -276,6 +276,107 @@ test(
         },
       );
 
+      for (const status of ["partial", "succeeded"] as const) {
+        await t.test(
+          `manual rerun replaces ${status} once while cron and replay remain idempotent`,
+          async () => {
+            const date = status === "partial" ? "2035-02-01" : "2035-02-02";
+            const original = await beginWorkflowJob(
+              owner,
+              "consolidation",
+              date,
+              "original",
+            );
+            await finishWorkflowJob(owner, original.id, "original", status, {
+              writes: 0,
+            });
+            assert.equal(
+              (await beginWorkflowJob(owner, "consolidation", date, "cron"))
+                .skip,
+              true,
+            );
+            await queueWorkflowJobs(owner, date, "original");
+            const queued = (await dailyWorkflowStatus(owner, date)).find(
+              (job) => job.kind === "consolidation",
+            );
+            assert.equal(queued?.status, "queued");
+            assert.equal(queued?.workflowRunId, "original");
+            assert.equal(queued?.attempts, 1);
+            assert.equal(queued?.result, null);
+            const manual = await beginWorkflowJob(
+              owner,
+              "consolidation",
+              date,
+              "manual",
+              "original",
+            );
+            assert.equal(manual.skip, false);
+            assert.equal(manual.attempts, 2);
+            await queueWorkflowJobs(owner, date, "original");
+            assert.equal(
+              (await dailyWorkflowStatus(owner, date)).find(
+                (job) => job.kind === "consolidation",
+              )?.status,
+              "running",
+            );
+            assert.equal(manual.result, null);
+            assert.deepEqual(
+              await beginWorkflowJob(
+                owner,
+                "consolidation",
+                date,
+                "manual",
+                "original",
+              ),
+              manual,
+            );
+            await finishWorkflowJob(owner, manual.id, "manual", "succeeded", {
+              writes: 0,
+            });
+            assert.equal(
+              (
+                await beginWorkflowJob(
+                  owner,
+                  "consolidation",
+                  date,
+                  "manual",
+                  "original",
+                )
+              ).skip,
+              true,
+            );
+            assert.equal(
+              (
+                await beginWorkflowJob(
+                  owner,
+                  "consolidation",
+                  date,
+                  "duplicate-manual",
+                  "original",
+                )
+              ).skip,
+              true,
+            );
+            await queueWorkflowJobs(owner, date, "original");
+            assert.equal(
+              (await dailyWorkflowStatus(owner, date)).find(
+                (job) => job.kind === "consolidation",
+              )?.status,
+              "succeeded",
+            );
+            const next = await beginWorkflowJob(
+              owner,
+              "consolidation",
+              date,
+              "next-manual",
+              "manual",
+            );
+            assert.equal(next.skip, false);
+            assert.equal(next.attempts, 3);
+          },
+        );
+      }
+
       await t.test(
         "start queues all stages once without resetting completed work",
         async () => {
