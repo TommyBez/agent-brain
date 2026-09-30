@@ -1,3 +1,4 @@
+import { failureDiagnostic } from "./diagnostics";
 import type {
   AnalysisResult,
   AnalysisTask,
@@ -106,12 +107,15 @@ export async function runConsolidation(
   summary.reusedTasks = scan.reused;
   const changed = new Set<string>();
   const completedReads = new Map<string, string[]>();
+  let consecutiveProviderErrors = 0;
   for (const task of scan.tasks) {
     const id = task.id;
     let result = cached.get(id);
     const reads =
       result?.dependencies?.map((ref) => ref.pageId) ?? task.pageIds;
     if (reads.some((id) => changed.has(id))) continue;
+    let stage = "analysis";
+    let operationId: string | undefined;
     try {
       if (!result) {
         const analyzed = await steps.analyze(snapshot, task);
@@ -138,8 +142,10 @@ export async function runConsolidation(
       if (result.dependencies?.some((ref) => changed.has(ref.pageId))) continue;
       if (!result.findings.some((finding) => finding.status === "supported")) {
         remaining.delete(id);
+        consecutiveProviderErrors = 0;
         continue;
       }
+      stage = "planning";
       const plans = await steps.plan(snapshot, [result]);
       summary.capacityLimited += plans.capacityLimited ?? 0;
       let deferred = plans.deferred > 0;
@@ -148,6 +154,8 @@ export async function runConsolidation(
           deferred = true;
           continue;
         }
+        operationId = plan.id;
+        stage = "draft";
         summary.proposed++;
         let draft = await steps.draft(snapshot, plan, 0);
         let decision: DecisionRecord | undefined;
@@ -169,6 +177,7 @@ export async function runConsolidation(
             decision = { operationId: plan.id, status: "no_change" };
             break;
           }
+          stage = "verification";
           const reviewed = await steps.review(snapshot, plan, draft);
           if ("halt" in reviewed) {
             summary.stoppedBy = reviewed.halt;
@@ -183,6 +192,9 @@ export async function runConsolidation(
             reviewed.verification.status === "accepted" &&
             reviewed.changeSet
           ) {
+            stage = "apply";
+            // A failed write may have committed before its acknowledgement was lost.
+            for (const pageId of plan.targetPageIds) changed.add(pageId);
             const applied = await steps.apply(reviewed.changeSet);
             if (applied.status === "conflict") {
               summary.conflicts++;
@@ -206,6 +218,7 @@ export async function runConsolidation(
             reviewed.verification.status === "rejected" &&
             attempt < options.repairs
           ) {
+            stage = "draft";
             draft = await steps.draft(
               snapshot,
               plan,
@@ -228,6 +241,7 @@ export async function runConsolidation(
           };
           break;
         }
+        stage = "decision_record";
         if (decision)
           await steps.record(`decision:${plan.id}`, {
             ...decision,
@@ -240,19 +254,32 @@ export async function runConsolidation(
         if (summary.stoppedBy === "budget" || summary.stoppedBy === "provider")
           break;
       }
-      // Invalidate earlier completed work if a later write changes its evidence.
-      for (const [taskId, pageIds] of completedReads)
-        if (pageIds.some((pageId) => changed.has(pageId)))
-          remaining.add(taskId);
       if (summary.stoppedBy === "budget" || summary.stoppedBy === "provider")
         break;
       if (!deferred) remaining.delete(id);
-    } catch {
+      consecutiveProviderErrors = 0;
+    } catch (error) {
       summary.errors++;
-      summary.stoppedBy = "incomplete";
-      await steps.record(`task-error:${id}`, { taskId: id, status: "error" });
-      // Exhausted provider retries must not repeat the same failure across the corpus.
-      break;
+      const diagnostic = failureDiagnostic(error);
+      await steps.record(`task-error:${id}`, {
+        taskId: id,
+        pageIds: task.pageIds,
+        status: "error",
+        stage,
+        ...(operationId ? { operationId } : {}),
+        error: diagnostic,
+      });
+      consecutiveProviderErrors =
+        diagnostic.category === "gateway" ? consecutiveProviderErrors + 1 : 0;
+      if (consecutiveProviderErrors >= 3) {
+        summary.stoppedBy = "provider";
+        break;
+      }
+    } finally {
+      // Keep invalidations even if recording the decision after a write fails.
+      for (const [taskId, pageIds] of completedReads)
+        if (pageIds.some((pageId) => changed.has(pageId)))
+          remaining.add(taskId);
     }
   }
   summary.remainingTasks = scan.remaining + remaining.size;

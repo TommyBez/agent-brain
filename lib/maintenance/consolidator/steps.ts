@@ -6,6 +6,7 @@ import { analyzeTask } from "./analysis";
 import { BudgetExhaustedError, budgetedGateway } from "./budget";
 import { canReuseAnalysis, canReuseDecision } from "./cache";
 import { CapacityError, capacityVerification } from "./capacity";
+import { failureDiagnostic, failureMessage } from "./diagnostics";
 import { draftChanges, materializeDraft } from "./editor";
 import { evaluateJev, JEV_MODEL } from "./jev";
 import { planOperations, selectIndependentPlans } from "./planner";
@@ -49,34 +50,26 @@ function haltFor(error: unknown): RunHalt | null {
 function failProvider(error: unknown): never {
   if (error instanceof FatalError || error instanceof RetryableError)
     throw error;
-  if (error instanceof GatewayRequestError && error.retryable)
-    throw new RetryableError(error.message, {
-      retryAfter: error.retryAfterMs ?? 10_000,
+  const diagnostic = failureDiagnostic(error);
+  console.error("consolidation.step_error", {
+    ...diagnostic,
+    frames:
+      error instanceof Error
+        ? error.stack
+            ?.split("\n")
+            .filter((line) => /^\s+at /.test(line))
+            .slice(0, 8)
+        : undefined,
+  });
+  const message = failureMessage(diagnostic);
+  if (diagnostic.retryable)
+    throw new RetryableError(message, {
+      retryAfter:
+        error instanceof GatewayRequestError
+          ? (error.retryAfterMs ?? 10_000)
+          : 10_000,
     });
-  if (error instanceof GatewayRequestError) throw new FatalError(error.message);
-  const code =
-    error && typeof error === "object" && "code" in error ? error.code : null;
-  if (
-    typeof code === "string" &&
-    (/^08\w{3}$/.test(code) ||
-      [
-        "40001",
-        "40P01",
-        "53300",
-        "57P01",
-        "57P02",
-        "57P03",
-        "ECONNRESET",
-        "ECONNREFUSED",
-        "ETIMEDOUT",
-        "EPIPE",
-      ].includes(code))
-  )
-    throw new RetryableError(
-      "Consolidation database is temporarily unavailable.",
-      { retryAfter: 10_000 },
-    );
-  throw new FatalError("Consolidation step could not produce a valid result.");
+  throw new FatalError(message);
 }
 
 function integerSetting(name: string, fallback: number, ceiling: number) {
@@ -205,26 +198,40 @@ async function evaluatePersisted(
   request: EvaluationRequest,
 ): Promise<Evaluation> {
   const key = `evaluation:${fingerprint({ model: JEV_MODEL, request })}`;
-  const previous = await findConsolidationRecord<Evaluation>(ownerId, key);
-  if (previous) return previous;
-  const evaluation = await evaluateJev(
-    request,
-    budgetedGateway(ownerId, runId),
-  );
+  let stage = "evaluation_cache";
   try {
-    await saveConsolidationRecord(ownerId, runId, key, evaluation);
-  } catch (error) {
-    if (error instanceof BrainError && error.code === "RECORD_CONFLICT") {
-      const committed = await readConsolidationRecord<Evaluation>(
-        ownerId,
-        runId,
-        key,
-      );
-      if (committed) return committed;
+    const previous = await findConsolidationRecord<Evaluation>(ownerId, key);
+    if (previous) return previous;
+    stage = "evaluation_provider";
+    const evaluation = await evaluateJev(
+      request,
+      budgetedGateway(ownerId, runId),
+    );
+    stage = "evaluation_save";
+    try {
+      await saveConsolidationRecord(ownerId, runId, key, evaluation);
+    } catch (error) {
+      if (error instanceof BrainError && error.code === "RECORD_CONFLICT") {
+        const committed = await readConsolidationRecord<Evaluation>(
+          ownerId,
+          runId,
+          key,
+        );
+        if (committed) return committed;
+      }
+      throw error;
     }
+    return evaluation;
+  } catch (error) {
+    if (error instanceof BudgetExhaustedError) throw error;
+    console.error("consolidation.evaluation_error", {
+      runId,
+      requestKey: key,
+      stage,
+      ...failureDiagnostic(error),
+    });
     throw error;
   }
-  return evaluation;
 }
 
 export async function analyzeConsolidationTask(
@@ -268,26 +275,30 @@ export async function planConsolidation(
   results: AnalysisResult[],
 ) {
   "use step";
-  const snapshot = await loadSnapshot(ownerId, runId, snapshotId);
-  const plans = planOperations(snapshot, results);
-  const remaining: OperationPlan[] = [];
-  let capacityLimited = 0;
-  const decisions = await findConsolidationRecords<DecisionRecord>(
-    ownerId,
-    plans.map((plan) => `decision:${plan.id}`),
-    ["changeSet", "verification"],
-  );
-  for (const plan of plans) {
-    const decision = decisions.get(`decision:${plan.id}`);
-    if (!canReuseDecision(snapshot, decision)) remaining.push(plan);
-    else if (decision?.reason === "capacity") capacityLimited++;
+  try {
+    const snapshot = await loadSnapshot(ownerId, runId, snapshotId);
+    const plans = planOperations(snapshot, results);
+    const remaining: OperationPlan[] = [];
+    let capacityLimited = 0;
+    const decisions = await findConsolidationRecords<DecisionRecord>(
+      ownerId,
+      plans.map((plan) => `decision:${plan.id}`),
+      ["changeSet", "verification"],
+    );
+    for (const plan of plans) {
+      const decision = decisions.get(`decision:${plan.id}`);
+      if (!canReuseDecision(snapshot, decision)) remaining.push(plan);
+      else if (decision?.reason === "capacity") capacityLimited++;
+    }
+    const selected = selectIndependentPlans(remaining);
+    return {
+      selected: selected.selected,
+      deferred: selected.deferred.length,
+      capacityLimited,
+    };
+  } catch (error) {
+    failProvider(error);
   }
-  const selected = selectIndependentPlans(remaining);
-  return {
-    selected: selected.selected,
-    deferred: selected.deferred.length,
-    capacityLimited,
-  };
 }
 
 function scopedSnapshot(snapshot: Snapshot, plan: OperationPlan): Snapshot {
@@ -379,13 +390,17 @@ export async function applyConsolidation(
   changeSet: ChangeSet,
 ) {
   "use step";
-  const result = await applyConsolidationChangeSet(
-    ownerId,
-    changeSet,
-    `consolidation:${runId}:${changeSet.id}`,
-  );
-  if (result.status !== "conflict") revalidateWorkspaceCache(ownerId);
-  return result;
+  try {
+    const result = await applyConsolidationChangeSet(
+      ownerId,
+      changeSet,
+      `consolidation:${runId}:${changeSet.id}`,
+    );
+    if (result.status !== "conflict") revalidateWorkspaceCache(ownerId);
+    return result;
+  } catch (error) {
+    failProvider(error);
+  }
 }
 
 export async function recordConsolidation(
@@ -395,6 +410,8 @@ export async function recordConsolidation(
   value: unknown,
 ) {
   "use step";
+  if (key.startsWith("task-error:"))
+    console.error("consolidation.task_error", { runId, key, failure: value });
   await saveConsolidationRecord(ownerId, runId, key, value);
 }
 

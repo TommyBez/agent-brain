@@ -79,9 +79,28 @@ non consumano budget. Il limite dipende dalle tariffe configurate, da mantenere
 aggiornate quando cambiano i prezzi dei modelli.
 
 Quando il budget residuo non copre una chiamata, il workflow si ferma lasciando
-il lavoro in coda. Anche l'indisponibilità del provider interrompe l'avvio di
-altre attività. Spendere pochi centesimi nel normale funzionamento resta
+il lavoro in coda. Il credito del provider esaurito interrompe subito il giro;
+tre attività consecutive fallite sul Gateway, dopo i retry di ciascuno step,
+interrompono l'avvio di altre attività. Spendere pochi centesimi nel normale funzionamento resta
 l'obiettivo; il dollaro è il limite di sicurezza, non una quota da consumare.
+
+## Errori e ripresa
+
+Un errore tecnico isolato lascia l'attività in coda e permette di proseguire con
+le altre. Il riepilogo resta `partial`, con il numero di errori e il lavoro residuo.
+Una risposta Jev non valida conserva il motivo preciso, senza diventare un
+risultato negativo riutilizzabile. Se una scrittura fallisce, le attività dipendenti
+dalle pagine coinvolte attendono un nuovo snapshot: il commit potrebbe essere
+riuscito prima della perdita della risposta.
+
+I record `task-error` conservano attività, pagine, operazione, fase e categoria/codice
+dell'errore. I log associano questi dati al run; per le valutazioni includono anche
+l'impronta della richiesta e distinguono lettura della cache, chiamata/validazione
+e salvataggio. I codici identificano il motivo Jev, lo stato HTTP o il tipo di
+problema Gateway, e lo SQLSTATE del database. Non vengono registrati prompt,
+risposte dei modelli, query SQL o credenziali nei messaggi di errore.
+Se non è possibile salvare il record di errore, il guasto risale al workflow:
+non si dichiara completato un giro di cui non si può conservare lo stato.
 
 ## Persistenza e rilascio
 
