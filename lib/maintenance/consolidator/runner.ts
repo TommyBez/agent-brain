@@ -136,6 +136,7 @@ export async function runConsolidation(
       ).length;
       if (result.status === "incomplete") {
         summary.errors++;
+        consecutiveProviderErrors = 0;
         continue;
       }
       // A specifically referenced evidence page may have been edited earlier tonight.

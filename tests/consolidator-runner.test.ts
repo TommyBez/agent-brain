@@ -376,3 +376,36 @@ test("invalid Jev responses do not trip the Gateway outage cutoff", async () => 
   assert.equal(result.remainingTasks, tasks.length);
   assert.equal(result.stoppedBy, "incomplete");
 });
+
+test("incomplete analysis interrupts the consecutive Gateway failure streak", async () => {
+  let calls = 0;
+  const run = fake({
+    scan: async () => ({
+      tasks,
+      cached: [],
+      reused: 0,
+      total: tasks.length,
+      remaining: 0,
+    }),
+    analyze: async (_snapshot, task) => {
+      const index = calls++;
+      if (index === 1)
+        return { ...analysis(task.id, false), status: "incomplete" };
+      if ([0, 2, 3].includes(index))
+        throw new Error(
+          failureMessage({
+            category: "gateway",
+            code: "http_503",
+            retryable: true,
+          }),
+        );
+      return analysis(task.id, false);
+    },
+  });
+  const result = await runConsolidation(run.steps, options);
+  assert.equal(calls, tasks.length);
+  assert.equal(result.stoppedBy, "incomplete");
+  assert.equal(result.errors, 4);
+  assert.equal(result.remainingTasks, 4);
+  assert.deepEqual(run.queues, [tasks.slice(4).map((task) => task.id)]);
+});
