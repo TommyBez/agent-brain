@@ -17,6 +17,25 @@ function renderedHtml(html: string) {
     .replace(/<!--[\s\S]*?-->/g, "");
 }
 
+// A streamed Suspense boundary first sends its fallback between <!--$?--> and
+// <!--/$-->, then the resolved content in a hidden segment that React swaps in.
+// Dropping pending fallbacks leaves the markup the page shows once streamed.
+function withoutPendingFallbacks(html: string) {
+  let output = "";
+  let start = 0;
+  let depth = 0;
+  for (const marker of html.matchAll(/<!--(\$[?!]?|\/\$)-->/g)) {
+    const closing = marker[1] === "/$";
+    if (!depth) {
+      if (marker[1] !== "$?") continue;
+      output += html.slice(start, marker.index);
+      depth = 1;
+    } else if (!closing) depth++;
+    else if (!--depth) start = marker.index + marker[0].length;
+  }
+  return depth ? output : output + html.slice(start);
+}
+
 function renderedText(html: string) {
   return renderedHtml(html)
     .replace(/<[^>]+>/g, " ")
@@ -233,8 +252,12 @@ test(
           ["/decisions", "Decisions"],
           ["/notes", "Notes"],
         ]) {
-          const collection = renderedHtml(await html(`${path}?q=${prefix}`));
-          const heading = collection.match(/<h1\b[^>]*>[\s\S]*?<\/h1>/)?.[0];
+          const body = await html(`${path}?q=${prefix}`);
+          const collection = renderedHtml(body);
+          // The shell's "Collection" placeholder heading precedes the streamed one.
+          const heading = renderedHtml(withoutPendingFallbacks(body)).match(
+            /<h1\b[^>]*>[\s\S]*?<\/h1>/,
+          )?.[0];
           assert.ok(heading, `Expected a heading on ${path}`);
           assert.match(
             renderedText(heading),
