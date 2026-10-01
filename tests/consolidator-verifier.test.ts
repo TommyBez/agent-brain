@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import type { BrainPage } from "../lib/brain/types";
+import type { BrainPage, DecoratedLink } from "../lib/brain/types";
 import { CapacityError } from "../lib/maintenance/consolidator/capacity";
 import {
   draftChanges,
@@ -560,7 +560,7 @@ test("keeper judgment checks the selected survivor's distinct facts at its final
 
 test("model evidence excludes backlinks and joined titles while original materialization stays intact", async () => {
   const { snapshot, plan, changeSet: initial } = fixture();
-  snapshot.pages[0].links = [
+  const decoratedLinks: DecoratedLink[] = [
     {
       id: "outgoing",
       sourceId: "a",
@@ -573,6 +573,7 @@ test("model evidence excludes backlinks and joined titles while original materia
       sourceSlug: "UNVERSIONED_SOURCE_SLUG",
     },
   ];
+  snapshot.pages[0].links = decoratedLinks;
   snapshot.pages[0].backlinks = [
     {
       id: "incoming",

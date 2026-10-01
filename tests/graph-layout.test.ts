@@ -121,3 +121,13 @@ test("hashSeed is stable and sensitive to content", () => {
   assert.notEqual(hashSeed("a|b|c"), hashSeed("a|b|d"));
   assert.equal(bounds([]), null);
 });
+
+test("invalid graph edges fail before poisoning the simulation", () => {
+  for (const edge of [
+    { sourceId: "missing", targetId: "a" },
+    { sourceId: "a", targetId: "missing" },
+    { sourceId: "a", targetId: "a" },
+  ]) {
+    assert.throws(() => createLayout(nodes, [edge]), /distinct supplied nodes/);
+  }
+});

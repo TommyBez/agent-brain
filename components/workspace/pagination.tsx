@@ -1,31 +1,44 @@
-import Link from "next/link";
+import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import {
   paginationHref,
   WORKSPACE_PAGE_SIZE,
 } from "@/lib/workspace/pagination";
+import { WorkspaceLink as Link } from "./search-navigation";
 
 export function Pagination({
-  path,
+  path = "",
   offset,
   hasMore,
+  pageSize = WORKSPACE_PAGE_SIZE,
+  href,
+  previousLabel = "Newer entries",
+  nextLabel = "Older entries",
+  label = "Pagination",
+  children,
 }: {
-  path: string;
+  path?: string;
   offset: number;
   hasMore: boolean;
+  pageSize?: number;
+  href?: (offset: number) => string;
+  previousLabel?: string;
+  nextLabel?: string;
+  label?: string;
+  children?: ReactNode;
 }) {
   if (!offset && !hasMore) return null;
+  const url = href ?? ((offset: number) => paginationHref(path, offset));
   return (
-    <nav aria-label="Pagination" className="mt-6 flex justify-between gap-3">
+    <nav
+      aria-label={label}
+      className="mt-6 flex items-center justify-between gap-3"
+    >
+      {children}
       {offset > 0 ? (
         <Button variant="outline" asChild>
-          <Link
-            href={paginationHref(
-              path,
-              Math.max(0, offset - WORKSPACE_PAGE_SIZE),
-            )}
-          >
-            Newer entries
+          <Link href={url(Math.max(0, offset - pageSize))}>
+            {previousLabel}
           </Link>
         </Button>
       ) : (
@@ -33,9 +46,7 @@ export function Pagination({
       )}
       {hasMore && (
         <Button variant="outline" asChild>
-          <Link href={paginationHref(path, offset + WORKSPACE_PAGE_SIZE)}>
-            Older entries
-          </Link>
+          <Link href={url(offset + pageSize)}>{nextLabel}</Link>
         </Button>
       )}
     </nav>

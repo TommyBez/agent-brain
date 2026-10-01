@@ -1,5 +1,5 @@
 import { unstable_rethrow } from "next/navigation";
-import { appOrigin } from "@/lib/auth";
+import { appOrigin, BRAIN_SCOPES, READ_WRITE_SCOPES } from "@/lib/auth";
 import {
   AuthError,
   authErrorResponse,
@@ -24,15 +24,11 @@ async function handlePost(request: Request) {
         "Connect an agent using OAuth or an agent token.",
         401,
         {
-          "WWW-Authenticate": `Bearer resource_metadata="${appOrigin()}/.well-known/oauth-protected-resource/mcp", scope="brain:read brain:write"`,
+          "WWW-Authenticate": `Bearer resource_metadata="${appOrigin()}/.well-known/oauth-protected-resource/mcp", scope="${READ_WRITE_SCOPES}"`,
         },
       );
     const principal = await getPrincipal(request);
-    if (
-      !principal.scopes.some((scope) =>
-        ["brain:read", "brain:write", "brain:maintain"].includes(scope),
-      )
-    )
+    if (!BRAIN_SCOPES.some((scope) => principal.scopes.includes(scope)))
       throw new AuthError(
         "insufficient_scope",
         "A brain scope is required.",

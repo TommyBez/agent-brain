@@ -3,7 +3,7 @@ import test from "node:test";
 import {
   canReuseAnalysis,
   canReuseDecision,
-} from "../lib/maintenance/consolidator/cache";
+} from "../lib/maintenance/consolidator/reuse";
 import {
   buildSnapshot,
   pageEvidenceFingerprint,

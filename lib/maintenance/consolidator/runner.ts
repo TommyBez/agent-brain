@@ -1,25 +1,14 @@
+import { attempt } from "./attempt";
 import { failureDiagnostic } from "./diagnostics";
+
+import { recordKeys } from "./keys";
 import type {
   AnalysisResult,
   AnalysisTask,
-  ApplyResult,
-  ChangeSet,
-  DecisionRecord,
-  Draft,
-  DraftOutcome,
-  OperationPlan,
+  PlannedTask,
   RunHalt,
-  Snapshot,
-  Verification,
+  RunnerSteps,
 } from "./types";
-
-export type Scan = {
-  tasks: AnalysisTask[];
-  cached: AnalysisResult[];
-  reused: number;
-  total: number;
-  remaining: number;
-};
 export type RunSummary = {
   report: string;
   status: "succeeded" | "partial";
@@ -43,40 +32,7 @@ export type RunSummary = {
     | "limit"
     | "changed";
 };
-export type RunnerSteps = {
-  snapshot(): Promise<Snapshot>;
-  scan(snapshot: Snapshot, taskBudget: number): Promise<Scan>;
-  analyze(
-    snapshot: Snapshot,
-    task: AnalysisTask,
-  ): Promise<AnalysisResult | RunHalt>;
-  plan(
-    snapshot: Snapshot,
-    results: AnalysisResult[],
-  ): Promise<{
-    selected: OperationPlan[];
-    deferred: number;
-    capacityLimited?: number;
-  }>;
-  draft(
-    snapshot: Snapshot,
-    plan: OperationPlan,
-    attempt: number,
-    feedback?: string[],
-  ): Promise<DraftOutcome>;
-  review(
-    snapshot: Snapshot,
-    plan: OperationPlan,
-    draft: Draft,
-  ): Promise<
-    { changeSet: ChangeSet | null; verification: Verification } | RunHalt
-  >;
-  apply(changeSet: ChangeSet): Promise<ApplyResult>;
-  record(key: string, value: unknown): Promise<void>;
-  queue(completedTaskIds: string[]): Promise<void>;
-};
-
-/** One snapshot per night. Complete each intervention before spending on the next task. */
+/** One immutable snapshot. Finish each intervention before spending on overlapping tasks. */
 export async function runConsolidation(
   steps: RunnerSteps,
   options: { taskBudget: number; repairs: number },
@@ -99,191 +55,55 @@ export async function runConsolidation(
     stoppedBy: "stable",
   };
   const snapshot = await steps.snapshot();
-  const scan = await steps.scan(snapshot, options.taskBudget);
+  const scan = await steps.scan(snapshot.id, options.taskBudget);
   summary.totalTasks = scan.total;
-  const cached = new Map(scan.cached.map((result) => [result.taskId, result]));
-  const order = scan.tasks.map((task) => task.id);
-  const remaining = new Set(order);
   summary.reusedTasks = scan.reused;
+  const cached = new Map(scan.cached.map((result) => [result.taskId, result]));
   const changed = new Set<string>();
-  const completedReads = new Map<string, string[]>();
+  const completed: { id: string; reads: string[] }[] = [];
   let consecutiveProviderErrors = 0;
   for (const task of scan.tasks) {
-    const id = task.id;
-    let result = cached.get(id);
-    const reads =
-      result?.dependencies?.map((ref) => ref.pageId) ?? task.pageIds;
-    if (reads.some((id) => changed.has(id))) continue;
-    let stage = "analysis";
-    let operationId: string | undefined;
-    try {
-      if (!result) {
-        const analyzed = await steps.analyze(snapshot, task);
-        if ("halt" in analyzed) {
-          summary.stoppedBy = analyzed.halt;
-          break;
-        }
-        result = analyzed;
-        summary.evaluatedTasks++;
-      }
-      completedReads.set(
-        id,
-        result.dependencies?.map((ref) => ref.pageId) ?? reads,
-      );
-      summary.findings += result.findings.length;
-      summary.unresolved += result.findings.filter(
-        (finding) => finding.status === "uncertain",
-      ).length;
-      if (result.status === "incomplete") {
-        summary.errors++;
-        consecutiveProviderErrors = 0;
-        continue;
-      }
-      // A specifically referenced evidence page may have been edited earlier tonight.
-      if (result.dependencies?.some((ref) => changed.has(ref.pageId))) continue;
-      if (!result.findings.some((finding) => finding.status === "supported")) {
-        remaining.delete(id);
-        consecutiveProviderErrors = 0;
-        continue;
-      }
-      stage = "planning";
-      const plans = await steps.plan(snapshot, [result]);
-      summary.capacityLimited += plans.capacityLimited ?? 0;
-      let deferred = plans.deferred > 0;
-      for (const plan of plans.selected) {
-        if (plan.readSet.some((ref) => changed.has(ref.pageId))) {
-          deferred = true;
-          continue;
-        }
-        operationId = plan.id;
-        stage = "draft";
-        summary.proposed++;
-        let draft = await steps.draft(snapshot, plan, 0);
-        let decision: DecisionRecord | undefined;
-        for (let attempt = 0; ; attempt++) {
-          if ("halt" in draft) {
-            summary.stoppedBy = draft.halt;
-            break;
-          }
-          if ("capacity" in draft) {
-            summary.capacityLimited++;
-            decision = {
-              operationId: plan.id,
-              status: "uncertain",
-              reason: "capacity",
-            };
-            break;
-          }
-          if (draft.noChange) {
-            decision = { operationId: plan.id, status: "no_change" };
-            break;
-          }
-          stage = "verification";
-          const reviewed = await steps.review(snapshot, plan, draft);
-          if ("halt" in reviewed) {
-            summary.stoppedBy = reviewed.halt;
-            break;
-          }
-          if (reviewed.verification.incomplete) {
-            summary.errors++;
-            deferred = true;
-            break;
-          }
-          if (
-            reviewed.verification.status === "accepted" &&
-            reviewed.changeSet
-          ) {
-            stage = "apply";
-            // A failed write may have committed before its acknowledgement was lost.
-            for (const pageId of plan.targetPageIds) changed.add(pageId);
-            const applied = await steps.apply(reviewed.changeSet);
-            if (applied.status === "conflict") {
-              summary.conflicts++;
-              deferred = true;
-              for (const pageId of applied.pageIds) changed.add(pageId);
-              decision = { operationId: plan.id, status: "conflict" };
-            } else {
-              summary.writes += applied.pages.length;
-              for (const pageId of plan.targetPageIds) changed.add(pageId);
-              deferred = true;
-              decision = {
-                operationId: plan.id,
-                status: "applied",
-                changeSet: reviewed.changeSet,
-                verification: reviewed.verification,
-              };
-            }
-            break;
-          }
-          if (
-            reviewed.verification.status === "rejected" &&
-            attempt < options.repairs
-          ) {
-            stage = "draft";
-            draft = await steps.draft(
-              snapshot,
-              plan,
-              attempt + 1,
-              reviewed.verification.defects,
-            );
-            continue;
-          }
-          if (reviewed.verification.status === "rejected") summary.rejected++;
-          else summary.unresolved++;
-          if (reviewed.verification.capacity) summary.capacityLimited++;
-          decision = {
-            operationId: plan.id,
-            status:
-              reviewed.verification.status === "rejected"
-                ? "rejected"
-                : "uncertain",
-            verification: reviewed.verification,
-            ...(reviewed.verification.capacity ? { reason: "capacity" } : {}),
-          };
-          break;
-        }
-        stage = "decision_record";
-        if (decision)
-          await steps.record(`decision:${plan.id}`, {
-            ...decision,
-            evidenceFingerprints: result.dependencies?.filter(
-              (ref): ref is { pageId: string; fingerprint: string } =>
-                ref.fingerprint !== null &&
-                plan.readSet.some((read) => read.pageId === ref.pageId),
-            ),
-          });
-        if (summary.stoppedBy === "budget" || summary.stoppedBy === "provider")
-          break;
-      }
-      if (summary.stoppedBy === "budget" || summary.stoppedBy === "provider")
-        break;
-      if (!deferred) remaining.delete(id);
-      consecutiveProviderErrors = 0;
-    } catch (error) {
-      summary.errors++;
-      const diagnostic = failureDiagnostic(error);
-      await steps.record(`task-error:${id}`, {
-        taskId: id,
-        pageIds: task.pageIds,
-        status: "error",
-        stage,
-        ...(operationId ? { operationId } : {}),
-        error: diagnostic,
-      });
-      consecutiveProviderErrors =
-        diagnostic.category === "gateway" ? consecutiveProviderErrors + 1 : 0;
-      if (consecutiveProviderErrors >= 3) {
-        summary.stoppedBy = "provider";
-        break;
-      }
-    } finally {
-      // Keep invalidations even if recording the decision after a write fails.
-      for (const [taskId, pageIds] of completedReads)
-        if (pageIds.some((pageId) => changed.has(pageId)))
-          remaining.add(taskId);
+    const prior = cached.get(task.id);
+    if (
+      (prior?.dependencies?.map((ref) => ref.pageId) ?? task.pageIds).some(
+        (id) => changed.has(id),
+      )
+    )
+      continue;
+    const outcome = await processTask(
+      steps,
+      snapshot.id,
+      task,
+      prior,
+      scan.plans?.[task.id],
+      changed,
+      options.repairs,
+    );
+    for (const id of outcome.changed) changed.add(id);
+    summary.evaluatedTasks += outcome.evaluated;
+    summary.findings += outcome.findings;
+    summary.unresolved += outcome.unresolved;
+    summary.proposed += outcome.proposed;
+    summary.rejected += outcome.rejected;
+    summary.conflicts += outcome.conflicts;
+    summary.errors += outcome.errors;
+    summary.capacityLimited += outcome.capacity;
+    summary.writes += outcome.writes;
+    if (outcome.complete) completed.push({ id: task.id, reads: outcome.reads });
+    consecutiveProviderErrors = outcome.gatewayFailure
+      ? consecutiveProviderErrors + 1
+      : 0;
+    if (outcome.halt || consecutiveProviderErrors >= 3) {
+      summary.stoppedBy = outcome.halt ?? "provider";
+      break;
     }
   }
-  summary.remainingTasks = scan.remaining + remaining.size;
+  // One terminal invalidation pass, including writes whose acknowledgement or decision record failed.
+  const completedIds = completed
+    .filter((task) => !task.reads.some((id) => changed.has(id)))
+    .map((task) => task.id);
+  summary.remainingTasks =
+    scan.remaining + scan.tasks.length - completedIds.length;
   if (summary.stoppedBy === "stable" && summary.remainingTasks)
     summary.stoppedBy = summary.errors
       ? "incomplete"
@@ -292,7 +112,143 @@ export async function runConsolidation(
         : "limit";
   if (summary.remainingTasks || summary.errors || summary.capacityLimited)
     summary.status = "partial";
-  await steps.queue(order.filter((id) => !remaining.has(id)));
+  await steps.queue(completedIds);
   summary.report = `Consolidation: ${summary.writes} page writes, ${summary.evaluatedTasks} analysed tasks, ${summary.reusedTasks} reused, ${summary.remainingTasks} queued. ${summary.unresolved} unresolved findings, ${summary.errors} errors. Stopped: ${summary.stoppedBy}.`;
   return summary;
+}
+
+type TaskOutcome = {
+  evaluated: number;
+  findings: number;
+  unresolved: number;
+  proposed: number;
+  rejected: number;
+  conflicts: number;
+  errors: number;
+  capacity: number;
+  writes: number;
+  changed: string[];
+  reads: string[];
+  complete: boolean;
+  gatewayFailure: boolean;
+  halt?: RunHalt["halt"];
+};
+async function processTask(
+  steps: RunnerSteps,
+  snapshotId: string,
+  task: AnalysisTask,
+  cached: AnalysisResult | undefined,
+  prepared: PlannedTask | undefined,
+  changed: ReadonlySet<string>,
+  repairs: number,
+): Promise<TaskOutcome> {
+  const outcome: TaskOutcome = {
+    evaluated: 0,
+    findings: 0,
+    unresolved: 0,
+    proposed: 0,
+    rejected: 0,
+    conflicts: 0,
+    errors: 0,
+    capacity: 0,
+    writes: 0,
+    changed: [],
+    reads: task.pageIds,
+    complete: false,
+    gatewayFailure: false,
+  };
+  let stage = "analysis";
+  let operationId: string | undefined;
+  const fail = async (
+    diagnostic: ReturnType<typeof failureDiagnostic>,
+    failureStage: string,
+  ) => {
+    outcome.gatewayFailure = diagnostic.category === "gateway";
+    await steps.record(recordKeys.taskError(task.id), {
+      taskId: task.id,
+      pageIds: task.pageIds,
+      status: "error",
+      stage: failureStage,
+      ...(operationId ? { operationId } : {}),
+      error: diagnostic,
+    });
+    return outcome;
+  };
+  try {
+    const result = cached ?? (await steps.analyze(snapshotId, task));
+    if ("halt" in result) return { ...outcome, halt: result.halt };
+    if (!cached) outcome.evaluated++;
+    outcome.reads =
+      result.dependencies?.map((ref) => ref.pageId) ?? task.pageIds;
+    outcome.findings = result.findings.length;
+    outcome.unresolved = result.findings.filter(
+      (finding) => finding.status === "uncertain",
+    ).length;
+    if (result.status === "incomplete") return { ...outcome, errors: 1 };
+    if (outcome.reads.some((id) => changed.has(id))) return outcome;
+    if (!result.findings.some((finding) => finding.status === "supported"))
+      return { ...outcome, complete: true };
+    stage = "planning";
+    const plans = prepared ?? (await steps.plan(snapshotId, [result]));
+    outcome.capacity += plans.capacityLimited ?? 0;
+    let deferred = plans.deferred > 0;
+    for (const plan of plans.selected) {
+      if (
+        plan.readSet.some(
+          (ref) =>
+            changed.has(ref.pageId) || outcome.changed.includes(ref.pageId),
+        )
+      ) {
+        deferred = true;
+        continue;
+      }
+      operationId = plan.id;
+      outcome.proposed++;
+      let feedback: string[] | undefined;
+      for (let index = 0; index <= repairs; index++) {
+        const tried = await attempt(
+          steps,
+          snapshotId,
+          plan,
+          index,
+          repairs,
+          feedback,
+        );
+        outcome.changed.push(...tried.changed);
+        outcome.writes += tried.writes;
+        outcome.errors += tried.errors;
+        outcome.capacity += tried.capacity;
+        deferred ||= tried.deferred;
+        if (tried.halt) return { ...outcome, halt: tried.halt };
+        if (tried.failure)
+          return fail(tried.failure.diagnostic, tried.failure.stage);
+        if (tried.repair) {
+          feedback = tried.repair;
+          continue;
+        }
+        const decision = tried.decision;
+        if (decision) {
+          if (decision.status === "rejected") outcome.rejected++;
+          if (decision.status === "conflict") outcome.conflicts++;
+          if (decision.status === "uncertain" && decision.verification)
+            outcome.unresolved++;
+          stage = "decision_record";
+          await steps.record(recordKeys.decision(plan.id), {
+            ...decision,
+            evidenceFingerprints: result.dependencies?.filter(
+              (ref): ref is { pageId: string; fingerprint: string } =>
+                ref.fingerprint !== null &&
+                plan.readSet.some((read) => read.pageId === ref.pageId),
+            ),
+          });
+        }
+        break;
+      }
+    }
+    outcome.complete = !deferred;
+    return outcome;
+  } catch (error) {
+    outcome.errors++;
+    return fail(failureDiagnostic(error), stage);
+  }
 }

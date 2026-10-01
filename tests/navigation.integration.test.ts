@@ -241,8 +241,8 @@ test(
             new RegExp(`^\\s*${title}\\s*\\.?\\s*$`),
           );
           assert.ok(
-            collection.includes(`href="${path}"`),
-            `Collections navigation must link directly to ${path}`,
+            collection.includes(`href="${path}?q=${prefix}"`),
+            `Collection links must preserve the query on ${path}`,
           );
         }
 
@@ -264,7 +264,7 @@ test(
         assert.ok(notes.includes('href="/pages/new?type=note"'));
 
         const unmatched = renderedText(await html(`/projects?q=${page.title}`));
-        assert.ok(unmatched.includes("Nothing here, yet."));
+        assert.ok(unmatched.includes("No pages found"));
         assert.ok(!unmatched.includes(project.title));
 
         const laterResults = renderedHtml(
@@ -297,6 +297,36 @@ test(
           "Typed connections are real links in server HTML",
         );
         assert.ok(detail.includes(`href="/pages/${page.id}/edit"`));
+        const pageResponse = await request(`/api/brain/pages/${page.id}`);
+        const payload = (await pageResponse.json()) as {
+          revisions: { version: number; snapshot?: unknown }[];
+        };
+        assert.equal(pageResponse.status, 200);
+        assert.equal(payload.revisions.length, 1);
+        assert.ok(
+          payload.revisions.every(
+            (revision) => !Object.hasOwn(revision, "snapshot"),
+          ),
+          "Page responses must contain revision summaries without full snapshots",
+        );
+        const revisionResponse = await request(
+          `/api/brain/pages/${page.id}/revisions/1`,
+        );
+        const revisionPayload = (await revisionResponse.json()) as {
+          revision: { snapshot: BrainPage };
+        };
+        assert.equal(revisionResponse.status, 200);
+        assert.equal(revisionPayload.revision.snapshot.markdown, page.markdown);
+        const missingRevision = await request(
+          `/api/brain/pages/${page.id}/revisions/999`,
+        );
+        assert.equal(missingRevision.status, 404);
+        const privateRevision = await request(
+          `/api/brain/pages/${page.id}/revisions/1`,
+          {},
+          false,
+        );
+        assert.equal(privateRevision.status, 401);
         const history = renderedHtml(await html(`/pages/${page.id}/history`));
         assert.ok(history.includes(`href="/pages/${page.id}/history/1"`));
         const revision = renderedText(

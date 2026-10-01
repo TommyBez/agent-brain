@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { BrainPage } from "../lib/brain/types";
+import { fingerprint } from "../lib/canonical-json";
 import {
   buildSnapshot,
   createAnalysisTasks,
-  fingerprint,
   segmentPage,
 } from "../lib/maintenance/consolidator/snapshot";
 import { POLICY } from "../lib/maintenance/consolidator/types";

@@ -13,6 +13,17 @@ export const BRAIN_SCOPES = [
 ] as const;
 export type BrainScope = (typeof BRAIN_SCOPES)[number];
 
+export const READ_WRITE_SCOPES = BRAIN_SCOPES.filter(
+  (scope) => scope !== "brain:maintain",
+).join(" ");
+
+export function ownerEmail() {
+  return process.env.BRAIN_OWNER_EMAIL?.trim().toLowerCase() ?? "";
+}
+export function isOwnerEmail(email: string) {
+  return email.toLowerCase() === ownerEmail();
+}
+
 export function isAuthConfigured() {
   return Boolean(
     process.env.DATABASE_URL &&
@@ -104,10 +115,6 @@ export function getAuth() {
 export async function getSession(requestHeaders: Headers) {
   if (!isAuthConfigured()) return null;
   const session = await getAuth().api.getSession({ headers: requestHeaders });
-  if (
-    session?.user.email.toLowerCase() !==
-    process.env.BRAIN_OWNER_EMAIL?.trim().toLowerCase()
-  )
-    return null;
+  if (!session || !isOwnerEmail(session.user.email)) return null;
   return session;
 }

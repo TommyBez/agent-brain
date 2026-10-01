@@ -1,6 +1,6 @@
-import { listRevisions, read, write } from "@/lib/brain/service";
+import { body, failure, json, owner } from "@/app/api/shared";
+import { listRevisionSummaries, read, write } from "@/lib/brain/service";
 import { revalidateWorkspaceCache } from "@/lib/workspace/cache";
-import { body, failure, json, owner } from "../../shared";
 
 type Context = { params: Promise<{ id: string }> };
 export async function GET(request: Request, context: Context) {
@@ -9,7 +9,7 @@ export async function GET(request: Request, context: Context) {
     const { id } = await context.params;
     const [page, revisions] = await Promise.all([
       read(ownerId, { ref: id }),
-      listRevisions(ownerId, { ref: id, limit: 50 }),
+      listRevisionSummaries(ownerId, { ref: id, limit: 50 }),
     ]);
     return json({ page, revisions });
   } catch (error) {

@@ -1,4 +1,5 @@
-import { fingerprint, pageEvidenceFingerprint } from "./snapshot";
+import { fingerprint } from "../../canonical-json";
+import { pageEvidenceFingerprint } from "./snapshot";
 import {
   type AnalysisResult,
   type Finding,

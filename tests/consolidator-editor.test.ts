@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import type { BrainPage } from "../lib/brain/types";
+import type { BrainPage, DecoratedLink } from "../lib/brain/types";
 import { EditorResponseError } from "../lib/maintenance/consolidator/diagnostics";
 import {
   draftChanges,
@@ -319,7 +319,7 @@ test("constructs only planned typed links without calling a provider", async (t)
 
 test("DeepSeek receives strict JSON schema, complete scoped sources and no write tools", async (t) => {
   const source = page("a", "Un fatto.\n\nUn fatto.");
-  source.links = [
+  const decoratedLinks: DecoratedLink[] = [
     {
       id: "existing",
       sourceId: "a",
@@ -332,6 +332,7 @@ test("DeepSeek receives strict JSON schema, complete scoped sources and no write
       sourceSlug: "UNVERSIONED_SOURCE_SLUG",
     },
   ];
+  source.links = decoratedLinks;
   source.backlinks = [
     {
       id: "incoming",
@@ -688,4 +689,31 @@ test("maintenance-only URLs may be removed only from patched selected residue un
   );
   const retained = materializeDraft(snapshot, plan, draft).changes[0].after;
   assert.equal(retained.summary, `Fonte utile: ${url}`);
+});
+
+test("change-set identity is independent of object property insertion order", () => {
+  const snapshot = buildSnapshot([page("a", "Uno.\n\nDue.")]);
+  const plan = planFor(snapshot);
+  const draft = replace(snapshot, 0, "Tre.\n\n");
+  const reorderedPlan = Object.fromEntries(
+    Object.entries(plan).reverse(),
+  ) as OperationPlan;
+  const reorderedDraft = {
+    patches: draft.patches.map(({ pageId, unitId, before, after }) => ({
+      after,
+      before,
+      unitId,
+      pageId,
+    })),
+    links: draft.links,
+    noChange: draft.noChange,
+  };
+  const original = materializeDraft(snapshot, plan, draft);
+  const reordered = materializeDraft(snapshot, reorderedPlan, reorderedDraft);
+  assert.equal(reordered.id, original.id);
+  assert.deepEqual(reordered.changes, original.changes);
+  assert.notEqual(
+    materializeDraft(snapshot, plan, replace(snapshot, 0, "Quattro.\n\n")).id,
+    original.id,
+  );
 });

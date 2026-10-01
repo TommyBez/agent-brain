@@ -1,10 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { failureMessage } from "../lib/maintenance/consolidator/diagnostics";
-import {
-  type RunnerSteps,
-  runConsolidation,
-} from "../lib/maintenance/consolidator/runner";
+import { runConsolidation } from "../lib/maintenance/consolidator/runner";
 import {
   buildSnapshot,
   createAnalysisTasks,
@@ -14,6 +11,7 @@ import type {
   AnalysisResult,
   ChangeSet,
   OperationPlan,
+  RunnerSteps,
 } from "../lib/maintenance/consolidator/types";
 import { page } from "./helpers/consolidator";
 

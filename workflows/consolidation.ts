@@ -19,23 +19,16 @@ export async function consolidate(ownerId: string, runId: string) {
   const result = await runConsolidation(
     {
       snapshot: () => snapshotConsolidation(ownerId, runId),
-      scan: (snapshot, budget) =>
-        prepareConsolidationScan(ownerId, runId, snapshot.id, budget),
-      analyze: (snapshot, task) =>
-        analyzeConsolidationTask(ownerId, runId, snapshot.id, task),
-      plan: (snapshot, results) =>
-        planConsolidation(ownerId, runId, snapshot.id, results),
-      draft: (snapshot, plan, attempt, feedback) =>
-        draftConsolidation(
-          ownerId,
-          runId,
-          snapshot.id,
-          plan,
-          attempt,
-          feedback,
-        ),
-      review: (snapshot, plan, draft) =>
-        reviewConsolidation(ownerId, runId, snapshot.id, plan, draft),
+      scan: (snapshotId, budget) =>
+        prepareConsolidationScan(ownerId, runId, snapshotId, budget),
+      analyze: (snapshotId, task) =>
+        analyzeConsolidationTask(ownerId, runId, snapshotId, task),
+      plan: (snapshotId, results) =>
+        planConsolidation(ownerId, runId, snapshotId, results),
+      draft: (snapshotId, plan, attempt, feedback) =>
+        draftConsolidation(ownerId, runId, snapshotId, plan, attempt, feedback),
+      review: (snapshotId, plan, draft) =>
+        reviewConsolidation(ownerId, runId, snapshotId, plan, draft),
       queue: (taskIds) => queueConsolidation(ownerId, taskIds),
       apply: (changeSet) => applyConsolidation(ownerId, runId, changeSet),
       record: (key, value) => recordConsolidation(ownerId, runId, key, value),

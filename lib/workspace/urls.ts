@@ -1,6 +1,10 @@
-import type { PageType } from "@/lib/brain/types";
+import { paginationOffset } from "./pagination";
 
-const collectionPaths: Record<PageType, string> = {
+export { WORKSPACE_PAGE_SIZE as LIBRARY_PAGE_SIZE } from "./pagination";
+
+import { PAGE_TYPES, type PageType, parseSort } from "@/lib/brain/types";
+
+export const collectionPaths: Record<PageType, string> = {
   person: "/people",
   client: "/clients",
   project: "/projects",
@@ -14,11 +18,7 @@ export function collectionHref(type: PageType | "") {
 }
 
 export function collectionTypeFromPathname(pathname: string): PageType | "" {
-  return (
-    (Object.keys(collectionPaths) as PageType[]).find(
-      (type) => collectionPaths[type] === pathname,
-    ) ?? ""
-  );
+  return PAGE_TYPES.find((type) => collectionPaths[type] === pathname) ?? "";
 }
 
 export type LibraryFilters = {
@@ -28,7 +28,6 @@ export type LibraryFilters = {
   offset: number;
 };
 export type RouteSearchParams = Record<string, string | string[] | undefined>;
-export const LIBRARY_PAGE_SIZE = 50;
 export const CONNECTION_PAGE_SIZE = 20;
 export const GRAPH_PAGE_SIZE = 150;
 
@@ -43,15 +42,11 @@ export function parseLibraryFilters(
   params: { get(name: string): string | null },
   type: PageType | "" = "",
 ): LibraryFilters {
-  const offset = Number(params.get("offset") ?? 0);
   return {
     query: (params.get("q") ?? "").trim().slice(0, 500),
     type,
-    sort: params.get("sort") === "title" ? "title" : "updated",
-    offset:
-      Number.isSafeInteger(offset) && offset >= 0
-        ? Math.min(offset, 100_000)
-        : 0,
+    sort: parseSort(params.get("sort")),
+    offset: paginationOffset(params.get("offset"), 100_000),
   };
 }
 

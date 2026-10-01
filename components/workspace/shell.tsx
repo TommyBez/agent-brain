@@ -38,18 +38,13 @@ export function WorkspaceShell({
   const closeFocus = useRef<"search" | "navigation" | null>(null);
   const mobileNavigation = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const { cancel } = useSearchNavigation();
+  const { cancel, focus } = useSearchNavigation();
   const focusSearch = useCallback(() => {
-    // Activity retains previous collection inputs in hidden route trees.
-    const input = Array.from(
-      document.querySelectorAll<HTMLInputElement>('input[id="library-search"]'),
-    ).find((candidate) => candidate.getClientRects().length > 0);
-    if (input) input.focus();
-    else {
+    if (!focus()) {
       cancel();
       router.push("/?focus=search");
     }
-  }, [router, cancel]);
+  }, [router, cancel, focus]);
   useEffect(() => {
     function find(event: KeyboardEvent) {
       if ((event.metaKey || event.ctrlKey) && event.key === "k") {

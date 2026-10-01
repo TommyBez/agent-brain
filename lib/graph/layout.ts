@@ -90,8 +90,10 @@ export function createLayout(
   const degree = new Array<number>(inputNodes.length).fill(0);
   const pairs: [number, number][] = [];
   for (const link of inputLinks) {
-    const source = indexById.get(link.sourceId) as number;
-    const target = indexById.get(link.targetId) as number;
+    const source = indexById.get(link.sourceId);
+    const target = indexById.get(link.targetId);
+    if (source === undefined || target === undefined || source === target)
+      throw new Error("Layout links must connect distinct supplied nodes");
     pairs.push([source, target]);
     degree[source] += 1;
     degree[target] += 1;

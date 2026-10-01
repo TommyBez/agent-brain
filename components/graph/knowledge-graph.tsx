@@ -10,18 +10,22 @@ import {
   ZoomOut,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { LinkType, PageType } from "@/lib/brain/types";
-import { hashSeed } from "@/lib/graph/layout";
+import { entityTypes } from "@/lib/brain/labels";
+import type {
+  BrainLink,
+  LinkType,
+  PageSummary,
+  PageType,
+} from "@/lib/brain/types";
+import { deriveGraphView } from "@/lib/graph/derive-view";
 import { buildGraphModel } from "@/lib/graph/model";
 import { pageHref } from "@/lib/workspace/urls";
-import type { BrainLink, PageSummary } from "./brain-types";
-import { entityTypes } from "./brain-types";
-import { GraphCanvas, type GraphCanvasHandle } from "./graph/graph-canvas";
-import { GraphInspector } from "./graph/graph-inspector";
-import { Empty } from "./workspace/primitives";
+import { Empty } from "../workspace/primitives";
+import { GraphCanvas, type GraphCanvasHandle } from "./graph-canvas";
+import { GraphInspector } from "./graph-inspector";
 
 const TRAIL_LIMIT = 20;
 
@@ -56,6 +60,33 @@ export function KnowledgeGraph({
   );
   const [showUnlinked, setShowUnlinked] = useState(true);
 
+  const model = useMemo(() => buildGraphModel(graph), [graph]);
+  const {
+    seed,
+    visible,
+    edges,
+    selected,
+    hoveredId,
+    emphasized,
+    emphasizedEdges,
+    matches,
+    matched,
+    typeCounts,
+    linkTypeCounts,
+    unlinkedCount,
+    unlinkedVisibleCount,
+    inspectorNodes,
+    inspectorEdges,
+  } = useMemo(
+    () =>
+      deriveGraphView(
+        model,
+        { hiddenTypes, hiddenLinkTypes, showUnlinked, query },
+        { trail, hovered },
+      ),
+    [model, hiddenTypes, hiddenLinkTypes, showUnlinked, query, trail, hovered],
+  );
+
   if (!graph.nodes.length) {
     return (
       <Empty
@@ -65,89 +96,6 @@ export function KnowledgeGraph({
       />
     );
   }
-
-  const model = buildGraphModel(graph);
-  const seed = hashSeed(model.nodes.map((node) => node.id).join("|"));
-  const nodeById = new Map(model.nodes.map((node) => [node.id, node]));
-  const visible: ReadonlySet<string> = new Set(
-    model.nodes
-      .filter(
-        (node) =>
-          !hiddenTypes.has(node.type) && (showUnlinked || !node.isolated),
-      )
-      .map((node) => node.id),
-  );
-  const edges = model.edges.filter(
-    (edge) =>
-      visible.has(edge.sourceId) &&
-      visible.has(edge.targetId) &&
-      !hiddenLinkTypes.has(edge.type),
-  );
-  const selectedId = trail.length ? trail[trail.length - 1] : null;
-  const selected =
-    selectedId && visible.has(selectedId)
-      ? (nodeById.get(selectedId) ?? null)
-      : null;
-  const hoveredId = hovered && visible.has(hovered) ? hovered : null;
-
-  const focusIds = [selected?.id, hoveredId].filter(
-    (id): id is string => typeof id === "string",
-  );
-  let emphasized: ReadonlySet<string> | null = null;
-  const emphasizedEdges = new Set<string>();
-  if (focusIds.length) {
-    const set = new Set(focusIds);
-    for (const edge of edges) {
-      if (
-        focusIds.includes(edge.sourceId) ||
-        focusIds.includes(edge.targetId)
-      ) {
-        set.add(edge.sourceId);
-        set.add(edge.targetId);
-        emphasizedEdges.add(edge.id);
-      }
-    }
-    emphasized = set;
-  }
-
-  const normalizedQuery = query.trim().toLowerCase();
-  const matches = normalizedQuery
-    ? model.nodes.filter(
-        (node) =>
-          visible.has(node.id) &&
-          [node.title, node.summary, ...node.aliases, ...node.tags].some(
-            (value) => value.toLowerCase().includes(normalizedQuery),
-          ),
-      )
-    : null;
-  const matched: ReadonlySet<string> | null = matches
-    ? new Set(matches.map((node) => node.id))
-    : null;
-
-  const typeCounts = entityTypes
-    .map((item) => ({
-      type: item.id,
-      count: model.nodes.filter((node) => node.type === item.id).length,
-    }))
-    .filter((item) => item.count > 0);
-  const linkTypeCounts = Object.entries(
-    model.edges.reduce<Partial<Record<LinkType, number>>>((counts, edge) => {
-      counts[edge.type] = (counts[edge.type] ?? 0) + 1;
-      return counts;
-    }, {}),
-  )
-    .map(([type, count]) => ({ type: type as LinkType, count }))
-    .sort((a, b) => b.count - a.count);
-  const unlinkedCount = model.nodes.filter((node) => node.isolated).length;
-  const unlinkedVisibleCount = model.nodes.filter(
-    (node) => node.isolated && visible.has(node.id),
-  ).length;
-  // The inspector only offers pages that are on screen, so selecting one
-  // always resolves. Hidden relationship types still count as connections.
-  const inspectorNodes = model.nodes.filter((node) => visible.has(node.id));
-  const inspectorEdges = model.edges.filter(
-    (edge) => visible.has(edge.sourceId) && visible.has(edge.targetId),
-  );
 
   const select = (id: string | null, center = false) => {
     if (!id) {

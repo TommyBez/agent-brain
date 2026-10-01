@@ -4,7 +4,6 @@ import {
   AgentConnection,
   HeadlessConnection,
 } from "@/components/brain-settings";
-import { formatDate } from "@/components/brain-types";
 import { PasswordSettings } from "@/components/settings/password-settings";
 import { TokenCreator } from "@/components/settings/token-creator";
 import { TokenRevoke } from "@/components/settings/token-revoke";
@@ -18,6 +17,7 @@ import {
 import { Empty, Loading, PageHeading } from "@/components/workspace/primitives";
 import { listAgentTokens } from "@/lib/agent-tokens";
 import { mcpResource } from "@/lib/auth";
+import { formatDate } from "@/lib/formatters";
 import { getWorkspaceUser } from "@/lib/workspace/session";
 
 export const metadata = { title: "Agents & access · a native brain" };
@@ -99,7 +99,6 @@ async function AgentTokens() {
 }
 
 async function OwnerPassword() {
-  await getWorkspaceUser();
   return (
     <Card className="mt-8">
       <CardHeader>

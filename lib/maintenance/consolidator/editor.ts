@@ -1,10 +1,14 @@
 import { createHash } from "node:crypto";
 import { z } from "zod";
-import { type BrainPage, LINK_TYPES } from "../../brain/types";
+import { LINK_TYPES } from "../../brain/types";
+import { fingerprint } from "../../canonical-json";
 import { type GatewayCall, gatewayRequest } from "../gateway";
 import { EDITOR_MODEL } from "./budget";
 import { CapacityError } from "./capacity";
 import { EditorResponseError } from "./diagnostics";
+import { validateReferences } from "./draft-references";
+import { invalid, validatePlan } from "./plan-validation";
+import { projectEvidencePage } from "./projections";
 import {
   type ChangeSet,
   type Draft,
@@ -42,283 +46,6 @@ const editorDraftSchema = draftSchema.extend({
   patches: z.array(draftSchema.shape.patches.element.omit({ before: true })),
   summaryPatches: z.array(summaryPatchSchema.omit({ before: true })),
 });
-
-function invalid(reason: string): never {
-  throw new Error(`Invalid consolidation draft: ${reason}`);
-}
-
-/** Only source-owned, versioned fields are evidence; joined display fields are not. */
-export function projectEvidencePage(page: BrainPage) {
-  return {
-    id: page.id,
-    slug: page.slug,
-    title: page.title,
-    type: page.type,
-    summary: page.summary,
-    aliases: page.aliases,
-    tags: page.tags,
-    version: page.version,
-    createdAt: page.createdAt,
-    updatedAt: page.updatedAt,
-    markdown: page.markdown,
-    links: page.links
-      .filter((link) => link.sourceId === page.id)
-      .map((link) => ({
-        sourceId: link.sourceId,
-        targetId: link.targetId,
-        type: link.type,
-        label: link.label,
-      })),
-  };
-}
-
-function validatePlan(snapshot: Snapshot, plan: OperationPlan) {
-  const pages = new Map(snapshot.pages.map((page) => [page.id, page]));
-  const units = new Map(snapshot.units.map((unit) => [unit.id, unit]));
-  if (
-    pages.size !== snapshot.pages.length ||
-    units.size !== snapshot.units.length
-  ) {
-    invalid("ambiguous snapshot identifiers");
-  }
-  const reads = new Map(plan.readSet.map((ref) => [ref.pageId, ref.version]));
-  if (
-    reads.size !== plan.readSet.length ||
-    !plan.targetPageIds.length ||
-    new Set(plan.targetPageIds).size !== plan.targetPageIds.length ||
-    new Set(plan.targetUnitIds).size !== plan.targetUnitIds.length
-  ) {
-    invalid("ambiguous or empty plan");
-  }
-  for (const ref of plan.readSet) {
-    if (pages.get(ref.pageId)?.version !== ref.version)
-      invalid("stale read set");
-  }
-  for (const id of plan.targetPageIds) {
-    if (!reads.has(id)) invalid("target outside the read set");
-  }
-  for (const id of [...plan.targetUnitIds, ...plan.evidenceUnitIds]) {
-    const unit = units.get(id);
-    const page = unit && pages.get(unit.pageId);
-    if (
-      !unit ||
-      !page ||
-      !reads.has(page.id) ||
-      unit.start < 0 ||
-      unit.end <= unit.start ||
-      page.markdown.slice(unit.start, unit.end) !== unit.text
-    ) {
-      invalid("unknown or stale evidence unit");
-    }
-  }
-  for (const id of plan.targetUnitIds) {
-    if (!plan.targetPageIds.includes(units.get(id)?.pageId ?? "")) {
-      invalid("unit outside target pages");
-    }
-  }
-  if (
-    plan.retainedUnitId &&
-    (!["deduplicate", "centralize"].includes(plan.kind) ||
-      !plan.targetUnitIds.includes(plan.retainedUnitId))
-  )
-    invalid("retained unit outside deduplication or centralization scope");
-  if (
-    plan.correctionUnitIds?.some(
-      (id) => plan.kind !== "reconcile" || !plan.targetUnitIds.includes(id),
-    ) ||
-    (plan.correctionUnitIds?.length && !plan.evidenceUnitIds.length)
-  ) {
-    invalid("unbounded correction exception");
-  }
-  if (
-    plan.kind === "centralize" &&
-    (!plan.canonicalPageId ||
-      !plan.targetPageIds.includes(plan.canonicalPageId))
-  ) {
-    invalid("missing centralization destination");
-  }
-  if (plan.link) {
-    if (
-      plan.kind !== "add_link" ||
-      !plan.targetPageIds.includes(plan.link.sourceId) ||
-      !reads.has(plan.link.targetId) ||
-      plan.link.sourceId === plan.link.targetId ||
-      !LINK_TYPES.includes(plan.link.type)
-    ) {
-      invalid("link outside plan scope");
-    }
-  } else if (plan.kind === "add_link") {
-    invalid("missing planned link");
-  }
-  return { pages, units };
-}
-
-/** Destination spelling is preserved; a model cannot silently replace a source URL. */
-function references(markdown: string): Set<string> {
-  const found = new Set<string>();
-  for (const match of markdown.matchAll(/!?\[(?:\\.|[^\]\n])*\]\(\s*/g)) {
-    const start = match.index + match[0].length;
-    let end = start;
-    if (markdown[start] === "<") {
-      end = markdown.indexOf(">", start + 1);
-      if (end > start) found.add(markdown.slice(start + 1, end));
-      continue;
-    }
-    let parentheses = 0;
-    while (end < markdown.length) {
-      const character = markdown[end];
-      if (character === "\\") {
-        end += 2;
-        continue;
-      }
-      if (/\s/.test(character)) break;
-      if (character === "(") parentheses++;
-      if (character === ")") {
-        if (parentheses === 0) break;
-        parentheses--;
-      }
-      end++;
-    }
-    if (end > start) found.add(markdown.slice(start, end));
-  }
-  for (const match of markdown.matchAll(
-    /^\s{0,3}\[[^\]\n]+\]:\s*(<[^>\n]+>|\S+)/gm,
-  )) {
-    found.add(match[1].replace(/^<|>$/g, ""));
-  }
-  for (const match of markdown.matchAll(/https?:\/\/[^\s<>"'`\]]+/g)) {
-    let reference = match[0].replace(/[,.;:!?]+$/, "");
-    while (
-      reference.endsWith(")") &&
-      [...reference.matchAll(/\)/g)].length >
-        [...reference.matchAll(/\(/g)].length
-    )
-      reference = reference.slice(0, -1);
-    found.add(reference);
-  }
-  return found;
-}
-
-function localTarget(reference: string, source: BrainPage, pages: BrainPage[]) {
-  if (/^(?:[a-z][a-z\d+.-]*:|\/\/)/i.test(reference)) return undefined;
-  const [path, fragment] = reference.split("#", 2);
-  let cleanPath = path.split("?", 1)[0];
-  try {
-    cleanPath = decodeURIComponent(cleanPath);
-  } catch {
-    // Existing Markdown may contain literal percent signs; retain its path.
-  }
-  const key = cleanPath
-    .replace(/^\/?pages\//, "")
-    .replace(/^\.\//, "")
-    .replace(/\/$/, "");
-  const page = !cleanPath
-    ? source
-    : pages.find((candidate) => candidate.id === key || candidate.slug === key);
-  if (!page) return false;
-  if (fragment) {
-    // ReactMarkdown generates neither heading IDs nor raw-HTML anchors here.
-    // Existing fragment spelling is preserved, but new fragments cannot be valid.
-    return false;
-  }
-  return page;
-}
-
-function validateReferences(
-  snapshot: Snapshot,
-  plan: OperationPlan,
-  changes: ChangeSet["changes"],
-  draft: Draft,
-) {
-  const afterPages = snapshot.pages.map(
-    (page) =>
-      changes.find((change) => change.after.id === page.id)?.after ?? page,
-  );
-  const originalReferences = new Set(
-    snapshot.pages
-      .filter((page) => plan.readSet.some((ref) => ref.pageId === page.id))
-      .flatMap((page) => [...references(`${page.markdown}\n${page.summary}`)]),
-  );
-  const canonical = afterPages.find((page) => page.id === plan.canonicalPageId);
-  const canonicalReferences = references(
-    canonical ? `${canonical.markdown}\n${canonical.summary}` : "",
-  );
-  for (const { before, after } of changes) {
-    const oldReferences = references(`${before.markdown}\n${before.summary}`);
-    const newReferences = references(`${after.markdown}\n${after.summary}`);
-    // A residue exception cannot remove a URL from unselected knowledge or the
-    // summary. Strip only the exact selected units being patched for this check.
-    let untouchedMarkdown = before.markdown;
-    if (plan.kind === "remove_maintenance_residue") {
-      const selected = snapshot.units
-        .filter(
-          (unit) =>
-            unit.pageId === before.id &&
-            plan.targetUnitIds.includes(unit.id) &&
-            draft.patches.some((patch) => patch.unitId === unit.id),
-        )
-        .sort((a, b) => b.start - a.start);
-      for (const unit of selected)
-        untouchedMarkdown =
-          untouchedMarkdown.slice(0, unit.start) +
-          untouchedMarkdown.slice(unit.end);
-    }
-    const unselectedReferences = references(
-      `${untouchedMarkdown}\n${before.summary}`,
-    );
-    for (const reference of oldReferences) {
-      if (!newReferences.has(reference)) {
-        const selectedResidueOnly =
-          plan.kind === "remove_maintenance_residue" &&
-          !unselectedReferences.has(reference);
-        const moved =
-          plan.kind === "centralize" && canonicalReferences.has(reference);
-        const hasDestination =
-          canonical &&
-          [...newReferences].some((ref) => {
-            const target = localTarget(ref, after, afterPages);
-            return target && target.id === canonical.id;
-          });
-        if (!selectedResidueOnly && (!moved || !hasDestination))
-          invalid("source or URL removed without planned centralization");
-      }
-    }
-    for (const reference of newReferences) {
-      if (!oldReferences.has(reference)) {
-        const target = localTarget(reference, after, afterPages);
-        if (target === false) invalid("unknown local link target or anchor");
-        if (target && !plan.readSet.some((ref) => ref.pageId === target.id))
-          invalid("new link target outside read set");
-        if (target === undefined && !originalReferences.has(reference))
-          invalid("new URL absent from original evidence");
-      }
-    }
-    const definitions = new Set(
-      [...after.markdown.matchAll(/^\s{0,3}\[([^\]\n]+)\]:/gm)].map((match) =>
-        match[1].trim().toLowerCase(),
-      ),
-    );
-    for (const match of after.markdown.matchAll(
-      /\[([^\]\n]+)\]\[([^\]\n]*)\]/g,
-    )) {
-      if (
-        !definitions.has((match[2] || match[1]).trim().toLowerCase()) &&
-        !before.markdown.includes(match[0])
-      )
-        invalid("undefined Markdown reference");
-    }
-  }
-  for (const [index, page] of afterPages.entries()) {
-    const before = snapshot.pages[index];
-    for (const reference of references(`${page.markdown}\n${page.summary}`)) {
-      if (
-        localTarget(reference, before, snapshot.pages) &&
-        localTarget(reference, page, afterPages) === false
-      )
-        invalid("local link target or anchor was broken");
-    }
-  }
-}
 
 /** Pure materialization: no database access, including for link-only operations. */
 export function materializeDraft(
@@ -416,7 +143,8 @@ export function materializeDraft(
     linkKeys.add(key);
   }
   for (const id of plan.targetPageIds) {
-    const before = pages.get(id) as BrainPage;
+    const before = pages.get(id);
+    if (!before) invalid("missing planned target");
     const patches = validatedPatches
       .filter(({ patch }) => patch.pageId === id)
       .sort((a, b) => b.unit.start - a.unit.start);
@@ -449,9 +177,7 @@ export function materializeDraft(
     changes.push({ before: structuredClone(before), after });
   }
   validateReferences(snapshot, plan, changes, draft);
-  const id = createHash("sha256")
-    .update(JSON.stringify({ snapshot: snapshot.id, plan, draft }))
-    .digest("hex");
+  const id = fingerprint({ snapshot: snapshot.id, plan, draft });
   return { id, plan, draft, changes };
 }
 

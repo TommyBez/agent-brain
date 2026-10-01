@@ -1,5 +1,5 @@
+import { failure, json, owner } from "@/app/api/shared";
 import { getStats, listActivity } from "@/lib/brain/service";
-import { failure, json, owner } from "../shared";
 
 export async function GET(request: Request) {
   try {

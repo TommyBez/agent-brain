@@ -24,6 +24,7 @@ import {
 import { Pagination } from "@/components/workspace/pagination";
 import { Empty, EntityIcon } from "@/components/workspace/primitives";
 import { BrainError, type BrainPage } from "@/lib/brain/types";
+import { formatDate } from "@/lib/formatters";
 import {
   getWorkspacePage,
   getWorkspaceRevision,
@@ -34,7 +35,6 @@ import {
   paginationOffset,
   WORKSPACE_PAGE_SIZE,
 } from "@/lib/workspace/pagination";
-import { formatDate } from "./brain-types";
 
 export type PageParams = Promise<{ id: string }>;
 

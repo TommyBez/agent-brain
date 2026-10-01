@@ -1,13 +1,11 @@
-import { createHash } from "node:crypto";
 import { isDeepStrictEqual } from "node:util";
 import { z } from "zod";
-import { writeConsolidationPages } from "../../brain/service";
-import { BrainError, LINK_TYPES } from "../../brain/types";
+import { writeConsolidationPages } from "../../brain/consolidation";
+import { BrainError, LINK_TYPES, MAX_PAGE_CHARACTERS } from "../../brain/types";
 import { assertOwner } from "../../brain/utils";
+import { canonicalJson, fingerprint } from "../../canonical-json";
 import { getPool, transaction } from "../../db";
 import type { ApplyResult, ChangeSet } from "./types";
-
-export { readConsolidationPages } from "../../brain/service";
 
 const identifier = z
   .string()
@@ -33,23 +31,6 @@ function serialized(record: unknown): string {
       "A consolidation record must be JSON serializable.",
     );
   return encoded;
-}
-
-function canonical(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(canonical);
-  if (value && typeof value === "object")
-    return Object.fromEntries(
-      Object.entries(value)
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([key, entry]) => [key, canonical(entry)]),
-    );
-  return value;
-}
-
-function fingerprint(record: unknown): string {
-  return createHash("sha256")
-    .update(serialized(canonical(record)))
-    .digest("hex");
 }
 
 function invalid(message: string): never {
@@ -91,7 +72,7 @@ function validateChangeSet(changeSet: ChangeSet) {
     };
     if (!isDeepStrictEqual(immutable(before), immutable(after)))
       invalid("Consolidation cannot modify unrelated page metadata.");
-    z.string().min(1).max(200_000).parse(after.markdown);
+    z.string().min(1).max(MAX_PAGE_CHARACTERS).parse(after.markdown);
     z.string().max(2000).parse(after.summary);
     if (after.links.length > 100)
       invalid("The resulting page exceeds the supported link limit.");
@@ -138,7 +119,7 @@ function validateChangeSet(changeSet: ChangeSet) {
     if (!versions.has(target))
       invalid("Every plan target must be present in the read set.");
   const sortedEdges = (edges: unknown[]) =>
-    edges.map((edge) => serialized(canonical(edge))).sort();
+    edges.map((edge) => canonicalJson(edge)).sort();
   if (
     !isDeepStrictEqual(
       sortedEdges(addedEdges),

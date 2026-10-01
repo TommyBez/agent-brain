@@ -254,7 +254,8 @@ test(
               error instanceof BrainError && error.code === "VERSION_CONFLICT",
           );
           assert.equal(
-            (await brain.listRevisions(owner, { ref: project.id })).length,
+            (await brain.listRevisionSummaries(owner, { ref: project.id }))
+              .length,
             2,
           );
           assert.ok(
@@ -289,8 +290,8 @@ test(
             project.id,
           );
           assert.equal(
-            (await brain.listRevisions(owner, { ref: project.id }))[1].snapshot
-              .links.length,
+            (await brain.readRevision(owner, { ref: project.id, version: 2 }))
+              .snapshot.links.length,
             1,
           );
           const historical = await brain.readRevision(owner, {

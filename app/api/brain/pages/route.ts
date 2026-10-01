@@ -1,6 +1,6 @@
+import { body, failure, json, owner } from "@/app/api/shared";
 import { listPages, write } from "@/lib/brain/service";
 import { revalidateWorkspaceCache } from "@/lib/workspace/cache";
-import { body, failure, json, owner } from "../shared";
 
 export async function GET(request: Request) {
   try {

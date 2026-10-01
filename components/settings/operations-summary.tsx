@@ -5,7 +5,6 @@ import {
   ShieldCheck,
   XCircle,
 } from "lucide-react";
-import { formatDate } from "@/components/brain-types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { formatDate } from "@/lib/formatters";
 import type { MaintenanceJob, OperationsData } from "@/lib/operations";
 
 function OperationResult({ job }: { job: MaintenanceJob }) {

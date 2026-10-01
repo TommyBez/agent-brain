@@ -12,7 +12,7 @@ import {
   requireScope,
   tokenHash,
 } from "../lib/auth-principal";
-import { createBrainHandler } from "../lib/mcp/server";
+import { createBrainHandler, requiredMcpScope } from "../lib/mcp/server";
 
 test("headless credentials contain 256 random bits and only their hash is used for storage", () => {
   const first = newAgentToken();
@@ -151,5 +151,137 @@ test("MCP search and context enforce read scope before contacting an embedding p
     else delete process.env.BRAIN_EMBEDDING_API_KEY;
     if (originalEnabled) process.env.BRAIN_QUERY_EMBEDDINGS = originalEnabled;
     else delete process.env.BRAIN_QUERY_EMBEDDINGS;
+  }
+});
+
+test("every registered MCP tool agrees with the route scope check and rejects a missing scope", async () => {
+  let mutations = 0;
+  const principal = {
+    ownerId: "test-owner",
+    kind: "token" as const,
+    scopes: [],
+  };
+  const handler = createBrainHandler(principal, () => {
+    mutations++;
+  });
+  const client = new Client(
+    { name: "tool-scope-consistency", version: "1.0.0" },
+    { versionNegotiation: { mode: { pin: "2026-07-28" } } },
+  );
+  const argumentsByTool: Record<string, Record<string, unknown>> = {
+    search: { query: "private query" },
+    read: { ref: "private-page" },
+    write: {
+      expectedVersion: 0,
+      title: "Private",
+      type: "note",
+      markdown: "Private body",
+    },
+    append: {
+      ref: "private-page",
+      expectedVersion: 1,
+      markdown: "Private body",
+    },
+    resolve: { name: "Private" },
+    related: { ref: "private-page" },
+    context: { query: "private query" },
+    index_chunks: {
+      ref: "private-page",
+      expectedVersion: 1,
+      embeddingModel: "model",
+      chunkerVersion: "version",
+      embeddings: [],
+    },
+    pending_embeddings: {},
+    gap_analysis: {},
+    list_pages: {},
+  };
+  try {
+    await client.connect(
+      new StreamableHTTPClientTransport(new URL("https://brain.example/mcp"), {
+        fetch: (input, init) => handler.fetch(new Request(input, init)),
+      }),
+    );
+    const { tools } = await client.listTools();
+    assert.ok(tools.length > 0);
+    for (const tool of tools) {
+      const scope = requiredMcpScope({
+        method: "tools/call",
+        params: { name: tool.name },
+      });
+      assert.ok(scope, `${tool.name} must have a route-level scope`);
+      assert.throws(() => requireScope(principal, scope), AuthError);
+      assert.ok(
+        argumentsByTool[tool.name],
+        `Add valid arguments for ${tool.name}`,
+      );
+      const response = await client.callTool({
+        name: tool.name,
+        arguments: argumentsByTool[tool.name],
+      });
+      assert.equal(response.isError, true, tool.name);
+      assert.equal(
+        (response.structuredContent as { error: { code: string } }).error.code,
+        "insufficient_scope",
+        tool.name,
+      );
+    }
+    assert.equal(mutations, 0);
+  } finally {
+    await client.close();
+  }
+});
+
+test("registered MCP prompts enforce the same scope as the route pre-check", async () => {
+  const principal = {
+    ownerId: "test-owner",
+    kind: "token" as const,
+    scopes: ["brain:read"],
+  };
+  const handler = createBrainHandler(principal);
+  const client = new Client(
+    { name: "prompt-scope-consistency", version: "1.0.0" },
+    { versionNegotiation: { mode: { pin: "2026-07-28" } } },
+  );
+  try {
+    await client.connect(
+      new StreamableHTTPClientTransport(new URL("https://brain.example/mcp"), {
+        fetch: (input, init) => handler.fetch(new Request(input, init)),
+      }),
+    );
+    const { prompts } = await client.listPrompts();
+    assert.equal(prompts.length, 3);
+    for (const prompt of prompts) {
+      const scope = requiredMcpScope({
+        method: "prompts/get",
+        params: { name: prompt.name },
+      });
+      assert.ok(scope, `${prompt.name} must have a route-level scope`);
+      if (principal.scopes.includes(scope)) {
+        const result = await client.getPrompt({
+          name: prompt.name,
+          arguments: {},
+        });
+        assert.ok(result.messages.length > 0);
+      } else {
+        assert.throws(() => requireScope(principal, scope), AuthError);
+        await assert.rejects(
+          client.getPrompt({ name: prompt.name, arguments: {} }),
+          /requires brain:maintain/,
+        );
+      }
+    }
+    principal.scopes.push("brain:maintain");
+    const result = await client.getPrompt({
+      name: "nightly_consolidation",
+      arguments: {},
+    });
+    assert.ok(result.messages.length > 0);
+    assert.equal(
+      requiredMcpScope({ method: "prompts/get", params: { name: "unknown" } }),
+      undefined,
+    );
+  } finally {
+    await client.close();
   }
 });

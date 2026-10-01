@@ -3,14 +3,14 @@
 import { unstable_rethrow } from "next/navigation";
 import { ZodError } from "zod";
 import { read, write } from "@/lib/brain/service";
-import { BrainError, type BrainPage } from "@/lib/brain/types";
+import { BrainError, type DecoratedPage } from "@/lib/brain/types";
 import { updateWorkspaceCache } from "@/lib/workspace/cache";
 import { getWorkspaceUser } from "@/lib/workspace/session";
 
 export interface SavePageState {
-  savedPage?: BrainPage;
+  savedPage?: DecoratedPage;
   message?: string;
-  code?: string;
+  code?: "VERSION_CONFLICT" | "INVALID_INPUT" | "SAVE_FAILED";
   expectedVersion?: number;
 }
 
@@ -30,7 +30,7 @@ export async function savePageAction(
 ): Promise<SavePageState> {
   const id = value(form, "id") || undefined;
   const expectedVersion = Number(value(form, "expectedVersion"));
-  let savedPage: BrainPage;
+  let savedPage: DecoratedPage;
   let ownerId: string;
   try {
     const user = await getWorkspaceUser();
@@ -53,7 +53,14 @@ export async function savePageAction(
   } catch (error) {
     unstable_rethrow(error);
     if (error instanceof BrainError) {
-      return { message: error.message, code: error.code, expectedVersion };
+      return {
+        message: error.message,
+        code:
+          error.code === "VERSION_CONFLICT"
+            ? "VERSION_CONFLICT"
+            : "INVALID_INPUT",
+        expectedVersion,
+      };
     }
     if (error instanceof ZodError) {
       return {

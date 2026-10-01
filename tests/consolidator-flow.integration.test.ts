@@ -106,23 +106,23 @@ test(
       return runConsolidation(
         {
           snapshot: () => steps.snapshotConsolidation(owner, runId),
-          scan: (snapshot, budget) =>
-            steps.prepareConsolidationScan(owner, runId, snapshot.id, budget),
-          analyze: (snapshot, task) =>
-            steps.analyzeConsolidationTask(owner, runId, snapshot.id, task),
-          plan: (snapshot, results) =>
-            steps.planConsolidation(owner, runId, snapshot.id, results),
-          draft: (snapshot, plan, attempt, feedback) =>
+          scan: (snapshotId, budget) =>
+            steps.prepareConsolidationScan(owner, runId, snapshotId, budget),
+          analyze: (snapshotId, task) =>
+            steps.analyzeConsolidationTask(owner, runId, snapshotId, task),
+          plan: (snapshotId, results) =>
+            steps.planConsolidation(owner, runId, snapshotId, results),
+          draft: (snapshotId, plan, attempt, feedback) =>
             steps.draftConsolidation(
               owner,
               runId,
-              snapshot.id,
+              snapshotId,
               plan,
               attempt,
               feedback,
             ),
-          review: (snapshot, plan, draft) =>
-            steps.reviewConsolidation(owner, runId, snapshot.id, plan, draft),
+          review: (snapshotId, plan, draft) =>
+            steps.reviewConsolidation(owner, runId, snapshotId, plan, draft),
           apply: (changeSet) =>
             steps.applyConsolidation(owner, runId, changeSet),
           record: (key, value) =>

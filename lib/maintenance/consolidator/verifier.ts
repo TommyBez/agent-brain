@@ -1,9 +1,10 @@
 import { isDeepStrictEqual } from "node:util";
+import { fingerprint } from "../../canonical-json";
 import { batchQuestions } from "./batching";
 import { capacityVerification } from "./capacity";
 import { DECISION_POLICY, verificationThreshold } from "./decision-policy";
-import { projectEvidencePage } from "./editor";
-import { fingerprint, segmentPage } from "./snapshot";
+import { projectEvidencePage } from "./projections";
+import { segmentPage } from "./snapshot";
 import {
   type ChangeSet,
   type Evaluate,

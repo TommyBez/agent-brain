@@ -1,5 +1,6 @@
 import type { BrainPage, LinkType } from "../../brain/types";
 import { DECISION_POLICY } from "./decision-policy";
+import type { RecordKey } from "./keys";
 
 export type Json =
   | null
@@ -167,3 +168,49 @@ export const POLICY = {
   draftRepairs: 1,
   tasksPerRun: 2000,
 } as const;
+
+export type PlannedTask = {
+  selected: OperationPlan[];
+  deferred: number;
+  capacityLimited?: number;
+};
+export type Scan = {
+  tasks: AnalysisTask[];
+  cached: AnalysisResult[];
+  plans?: Record<string, PlannedTask>;
+  reused: number;
+  total: number;
+  remaining: number;
+};
+export type RunnerSteps = {
+  snapshot(): Promise<Snapshot>;
+  scan(snapshotId: string, taskBudget: number): Promise<Scan>;
+  analyze(
+    snapshotId: string,
+    task: AnalysisTask,
+  ): Promise<AnalysisResult | RunHalt>;
+  plan(
+    snapshotId: string,
+    results: AnalysisResult[],
+  ): Promise<{
+    selected: OperationPlan[];
+    deferred: number;
+    capacityLimited?: number;
+  }>;
+  draft(
+    snapshotId: string,
+    plan: OperationPlan,
+    attempt: number,
+    feedback?: string[],
+  ): Promise<DraftOutcome>;
+  review(
+    snapshotId: string,
+    plan: OperationPlan,
+    draft: Draft,
+  ): Promise<
+    { changeSet: ChangeSet | null; verification: Verification } | RunHalt
+  >;
+  apply(changeSet: ChangeSet): Promise<ApplyResult>;
+  record(key: RecordKey, value: unknown): Promise<void>;
+  queue(completedTaskIds: string[]): Promise<void>;
+};

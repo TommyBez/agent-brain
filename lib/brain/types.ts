@@ -41,16 +41,24 @@ export interface BrainLink {
   targetId: string;
   type: LinkType;
   label: string;
-  targetTitle?: string;
-  targetSlug?: string;
-  sourceTitle?: string;
-  sourceSlug?: string;
+}
+
+export interface DecoratedLink extends BrainLink {
+  targetTitle: string;
+  targetSlug: string;
+  sourceTitle: string;
+  sourceSlug: string;
 }
 
 export interface BrainPage extends PageSummary {
   markdown: string;
   links: BrainLink[];
   backlinks: BrainLink[];
+}
+
+export interface DecoratedPage extends BrainPage {
+  links: DecoratedLink[];
+  backlinks: DecoratedLink[];
 }
 
 export interface SearchResult extends PageSummary {
@@ -102,4 +110,15 @@ export class BrainError extends Error {
     super(message);
     this.name = "BrainError";
   }
+}
+
+export const MAX_PAGE_CHARACTERS = 200_000;
+export function isPageType(value: unknown): value is PageType {
+  return PAGE_TYPES.some((type) => type === value);
+}
+export function isLinkType(value: unknown): value is LinkType {
+  return LINK_TYPES.some((type) => type === value);
+}
+export function parseSort(value: unknown): "updated" | "title" {
+  return value === "title" ? "title" : "updated";
 }

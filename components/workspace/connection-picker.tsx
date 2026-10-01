@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useId, useState } from "react";
-import { request } from "@/components/brain-types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,6 +8,7 @@ import {
   NativeSelect,
   NativeSelectOption,
 } from "@/components/ui/native-select";
+import { request } from "@/lib/request";
 import { CONNECTION_PAGE_SIZE } from "@/lib/workspace/urls";
 
 export type ConnectionChoice = { id: string; title: string };
