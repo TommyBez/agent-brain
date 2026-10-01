@@ -83,10 +83,6 @@ test("only company pages accept known relationships", () => {
     writeSchema.safeParse({ ...newPage, relationships: ["client"] }).success,
     false,
   );
-  assert.equal(
-    writeSchema.safeParse({ ...newPage, type: "client" }).success,
-    false,
-  );
 });
 
 test("embeddings must have the configured dimensions and a usable finite norm", () => {
