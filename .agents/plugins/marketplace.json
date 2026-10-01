@@ -1,0 +1,17 @@
+{
+  "name": "agent-brain-plugins",
+  "plugins": [
+    {
+      "name": "agent-brain",
+      "source": {
+        "source": "local",
+        "path": "./plugins/agent-brain"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

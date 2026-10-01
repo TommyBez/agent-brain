@@ -1,0 +1,13 @@
+{
+  "name": "agent-brain-plugins",
+  "owner": {
+    "name": "Tommaso"
+  },
+  "plugins": [
+    {
+      "name": "agent-brain",
+      "source": "./plugins/agent-brain",
+      "description": "Retrieve and preserve private knowledge with a native brain through MCP."
+    }
+  ]
+}

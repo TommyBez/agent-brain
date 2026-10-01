@@ -1,0 +1,12 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "agent-brain",
+  "version": "0.1.0",
+  "description": "Retrieve and preserve private knowledge with a native brain through MCP.",
+  "author": {
+    "name": "Tommaso",
+    "url": "https://github.com/TommyBez"
+  },
+  "repository": "https://github.com/TommyBez/agent-brain",
+  "keywords": ["memory", "knowledge", "mcp"]
+}

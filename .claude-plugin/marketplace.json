@@ -1,0 +1,14 @@
+{
+  "name": "agent-brain-plugins",
+  "description": "Connect agents to a native brain for private memory and knowledge retrieval.",
+  "owner": {
+    "name": "Tommaso"
+  },
+  "plugins": [
+    {
+      "name": "agent-brain",
+      "source": "./plugins/agent-brain",
+      "description": "Retrieve and preserve private knowledge with a native brain through MCP."
+    }
+  ]
+}
