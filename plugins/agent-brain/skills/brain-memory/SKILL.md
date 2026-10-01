@@ -9,7 +9,7 @@ Use the owner's private brain as a source of context and durable knowledge. Each
 
 ## When to activate
 
-- **Notice knowledge worth preserving:** activate during any task or conversation when you encounter information likely to help future work with the user, such as a person's role or relationship, a company's priorities, a project's constraints or progress, a decision and its rationale, or a meaningful open question. Do not wait for “save this” or for the conversation to end. Activation means assessing whether the information belongs in Brain; it does not mean saving every observation.
+- **Notice knowledge worth preserving:** activate during any task or conversation when you encounter information likely to help future work with the user, such as a person's role or relationship, a company's priorities, a project's constraints or progress, a decision and its rationale, or a substantive question already raised by the user or a source. Do not wait for “save this” or for the conversation to end. Activation means assessing whether the information belongs in Brain; it does not mean saving every observation.
 - **Need context about the user's world:** activate whenever the task needs background about people, projects, companies, clients or prospects the user deals with. This includes preparing a meeting, drafting a proposal, continuing a project or understanding a prior decision, even without an explicit recall request. Retrieve relevant Brain context before relying on assumptions or asking the user to repeat information that may already be stored.
 - **Explicit Brain work:** activate for requested retrieval, saving or organization of Brain knowledge.
 
@@ -34,13 +34,15 @@ Pass plain-text queries to `search` and `context`; the server supplies query emb
 
 ## Preserve knowledge during or after work
 
-When you notice a candidate memory or receive a requested update, assess its future usefulness and compare it with the relevant existing pages. Retain durable facts, decisions, rationale, sources and meaningful open questions; skip transient chatter, unchanged duplicates and unsupported guesses. A retrieval-only task does not require a write.
+When you notice a candidate memory or receive a requested update, assess its future usefulness and compare it with the relevant existing pages. Retain durable facts, decisions, rationale and sources; skip transient chatter, unchanged duplicates and unsupported guesses. No write is a correct outcome when nothing useful can be added or corrected. A retrieval-only task does not require a write.
 
 Save when authorized by the user's request or standing instructions, without asking again for already authorized updates. Otherwise, briefly propose the concrete information worth preserving and ask before writing. Discovering useful information or having a write-capable connection does not itself authorize a save. Keep the user's language and terminology; do not turn the entire conversation into a transcript or create a page for every isolated fact.
 
-- Resolve each entity and link target, then read current pages before changing them. Create a page only when no existing entity fits. A similar name alone is insufficient to merge people, companies or projects.
+- Resolve each entity and link target, then read current pages before changing them. Create a page only when no existing entity fits. A similar name alone is insufficient to merge people, companies or projects. Compare the proposed information with existing content, including other relevant pages; keep shared knowledge in its appropriate canonical home and reference it where useful rather than copying it. Preserve necessary local context and distinct details or sources.
 - Choose `append` for a genuinely additive, sourced passage. Choose `write` to revise or reorganize the full page, including its metadata and outgoing links. Read [Writing pages](references/writing-pages.md) before constructing either payload.
-- Preserve useful earlier knowledge and decision rationale. Date time-sensitive statements, distinguish confirmed information from inference, and retain contradictory evidence with attribution instead of silently choosing a winner. Ask about material uncertainty that would otherwise become a stored fact; proceed with independent confirmed updates.
+- Preserve useful earlier knowledge, decision rationale, sources, dates, scope, conditions, exceptions, negations, quantities and degree of certainty. Distinguish confirmed information from inference and date time-sensitive statements. Do not introduce incompatible claims about the same subject, scope and period. Reconcile contradictions only when evidence establishes a correction or a difference in time or scope; otherwise retain the attributed conflict without choosing a winner. Page update timestamps do not establish factual recency.
+- Preserve original user requests, substantive questions and genuine uncertainty already present in the conversation, sources or pages. Do not invent open issues, confirmation requests, checklists or human tasks to fill missing evidence. If a clarification is necessary for the user's current task, ask in the conversation and continue independent confirmed updates; do not persist the clarification request as new work for the owner. Autonomous maintenance leaves unsupported changes unapplied.
+- Store knowledge about the page's subject, not reports, logs or diaries of the agent's saving or maintenance activity. Keep operational failures and unresolved mutation outcomes in the tool/job state or completion report. Avoid cosmetic maintenance rewrites and edits that merely increase the write count; an explicitly requested presentation change remains within scope.
 - Include an accurate `reason` and `source` for each mutation. Put supporting dates and source references in the Markdown where readers need them. Do not invent source URLs or retain credentials and unnecessary sensitive details.
 
 ## Maintenance is a separate task
@@ -54,13 +56,13 @@ For an authorized external maintenance worker, request `nightly_consolidation` a
 ## Verify
 
 - Check tool results before claiming success. An HTTP response or a requested MCP prompt alone does not prove that a read or save succeeded.
-- After `write` or `append`, call `read` to confirm the intended change and preservation of existing information, metadata and outgoing links. Use the actual returned references and version.
+- Before `write` or `append`, check that the intended result adds useful supported knowledge or makes a useful evidence-backed improvement or explicitly requested presentation change without introducing repetition, incompatible claims, invented human work or an activity diary. After saving, call `read` to confirm the intended change and preservation of existing information, metadata and outgoing links. Use the actual returned references and version.
 - After an uncertain transport result, read the current state before retrying, especially for `append`. If the change is already present, do not repeat it; if its outcome cannot be established, leave that mutation unresolved.
 
 ## Done when
 
 - **Retrieval:** the answer is grounded in returned page references and versions, with missing evidence or uncertainty made explicit.
-- **Saving:** the intended changes are confirmed by readback, and the final report identifies what was saved, its canonical references and resulting versions.
+- **Saving:** the intended changes are confirmed by readback, and the final report identifies what was saved, its canonical references and resulting versions; if nothing useful needed saving, report that accurately.
 - **Maintenance:** the authorized work is verified and the report distinguishes completed work from remaining gaps or uncertain candidates.
 
 Report blocked operations, unresolved conflicts and unverified saves as unfinished; do not declare the task complete while required work remains.

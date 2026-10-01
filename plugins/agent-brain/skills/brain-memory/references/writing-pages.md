@@ -56,7 +56,7 @@ const appendArguments = {
 };
 ```
 
-Append inserts a paragraph break before the new passage and preserves metadata and links. It does not update the summary or deduplicate repeated passages. Check the existing page before appending. Omit embedding fields for ordinary writes; indexing is handled separately.
+Append inserts a paragraph break before the new passage and preserves metadata and links. It does not update the summary or deduplicate repeated passages. Append only the supported information missing from the current page. When a new fact corrects an existing claim or makes the summary stale, use a reconciled full `write` instead of appending an incompatible statement. If the information is already present, skip the mutation. Omit embedding fields for ordinary writes; indexing is handled separately.
 
 ## Organize entities and links
 
@@ -70,7 +70,7 @@ Provenance fields record why the mutation happened and where the information cam
 
 ## Reconcile failures
 
-- `VERSION_CONFLICT`: read again, compare the concurrent changes and reconcile the intended update. Retry with the newly read version and reconciled content only when the evidence supports it. Never just replace the version number in an old payload. If conflicting claims require a user decision, report them instead of overwriting.
+- `VERSION_CONFLICT`: read again, compare the concurrent changes and reconcile the intended update. Retry with the newly read version and reconciled content only when the evidence supports it; skip the retry if the intended information is already present. Never just replace the version number in an old payload. If conflicting claims require a user decision for the current task, report them in the conversation instead of overwriting or adding a new task to a canonical page. Autonomous maintenance leaves unsupported changes unapplied.
 - `DUPLICATE_ENTITY`: resolve and inspect the existing page. Do not evade identity checks by inventing a suffixed slug or dropping a known alias.
 - Missing target or validation error: correct the reference or payload using the live schema. Do not silently remove existing links to make a write pass.
 - Unknown save outcome: read back before retrying. If an append is already present, do not append it again; if the outcome cannot be established, report the uncertainty and pause that mutation.
