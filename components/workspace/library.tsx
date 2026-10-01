@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { entityTypes } from "@/lib/brain/labels";
+import { entityTypes, relationshipLabels } from "@/lib/brain/labels";
 import type { PageType } from "@/lib/brain/types";
 import { relativeTime } from "@/lib/formatters";
 import { getWorkspacePages, getWorkspaceStats } from "@/lib/workspace/data";
@@ -58,6 +58,7 @@ async function LibraryResults({
   const { pages, total } = await getWorkspacePages({
     query: filters.query || undefined,
     type: filters.type || undefined,
+    relationship: filters.relationship || undefined,
     sort: filters.sort,
     limit: LIBRARY_PAGE_SIZE,
     offset: filters.offset,
@@ -93,7 +94,12 @@ async function LibraryResults({
                     className={`entity-${page.type} flex items-center gap-2 text-[10px] font-medium tracking-[0.1em] uppercase text-secondary-foreground`}
                   >
                     <EntityIcon type={page.type} size={14} />
-                    {page.type}
+                    {[
+                      page.type,
+                      ...page.relationships.map(
+                        (relationship) => relationshipLabels[relationship],
+                      ),
+                    ].join(" · ")}
                   </span>
                   <ArrowUpRight
                     size={15}
@@ -146,7 +152,7 @@ async function LibraryResults({
                 <Link
                   href={
                     filters.type
-                      ? `/pages/new?type=${filters.type}`
+                      ? `/pages/new?type=${filters.type}${filters.relationship ? `&relationship=${filters.relationship}` : ""}`
                       : "/pages/new"
                   }
                 >

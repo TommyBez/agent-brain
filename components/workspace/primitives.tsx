@@ -21,7 +21,7 @@ import type { PageType } from "@/lib/brain/types";
 
 export const typeIcons: Record<PageType, LucideIcon> = {
   person: Users,
-  client: Building2,
+  company: Building2,
   project: FolderOpen,
   article: FileText,
   decision: Check,

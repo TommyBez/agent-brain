@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { LINK_TYPES, MAX_PAGE_CHARACTERS, PAGE_TYPES } from "./types";
+import {
+  COMPANY_RELATIONSHIPS,
+  LINK_TYPES,
+  MAX_PAGE_CHARACTERS,
+  PAGE_TYPES,
+} from "./types";
 
 // Changing dimensions requires a matching migration and re-embedding the corpus.
 export const EMBEDDING_DIMENSIONS = 1536;
@@ -52,11 +57,26 @@ export const writeSchema = z
     summary: z.string().trim().max(2000).default(""),
     aliases: z.array(z.string().trim().min(1).max(200)).max(30).default([]),
     tags: z.array(z.string().trim().min(1).max(80)).max(30).default([]),
+    // Omitted on update keeps the stored relationships of a company page.
+    relationships: z
+      .array(z.enum(COMPANY_RELATIONSHIPS))
+      .max(COMPANY_RELATIONSHIPS.length)
+      .optional()
+      .describe(
+        "Company pages only: client, prospect and/or former_employer. Empty for a plain company contact. Omit on update to keep the current value.",
+      ),
     links: z.array(linkSchema).max(100).default([]),
     ...provenance,
   })
   .strict()
   .superRefine((input, context) => {
+    if (input.type !== "company" && input.relationships?.length) {
+      context.addIssue({
+        code: "custom",
+        path: ["relationships"],
+        message: "Only company pages can have relationships",
+      });
+    }
     if (input.expectedVersion > 0 !== Boolean(input.id)) {
       context.addIssue({
         code: "custom",
@@ -111,6 +131,10 @@ export const listPagesSchema = z
   .object({
     query: z.string().trim().max(1000).optional(),
     type: z.enum(PAGE_TYPES).optional(),
+    relationship: z
+      .enum(COMPANY_RELATIONSHIPS)
+      .optional()
+      .describe("Only company pages holding this relationship."),
     sort: z.enum(["updated", "title"]).default("updated"),
     limit: z.number().int().min(1).max(100).default(50),
     offset: z.number().int().min(0).default(0),

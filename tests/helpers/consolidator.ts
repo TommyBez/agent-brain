@@ -13,6 +13,7 @@ export function page(id: string, markdown = `Fact about ${id}.`): BrainPage {
     type: "note",
     markdown,
     summary: "",
+    relationships: [],
     aliases: [],
     tags: [],
     version: 1,

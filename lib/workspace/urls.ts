@@ -2,11 +2,17 @@ import { paginationOffset } from "./pagination";
 
 export { WORKSPACE_PAGE_SIZE as LIBRARY_PAGE_SIZE } from "./pagination";
 
-import { PAGE_TYPES, type PageType, parseSort } from "@/lib/brain/types";
+import {
+  type CompanyRelationship,
+  isCompanyRelationship,
+  PAGE_TYPES,
+  type PageType,
+  parseSort,
+} from "@/lib/brain/types";
 
 export const collectionPaths: Record<PageType, string> = {
   person: "/people",
-  client: "/clients",
+  company: "/companies",
   project: "/projects",
   article: "/articles",
   decision: "/decisions",
@@ -24,6 +30,8 @@ export function collectionTypeFromPathname(pathname: string): PageType | "" {
 export type LibraryFilters = {
   query: string;
   type: PageType | "";
+  /** Narrows the companies collection; ignored for every other collection. */
+  relationship: CompanyRelationship | "";
   sort: "updated" | "title";
   offset: number;
 };
@@ -42,9 +50,14 @@ export function parseLibraryFilters(
   params: { get(name: string): string | null },
   type: PageType | "" = "",
 ): LibraryFilters {
+  const relationship = params.get("relationship");
   return {
     query: (params.get("q") ?? "").trim().slice(0, 500),
     type,
+    relationship:
+      type === "company" && isCompanyRelationship(relationship)
+        ? relationship
+        : "",
     sort: parseSort(params.get("sort")),
     offset: paginationOffset(params.get("offset"), 100_000),
   };
@@ -61,6 +74,8 @@ export function routeSearchParams(values: RouteSearchParams) {
 export function libraryHref(filters: Partial<LibraryFilters> = {}) {
   const params = new URLSearchParams();
   if (filters.query) params.set("q", filters.query);
+  if (filters.type === "company" && filters.relationship)
+    params.set("relationship", filters.relationship);
   if (filters.sort === "title") params.set("sort", "title");
   if (filters.offset) params.set("offset", String(filters.offset));
   const pathname = collectionHref(filters.type ?? "");

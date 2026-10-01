@@ -112,8 +112,8 @@
     --secondary: #f3e5db;
     --border: #e9d7ca;
   }
-  .entity-client,
-  .type-client {
+  .entity-company,
+  .type-company {
     --secondary-foreground: #48647e;
     --secondary: #e6ecf1;
     --border: #d5e0e8;

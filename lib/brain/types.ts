@@ -1,12 +1,23 @@
 export const PAGE_TYPES = [
   "person",
-  "client",
+  "company",
   "project",
   "article",
   "decision",
   "note",
 ] as const;
 export type PageType = (typeof PAGE_TYPES)[number];
+
+/**
+ * How the owner relates to a company page. A company may hold several at once
+ * (a former employer that became a client); none means a plain contact.
+ */
+export const COMPANY_RELATIONSHIPS = [
+  "client",
+  "prospect",
+  "former_employer",
+] as const;
+export type CompanyRelationship = (typeof COMPANY_RELATIONSHIPS)[number];
 
 export const LINK_TYPES = [
   "works_at",
@@ -27,6 +38,8 @@ export interface PageSummary {
   title: string;
   type: PageType;
   summary: string;
+  /** Only company pages carry relationships; other types are always empty. */
+  relationships: CompanyRelationship[];
   aliases: string[];
   tags: string[];
   version: number;
@@ -115,6 +128,11 @@ export class BrainError extends Error {
 export const MAX_PAGE_CHARACTERS = 200_000;
 export function isPageType(value: unknown): value is PageType {
   return PAGE_TYPES.some((type) => type === value);
+}
+export function isCompanyRelationship(
+  value: unknown,
+): value is CompanyRelationship {
+  return COMPANY_RELATIONSHIPS.some((relationship) => relationship === value);
 }
 export function isLinkType(value: unknown): value is LinkType {
   return LINK_TYPES.some((type) => type === value);

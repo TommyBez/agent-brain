@@ -64,6 +64,35 @@ test("write inputs cannot smuggle ownership or untyped graph relations", () => {
   );
 });
 
+test("only company pages accept known relationships", () => {
+  const company = { ...newPage, title: "Acme", type: "company" };
+  assert.deepEqual(
+    writeSchema.parse({
+      ...company,
+      relationships: ["client", "former_employer"],
+    }).relationships,
+    ["client", "former_employer"],
+  );
+  // Omitted is distinct from empty: an update then keeps stored relationships.
+  assert.equal(writeSchema.parse(company).relationships, undefined);
+  assert.deepEqual(
+    writeSchema.parse({ ...company, relationships: [] }).relationships,
+    [],
+  );
+  assert.equal(
+    writeSchema.safeParse({ ...company, relationships: ["partner"] }).success,
+    false,
+  );
+  assert.equal(
+    writeSchema.safeParse({ ...newPage, relationships: ["client"] }).success,
+    false,
+  );
+  assert.equal(
+    writeSchema.safeParse({ ...newPage, type: "client" }).success,
+    false,
+  );
+});
+
 test("embeddings must have the configured dimensions and a usable finite norm", () => {
   const valid = Array.from({ length: EMBEDDING_DIMENSIONS }, (_, i) =>
     i === 0 ? 1 : 0,

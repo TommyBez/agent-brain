@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/item";
 import { Pagination } from "@/components/workspace/pagination";
 import { Empty, EntityIcon } from "@/components/workspace/primitives";
+import { relationshipLabels } from "@/lib/brain/labels";
 import { BrainError, type BrainPage } from "@/lib/brain/types";
 import { formatDate } from "@/lib/formatters";
 import {
@@ -77,9 +78,19 @@ function PageHeadingContent({ page }: { page: BrainPage }) {
     <>
       <div className="flex flex-col items-start justify-between gap-4 sm:flex-row">
         <div className="min-w-0 max-w-[760px] space-y-5">
-          <Badge variant="secondary" className={`capitalize type-${page.type}`}>
-            <EntityIcon type={page.type} size={13} /> {page.type}
-          </Badge>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge
+              variant="secondary"
+              className={`capitalize type-${page.type}`}
+            >
+              <EntityIcon type={page.type} size={13} /> {page.type}
+            </Badge>
+            {page.relationships.map((relationship) => (
+              <Badge key={relationship} variant="outline">
+                {relationshipLabels[relationship]}
+              </Badge>
+            ))}
+          </div>
           <h1 className="wrap-anywhere font-serif text-4xl font-normal leading-[1.15] tracking-[-0.04em] sm:text-5xl">
             {page.title}
           </h1>

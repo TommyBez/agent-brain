@@ -15,9 +15,13 @@ import {
   NativeSelect,
   NativeSelectOption,
 } from "@/components/ui/native-select";
-import { entityTypes } from "@/lib/brain/labels";
+import { companyRelationships, entityTypes } from "@/lib/brain/labels";
 import type { BrainStats as Stats } from "@/lib/brain/types";
-import { type PageType, parseSort } from "@/lib/brain/types";
+import {
+  isCompanyRelationship,
+  type PageType,
+  parseSort,
+} from "@/lib/brain/types";
 import {
   type LibraryFilters,
   libraryHref,
@@ -134,6 +138,28 @@ export function LibraryControls({ type }: { type: PageType | "" }) {
               </InputGroupAddon>
             )}
           </InputGroup>
+          {type === "company" && (
+            <div className="w-36 shrink-0 sm:w-40">
+              <NativeSelect
+                className="h-10 border-0 bg-transparent shadow-none text-xs"
+                aria-label="Filter companies by relationship"
+                value={filters.relationship}
+                onChange={(event) => {
+                  const next = event.target.value;
+                  navigate({
+                    relationship: isCompanyRelationship(next) ? next : "",
+                  });
+                }}
+              >
+                <NativeSelectOption value="">All companies</NativeSelectOption>
+                {companyRelationships.map((item) => (
+                  <NativeSelectOption key={item.id} value={item.id}>
+                    {item.label}
+                  </NativeSelectOption>
+                ))}
+              </NativeSelect>
+            </div>
+          )}
           <div className="w-32 shrink-0 sm:w-36">
             <NativeSelect
               className="h-10 border-0 bg-transparent shadow-none text-xs"

@@ -227,7 +227,7 @@ test(
       async () => {
         for (const [path, title] of [
           ["/people", "People"],
-          ["/clients", "Clients"],
+          ["/companies", "Companies"],
           ["/projects", "Projects"],
           ["/articles", "Articles"],
           ["/decisions", "Decisions"],

@@ -1,6 +1,6 @@
 # a native brain
 
-A private, agent-native second brain. The “a” also stands for “agent”. One canonical Markdown page per person, client, project, article, decision or note, connected by typed links. Postgres is the source of truth. Conversations happen in your agent; this application stores, validates, organizes and retrieves knowledge.
+A private, agent-native second brain. The “a” also stands for “agent”. One canonical Markdown page per person, company, project, article, decision or note, connected by typed links. A company page records whether it is a client, a prospect, a former employer, or simply a company you have been in touch with. Postgres is the source of truth. Conversations happen in your agent; this application stores, validates, organizes and retrieves knowledge.
 
 The MCP request path exposes validated storage and retrieval primitives, with automatic query embeddings. Vercel Cron starts a durable Vercel Workflow for consolidation, page embeddings and Git export. Remote MCP is the primary interface. The browser provides a knowledge desk for reading, editing, graph navigation, revisions, credentials and operational status.
 
@@ -85,7 +85,7 @@ External headless agents have a separate optional token path: create a scoped to
 
 Maintenance tools expose paginated pages, gaps and pending chunk embeddings. `pending_embeddings` with `chunkLimit` returns a bounded batch of missing inputs; `index_chunks` accepts version-checked batches and publishes the index only when the full page is covered. Procedures are MCP instructions, resource `brain://procedures`, and prompts `before_work`, `after_conversation`, `nightly_consolidation`. The canonical procedure text lives in `lib/mcp/server.ts`; the portable skill refers to these prompts.
 
-All tools scope data to the authenticated owner. Foreign keys prevent cross-owner links. Accepted writes create full revisions and audit entries. On conflict, reread and reconcile. `write` replaces aliases, tags and outgoing links, so callers must preserve existing values deliberately.
+All tools scope data to the authenticated owner. Foreign keys prevent cross-owner links. Accepted writes create full revisions and audit entries. On conflict, reread and reconcile. `write` replaces aliases, tags and outgoing links, so callers must preserve existing values deliberately. A company's `relationships` are kept when omitted on update.
 
 ## Agent skill
 

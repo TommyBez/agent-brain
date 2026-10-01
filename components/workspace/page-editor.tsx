@@ -16,20 +16,29 @@ import {
 } from "@/app/(workspace)/actions/pages";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
   NativeSelect,
   NativeSelectOption,
 } from "@/components/ui/native-select";
 import { Spinner } from "@/components/ui/spinner";
-import { entityTypes } from "@/lib/brain/labels";
+import { companyRelationships, entityTypes } from "@/lib/brain/labels";
 import {
+  type CompanyRelationship,
   type DecoratedPage,
   isPageType,
   type PageType,
@@ -43,10 +52,12 @@ import { useDuplicateCheck } from "./use-duplicate-check";
 export function PageEditor({
   initialPage,
   initialType = "note",
+  initialRelationships = [],
   choices,
 }: {
   initialPage: DecoratedPage | null;
   initialType?: PageType;
+  initialRelationships?: CompanyRelationship[];
   choices: ConnectionChoices;
 }) {
   const router = useRouter();
@@ -54,10 +65,19 @@ export function PageEditor({
   const [page, setPage] = useState(initialPage);
   const id = initialPage?.id;
   const [draft, setDraft] = useState(() =>
-    draftFromPage(initialPage, initialType),
+    draftFromPage(initialPage, initialType, initialRelationships),
   );
-  const { title, type, summary, markdown, aliases, tags, reason, links } =
-    draft;
+  const {
+    title,
+    type,
+    summary,
+    relationships,
+    markdown,
+    aliases,
+    tags,
+    reason,
+    links,
+  } = draft;
   function updateDraft<K extends keyof PageDraft>(key: K, value: PageDraft[K]) {
     setDraft((current) => ({ ...current, [key]: value }));
   }
@@ -94,7 +114,7 @@ export function PageEditor({
 
   function resetDraft(current: DecoratedPage | null) {
     resetDuplicates();
-    setDraft(draftFromPage(current, initialType));
+    setDraft(draftFromPage(current, initialType, initialRelationships));
     setConnectionsEpoch((epoch) => epoch + 1);
     setComparison(false);
     setNotice("");
@@ -211,6 +231,48 @@ export function PageEditor({
           </NativeSelect>
         </Field>
       </FieldGroup>
+      {type === "company" && (
+        <FieldSet>
+          <FieldLegend variant="label">Relationship</FieldLegend>
+          <input
+            type="hidden"
+            name="relationships"
+            value={relationships.join(",")}
+          />
+          <div className="flex flex-wrap gap-x-6 gap-y-3">
+            {companyRelationships.map((item) => (
+              <Field key={item.id} orientation="horizontal" className="w-auto">
+                <Checkbox
+                  id={`${fieldId}-relationship-${item.id}`}
+                  checked={relationships.includes(item.id)}
+                  onCheckedChange={(checked) =>
+                    updateDraft(
+                      "relationships",
+                      companyRelationships
+                        .map(({ id }) => id)
+                        .filter((id) =>
+                          id === item.id
+                            ? checked === true
+                            : relationships.includes(id),
+                        ),
+                    )
+                  }
+                />
+                <FieldLabel
+                  htmlFor={`${fieldId}-relationship-${item.id}`}
+                  className="font-normal"
+                >
+                  {item.label}
+                </FieldLabel>
+              </Field>
+            ))}
+          </div>
+          <FieldDescription>
+            Leave all unchecked for a company you have simply been in touch
+            with.
+          </FieldDescription>
+        </FieldSet>
+      )}
       {duplicates.length > 0 && (
         <Alert>
           <AlertTitle>A page may already exist.</AlertTitle>

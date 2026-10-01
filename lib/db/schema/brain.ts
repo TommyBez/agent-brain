@@ -17,9 +17,14 @@ import {
   uuid,
   vector,
 } from "drizzle-orm/pg-core";
-import { LINK_TYPES, MAX_PAGE_CHARACTERS, PAGE_TYPES } from "../../brain/types";
+import {
+  COMPANY_RELATIONSHIPS,
+  LINK_TYPES,
+  MAX_PAGE_CHARACTERS,
+  PAGE_TYPES,
+} from "../../brain/types";
 import { user } from "./auth";
-import { oneOf } from "./checks";
+import { oneOf, subsetOf } from "./checks";
 
 const tsvector = customType<{ data: string }>({
   dataType() {
@@ -79,6 +84,7 @@ export const brainPages = pgTable(
     markdown: text().notNull(),
     aliases: text().array().default(sql`'{}'::text[]`).notNull(),
     tags: text().array().default(sql`'{}'::text[]`).notNull(),
+    relationships: text().array().default(sql`'{}'::text[]`).notNull(),
     version: integer().default(1).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
       .defaultNow()
@@ -128,6 +134,10 @@ export const brainPages = pgTable(
       sql`(char_length(slug) >= 1) AND (char_length(slug) <= 200)`,
     ),
     check("brain_pages_type_check", oneOf(table.type, PAGE_TYPES)),
+    check(
+      "brain_pages_relationships_check",
+      sql`${subsetOf(table.relationships, COMPANY_RELATIONSHIPS)} AND (type = 'company'::text OR cardinality(relationships) = 0)`,
+    ),
     check(
       "brain_pages_title_check",
       sql`(char_length(title) >= 1) AND (char_length(title) <= 200)`,

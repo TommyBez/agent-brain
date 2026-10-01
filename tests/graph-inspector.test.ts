@@ -15,6 +15,7 @@ function node(id: string): GraphNode {
     title: id,
     type: "note",
     summary: "",
+    relationships: [],
     aliases: [],
     tags: [],
     version: 1,

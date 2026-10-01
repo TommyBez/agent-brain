@@ -10,7 +10,7 @@ import {
 test("collections use addressable plural routes, including irregular people", () => {
   const collections = [
     ["person", "/people"],
-    ["client", "/clients"],
+    ["company", "/companies"],
     ["project", "/projects"],
     ["article", "/articles"],
     ["decision", "/decisions"],
@@ -58,6 +58,7 @@ test("collection type comes from the route and cannot be overridden by query par
   assert.deepEqual(parseLibraryFilters(params, "project"), {
     query: "roadmap",
     type: "project",
+    relationship: "",
     sort: "title",
     offset: 50,
   });
@@ -75,7 +76,13 @@ test("collection filters still bound user-controlled search and pagination", () 
       }),
       "article",
     ),
-    { query: "a phrase", type: "article", sort: "updated", offset: 0 },
+    {
+      query: "a phrase",
+      type: "article",
+      relationship: "",
+      sort: "updated",
+      offset: 0,
+    },
   );
   assert.equal(
     parseLibraryFilters(new URLSearchParams({ q: "x".repeat(501) })).query
@@ -92,4 +99,24 @@ test("collection filters still bound user-controlled search and pagination", () 
       0,
     );
   }
+});
+
+test("companies filter by relationship; other collections ignore it", () => {
+  const params = new URLSearchParams("relationship=prospect&q=acme");
+  assert.equal(parseLibraryFilters(params, "company").relationship, "prospect");
+  assert.equal(parseLibraryFilters(params, "person").relationship, "");
+  assert.equal(parseLibraryFilters(params).relationship, "");
+  assert.equal(
+    parseLibraryFilters(new URLSearchParams("relationship=partner"), "company")
+      .relationship,
+    "",
+  );
+  assert.equal(
+    libraryHref({ type: "company", relationship: "former_employer" }),
+    "/companies?relationship=former_employer",
+  );
+  assert.equal(
+    libraryHref({ type: "project", relationship: "client" }),
+    "/projects",
+  );
 });
