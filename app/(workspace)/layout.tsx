@@ -5,7 +5,6 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarInset,
-  SidebarProvider,
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,6 +18,7 @@ import {
   OwnerMenu,
   WorkspaceBrand,
   WorkspaceHeader,
+  WorkspaceSidebarProvider,
 } from "@/components/workspace/shell";
 import { getWorkspaceStats } from "@/lib/workspace/data";
 import { getWorkspaceUser } from "@/lib/workspace/session";
@@ -35,7 +35,7 @@ async function OwnerProfile() {
 export default function WorkspaceLayout({ children }: { children: ReactNode }) {
   return (
     <TooltipProvider>
-      <SidebarProvider>
+      <WorkspaceSidebarProvider>
         <CommandMenuProvider>
           <a
             href="#main-content"
@@ -80,7 +80,7 @@ export default function WorkspaceLayout({ children }: { children: ReactNode }) {
             </div>
           </SidebarInset>
         </CommandMenuProvider>
-      </SidebarProvider>
+      </WorkspaceSidebarProvider>
     </TooltipProvider>
   );
 }

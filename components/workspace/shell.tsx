@@ -3,7 +3,13 @@
 import { ChevronsUpDown, LogOut, Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Fragment, Suspense, useState } from "react";
+import {
+  Fragment,
+  type ReactNode,
+  Suspense,
+  useLayoutEffect,
+  useState,
+} from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Breadcrumb,
@@ -28,6 +34,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarProvider,
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
@@ -36,6 +43,33 @@ import { entityTypes } from "@/lib/brain/labels";
 import { collectionTypeFromPathname } from "@/lib/workspace/urls";
 import { useCommandMenu } from "./command-menu";
 import { SidebarLink } from "./navigation";
+
+// SidebarProvider persists its state in the `sidebar_state` cookie. Reading it
+// in the layout would make the prerendered shell request-time, so the browser
+// restores it while hydrating, with transitions off for that first paint.
+export function WorkspaceSidebarProvider({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const [open, setOpen] = useState(true);
+  const [restoring, setRestoring] = useState(true);
+  useLayoutEffect(() => {
+    if (document.cookie.split("; ").includes("sidebar_state=false"))
+      setOpen(false);
+    const frame = requestAnimationFrame(() => setRestoring(false));
+    return () => cancelAnimationFrame(frame);
+  }, []);
+  return (
+    <SidebarProvider
+      open={open}
+      onOpenChange={setOpen}
+      className={restoring ? "[&_*]:transition-none" : undefined}
+    >
+      {children}
+    </SidebarProvider>
+  );
+}
 
 export function WorkspaceBrand() {
   return (

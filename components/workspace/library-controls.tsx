@@ -2,8 +2,8 @@
 
 import { Search, X } from "lucide-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useRef, useState, useTransition } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useLayoutEffect, useRef, useState, useTransition } from "react";
 import {
   InputGroup,
   InputGroupAddon,
@@ -66,16 +66,20 @@ export function LibraryCollections({
 // lives in the command menu (⌘K).
 export function LibraryControls({ type }: { type: PageType | "" }) {
   const router = useRouter();
-  const filters = parseLibraryFilters(useSearchParams(), type);
+  const pathname = usePathname();
+  const params = useSearchParams();
+  const filters = parseLibraryFilters(params, type);
   const [pending, startTransition] = useTransition();
   const input = useRef<HTMLInputElement>(null);
   const [draft, setDraft] = useState(filters.query);
-  // Back/Forward and collection links replace an unsubmitted draft.
-  const [shownQuery, setShownQuery] = useState(filters.query);
-  if (shownQuery !== filters.query) {
-    setShownQuery(filters.query);
-    setDraft(filters.query);
-  }
+  const location = `${pathname}?${params}`;
+  // Any navigation (collection links, Back/Forward) replaces an unsubmitted
+  // draft, even when the query is unchanged. Effects also re-run when Next
+  // reveals this route again from Activity, which restores stale state.
+  useLayoutEffect(() => {
+    const search = new URLSearchParams(location.slice(location.indexOf("?")));
+    setDraft(parseLibraryFilters(search, type).query);
+  }, [location, type]);
 
   function navigate(changes: Partial<LibraryFilters>) {
     const href = libraryHref({
