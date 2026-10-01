@@ -1,0 +1,9 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "brain": {
+      "type": "streamable-http",
+      "url": "https://agent-brain.vercel.app/mcp"
+    }
+  }
+}

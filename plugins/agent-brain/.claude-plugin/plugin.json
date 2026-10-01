@@ -1,0 +1,9 @@
+{
+  "name": "agent-brain",
+  "version": "0.1.0",
+  "description": "Retrieve and preserve private knowledge with a native brain through MCP.",
+  "author": {
+    "name": "Tommaso"
+  },
+  "repository": "https://github.com/TommyBez/agent-brain"
+}

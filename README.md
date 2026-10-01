@@ -4,7 +4,7 @@ A private, agent-native second brain. The “a” also stands for “agent”. O
 
 The MCP request path exposes validated storage and retrieval primitives, with automatic query embeddings. Vercel Cron starts a durable Vercel Workflow for consolidation, page embeddings and Git export. Remote MCP is the primary interface. The browser provides a knowledge desk for reading, editing, graph navigation, revisions, credentials and operational status.
 
-Using a native brain from an agent? [Connect through MCP](#connect-an-agent) and install the [a native brain skill](#agent-skill).
+Using a native brain from an agent? Install the [Agent Brain plugin](#agent-plugin), which bundles the MCP connection and memory skill. You can also [connect MCP](#connect-an-agent) and [install the skill](#agent-skill) separately.
 
 ## Local setup
 
@@ -87,9 +87,27 @@ Maintenance tools expose paginated pages, gaps and pending chunk embeddings. `pe
 
 All tools scope data to the authenticated owner. Foreign keys prevent cross-owner links. Accepted writes create full revisions and audit entries. On conflict, reread and reconcile. `write` replaces relationships, aliases, tags and outgoing links, so callers must preserve existing values deliberately.
 
+## Agent plugin
+
+[`plugins/agent-brain`](plugins/agent-brain/README.md) is a self-contained [Agent Plugins 1.0.0](https://agent-plugins.org/) package: root `plugin.json`, `mcp.json` with Streamable HTTP, and `skills/brain-memory/`. It includes compatibility manifests for Claude Code, Codex and Cursor, and this repository provides their marketplace catalogs. The plugin connects to `https://agent-brain.vercel.app/mcp`; sign in through the client's OAuth flow after installation.
+
+From this checkout:
+
+```sh
+# Codex
+codex plugin marketplace add .
+codex plugin add agent-brain@agent-brain-plugins
+
+# Claude Code
+claude plugin marketplace add .
+claude plugin install agent-brain@agent-brain-plugins
+```
+
+For Git-based installation once these files are committed and pushed, replace `.` with `TommyBez/agent-brain`. In Cursor, import this repository into a team marketplace and install Agent Brain from Customize, or copy the plugin folder to `~/.cursor/plugins/local/agent-brain` for local development. Other Agent Plugins clients load the same package through their own installer. See the [plugin guide](plugins/agent-brain/README.md) for authentication, self-hosting, format details and verification.
+
 ## Agent skill
 
-The portable [`brain-memory` skill](skills/brain-memory/SKILL.md) guides agents using a native brain: retrieve context, resolve identities, preserve durable knowledge and verify saves. Its [writing reference](skills/brain-memory/references/writing-pages.md) explains full replacements, link payloads and conflict handling. The live MCP instructions, prompts and tool schemas remain authoritative; clients that expose only tools can follow the skill's workflow directly.
+The portable [`brain-memory` skill](plugins/agent-brain/skills/brain-memory/SKILL.md) guides agents using a native brain: retrieve context, resolve identities, preserve durable knowledge and verify saves. Its [writing reference](plugins/agent-brain/skills/brain-memory/references/writing-pages.md) explains full replacements, link payloads and conflict handling. The live MCP instructions, prompts and tool schemas remain authoritative; clients that expose only tools can follow the skill's workflow directly.
 
 Install it in a project using the [Skills CLI](https://github.com/vercel-labs/skills):
 
@@ -97,7 +115,7 @@ Install it in a project using the [Skills CLI](https://github.com/vercel-labs/sk
 npx skills add TommyBez/agent-brain --skill brain-memory
 ```
 
-From a local checkout, use `npx skills add ./skills/brain-memory`. Alternatively, copy the complete `skills/brain-memory` folder into your client's supported skill directory. Repository access is required if the repository is private. Installing the skill does not connect or authorize MCP; complete [the connection steps](#connect-an-agent) separately.
+From a local checkout, use `npx skills add ./plugins/agent-brain --skill brain-memory`. Alternatively, copy the complete `plugins/agent-brain/skills/brain-memory` folder into your client's supported skill directory. Repository access is required if the repository is private. Installing only the skill does not connect or authorize MCP; complete [the connection steps](#connect-an-agent) separately.
 
 Example requests after connecting:
 
@@ -105,7 +123,7 @@ Example requests after connecting:
 - “Save the decisions from this conversation in a native brain, preserving their rationale and sources.”
 - “Review possible duplicates in a native brain and show me the uncertain cases.”
 
-In clients supporting explicit skill invocation, use `$brain-memory`. No database credentials, Git export access or model provider key is needed for ordinary agent use.
+Explicit invocation depends on the client: Codex supports `$brain-memory`; the Claude Code plugin exposes `/agent-brain:brain-memory`. No database credentials, Git export access or model provider key is needed for ordinary agent use.
 
 ## Retrieval
 
