@@ -1,11 +1,12 @@
 "use client";
 
-import { ArrowUpRight, LoaderCircle, Save } from "lucide-react";
+import { ArrowUpRight, ChevronDown, Save } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   startTransition,
   useActionState,
+  useId,
   useState,
   useTransition,
 } from "react";
@@ -15,12 +16,18 @@ import {
 } from "@/app/(workspace)/actions/pages";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   NativeSelect,
   NativeSelectOption,
 } from "@/components/ui/native-select";
+import { Spinner } from "@/components/ui/spinner";
 import { entityTypes } from "@/lib/brain/labels";
 import {
   type DecoratedPage,
@@ -43,6 +50,7 @@ export function PageEditor({
   choices: ConnectionChoices;
 }) {
   const router = useRouter();
+  const fieldId = useId();
   const [page, setPage] = useState(initialPage);
   const id = initialPage?.id;
   const [draft, setDraft] = useState(() =>
@@ -135,11 +143,7 @@ export function PageEditor({
           </Link>
         </Button>
         <Button type="submit" disabled={saving || loadingLatest}>
-          {saving ? (
-            <LoaderCircle size={16} className="animate-spin" />
-          ) : (
-            <Save size={16} />
-          )}{" "}
+          {saving ? <Spinner aria-hidden="true" /> : <Save size={16} />}
           Save page
         </Button>
       </div>
@@ -170,10 +174,11 @@ export function PageEditor({
           </AlertDescription>
         </Alert>
       )}
-      <div className="grid gap-5 sm:grid-cols-[minmax(0,1fr)_12rem]">
-        <Label className="grid gap-2">
-          Title
+      <FieldGroup className="gap-5 sm:grid sm:grid-cols-[minmax(0,1fr)_12rem]">
+        <Field>
+          <FieldLabel htmlFor={`${fieldId}-title`}>Title</FieldLabel>
           <Input
+            id={`${fieldId}-title`}
             value={title}
             name="title"
             className="h-16 rounded-none border-0 border-b bg-transparent px-0 font-serif text-3xl font-normal shadow-none md:text-4xl"
@@ -184,10 +189,11 @@ export function PageEditor({
             maxLength={200}
             required
           />
-        </Label>
-        <Label className="grid gap-2">
-          Page type
+        </Field>
+        <Field>
+          <FieldLabel htmlFor={`${fieldId}-type`}>Page type</FieldLabel>
           <NativeSelect
+            id={`${fieldId}-type`}
             className="h-16 border-0 bg-transparent shadow-none"
             value={type}
             name="type"
@@ -203,8 +209,8 @@ export function PageEditor({
               </NativeSelectOption>
             ))}
           </NativeSelect>
-        </Label>
-      </div>
+        </Field>
+      </FieldGroup>
       {duplicates.length > 0 && (
         <Alert>
           <AlertTitle>A page may already exist.</AlertTitle>
@@ -227,9 +233,10 @@ export function PageEditor({
           </AlertDescription>
         </Alert>
       )}
-      <Label className="grid gap-2">
-        Summary
+      <Field>
+        <FieldLabel htmlFor={`${fieldId}-summary`}>Summary</FieldLabel>
         <Input
+          id={`${fieldId}-summary`}
           name="summary"
           className="rounded-none border-0 border-b bg-transparent px-0 shadow-none"
           value={summary}
@@ -237,37 +244,47 @@ export function PageEditor({
           maxLength={2000}
           placeholder="A sentence that captures what this page is about."
         />
-      </Label>
+      </Field>
       <MarkdownField
         key={connectionsEpoch}
         markdown={markdown}
         onChange={(value) => updateDraft("markdown", value)}
       />
-      <details className="group/details border-y py-5">
-        <summary className="cursor-pointer text-sm font-medium">
+      <Collapsible className="border-y py-5">
+        <CollapsibleTrigger className="group/trigger flex w-full items-center justify-between text-sm font-medium">
           Connections & metadata
-        </summary>
-        <div className="mt-6 grid gap-7">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Label className="grid gap-2">
-              Aliases
+          <ChevronDown
+            size={16}
+            className="text-muted-foreground transition-transform group-data-open/trigger:rotate-180"
+          />
+        </CollapsibleTrigger>
+        {/* Collapsed fields stay mounted (hidden) so the form still submits them. */}
+        <CollapsibleContent
+          forceMount
+          className="mt-6 grid gap-7 data-closed:hidden"
+        >
+          <FieldGroup className="gap-4 sm:grid sm:grid-cols-2">
+            <Field>
+              <FieldLabel htmlFor={`${fieldId}-aliases`}>Aliases</FieldLabel>
               <Input
+                id={`${fieldId}-aliases`}
                 name="aliases"
                 value={aliases}
                 onChange={(e) => updateDraft("aliases", e.target.value)}
                 placeholder="Other names, separated by commas"
               />
-            </Label>
-            <Label className="grid gap-2">
-              Tags
+            </Field>
+            <Field>
+              <FieldLabel htmlFor={`${fieldId}-tags`}>Tags</FieldLabel>
               <Input
+                id={`${fieldId}-tags`}
                 name="tags"
                 value={tags}
                 onChange={(e) => updateDraft("tags", e.target.value)}
                 placeholder="Tags, separated by commas"
               />
-            </Label>
-          </div>
+            </Field>
+          </FieldGroup>
           <ConnectionsEditor
             key={connectionsEpoch}
             links={links}
@@ -275,27 +292,34 @@ export function PageEditor({
             choices={choices}
             id={id}
           />
-          <Label className="grid gap-2">
-            Reason for this change
+          <Field>
+            <FieldLabel htmlFor={`${fieldId}-reason`}>
+              Reason for this change
+            </FieldLabel>
             <Input
+              id={`${fieldId}-reason`}
               name="reason"
               value={reason}
               onChange={(e) => updateDraft("reason", e.target.value)}
               placeholder="What changed, and why?"
               maxLength={1000}
             />
-          </Label>
-        </div>
-      </details>
+          </Field>
+        </CollapsibleContent>
+      </Collapsible>
       {comparison && page && (
-        <details className="space-y-4 rounded-lg border bg-muted p-4">
-          <summary className="cursor-pointer font-medium">
+        <Collapsible className="rounded-lg border bg-muted p-4">
+          <CollapsibleTrigger className="group/trigger flex w-full items-center justify-between font-medium">
             Current saved version ({page.version})
-          </summary>
-          <div className="markdown-body">
+            <ChevronDown
+              size={16}
+              className="text-muted-foreground transition-transform group-data-open/trigger:rotate-180"
+            />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="markdown-body mt-4">
             <MarkdownPreview markdown={page.markdown} />
-          </div>
-        </details>
+          </CollapsibleContent>
+        </Collapsible>
       )}
       <div className="flex flex-wrap items-center justify-between gap-4 border-t pt-6">
         <span className="text-sm text-muted-foreground">

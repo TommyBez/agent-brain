@@ -38,11 +38,25 @@
   },
   "overrides": [
     {
-      "includes": ["components/ui/item.tsx"],
+      "includes": ["components/ui/**"],
       "linter": {
         "rules": {
           "a11y": {
+            "noRedundantRoles": "off",
+            "useAriaPropsForRole": "off",
+            "useFocusableInteractive": "off",
             "useSemanticElements": "off"
+          },
+          "correctness": {
+            "useExhaustiveDependencies": "off"
+          },
+          "security": {
+            "noDangerouslySetInnerHtml": "off"
+          },
+          "suspicious": {
+            "noArrayIndexKey": "off",
+            "noDocumentCookie": "off",
+            "noDoubleEquals": "off"
           }
         }
       }

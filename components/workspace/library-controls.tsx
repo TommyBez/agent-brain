@@ -1,8 +1,9 @@
 "use client";
 
 import { Search, X } from "lucide-react";
-import { useSearchParams } from "next/navigation";
-import { useRef } from "react";
+import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useLayoutEffect, useRef, useState, useTransition } from "react";
 import {
   InputGroup,
   InputGroupAddon,
@@ -17,10 +18,11 @@ import {
 import { entityTypes } from "@/lib/brain/labels";
 import type { BrainStats as Stats } from "@/lib/brain/types";
 import { type PageType, parseSort } from "@/lib/brain/types";
-import { libraryHref, parseLibraryFilters } from "@/lib/workspace/urls";
-import { WorkspaceLink as Link } from "./search-navigation";
-
-import { useUrlSyncedSearch } from "./use-url-synced-search";
+import {
+  type LibraryFilters,
+  libraryHref,
+  parseLibraryFilters,
+} from "@/lib/workspace/urls";
 
 export function LibraryCollections({
   stats,
@@ -60,52 +62,71 @@ export function LibraryCollections({
   );
 }
 
+// Filters this list on submit. Search-as-you-type across the whole workspace
+// lives in the command menu (⌘K).
 export function LibraryControls({ type }: { type: PageType | "" }) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const { filters, query, pending, normalizedQuery, change, setQuery } =
-    useUrlSyncedSearch(type, inputRef);
+  const router = useRouter();
+  const pathname = usePathname();
+  const params = useSearchParams();
+  const filters = parseLibraryFilters(params, type);
+  const [pending, startTransition] = useTransition();
+  const input = useRef<HTMLInputElement>(null);
+  const [draft, setDraft] = useState(filters.query);
+  const location = `${pathname}?${params}`;
+  // Any navigation (collection links, Back/Forward) replaces an unsubmitted
+  // draft, even when the query is unchanged. Effects also re-run when Next
+  // reveals this route again from Activity, which restores stale state.
+  useLayoutEffect(() => {
+    const search = new URLSearchParams(location.slice(location.indexOf("?")));
+    setDraft(parseLibraryFilters(search, type).query);
+  }, [location, type]);
+
+  function navigate(changes: Partial<LibraryFilters>) {
+    const href = libraryHref({
+      ...filters,
+      query: draft.trim().slice(0, 500),
+      offset: 0,
+      ...changes,
+    });
+    startTransition(() => router.push(href, { scroll: false }));
+  }
 
   return (
-    <div
-      className="relative"
-      data-pending={pending || normalizedQuery !== filters.query}
-    >
+    <div className="relative" data-pending={pending}>
       <search>
         <form
           className="mb-6 flex items-center justify-between gap-3 sm:mb-8"
           onSubmit={(event) => {
             event.preventDefault();
-            change({ query: normalizedQuery });
+            navigate({});
           }}
         >
           <Label htmlFor="library-search" className="sr-only">
-            Search pages
+            Filter pages
           </Label>
           <InputGroup className="h-11 min-w-0 flex-1 basis-0 rounded-none border-0 border-b border-transparent bg-transparent shadow-none focus-within:border-input focus-within:ring-0 sm:max-w-md">
             <InputGroupInput
+              ref={input}
               id="library-search"
-              ref={inputRef}
               name="q"
-              value={query}
-              onChange={(event) => {
-                setQuery(event.target.value);
-              }}
-              placeholder="Search pages…"
+              value={draft}
+              onChange={(event) => setDraft(event.target.value)}
+              placeholder="Filter pages…"
               autoComplete="off"
               maxLength={500}
             />
             <InputGroupAddon>
               <Search aria-hidden="true" />
             </InputGroupAddon>
-            {query && (
+            {draft && (
               <InputGroupAddon align="inline-end">
                 <InputGroupButton
                   size="icon-xs"
-                  aria-label="Clear search"
+                  aria-label="Clear filter"
                   onClick={() => {
-                    setQuery("");
-                    change({ query: "" });
-                    inputRef.current?.focus();
+                    setDraft("");
+                    input.current?.focus();
+                    if (filters.query) navigate({ query: "" });
                   }}
                 >
                   <X aria-hidden="true" />
@@ -117,10 +138,9 @@ export function LibraryControls({ type }: { type: PageType | "" }) {
             <NativeSelect
               className="h-10 border-0 bg-transparent shadow-none text-xs"
               aria-label="Sort pages"
-              name="sort"
               value={filters.sort}
               onChange={(event) =>
-                change({ sort: parseSort(event.target.value) })
+                navigate({ sort: parseSort(event.target.value) })
               }
             >
               <NativeSelectOption value="updated">
@@ -132,9 +152,7 @@ export function LibraryControls({ type }: { type: PageType | "" }) {
         </form>
       </search>
       <output className="absolute right-0 -bottom-5 text-xs text-muted-foreground">
-        {pending || normalizedQuery !== filters.query
-          ? "Updating results…"
-          : ""}
+        {pending ? "Updating results…" : ""}
       </output>
     </div>
   );

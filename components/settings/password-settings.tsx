@@ -1,10 +1,16 @@
 "use client";
 
-import { LoaderCircle, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/lib/auth-client";
 
 export function PasswordSettings() {
@@ -38,9 +44,9 @@ export function PasswordSettings() {
   }
   return (
     <form onSubmit={changePassword} className="space-y-5">
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <div className="grid gap-2">
-          <Label htmlFor="current-password">Current password</Label>
+      <FieldGroup className="gap-5 sm:grid sm:grid-cols-2">
+        <Field>
+          <FieldLabel htmlFor="current-password">Current password</FieldLabel>
           <Input
             id="current-password"
             name="currentPassword"
@@ -48,9 +54,9 @@ export function PasswordSettings() {
             autoComplete="current-password"
             required
           />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="new-password">New password</Label>
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="new-password">New password</FieldLabel>
           <Input
             id="new-password"
             name="newPassword"
@@ -60,20 +66,16 @@ export function PasswordSettings() {
             placeholder="At least 12 characters"
             required
           />
-        </div>
-      </div>
-      {error && (
-        <p role="alert" className="text-xs text-destructive">
-          {error}
-        </p>
-      )}
+        </Field>
+      </FieldGroup>
+      <FieldError className="text-xs">{error}</FieldError>
       {saved && (
         <output className="block text-xs text-primary">
           Password changed. Other browser sessions have been signed out.
         </output>
       )}
       <Button type="submit" disabled={busy}>
-        {busy ? <LoaderCircle className="animate-spin" /> : <ShieldCheck />}{" "}
+        {busy ? <Spinner aria-hidden="true" /> : <ShieldCheck />}
         Update password
       </Button>
     </form>

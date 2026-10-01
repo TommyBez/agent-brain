@@ -1,222 +1,258 @@
 "use client";
 
-import { LogOut, Menu, Search } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { ChevronsUpDown, LogOut, Search } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
+  Fragment,
   type ReactNode,
   Suspense,
-  useCallback,
-  useEffect,
-  useRef,
+  useLayoutEffect,
   useState,
 } from "react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { Wordmark } from "@/components/wordmark";
-import { authClient } from "@/lib/auth-client";
-import { PrimaryNavigation } from "./navigation";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Kbd } from "@/components/ui/kbd";
+import { Separator } from "@/components/ui/separator";
 import {
-  WorkspaceLink as Link,
-  useSearchNavigation,
-} from "./search-navigation";
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
+  useSidebar,
+} from "@/components/ui/sidebar";
+import { authClient } from "@/lib/auth-client";
+import { entityTypes } from "@/lib/brain/labels";
+import { collectionTypeFromPathname } from "@/lib/workspace/urls";
+import { useCommandMenu } from "./command-menu";
+import { SidebarLink } from "./navigation";
 
-export function WorkspaceShell({
-  sidebar,
+// SidebarProvider persists its state in the `sidebar_state` cookie. Reading it
+// in the layout would make the prerendered shell request-time, so the browser
+// restores it while hydrating, with transitions off for that first paint.
+export function WorkspaceSidebarProvider({
   children,
 }: {
-  sidebar: ReactNode;
   children: ReactNode;
 }) {
-  const [open, setOpen] = useState(false);
-  const closeFocus = useRef<"search" | "navigation" | null>(null);
-  const mobileNavigation = useRef<HTMLDivElement>(null);
-  const router = useRouter();
-  const { cancel, focus } = useSearchNavigation();
-  const focusSearch = useCallback(() => {
-    if (!focus()) {
-      cancel();
-      router.push("/?focus=search");
-    }
-  }, [router, cancel, focus]);
-  useEffect(() => {
-    function find(event: KeyboardEvent) {
-      if ((event.metaKey || event.ctrlKey) && event.key === "k") {
-        event.preventDefault();
-        if (open) {
-          closeFocus.current = "search";
-          setOpen(false);
-        } else {
-          focusSearch();
-        }
-      }
-    }
-    window.addEventListener("keydown", find);
-    return () => window.removeEventListener("keydown", find);
-  }, [focusSearch, open]);
-
+  const [open, setOpen] = useState(true);
+  const [restoring, setRestoring] = useState(true);
+  useLayoutEffect(() => {
+    if (document.cookie.split("; ").includes("sidebar_state=false"))
+      setOpen(false);
+    const frame = requestAnimationFrame(() => setRestoring(false));
+    return () => cancelAnimationFrame(frame);
+  }, []);
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <div className="min-h-svh">
-        <a
-          href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground"
-        >
-          Skip to content
-        </a>
-        <SheetContent
-          side="right"
-          className="overflow-y-auto bg-sidebar"
-          onOpenAutoFocus={(event) => {
-            // This Sheet contains navigation links before its action buttons.
-            const firstLink = mobileNavigation.current?.querySelector("a");
-            if (firstLink) {
-              event.preventDefault();
-              firstLink.focus();
-            }
-          }}
-          onClickCapture={(event) => {
-            const link = (event.target as HTMLElement).closest("a");
-            if (
-              !link ||
-              event.metaKey ||
-              event.ctrlKey ||
-              event.shiftKey ||
-              event.altKey
-            )
-              return;
-            closeFocus.current =
-              new URL(link.href).searchParams.get("focus") === "search"
-                ? "search"
-                : "navigation";
-            setOpen(false);
-          }}
-          onCloseAutoFocus={(event) => {
-            const target = closeFocus.current;
-            closeFocus.current = null;
-            if (target === "search") {
-              event.preventDefault();
-              focusSearch();
-            }
-          }}
-        >
-          <SheetHeader>
-            <SheetTitle>Your workspace</SheetTitle>
-            <SheetDescription>
-              Collections, agents and settings.
-            </SheetDescription>
-          </SheetHeader>
-          <div
-            ref={mobileNavigation}
-            className="flex flex-1 flex-col gap-6 px-4 pb-4"
-          >
-            {sidebar}
-          </div>
-        </SheetContent>
-        <div className="min-w-0">
-          <header className="border-b">
-            <div className="mx-auto flex max-w-[1360px] flex-wrap items-center gap-x-6 px-5 sm:h-24 md:gap-x-14 md:px-10 lg:px-16">
-              <Link
-                href="/"
-                aria-label="a native brain home"
-                className="inline-flex max-sm:py-4"
-              >
-                <Wordmark />
-              </Link>
-              <div className="h-11 max-sm:order-3 max-sm:basis-full sm:h-full">
-                <Suspense fallback={<div className="w-52" />}>
-                  <PrimaryNavigation />
-                </Suspense>
-              </div>
-              <div className="ml-auto flex items-center gap-1 sm:gap-3">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={focusSearch}
-                  aria-label="Search pages (Command K)"
-                >
-                  <Search size={19} />
-                </Button>
-                <span
-                  aria-hidden="true"
-                  className="hidden h-5 border-l sm:block"
-                />
-                <SheetTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label="Open workspace menu"
-                  >
-                    <Menu size={20} />
-                  </Button>
-                </SheetTrigger>
-              </div>
-            </div>
-          </header>
-          <main
-            id="main-content"
-            className="mx-auto max-w-[1360px] px-5 pt-8 pb-20 md:px-10 md:pt-14 lg:px-16"
-          >
-            {children}
-          </main>
-        </div>
-      </div>
-    </Sheet>
-  );
-}
-
-export function FindKnowledge() {
-  return (
-    <Button
-      variant="outline"
-      asChild
-      className="h-10 w-full justify-start border-border/80 bg-background/70 font-normal shadow-none"
+    <SidebarProvider
+      open={open}
+      onOpenChange={setOpen}
+      className={restoring ? "[&_*]:transition-none" : undefined}
     >
-      <Link href="/?focus=search">
-        <Search />
-        Search
-        <kbd className="ml-auto rounded border bg-sidebar px-1.5 py-0.5 text-[10px] text-muted-foreground">
-          ⌘ K
-        </kbd>
-      </Link>
-    </Button>
+      {children}
+    </SidebarProvider>
   );
 }
 
-export function SignOutButton() {
+export function WorkspaceBrand() {
+  return (
+    <SidebarMenu>
+      <SidebarMenuItem>
+        <SidebarMenuButton size="lg" asChild>
+          <SidebarLink href="/" aria-label="a native brain home">
+            <span
+              aria-hidden="true"
+              className="flex size-8 shrink-0 items-center justify-center pb-1.5 font-serif text-[2.25rem] leading-none italic text-brand"
+            >
+              a
+            </span>
+            <span className="text-[17px] font-medium tracking-tight">
+              native brain
+            </span>
+          </SidebarLink>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    </SidebarMenu>
+  );
+}
+
+type Crumb = { label: string; href?: string };
+
+function crumbsFor(pathname: string): Crumb[] {
+  const library = { label: "Library", href: "/" };
+  const type = collectionTypeFromPathname(pathname);
+  if (type)
+    return [
+      library,
+      { label: entityTypes.find((item) => item.id === type)?.label ?? "" },
+    ];
+  if (pathname === "/pages/new") return [library, { label: "New page" }];
+  const page = /^\/pages\/([^/]+)(?:\/(edit|history)(?:\/(\d+))?)?$/.exec(
+    pathname,
+  );
+  if (page) {
+    const [, id, view, version] = page;
+    const href = `/pages/${id}`;
+    if (!view) return [library, { label: "Page" }];
+    if (view === "edit")
+      return [library, { label: "Page", href }, { label: "Edit" }];
+    if (!version)
+      return [library, { label: "Page", href }, { label: "History" }];
+    return [
+      library,
+      { label: "Page", href },
+      { label: "History", href: `${href}/history` },
+      { label: `Version ${version}` },
+    ];
+  }
+  const sections: Record<string, Crumb[]> = {
+    "/": [{ label: "Library" }],
+    "/graph": [{ label: "Knowledge graph" }],
+    "/activity": [{ label: "Activity" }],
+    "/agents": [{ label: "Settings" }, { label: "Agents & access" }],
+    "/operations": [{ label: "Settings" }, { label: "Operations" }],
+  };
+  return sections[pathname] ?? [];
+}
+
+function WorkspaceBreadcrumb() {
+  const crumbs = crumbsFor(usePathname());
+  return (
+    <Breadcrumb className="min-w-0">
+      <BreadcrumbList className="flex-nowrap">
+        {crumbs.map((crumb, index) => (
+          <Fragment key={`${crumb.label}-${crumb.href}`}>
+            {index > 0 && <BreadcrumbSeparator />}
+            <BreadcrumbItem className="min-w-0">
+              {crumb.href ? (
+                <BreadcrumbLink asChild>
+                  <Link href={crumb.href}>{crumb.label}</Link>
+                </BreadcrumbLink>
+              ) : index === crumbs.length - 1 ? (
+                <BreadcrumbPage className="truncate">
+                  {crumb.label}
+                </BreadcrumbPage>
+              ) : (
+                <span>{crumb.label}</span>
+              )}
+            </BreadcrumbItem>
+          </Fragment>
+        ))}
+      </BreadcrumbList>
+    </Breadcrumb>
+  );
+}
+
+export function WorkspaceHeader() {
+  const { setOpen } = useCommandMenu();
+  return (
+    <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b bg-background/90 px-3 backdrop-blur-sm md:px-6">
+      <SidebarTrigger aria-label="Toggle sidebar (⌘B)" />
+      <Separator
+        orientation="vertical"
+        className="mr-2 data-[orientation=vertical]:h-4"
+      />
+      <Suspense>
+        <WorkspaceBreadcrumb />
+      </Suspense>
+      <Button
+        variant="outline"
+        className="ml-auto h-9 shrink-0 justify-start gap-2 px-3 font-normal text-muted-foreground shadow-none max-md:size-9 max-md:justify-center max-md:border-transparent max-md:px-0 md:w-64"
+        aria-label="Search (Command K)"
+        onClick={() => setOpen(true)}
+      >
+        <Search />
+        <span className="max-md:sr-only">Search…</span>
+        <Kbd className="ml-auto max-md:hidden">⌘K</Kbd>
+      </Button>
+    </header>
+  );
+}
+
+export function OwnerMenu({ name, email }: { name: string; email: string }) {
+  const { isMobile } = useSidebar();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
+  const displayName = name || "Workspace owner";
+
+  async function signOut() {
+    setBusy(true);
+    setError(false);
+    try {
+      const result = await authClient.signOut();
+      if (result.error) throw new Error("Unable to sign out.");
+      // A new document drops the router's authenticated cache on sign-out.
+      window.location.assign("/sign-in");
+    } catch {
+      setError(true);
+      setBusy(false);
+    }
+  }
+
   return (
-    <>
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        aria-label="Sign out"
-        disabled={busy}
-        onClick={async () => {
-          setBusy(true);
-          setError(false);
-          try {
-            const result = await authClient.signOut();
-            if (result.error) throw new Error("Unable to sign out.");
-            // A new document drops the router's authenticated cache on sign-out.
-            window.location.assign("/sign-in");
-          } catch {
-            setError(true);
-          } finally {
-            setBusy(false);
-          }
-        }}
-      >
-        <LogOut size={16} />
-      </Button>
-      {error && <span role="alert">Unable to sign out.</span>}
-    </>
+    <SidebarMenu>
+      <SidebarMenuItem>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <SidebarMenuButton
+              size="lg"
+              className="data-open:bg-sidebar-accent data-open:text-sidebar-accent-foreground"
+            >
+              <Avatar>
+                <AvatarFallback className="bg-brand-soft text-xs font-semibold text-brand">
+                  {(name || email).slice(0, 1).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <span className="grid min-w-0 flex-1 leading-tight">
+                <span className="truncate font-medium">{displayName}</span>
+                <span className="truncate text-xs text-muted-foreground">
+                  Personal workspace
+                </span>
+              </span>
+              <ChevronsUpDown className="ml-auto" />
+            </SidebarMenuButton>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            className="min-w-56"
+            side={isMobile ? "top" : "right"}
+            align="end"
+          >
+            <DropdownMenuLabel className="grid font-normal">
+              <span className="truncate font-medium">{displayName}</span>
+              <span className="truncate text-xs text-muted-foreground">
+                {email}
+              </span>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem disabled={busy} onSelect={signOut}>
+              <LogOut />
+              {busy ? "Signing out…" : "Sign out"}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        {error && (
+          <p role="alert" className="px-2 pt-1 text-xs text-destructive">
+            Unable to sign out. Try again.
+          </p>
+        )}
+      </SidebarMenuItem>
+    </SidebarMenu>
   );
 }

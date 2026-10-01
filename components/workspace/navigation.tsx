@@ -1,143 +1,174 @@
 "use client";
 
-import { Activity, BookOpen, Bot, Network, Settings2 } from "lucide-react";
+import {
+  Activity,
+  BookOpen,
+  Bot,
+  Network,
+  Plus,
+  Settings2,
+} from "lucide-react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { type ReactNode, Suspense } from "react";
-import { Button } from "@/components/ui/button";
+import { type ComponentProps, type ReactNode, Suspense } from "react";
+import {
+  SidebarGroup,
+  SidebarGroupAction,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuBadge,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
+} from "@/components/ui/sidebar";
 import { entityTypes } from "@/lib/brain/labels";
 import type { BrainStats as Stats } from "@/lib/brain/types";
-import {
-  collectionHref,
-  collectionTypeFromPathname,
-} from "@/lib/workspace/urls";
+import { collectionHref } from "@/lib/workspace/urls";
 import { EntityIcon } from "./primitives";
-import { WorkspaceLink as Link } from "./search-navigation";
 
-const navClass = "h-10 w-full justify-start gap-3 rounded-lg px-3 font-normal";
+type NavigationEntry = {
+  href: string;
+  label: string;
+  icon: ReactNode;
+  count?: ReactNode;
+};
 
-export function PrimaryNavigation() {
-  const pathname = usePathname();
+// The mobile sidebar is a Sheet; a completed navigation should reveal the page.
+export function SidebarLink(props: ComponentProps<typeof Link>) {
+  const { setOpenMobile } = useSidebar();
+  return <Link {...props} onNavigate={() => setOpenMobile(false)} />;
+}
+
+function NavigationButton({
+  entry,
+  active,
+}: {
+  entry: NavigationEntry;
+  active: boolean;
+}) {
   return (
-    <nav
-      aria-label="Main navigation"
-      className="flex h-full items-stretch gap-7 sm:gap-8"
-    >
-      {[
-        { href: "/", label: "Library" },
-        { href: "/graph", label: "Graph" },
-        { href: "/activity", label: "Activity" },
-      ].map(({ href, label }) => {
-        const active =
-          href === "/"
-            ? pathname === "/" ||
-              !!collectionTypeFromPathname(pathname) ||
-              pathname.startsWith("/pages/")
-            : pathname === href;
-        return (
-          <Link
-            key={href}
-            href={href}
-            aria-current={active ? "page" : undefined}
-            className={`inline-flex items-center border-b-2 px-0.5 text-[13px] font-medium transition-colors ${active ? "border-foreground text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`}
-          >
-            {label}
-          </Link>
-        );
-      })}
-    </nav>
+    <SidebarMenuButton asChild isActive={active} tooltip={entry.label}>
+      <SidebarLink href={entry.href} aria-current={active ? "page" : undefined}>
+        {entry.icon}
+        <span>{entry.label}</span>
+      </SidebarLink>
+    </SidebarMenuButton>
   );
 }
 
-function ActiveNavigationLink({
-  href,
-  children,
-}: {
-  href: string;
-  children: ReactNode;
-}) {
+function ActiveNavigationButton({ entry }: { entry: NavigationEntry }) {
   const pathname = usePathname();
-  const active = pathname === href;
+  return <NavigationButton entry={entry} active={pathname === entry.href} />;
+}
+
+function NavigationItem({ entry }: { entry: NavigationEntry }) {
   return (
-    <Button variant={active ? "default" : "ghost"} className={navClass} asChild>
-      <Link href={href} aria-current={active ? "page" : undefined}>
-        {children}
-      </Link>
-    </Button>
+    <SidebarMenuItem>
+      {/* Pages with request-time params resolve the pathname after prerendering. */}
+      <Suspense fallback={<NavigationButton entry={entry} active={false} />}>
+        <ActiveNavigationButton entry={entry} />
+      </Suspense>
+      {entry.count !== undefined && (
+        <SidebarMenuBadge>{entry.count}</SidebarMenuBadge>
+      )}
+    </SidebarMenuItem>
   );
 }
 
-function NavigationLink({
-  href,
-  children,
+function NavigationGroup({
+  label,
+  entries,
+  action,
+  className,
 }: {
-  href: string;
-  children: ReactNode;
+  label: string;
+  entries: NavigationEntry[];
+  action?: ReactNode;
+  className?: string;
 }) {
   return (
-    <Suspense
-      fallback={
-        <Button variant="ghost" className={navClass} asChild>
-          <Link href={href}>{children}</Link>
-        </Button>
-      }
-    >
-      <ActiveNavigationLink href={href}>{children}</ActiveNavigationLink>
-    </Suspense>
+    <SidebarGroup className={className}>
+      <SidebarGroupLabel>{label}</SidebarGroupLabel>
+      {action}
+      <SidebarGroupContent>
+        <SidebarMenu>
+          {entries.map((entry) => (
+            <NavigationItem key={entry.href} entry={entry} />
+          ))}
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
   );
 }
 
 export function WorkspaceNavigation({ stats }: { stats?: Stats }) {
   return (
-    <nav aria-label="Workspace navigation" className="space-y-1">
-      <span className="mb-3 block px-3 text-[11px] font-medium text-muted-foreground">
-        Workspace
-      </span>
-      <NavigationLink href="/">
-        <BookOpen size={17} />
-        All pages
-        <span className="ml-auto text-xs tabular-nums">
-          {stats?.pages ?? "—"}
-        </span>
-      </NavigationLink>
-      <NavigationLink href="/graph">
-        <Network size={17} />
-        Knowledge graph
-      </NavigationLink>
-      <NavigationLink href="/activity">
-        <Activity size={17} />
-        Activity
-      </NavigationLink>
-      <span className="mt-7 mb-3 block px-3 text-[11px] font-medium text-muted-foreground">
-        Collections
-      </span>
-      {entityTypes.map((item) => (
-        <NavigationLink key={item.id} href={collectionHref(item.id)}>
-          <span
-            className={`entity-${item.id} text-secondary-foreground in-[[aria-current=page]]:text-primary-foreground`}
-          >
-            <EntityIcon type={item.id} />
-          </span>
-          {item.label}
-          <span className="ml-auto text-xs tabular-nums">
-            {stats ? (stats.byType[item.id] ?? 0) : "—"}
-          </span>
-        </NavigationLink>
-      ))}
-    </nav>
+    <>
+      <NavigationGroup
+        label="Workspace"
+        action={
+          <SidebarGroupAction asChild title="New page">
+            <SidebarLink href="/pages/new">
+              <Plus />
+              <span className="sr-only">New page</span>
+            </SidebarLink>
+          </SidebarGroupAction>
+        }
+        entries={[
+          {
+            href: "/",
+            label: "All pages",
+            icon: <BookOpen strokeWidth={1.6} />,
+            count: stats?.pages ?? "—",
+          },
+          {
+            href: "/graph",
+            label: "Knowledge graph",
+            icon: <Network strokeWidth={1.6} />,
+          },
+          {
+            href: "/activity",
+            label: "Activity",
+            icon: <Activity strokeWidth={1.6} />,
+          },
+        ]}
+      />
+      <NavigationGroup
+        label="Collections"
+        entries={entityTypes.map((item) => ({
+          href: collectionHref(item.id),
+          label: item.label,
+          icon: (
+            <EntityIcon
+              type={item.id}
+              className={`entity-${item.id} text-secondary-foreground`}
+            />
+          ),
+          count: stats ? (stats.byType[item.id] ?? 0) : "—",
+        }))}
+      />
+    </>
   );
 }
 
 export function SettingsNavigation() {
   return (
-    <nav aria-label="Workspace settings" className="space-y-1">
-      <NavigationLink href="/agents">
-        <Bot size={17} />
-        Agents & access
-      </NavigationLink>
-      <NavigationLink href="/operations">
-        <Settings2 size={17} />
-        Operations
-      </NavigationLink>
-    </nav>
+    <NavigationGroup
+      label="Settings"
+      className="mt-auto"
+      entries={[
+        {
+          href: "/agents",
+          label: "Agents & access",
+          icon: <Bot strokeWidth={1.6} />,
+        },
+        {
+          href: "/operations",
+          label: "Operations",
+          icon: <Settings2 strokeWidth={1.6} />,
+        },
+      ]}
+    />
   );
 }

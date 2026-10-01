@@ -138,11 +138,11 @@ export default function GraphPage({
       </PageHeading>
       <Suspense
         fallback={
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_21rem]">
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_21rem]">
             <div className="flex h-[clamp(420px,62vh,760px)] items-center justify-center rounded-lg border bg-card">
               <Loading label="Laying out your graph…" />
             </div>
-            <div className="hidden rounded-lg border bg-card lg:block" />
+            <div className="hidden rounded-lg border bg-card xl:block" />
           </div>
         }
       >

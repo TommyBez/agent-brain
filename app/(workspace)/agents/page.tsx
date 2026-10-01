@@ -1,5 +1,5 @@
 import { KeyRound } from "lucide-react";
-import { Suspense } from "react";
+import { Fragment, Suspense } from "react";
 import {
   AgentConnection,
   HeadlessConnection,
@@ -14,6 +14,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemGroup,
+  ItemMedia,
+  ItemSeparator,
+  ItemTitle,
+} from "@/components/ui/item";
 import { Empty, Loading, PageHeading } from "@/components/workspace/primitives";
 import { listAgentTokens } from "@/lib/agent-tokens";
 import { mcpResource } from "@/lib/auth";
@@ -58,35 +68,40 @@ async function AgentTokens() {
     <>
       <TokenCreator />
       {tokens.length ? (
-        <div className="divide-y border-t">
-          {tokens.map((token) => (
-            <div
-              className={`flex flex-wrap items-center gap-4 py-5 ${token.revokedAt ? "opacity-50" : ""}`}
-              key={token.id}
-            >
-              <KeyRound className="size-5 shrink-0 text-muted-foreground" />
-              <div className="min-w-0 flex-1 space-y-1">
-                <strong className="flex flex-wrap items-center gap-3 break-words font-medium">
-                  {token.name}
-                  <span className="font-mono text-xs font-normal text-muted-foreground">
-                    {token.prefix}…
-                  </span>
-                </strong>
-                <p className="text-sm text-muted-foreground">
-                  {token.scopes.join(" · ")}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {token.revokedAt
-                    ? `Revoked ${formatDate(token.revokedAt.toISOString())}`
-                    : `Expires ${formatDate(token.expiresAt?.toISOString())} · Last used ${formatDate(token.lastUsedAt?.toISOString())}`}
-                </p>
-              </div>
-              {!token.revokedAt && (
-                <TokenRevoke id={token.id} name={token.name} />
-              )}
-            </div>
+        <ItemGroup className="border-t">
+          {tokens.map((token, index) => (
+            <Fragment key={token.id}>
+              {index > 0 && <ItemSeparator />}
+              <Item
+                role="listitem"
+                className={`px-0 ${token.revokedAt ? "opacity-50" : ""}`}
+              >
+                <ItemMedia>
+                  <KeyRound className="size-5 text-muted-foreground" />
+                </ItemMedia>
+                <ItemContent className="min-w-0">
+                  <ItemTitle className="flex-wrap break-words">
+                    {token.name}
+                    <span className="font-mono text-xs font-normal text-muted-foreground">
+                      {token.prefix}…
+                    </span>
+                  </ItemTitle>
+                  <ItemDescription>{token.scopes.join(" · ")}</ItemDescription>
+                  <ItemDescription className="text-xs">
+                    {token.revokedAt
+                      ? `Revoked ${formatDate(token.revokedAt.toISOString())}`
+                      : `Expires ${formatDate(token.expiresAt?.toISOString())} · Last used ${formatDate(token.lastUsedAt?.toISOString())}`}
+                  </ItemDescription>
+                </ItemContent>
+                {!token.revokedAt && (
+                  <ItemActions>
+                    <TokenRevoke id={token.id} name={token.name} />
+                  </ItemActions>
+                )}
+              </Item>
+            </Fragment>
           ))}
-        </div>
+        </ItemGroup>
       ) : (
         <Empty
           icon={<KeyRound className="size-6" />}

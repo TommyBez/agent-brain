@@ -25,7 +25,7 @@ OAuth consent resumption uses Better Auth's signed-query protocol. When the sess
 
 History lists read paginated revision metadata, not complete snapshots. A version URL reads that exact immutable revision directly and renders its original title, summary and body. Activity also has server pagination. Graph filters run over the full archive before selecting a bounded page; counts describe the visible nodes and links, with access to further pages. Opening an entity shows all its connections.
 
-The editor receives a small first page of connection choices from the server. User-initiated searches and pagination query the full archive through the existing authenticated API, with cancellation of superseded requests. New-page forms are keyed by their initial entity type; changing that default opens the corresponding form. Cancel resets the draft only on an actual navigation, not on modifier-click. Cmd-K focuses the visible search field when Next Activity retains other routes.
+The editor receives a small first page of connection choices from the server. The page picker is a popover command list: typing searches the full archive through the existing authenticated API, with cancellation of superseded requests, and “Show more pages” appends the next batch. New-page forms are keyed by their initial entity type; changing that default opens the corresponding form. Cancel resets the draft only on an actual navigation, not on modifier-click. The command menu lives in the workspace layout, so Cmd-K works on every route and is unaffected by routes that Next Activity keeps mounted; it queries `/api/brain/resolve` and `/api/brain/pages` from the browser.
 
 ## Data and mutation boundaries
 
@@ -67,14 +67,14 @@ Verify the actual browser journeys as well:
 
 - Open and refresh a deep page URL. Follow links between library, entities, connections, revisions and settings; use Back and Forward.
 - Follow Collections → Projects and confirm the address is `/projects`; refresh and use Back/Forward across collections. Search and sort must retain the collection pathname.
-- Search, change type/order, navigate to a different collection before debounce completes, and check that URL and input stay in sync.
+- Filter the library, change type/order, navigate to a different collection, and use Back/Forward; check that URL and input stay in sync.
 - Save from the editor and from Markdown preview; revisit New page and confirm the completed draft is reset. Cancel an edit and reopen it.
 - Save concurrently through an agent/API and the editor. Confirm stale writes are rejected, the draft survives, and reconciliation uses the latest version.
 - Create and revoke a disposable test token; refresh Operations without triggering external maintenance.
 - Open a deep link while signed out and confirm login returns to it, preserving filters.
 - Read revision 1 after more than 50 saves; confirm original metadata and older history/activity pagination.
 - Search for a connection beyond the first 100 pages and save it. Navigate between collection-specific New page forms and confirm the initial type.
-- Follow relative and same-origin absolute Markdown links without a document reload. Check Cmd-K after visiting multiple collections.
+- Follow relative and same-origin absolute Markdown links without a document reload. Open the command menu with Cmd-K on several routes; open a person by name, a collection and a setting from it.
 
 In `next dev`, open **Next.js DevTools → Navigation Inspector → Pause on navigations**. Inspect both a page reload and a link navigation while dynamic content is paused. Navigation, destination headings and local placeholders must remain visible. Resume to confirm that protected content streams into those placeholders. Inspect a dynamic `/pages/[id]` URL as well as the library and fixed routes. Turn the pause toggle off afterward: its testing cookie is shared across localhost ports.
 
