@@ -81,6 +81,30 @@ export function preparationQuestions(
   };
 }
 
+/** Evaluate the only eligible pair and its speculative intervention together. */
+export function pairPreparationQuestions(
+  kind: "duplicate" | "conflict",
+): Record<string, Question> {
+  const premise =
+    kind === "duplicate"
+      ? "target[0] and target[1] repeat factual information"
+      : "target[0] and target[1] contain apparently incompatible claims about the same entity and scope";
+  return {
+    counterpart: booleanQuestion(
+      `Do ${premise}? Judge these exact two passages in their complete page context. Shared topic alone is insufficient. Identify the relationship only; a supported correction or deletion is not required.`,
+    ),
+    ...Object.fromEntries(
+      Object.entries(preparationQuestions(kind)).map(([id, question]) => [
+        id,
+        {
+          ...question,
+          instructions: `Assuming ${premise}, answer the following intervention question independently: ${question.instructions}`,
+        },
+      ]),
+    ),
+  };
+}
+
 export const RELATION_MEANINGS: Record<LinkType, string> = {
   works_at: "the source person works at the target organization",
   owns: "the source entity owns the target entity or resource",

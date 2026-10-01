@@ -4,6 +4,7 @@ import type { BrainPage } from "../lib/brain/types";
 import {
   analystGates,
   DECISION_POLICY,
+  LOCALIZATION_THRESHOLD,
   SCREENING_THRESHOLD,
   verificationThreshold,
 } from "../lib/maintenance/consolidator/decision-policy";
@@ -66,7 +67,7 @@ function verificationFixtures() {
 
 test("selection policy advances while text verification thresholds retain their values", () => {
   assert.deepEqual(DECISION_POLICY, {
-    id: "page-consolidator-v3",
+    id: "page-consolidator-v4",
     analyst: { yes: 0.8, choiceProbability: 0.8 },
     verifier: {
       objective: 0.8,
@@ -77,6 +78,7 @@ test("selection policy advances while text verification thresholds retain their 
   });
   assert.equal(POLICY.version, DECISION_POLICY.id);
   assert.equal(SCREENING_THRESHOLD, 0.8);
+  assert.equal(LOCALIZATION_THRESHOLD, 0.7);
 });
 
 test("verification criteria use their own threshold families", () => {

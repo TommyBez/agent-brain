@@ -1,7 +1,7 @@
 import type { Answer } from "./types";
 
 export const DECISION_POLICY = {
-  id: "page-consolidator-v3",
+  id: "page-consolidator-v4",
   analyst: {
     yes: 0.8,
     choiceProbability: 0.8,
@@ -16,6 +16,9 @@ export const DECISION_POLICY = {
 
 /** Screening routes work; it never authorizes a mutation. */
 export const SCREENING_THRESHOLD = 0.8;
+
+/** Passage selection supplies candidates; preparation still authorizes edits. */
+export const LOCALIZATION_THRESHOLD = 0.7;
 
 export const analystGates = {
   yes: (answer: Answer | undefined) =>
