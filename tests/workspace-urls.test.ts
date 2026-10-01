@@ -4,6 +4,7 @@ import {
   collectionHref,
   collectionTypeFromPathname,
   libraryHref,
+  newPageHref,
   parseLibraryFilters,
 } from "../lib/workspace/urls";
 
@@ -118,5 +119,18 @@ test("companies filter by relationship; other collections ignore it", () => {
   assert.equal(
     libraryHref({ type: "project", relationship: "client" }),
     "/projects",
+  );
+});
+
+test("new-page links preset the collection and a companies relationship", () => {
+  assert.equal(newPageHref(), "/pages/new");
+  assert.equal(newPageHref({ type: "project" }), "/pages/new?type=project");
+  assert.equal(
+    newPageHref({ type: "company", relationship: "client" }),
+    "/pages/new?type=company&relationship=client",
+  );
+  assert.equal(
+    newPageHref({ type: "note", relationship: "client" }),
+    "/pages/new?type=note",
   );
 });

@@ -1,9 +1,10 @@
 "use client";
 
-import { Search, X } from "lucide-react";
+import { Plus, Search, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useLayoutEffect, useRef, useState, useTransition } from "react";
+import { Button } from "@/components/ui/button";
 import {
   InputGroup,
   InputGroupAddon,
@@ -25,6 +26,7 @@ import {
 import {
   type LibraryFilters,
   libraryHref,
+  newPageHref,
   parseLibraryFilters,
 } from "@/lib/workspace/urls";
 
@@ -63,6 +65,19 @@ export function LibraryCollections({
         );
       })}
     </nav>
+  );
+}
+
+// Presets the new page with the collection and its active relationship filter.
+export function NewPageButton({ type }: { type: PageType | "" }) {
+  const filters = parseLibraryFilters(useSearchParams(), type);
+  return (
+    <Button asChild>
+      <Link href={newPageHref(filters)}>
+        <Plus size={16} />
+        New page
+      </Link>
+    </Button>
   );
 }
 

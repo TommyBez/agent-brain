@@ -10,12 +10,17 @@ import { getWorkspacePages, getWorkspaceStats } from "@/lib/workspace/data";
 import {
   LIBRARY_PAGE_SIZE,
   libraryHref,
+  newPageHref,
   pageHref,
   parseLibraryFilters,
   type RouteSearchParams,
   routeSearchParams,
 } from "@/lib/workspace/urls";
-import { LibraryCollections, LibraryControls } from "./library-controls";
+import {
+  LibraryCollections,
+  LibraryControls,
+  NewPageButton,
+} from "./library-controls";
 import { Pagination } from "./pagination";
 import { Empty, EntityIcon, PageHeading } from "./primitives";
 
@@ -149,13 +154,7 @@ async function LibraryResults({
           {!filters.query && (
             <div className="flex flex-wrap justify-center gap-2">
               <Button asChild>
-                <Link
-                  href={
-                    filters.type
-                      ? `/pages/new?type=${filters.type}${filters.relationship ? `&relationship=${filters.relationship}` : ""}`
-                      : "/pages/new"
-                  }
-                >
+                <Link href={newPageHref(filters)}>
                   <Plus size={16} />
                   Create a page
                 </Link>
@@ -202,12 +201,18 @@ export function Library({
         eyebrow={type ? "Library / Collection" : "Personal workspace"}
         title={title}
       >
-        <Button asChild>
-          <Link href={type ? `/pages/new?type=${type}` : "/pages/new"}>
-            <Plus size={16} />
-            New page
-          </Link>
-        </Button>
+        <Suspense
+          fallback={
+            <Button asChild>
+              <Link href={newPageHref({ type })}>
+                <Plus size={16} />
+                New page
+              </Link>
+            </Button>
+          }
+        >
+          <NewPageButton type={type} />
+        </Suspense>
       </PageHeading>
       <Suspense
         fallback={

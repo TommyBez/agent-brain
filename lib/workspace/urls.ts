@@ -82,6 +82,17 @@ export function libraryHref(filters: Partial<LibraryFilters> = {}) {
   return params.size ? `${pathname}?${params}` : pathname;
 }
 
+/** New-page form preset with the collection, and a companies relationship filter. */
+export function newPageHref(
+  filters: Partial<Pick<LibraryFilters, "type" | "relationship">> = {},
+) {
+  const params = new URLSearchParams();
+  if (filters.type) params.set("type", filters.type);
+  if (filters.type === "company" && filters.relationship)
+    params.set("relationship", filters.relationship);
+  return params.size ? `/pages/new?${params}` : "/pages/new";
+}
+
 export function pageHref(id: string) {
   return `/pages/${encodeURIComponent(id)}`;
 }
