@@ -3,19 +3,24 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { entityTypes } from "@/lib/brain/labels";
+import { entityTypes, relationshipLabels } from "@/lib/brain/labels";
 import type { PageType } from "@/lib/brain/types";
 import { relativeTime } from "@/lib/formatters";
 import { getWorkspacePages, getWorkspaceStats } from "@/lib/workspace/data";
 import {
   LIBRARY_PAGE_SIZE,
   libraryHref,
+  newPageHref,
   pageHref,
   parseLibraryFilters,
   type RouteSearchParams,
   routeSearchParams,
 } from "@/lib/workspace/urls";
-import { LibraryCollections, LibraryControls } from "./library-controls";
+import {
+  LibraryCollections,
+  LibraryControls,
+  NewPageButton,
+} from "./library-controls";
 import { Pagination } from "./pagination";
 import { Empty, EntityIcon, PageHeading } from "./primitives";
 
@@ -58,6 +63,7 @@ async function LibraryResults({
   const { pages, total } = await getWorkspacePages({
     query: filters.query || undefined,
     type: filters.type || undefined,
+    relationship: filters.relationship || undefined,
     sort: filters.sort,
     limit: LIBRARY_PAGE_SIZE,
     offset: filters.offset,
@@ -93,7 +99,12 @@ async function LibraryResults({
                     className={`entity-${page.type} flex items-center gap-2 text-[10px] font-medium tracking-[0.1em] uppercase text-secondary-foreground`}
                   >
                     <EntityIcon type={page.type} size={14} />
-                    {page.type}
+                    {[
+                      page.type,
+                      ...page.relationships.map(
+                        (relationship) => relationshipLabels[relationship],
+                      ),
+                    ].join(" · ")}
                   </span>
                   <ArrowUpRight
                     size={15}
@@ -143,13 +154,7 @@ async function LibraryResults({
           {!filters.query && (
             <div className="flex flex-wrap justify-center gap-2">
               <Button asChild>
-                <Link
-                  href={
-                    filters.type
-                      ? `/pages/new?type=${filters.type}`
-                      : "/pages/new"
-                  }
-                >
+                <Link href={newPageHref(filters)}>
                   <Plus size={16} />
                   Create a page
                 </Link>
@@ -196,12 +201,18 @@ export function Library({
         eyebrow={type ? "Library / Collection" : "Personal workspace"}
         title={title}
       >
-        <Button asChild>
-          <Link href={type ? `/pages/new?type=${type}` : "/pages/new"}>
-            <Plus size={16} />
-            New page
-          </Link>
-        </Button>
+        <Suspense
+          fallback={
+            <Button asChild>
+              <Link href={newPageHref({ type })}>
+                <Plus size={16} />
+                New page
+              </Link>
+            </Button>
+          }
+        >
+          <NewPageButton type={type} />
+        </Suspense>
       </PageHeading>
       <Suspense
         fallback={

@@ -206,7 +206,7 @@ async function findPages(query: string, signal: AbortSignal) {
     );
     return recent.pages;
   }
-  // Name resolution ranks people, clients and aliases first; the text match
+  // Name resolution ranks people, companies and aliases first; the text match
   // then covers summaries and page content.
   const [named, matched] = await Promise.all([
     request<{ candidates: PageSummary[] }>(
@@ -302,7 +302,7 @@ function CommandMenuContent({ onNavigate }: { onNavigate: () => void }) {
       <CommandInput
         value={input}
         onValueChange={setInput}
-        placeholder="Search pages, people, clients…"
+        placeholder="Search pages, people, companies…"
         maxLength={500}
       />
       <output className="flex min-h-7 items-center gap-2 px-3 text-xs text-muted-foreground empty:min-h-0">

@@ -1,4 +1,9 @@
-import type { DecoratedPage, LinkType, PageType } from "../brain/types";
+import type {
+  CompanyRelationship,
+  DecoratedPage,
+  LinkType,
+  PageType,
+} from "../brain/types";
 export type DraftLink = {
   targetRef: string;
   type: LinkType;
@@ -10,6 +15,7 @@ export type PageDraft = {
   title: string;
   type: PageType;
   summary: string;
+  relationships: CompanyRelationship[];
   markdown: string;
   aliases: string;
   tags: string;
@@ -19,11 +25,13 @@ export type PageDraft = {
 export function draftFromPage(
   page: DecoratedPage | null,
   fallbackType: PageType,
+  fallbackRelationships: CompanyRelationship[] = [],
 ): PageDraft {
   return {
     title: page?.title ?? "",
     type: page?.type ?? fallbackType,
     summary: page?.summary ?? "",
+    relationships: page?.relationships ?? fallbackRelationships,
     markdown: page?.markdown ?? "",
     aliases: page?.aliases.join(", ") ?? "",
     tags: page?.tags.join(", ") ?? "",

@@ -23,6 +23,7 @@ function fixture() {
       "Ricavo: 450 euro.\n\nIl dato vale solo per l'Italia, escluse le imposte.\n\nRicavo: 450 euro.",
     type: "note",
     summary: "Ricavi italiani",
+    relationships: [],
     aliases: [],
     tags: [],
     version: 2,

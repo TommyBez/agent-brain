@@ -23,7 +23,8 @@ test(
     try {
       const client = await brain.write(owner, {
         title: "Aurora Research",
-        type: "client",
+        type: "company",
+        relationships: ["client"],
         markdown: "A client researching the deep ocean.",
         aliases: ["Aurora"],
         expectedVersion: 0,
@@ -47,7 +48,7 @@ test(
         "canonical aliases resolve and concurrent duplicate creation is rejected",
         async () => {
           assert.equal(
-            (await brain.resolve(owner, { name: " AURORA ", type: "client" }))
+            (await brain.resolve(owner, { name: " AURORA ", type: "company" }))
               .match?.id,
             client.id,
           );
@@ -55,7 +56,7 @@ test(
             brain.write(owner, {
               title: "Different label",
               aliases: ["ＡＵＲＯＲＡ"],
-              type: "client",
+              type: "company",
               markdown: "Duplicate.",
               expectedVersion: 0,
             }),
@@ -79,6 +80,57 @@ test(
           assert.equal(
             concurrent.filter((result) => result.status === "rejected").length,
             1,
+          );
+        },
+      );
+
+      await t.test(
+        "company relationships persist, are replaced by writes and filter lists",
+        async () => {
+          assert.deepEqual(client.relationships, ["client"]);
+          let employer = await brain.write(owner, {
+            title: "Old Workplace",
+            type: "company",
+            relationships: ["former_employer", "prospect", "prospect"],
+            markdown: "I worked here before.",
+            expectedVersion: 0,
+          });
+          assert.deepEqual(employer.relationships, [
+            "former_employer",
+            "prospect",
+          ]);
+          employer = await brain.write(owner, {
+            id: employer.id,
+            title: employer.title,
+            type: "company",
+            relationships: ["prospect"],
+            markdown: "I worked here before. Now in talks.",
+            expectedVersion: employer.version,
+          });
+          assert.deepEqual(employer.relationships, ["prospect"]);
+          const listed = await brain.listPages(owner, {
+            relationship: "prospect",
+          });
+          assert.deepEqual(
+            listed.pages.map((page) => page.id),
+            [employer.id],
+          );
+          assert.equal(
+            (await brain.listPages(owner, { relationship: "client" })).pages[0]
+              ?.id,
+            client.id,
+          );
+          employer = await brain.write(owner, {
+            id: employer.id,
+            title: employer.title,
+            type: "note",
+            markdown: "No longer a company page.",
+            expectedVersion: employer.version,
+          });
+          assert.deepEqual(employer.relationships, []);
+          await getPool().query(
+            "DELETE FROM brain_pages WHERE owner_id=$1 AND id=$2",
+            [owner, employer.id],
           );
         },
       );

@@ -25,6 +25,7 @@ function page(id: string, markdown: string): BrainPage {
     markdown,
     type: "note",
     summary: "",
+    relationships: [],
     aliases: [],
     tags: [],
     version: 1,

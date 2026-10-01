@@ -75,7 +75,10 @@ export async function context(ownerId: string, input: unknown) {
     endOffset: number;
   }[] = [];
   for (const page of pages) {
-    const header = `\n## ${page.title}\n[${page.slug}] · ${page.type} · v${page.version} · ${page.updatedAt}\n\n`;
+    const kind = page.relationships.length
+      ? `${page.type} (${page.relationships.join(", ")})`
+      : page.type;
+    const header = `\n## ${page.title}\n[${page.slug}] · ${kind} · v${page.version} · ${page.updatedAt}\n\n`;
     const linkText = page.links.length
       ? `\n\nLinks: ${page.links.map((edge) => `${edge.type} → ${edge.targetSlug}`).join("; ")}\n`
       : "";

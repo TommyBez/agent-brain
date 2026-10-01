@@ -8,3 +8,11 @@ export function oneOf(column: AnyPgColumn, values: readonly string[]) {
   );
   return sql`${sql.raw(column.name)} = ANY (ARRAY[${sql.join(choices, sql.raw(", "))}])`;
 }
+
+/** Array column whose elements all belong to `values`; empty arrays pass. */
+export function subsetOf(column: AnyPgColumn, values: readonly string[]) {
+  const choices = values.map((value) =>
+    sql.raw(`'${value.replaceAll("'", "''")}'::text`),
+  );
+  return sql`${sql.raw(column.name)} <@ ARRAY[${sql.join(choices, sql.raw(", "))}]`;
+}

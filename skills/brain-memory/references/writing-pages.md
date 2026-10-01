@@ -13,10 +13,10 @@ Use the page's current `version` as `expectedVersion`. Do not build a replacemen
 | Intent | Tool and version rule |
 | --- | --- |
 | Add a passage while preserving existing content and metadata | `append` with `ref` and the current positive `expectedVersion`. |
-| Change content, title, summary, aliases, tags or outgoing links | `write` with the page `id`, current positive `expectedVersion` and the full intended state. |
+| Change content, title, summary, relationships, aliases, tags or outgoing links | `write` with the page `id`, current positive `expectedVersion` and the full intended state. |
 | Create an entity after resolving possible duplicates | `write` with `expectedVersion: 0` and **no `id`**. |
 
-`write` replaces `markdown`, `summary`, `aliases`, `tags` and all outgoing `links`. Omitted summary becomes empty; omitted arrays become empty. Explicitly preserve values you intend to keep. Pass the existing `slug` unless renaming it deliberately. Do not spread a read result into a write: the input schema is strict and rejects read-only fields such as `version`, timestamps and `backlinks`.
+`write` replaces `markdown`, `summary`, `relationships`, `aliases`, `tags` and all outgoing `links`. Omitted summary becomes empty; omitted arrays become empty. Explicitly preserve values you intend to keep. Pass the existing `slug` unless renaming it deliberately. Do not spread a read result into a write: the input schema is strict and rejects read-only fields such as `version`, timestamps and `backlinks`.
 
 An update's payload can be constructed as follows, where `page` is the fresh read result and `revisedMarkdown`, `changeReason` and `sourceReference` describe the actual change:
 
@@ -29,6 +29,7 @@ const writeArguments = {
   type: page.type,
   markdown: revisedMarkdown,
   summary: page.summary,
+  relationships: page.relationships,
   aliases: page.aliases,
   tags: page.tags,
   links: page.links.map((link) => ({
@@ -59,7 +60,9 @@ Append inserts a paragraph break before the new passage and preserves metadata a
 
 ## Organize entities and links
 
-Current page types are `person`, `client`, `project`, `article`, `decision`, and `note`. Choose the type describing the entity; a decision can have its own page when its rationale and consequences warrant one, linked to its project. Prefer updating the appropriate existing page for small related facts.
+Current page types are `person`, `company`, `project`, `article`, `decision`, and `note`. Choose the type describing the entity; a decision can have its own page when its rationale and consequences warrant one, linked to its project. Prefer updating the appropriate existing page for small related facts.
+
+A `company` page covers every organization the owner deals with. Its `relationships` array records how the owner relates to it: `client`, `prospect` and `former_employer`, in any combination (a former employer can become a client), or empty for a company the owner has simply been in touch with. Only company pages accept relationships. Update them when the evidence changes, for example a prospect signing becomes a client; keep the history of that change in the page's Markdown. A person's employment stays a `works_at` link from the person to the company.
 
 Current typed links are `works_at`, `owns`, `part_of`, `relates_to`, `decided_in`, `references`, `depends_on`, `supersedes`, and `collaborates_with`. Resolve the target before using its canonical ID or slug as `targetRef`. The edited page is the source: a new decision `supersedes` an older decision, a project `depends_on` another project, and an article `references` its subject. Use the most specific supported relationship justified by evidence.
 

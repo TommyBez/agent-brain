@@ -43,6 +43,13 @@
       "when": 1790800472774,
       "tag": "0005_remove_consolidation_reservations",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790884802725,
+      "tag": "0006_company_relationships",
+      "breakpoints": true
     }
   ]
 }

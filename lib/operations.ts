@@ -146,7 +146,7 @@ export async function exportBrain(ownerId: string) {
       "SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY",
     );
     const { rows: pages } = await client.query(
-      `SELECT id, slug, type, title, summary, markdown, aliases, tags, version,
+      `SELECT id, slug, type, title, summary, relationships, markdown, aliases, tags, version,
         created_at AS "createdAt", updated_at AS "updatedAt" FROM brain_pages
        WHERE owner_id = $1 ORDER BY slug`,
       [ownerId],

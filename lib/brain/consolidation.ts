@@ -23,6 +23,7 @@ function pageContent(page: BrainPage) {
     title: page.title,
     summary: page.summary,
     markdown: page.markdown,
+    relationships: page.relationships,
     aliases: page.aliases,
     tags: page.tags,
     links: page.links

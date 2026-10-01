@@ -41,6 +41,7 @@ export async function savePageAction(
       title: value(form, "title"),
       type: value(form, "type"),
       summary: value(form, "summary"),
+      relationships: list(value(form, "relationships")),
       markdown: value(form, "markdown"),
       aliases: list(value(form, "aliases")),
       tags: list(value(form, "tags")),

@@ -48,7 +48,8 @@ test(
     const company = await brain.write(owner, {
       expectedVersion: 0,
       title: "Atlas",
-      type: "client",
+      type: "company",
+      relationships: ["client"],
       markdown: "Atlas is a software company.",
     });
     const provider = t.mock.method(

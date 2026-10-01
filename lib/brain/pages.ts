@@ -6,6 +6,7 @@ import {
   BrainError,
   type BrainLink,
   type BrainPage,
+  type CompanyRelationship,
   type DecoratedLink,
   type DecoratedPage,
   MAX_PAGE_CHARACTERS,
@@ -25,6 +26,7 @@ export interface PageRow extends QueryResultRow {
   title: string;
   type: PageType;
   summary: string;
+  relationships: CompanyRelationship[];
   aliases: string[];
   tags: string[];
   version: number;
@@ -35,7 +37,7 @@ export interface PageRow extends QueryResultRow {
   chunk_indexed_at: Date | null;
 }
 export const PAGE_COLUMNS =
-  "p.id, p.slug, p.title, p.type, p.summary, p.aliases, p.tags, p.version, p.created_at, p.updated_at, p.chunk_index_version, p.chunk_indexed_at";
+  "p.id, p.slug, p.title, p.type, p.summary, p.relationships, p.aliases, p.tags, p.version, p.created_at, p.updated_at, p.chunk_index_version, p.chunk_indexed_at";
 export const iso = (value: Date | string): string =>
   new Date(value).toISOString();
 export function summary(row: PageRow): PageSummary {
@@ -45,6 +47,7 @@ export function summary(row: PageRow): PageSummary {
     title: row.title,
     type: row.type,
     summary: row.summary,
+    relationships: row.relationships,
     aliases: row.aliases,
     tags: row.tags,
     version: row.version,
@@ -216,6 +219,7 @@ export async function write(
       const version = (existing?.version ?? 0) + 1;
       const aliases = [...new Set(data.aliases)];
       const tags = [...new Set(data.tags)];
+      const relationships = [...new Set(data.relationships)];
       const identities = [
         ...new Set([data.title, ...aliases].map(normalizeIdentity)),
       ];
@@ -235,16 +239,17 @@ export async function write(
         aliases,
         tags,
         version,
+        relationships,
       ];
       const result = existing
         ? await db.query<PageRow>(
-            `UPDATE brain_pages SET slug=$3,type=$4,title=$5,summary=$6,markdown=$7,aliases=$8,tags=$9,version=$10,updated_at=now()
+            `UPDATE brain_pages SET slug=$3,type=$4,title=$5,summary=$6,markdown=$7,aliases=$8,tags=$9,version=$10,relationships=$11,updated_at=now()
             WHERE owner_id=$1 AND id=$2 RETURNING *`,
             values,
           )
         : await db.query<PageRow>(
-            `INSERT INTO brain_pages (owner_id,id,slug,type,title,summary,markdown,aliases,tags,version)
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+            `INSERT INTO brain_pages (owner_id,id,slug,type,title,summary,markdown,aliases,tags,version,relationships)
+            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,
             values,
           );
       await db.query(

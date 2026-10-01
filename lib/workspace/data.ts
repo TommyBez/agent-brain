@@ -13,6 +13,7 @@ import { GRAPH_PAGE_SIZE } from "./urls";
 export type WorkspacePageOptions = {
   query?: string;
   type?: string;
+  relationship?: string;
   sort?: "updated" | "title";
   limit?: number;
   offset?: number;
