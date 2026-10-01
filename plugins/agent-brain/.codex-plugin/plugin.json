@@ -7,5 +7,18 @@
   },
   "repository": "https://github.com/TommyBez/agent-brain",
   "skills": "./skills/",
-  "mcpServers": "./.mcp.json"
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Agent Brain",
+    "shortDescription": "Private memory for agents",
+    "longDescription": "Retrieve context about people, companies, projects and decisions from your private a native brain. Save authorized updates with sources and version checks. Requires an authenticated Brain MCP connection.",
+    "developerName": "Tommaso",
+    "category": "Productivity",
+    "capabilities": ["Read", "Write"],
+    "defaultPrompt": [
+      "Use Agent Brain to recover the context and decisions for this project."
+    ],
+    "composerIcon": "./assets/icon.svg",
+    "logo": "./assets/icon.svg"
+  }
 }

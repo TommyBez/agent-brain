@@ -8,6 +8,7 @@ Retrieve context about people, clients and projects, and preserve durable knowle
 agent-brain/
 ├── plugin.json
 ├── mcp.json
+├── assets/icon.svg
 ├── skills/brain-memory/
 │   ├── SKILL.md
 │   └── references/writing-pages.md
@@ -20,6 +21,8 @@ agent-brain/
 `plugin.json` and `mcp.json` follow [Agent Plugins 1.0.0](https://agent-plugins.org/plugin-authors/build-an-agent-plugin). The memory skill follows [Agent Skills](https://agentskills.io/specification) and has one canonical copy. The live server's instructions and tool schemas remain authoritative for its behavior.
 
 Codex and Cursor support the portable format. Compatibility manifests also support their native plugin formats. Claude Code uses `.claude-plugin/plugin.json` and discovers `.mcp.json`. The compatibility MCP configuration uses `type: "http"`, while the standard requires `type: "streamable-http"`. Keep server names and URLs in both files aligned; keep names, versions and descriptions aligned across manifests when releasing.
+
+The Codex compatibility manifest supplies the OpenAI presentation metadata and bundled icon. With no inline `extensions.com.openai` object in the portable manifest, Codex reads these settings from `.codex-plugin/plugin.json`. Cursor's native manifest explicitly points `mcpServers` to `./.mcp.json`, overriding its default `mcp.json` discovery as supported by the [Cursor manifest reference](https://cursor.com/docs/reference/plugins). Both files define the same Brain endpoint.
 
 ## Install
 
