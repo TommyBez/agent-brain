@@ -3,7 +3,6 @@ import {
   Check,
   FileText,
   FolderOpen,
-  LoaderCircle,
   type LucideIcon,
   NotebookPen,
   Users,
@@ -17,6 +16,7 @@ import {
   Empty as EmptyRoot,
   EmptyTitle,
 } from "@/components/ui/empty";
+import { Spinner } from "@/components/ui/spinner";
 import type { PageType } from "@/lib/brain/types";
 
 export const typeIcons: Record<PageType, LucideIcon> = {
@@ -31,12 +31,14 @@ export const typeIcons: Record<PageType, LucideIcon> = {
 export function EntityIcon({
   type,
   size = 17,
+  className,
 }: {
   type: PageType;
   size?: number;
+  className?: string;
 }) {
   const Icon = typeIcons[type];
-  return <Icon size={size} strokeWidth={1.6} />;
+  return <Icon size={size} strokeWidth={1.6} className={className} />;
 }
 
 export function PageHeading({
@@ -78,7 +80,7 @@ export function Loading({
       aria-live="polite"
       className="flex min-h-48 items-center justify-center gap-3 text-sm text-muted-foreground"
     >
-      <LoaderCircle size={20} className="animate-spin" />
+      <Spinner aria-hidden="true" className="size-5" />
       {label}
     </output>
   );

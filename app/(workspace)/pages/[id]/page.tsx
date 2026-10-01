@@ -30,7 +30,7 @@ export default function Page({ params }: { params: PageParams }) {
       <Suspense fallback={<div className="h-12 border-b" />}>
         <PageNavigation params={params} />
       </Suspense>
-      <div className="grid grid-cols-1 items-start gap-12 pt-2 lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-16">
+      <div className="grid grid-cols-1 items-start gap-12 pt-2 xl:grid-cols-[minmax(0,1fr)_15rem] xl:gap-16">
         <Suspense fallback={<Loading />}>
           <PageBody params={params} />
         </Suspense>

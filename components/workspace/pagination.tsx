@@ -1,10 +1,10 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import {
   paginationHref,
   WORKSPACE_PAGE_SIZE,
 } from "@/lib/workspace/pagination";
-import { WorkspaceLink as Link } from "./search-navigation";
 
 export function Pagination({
   path = "",

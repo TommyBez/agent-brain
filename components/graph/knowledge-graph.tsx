@@ -111,7 +111,7 @@ export function KnowledgeGraph({
   };
 
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start">
+    <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_21rem] xl:items-start">
       <div className="relative min-w-0 h-[clamp(420px,62vh,760px)] overflow-hidden rounded-xl border bg-card">
         <GraphCanvas
           ref={canvas}
@@ -213,7 +213,7 @@ export function KnowledgeGraph({
           </div>
         </div>
         <div className="pointer-events-none absolute inset-x-3 bottom-3 flex flex-wrap items-end justify-between gap-2 text-xs text-muted-foreground">
-          <ul className="flex flex-wrap gap-x-3 gap-y-1 lg:hidden">
+          <ul className="flex flex-wrap gap-x-3 gap-y-1 xl:hidden">
             {typeCounts.map((item) => (
               <li
                 key={item.type}
@@ -240,7 +240,7 @@ export function KnowledgeGraph({
       </div>
       <aside
         aria-label="Graph inspector"
-        className="min-w-0 rounded-xl border bg-card lg:h-[clamp(420px,62vh,760px)] lg:overflow-y-auto"
+        className="min-w-0 rounded-xl border bg-card xl:h-[clamp(420px,62vh,760px)] xl:overflow-y-auto"
       >
         <GraphInspector
           nodes={inspectorNodes}

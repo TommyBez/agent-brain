@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, KeyRound, LoaderCircle, Plus } from "lucide-react";
+import { Check, KeyRound, Plus } from "lucide-react";
 import { useId, useState } from "react";
 import { CopyButton } from "@/components/settings/copy-button";
 import { Button } from "@/components/ui/button";
@@ -12,12 +12,21 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   NativeSelect,
   NativeSelectOption,
 } from "@/components/ui/native-select";
+import { Spinner } from "@/components/ui/spinner";
 import { createTokenAction } from "@/lib/workspace/settings-actions";
 
 export function TokenCreator() {
@@ -97,9 +106,11 @@ export function TokenCreator() {
         <Card className="mb-5">
           <CardContent>
             <form className="space-y-6" action={createToken}>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="grid gap-2">
-                  <Label htmlFor={`${fieldId}-name`}>Agent name</Label>
+              <FieldGroup className="gap-4 sm:grid sm:grid-cols-2">
+                <Field>
+                  <FieldLabel htmlFor={`${fieldId}-name`}>
+                    Agent name
+                  </FieldLabel>
                   <Input
                     id={`${fieldId}-name`}
                     name="name"
@@ -107,9 +118,11 @@ export function TokenCreator() {
                     maxLength={80}
                     required
                   />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor={`${fieldId}-days`}>Expires in</Label>
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor={`${fieldId}-days`}>
+                    Expires in
+                  </FieldLabel>
                   <NativeSelect
                     id={`${fieldId}-days`}
                     name="days"
@@ -122,65 +135,65 @@ export function TokenCreator() {
                       365 days
                     </NativeSelectOption>
                   </NativeSelect>
-                </div>
-              </div>
-              <fieldset className="flex flex-wrap gap-6">
-                <legend className="mb-3 text-sm font-medium">
-                  Permissions
-                </legend>
-                {[
-                  {
-                    value: "brain:read",
-                    label: "Read",
-                    help: "Search and retrieve knowledge",
-                  },
-                  {
-                    value: "brain:write",
-                    label: "Write",
-                    help: "Create and update pages",
-                  },
-                  {
-                    value: "brain:maintain",
-                    label: "Maintain",
-                    help: "Perform consolidation work",
-                  },
-                ].map((scope) => (
-                  <div className="flex items-start gap-2" key={scope.value}>
-                    <Checkbox
-                      id={`${fieldId}-${scope.value}`}
-                      name="scopes"
-                      value={scope.value}
-                      checked={scopes.includes(scope.value)}
-                      onCheckedChange={(checked) =>
-                        setScopes(
-                          checked === true
-                            ? [...scopes, scope.value]
-                            : scopes.filter((s) => s !== scope.value),
-                        )
-                      }
-                    />
-                    <div className="grid gap-1.5">
-                      <Label htmlFor={`${fieldId}-${scope.value}`}>
-                        {scope.label}
-                      </Label>
-                      <p className="text-xs text-muted-foreground">
-                        {scope.help}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </fieldset>
+                </Field>
+              </FieldGroup>
+              <FieldSet>
+                <FieldLegend variant="label">Permissions</FieldLegend>
+                <FieldGroup className="gap-4 sm:flex-row sm:flex-wrap sm:gap-6">
+                  {[
+                    {
+                      value: "brain:read",
+                      label: "Read",
+                      help: "Search and retrieve knowledge",
+                    },
+                    {
+                      value: "brain:write",
+                      label: "Write",
+                      help: "Create and update pages",
+                    },
+                    {
+                      value: "brain:maintain",
+                      label: "Maintain",
+                      help: "Perform consolidation work",
+                    },
+                  ].map((scope) => (
+                    <Field
+                      orientation="horizontal"
+                      className="w-auto"
+                      key={scope.value}
+                    >
+                      <Checkbox
+                        id={`${fieldId}-${scope.value}`}
+                        name="scopes"
+                        value={scope.value}
+                        checked={scopes.includes(scope.value)}
+                        onCheckedChange={(checked) =>
+                          setScopes(
+                            checked === true
+                              ? [...scopes, scope.value]
+                              : scopes.filter((s) => s !== scope.value),
+                          )
+                        }
+                      />
+                      <FieldContent>
+                        <FieldLabel htmlFor={`${fieldId}-${scope.value}`}>
+                          {scope.label}
+                        </FieldLabel>
+                        <FieldDescription className="text-xs">
+                          {scope.help}
+                        </FieldDescription>
+                      </FieldContent>
+                    </Field>
+                  ))}
+                </FieldGroup>
+              </FieldSet>
               <div className="flex flex-wrap items-center gap-2">
                 <Button
                   type="submit"
                   variant="default"
                   disabled={writing || !scopes.length}
                 >
-                  {writing ? (
-                    <LoaderCircle className="animate-spin" />
-                  ) : (
-                    <KeyRound />
-                  )}{" "}
+                  {writing ? <Spinner aria-hidden="true" /> : <KeyRound />}
                   Create token
                 </Button>
                 <Button

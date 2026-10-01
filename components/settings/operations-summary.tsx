@@ -1,10 +1,12 @@
 import {
   ArrowUpRight,
   CheckCircle2,
+  ChevronDown,
   Clock3,
   ShieldCheck,
   XCircle,
 } from "lucide-react";
+import { Fragment } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +16,21 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemGroup,
+  ItemMedia,
+  ItemSeparator,
+  ItemTitle,
+} from "@/components/ui/item";
 import { formatDate } from "@/lib/formatters";
 import type { MaintenanceJob, OperationsData } from "@/lib/operations";
 
@@ -57,14 +74,20 @@ function OperationResult({ job }: { job: MaintenanceJob }) {
         </Button>
       )}
       {typeof result.report === "string" && result.report && (
-        <details className="rounded-md border p-3">
-          <summary className="cursor-pointer font-medium text-foreground">
+        <Collapsible className="rounded-md border p-3">
+          <CollapsibleTrigger className="group/trigger flex w-full items-center justify-between font-medium text-foreground">
             Consolidation report
-          </summary>
-          <p className="mt-3 max-h-80 overflow-auto whitespace-pre-wrap leading-relaxed">
-            {result.report}
-          </p>
-        </details>
+            <ChevronDown
+              size={14}
+              className="text-muted-foreground transition-transform group-data-open/trigger:rotate-180"
+            />
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <p className="mt-3 max-h-80 overflow-auto whitespace-pre-wrap leading-relaxed">
+              {result.report}
+            </p>
+          </CollapsibleContent>
+        </Collapsible>
       )}
     </div>
   );
@@ -79,40 +102,42 @@ export function OperationsSummary({ data }: { data: OperationsData }) {
           {data.configured ? "Configured" : "Setup incomplete"}
         </Badge>
       </div>
-      <Card>
-        <CardContent className="divide-y">
-          {data.checks.map((check) => (
-            <div
-              className="flex flex-wrap items-center gap-4 py-5 first:pt-0 last:pb-0"
-              key={check.name}
-            >
-              {check.status === "ready" ? (
-                <CheckCircle2 className="size-5 shrink-0 text-primary" />
-              ) : (
-                <XCircle className="size-5 shrink-0 text-muted-foreground" />
-              )}
-              <div className="min-w-0 flex-1">
-                <h3 className="font-medium">{check.name}</h3>
-                <p className="break-words text-sm text-muted-foreground">
+      <ItemGroup className="rounded-xl border bg-card">
+        {data.checks.map((check, index) => (
+          <Fragment key={check.name}>
+            {index > 0 && <ItemSeparator />}
+            <Item role="listitem">
+              <ItemMedia variant="icon">
+                {check.status === "ready" ? (
+                  <CheckCircle2 className="text-primary" />
+                ) : (
+                  <XCircle className="text-muted-foreground" />
+                )}
+              </ItemMedia>
+              <ItemContent className="min-w-0">
+                <ItemTitle>{check.name}</ItemTitle>
+                <ItemDescription className="line-clamp-none break-words">
                   {check.detail}
-                </p>
-              </div>
-              <Badge
-                variant={
-                  check.status === "ready"
-                    ? "default"
-                    : check.status === "error"
-                      ? "destructive"
-                      : "secondary"
-                }
-                className="ml-auto capitalize"
-              >
-                {check.status === "missing" ? "Not configured" : check.status}
-              </Badge>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+                </ItemDescription>
+              </ItemContent>
+              <ItemActions>
+                <Badge
+                  variant={
+                    check.status === "ready"
+                      ? "default"
+                      : check.status === "error"
+                        ? "destructive"
+                        : "secondary"
+                  }
+                  className="capitalize"
+                >
+                  {check.status === "missing" ? "Not configured" : check.status}
+                </Badge>
+              </ItemActions>
+            </Item>
+          </Fragment>
+        ))}
+      </ItemGroup>
       <section className="mt-8">
         <div className="mb-5 space-y-2">
           <h2 className="text-xl font-semibold">Recent maintenance</h2>
@@ -123,43 +148,45 @@ export function OperationsSummary({ data }: { data: OperationsData }) {
           </p>
         </div>
         {data.jobs.length ? (
-          <div className="divide-y border-t">
-            {data.jobs.map((job) => (
-              <div
-                className="flex flex-wrap items-start justify-between gap-4 py-5"
-                key={job.id}
-              >
-                <div className="min-w-0 flex-1">
-                  <strong className="font-medium capitalize">
-                    {job.kind.replaceAll("_", " ")}
-                  </strong>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {formatDate(job.runDate)}
-                    {job.finishedAt &&
-                      ` · Finished ${new Date(job.finishedAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" })} UTC`}
-                  </p>
-                  {job.error && (
-                    <p className="mt-2 break-words text-sm text-destructive">
-                      {job.error}
-                    </p>
-                  )}
-                  <OperationResult job={job} />
-                </div>
-                <Badge
-                  variant={
-                    job.status === "succeeded"
-                      ? "default"
-                      : job.status === "failed"
-                        ? "destructive"
-                        : "secondary"
-                  }
-                  className="capitalize"
-                >
-                  {job.status}
-                </Badge>
-              </div>
+          <ItemGroup className="border-t">
+            {data.jobs.map((job, index) => (
+              <Fragment key={job.id}>
+                {index > 0 && <ItemSeparator />}
+                <Item role="listitem" className="items-start px-0">
+                  <ItemContent className="min-w-0">
+                    <ItemTitle className="capitalize">
+                      {job.kind.replaceAll("_", " ")}
+                    </ItemTitle>
+                    <ItemDescription>
+                      {formatDate(job.runDate)}
+                      {job.finishedAt &&
+                        ` · Finished ${new Date(job.finishedAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" })} UTC`}
+                    </ItemDescription>
+                    {job.error && (
+                      <p className="mt-1 break-words text-sm text-destructive">
+                        {job.error}
+                      </p>
+                    )}
+                    <OperationResult job={job} />
+                  </ItemContent>
+                  <ItemActions>
+                    <Badge
+                      variant={
+                        job.status === "succeeded"
+                          ? "default"
+                          : job.status === "failed"
+                            ? "destructive"
+                            : "secondary"
+                      }
+                      className="capitalize"
+                    >
+                      {job.status}
+                    </Badge>
+                  </ItemActions>
+                </Item>
+              </Fragment>
             ))}
-          </div>
+          </ItemGroup>
         ) : (
           <Card>
             <CardContent className="flex items-center gap-4">

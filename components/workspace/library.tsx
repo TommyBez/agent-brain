@@ -1,4 +1,5 @@
 import { ArrowRight, ArrowUpRight, BookOpen, Plus } from "lucide-react";
+import Link from "next/link";
 import { Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,7 +18,6 @@ import {
 import { LibraryCollections, LibraryControls } from "./library-controls";
 import { Pagination } from "./pagination";
 import { Empty, EntityIcon, PageHeading } from "./primitives";
-import { WorkspaceLink as Link } from "./search-navigation";
 
 async function WorkspaceCollections({ type }: { type: PageType | "" }) {
   const stats = await getWorkspaceStats();
@@ -26,21 +26,23 @@ async function WorkspaceCollections({ type }: { type: PageType | "" }) {
 
 export function LibrarySkeleton() {
   return (
-    <output
-      aria-label="Loading pages"
-      aria-busy="true"
-      className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
-    >
-      {[1, 2, 3].map((row) => (
-        <div key={row} className="space-y-6 rounded-lg border bg-card p-7">
-          <Skeleton className="h-3 w-16" />
-          <Skeleton className="h-8 w-3/4" />
-          <Skeleton className="h-20 w-full" />
-          <Skeleton className="h-3 w-2/5" />
-        </div>
-      ))}
-      <span className="sr-only">Opening your pages…</span>
-    </output>
+    <div className="@container">
+      <output
+        aria-label="Loading pages"
+        aria-busy="true"
+        className="grid gap-5 @xl:grid-cols-2 @4xl:grid-cols-3"
+      >
+        {[1, 2, 3].map((row) => (
+          <div key={row} className="space-y-6 rounded-lg border bg-card p-7">
+            <Skeleton className="h-3 w-16" />
+            <Skeleton className="h-8 w-3/4" />
+            <Skeleton className="h-20 w-full" />
+            <Skeleton className="h-3 w-2/5" />
+          </div>
+        ))}
+        <span className="sr-only">Opening your pages…</span>
+      </output>
+    </div>
   );
 }
 
@@ -79,7 +81,7 @@ async function LibraryResults({
         </span>
       </div>
       {pages.length ? (
-        <ul className="grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
+        <ul className="grid gap-4 @xl:grid-cols-2 @xl:gap-5 @4xl:grid-cols-3">
           {pages.map((page) => (
             <li key={page.id} className="min-w-0">
               <Link
@@ -189,7 +191,7 @@ export function Library({
   const title =
     entityTypes.find((item) => item.id === type)?.label ?? "Library";
   return (
-    <div className="group/library">
+    <div className="group/library @container">
       <PageHeading
         eyebrow={type ? "Library / Collection" : "Personal workspace"}
         title={title}

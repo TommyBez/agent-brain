@@ -1,9 +1,9 @@
 "use client";
 
-import { LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { runMaintenanceAction } from "@/lib/workspace/settings-actions";
 
 export function OperationsControls({ active }: { active: boolean }) {
@@ -54,7 +54,7 @@ export function OperationsControls({ active }: { active: boolean }) {
     <div className="mb-5">
       <div className="flex flex-wrap justify-end gap-2">
         <Button type="button" disabled={pending} onClick={run}>
-          {pending && <LoaderCircle className="animate-spin" />}
+          {pending && <Spinner aria-hidden="true" />}
           Run maintenance
         </Button>
         <Button
@@ -63,7 +63,7 @@ export function OperationsControls({ active }: { active: boolean }) {
           disabled={refreshing}
           onClick={() => refreshTransition(() => router.refresh())}
         >
-          {refreshing && <LoaderCircle className="animate-spin" />}
+          {refreshing && <Spinner aria-hidden="true" />}
           Refresh status
         </Button>
       </div>

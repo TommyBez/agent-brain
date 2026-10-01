@@ -158,7 +158,7 @@ export async function PageConnections({ params }: { params: PageParams }) {
     <Card
       role="complementary"
       aria-label="Page context"
-      className="min-w-0 rounded-none border-0 border-l bg-transparent py-0 lg:sticky lg:top-8"
+      className="min-w-0 rounded-none border-0 border-l bg-transparent py-0 xl:sticky xl:top-22"
     >
       <CardHeader>
         <CardTitle>Connections</CardTitle>

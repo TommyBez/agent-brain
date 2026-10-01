@@ -12,11 +12,17 @@ products.
 
 ## Structure and visual language
 
-- A shared top navigation replaces the permanent sidebar. Library, Graph and
-  Activity remain one click away. The workspace menu contains collections,
-  agent access, operations and the owner profile.
+- A collapsible sidebar (shadcn `Sidebar`, `collapsible="icon"`) holds the
+  workspace views, collections with live counts, settings and the owner menu.
+  ⌘B collapses it to an icon rail; on mobile it opens as a sheet from the
+  header trigger.
+- The command menu (shadcn `Command`, ⌘K or the header search button) is the
+  global search: it matches entity names and aliases first, then page text, and
+  also jumps to collections, settings and “New …” forms. The library keeps a
+  submit-to-filter field for its own list.
 - The library uses a document grid with actual titles, summaries, types, tags and
-  update times. It has three columns on desktop, two on tablet and one on mobile.
+  update times. Its columns follow the available width (container queries), so
+  the sidebar never squeezes cards.
 - Collections become horizontal navigation with actual counts. Switching
   collections preserves the search and sort; pagination resets appropriately.
 - Warm paper, dark ink and a rust accent define the interface. Entity colors
