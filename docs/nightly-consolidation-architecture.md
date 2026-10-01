@@ -34,13 +34,19 @@ semantici alle domande o alle regole richiedono di aggiornarla.
    Le altre concludono il relativo ramo dell'attività.
 2. **Localizzazione Jev.** Solo per un problema segnalato, individua i passaggi
    interessati e le relative controparti. Questo passaggio seleziona indirizzi
-   modificabili, non autorizza cancellazioni. La soglia di selezione è 0,80;
+   modificabili, non autorizza cancellazioni. La soglia di selezione è 0,70;
    il testo integrale rimane disponibile come contesto. Le scelte delle controparti
    sono accettate solo quando la probabilità dell'alternativa scelta è almeno
    0,80; la concentrazione della distribuzione non sostituisce questa probabilità.
    Le domande sono indipendenti e condividono richieste da massimo 48 domande, rispettando
    anche il limite di dimensione. Ogni domanda identifica esplicitamente il proprio
    passaggio e i candidati; il contesto completo viene inviato una volta per gruppo.
+   Con esattamente due passaggi candidati nello stesso documento, oppure uno per
+   pagina nel confronto fra pagine, il codice costruisce direttamente la coppia.
+   La conferma semantica della coppia (almeno 0,80) e le domande sull'intervento
+   condividono la richiesta di preparazione, evitando la chiamata di scelta
+   della controparte. Le risposte sull'intervento sono usate solo se la coppia
+   è confermata; con più candidati resta la selezione della controparte.
 3. **Preparazione Jev.** Stabilisce l'intervento concreto: dove conservare le
    informazioni duplicate e se consolidarle è utile; quale
    correzione o distinzione temporale/di ambito è sostenuta dalle fonti; oppure

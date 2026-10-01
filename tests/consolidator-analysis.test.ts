@@ -86,7 +86,7 @@ test("independent partner selections share page state and batch without losing a
   }
 });
 
-test("a positive duplicate is localized then given a destination and preservation constraint", async () => {
+test("two candidates combine counterpart confirmation and preparation in one request", async () => {
   const { snapshot, task } = pair();
   const calls: EvaluationRequest[] = [];
   const result = await analyzeTask(
@@ -95,8 +95,8 @@ test("a positive duplicate is localized then given a destination and preservatio
     evaluator(
       (id) =>
         id.startsWith("passage_")
-          ? 0.8
-          : id === "duplicate" || id === "actionable"
+          ? 0.7
+          : ["duplicate", "counterpart", "actionable"].includes(id)
             ? 1
             : id.startsWith("partner_")
               ? "p0"
@@ -106,8 +106,18 @@ test("a positive duplicate is localized then given a destination and preservatio
       calls,
     ),
   );
-  assert.ok(calls.some((call) => call.questions.partner_0));
-  assert.ok(calls.some((call) => call.questions.destination));
+  assert.equal(calls.length, 3);
+  assert.ok(calls.every((call) => !call.questions.partner_0));
+  assert.deepEqual(Object.keys(calls[2].questions), [
+    "counterpart",
+    "destination",
+    "actionable",
+  ]);
+  assert.match(
+    calls[2].questions.counterpart.instructions,
+    /target\[0\].*target\[1\]/,
+  );
+  assert.match(calls[2].questions.actionable.instructions, /^Assuming /);
   assert.equal(calls.filter((call) => call.questions.duplicate).length, 1);
   assert.equal(result.findings.length, 1);
   assert.equal(result.findings[0].status, "supported");
@@ -122,7 +132,7 @@ test("an unsupported preparation cannot authorize deleting the localized passage
     snapshot,
     task,
     evaluator((id) =>
-      id === "duplicate" || id.startsWith("passage_")
+      id === "duplicate" || id === "counterpart" || id.startsWith("passage_")
         ? 1
         : id.startsWith("partner_")
           ? "p0"
@@ -152,7 +162,8 @@ test("contradictions consult only explicit sources and cache their semantic depe
     snapshot,
     task,
     evaluator((id, request) => {
-      if (id === "conflict" || id.startsWith("passage_")) return 1;
+      if (["conflict", "counterpart"].includes(id) || id.startsWith("passage_"))
+        return 1;
       if (id.startsWith("partner_")) return "p0";
       if (id === "resolution")
         return JSON.stringify(request.state).includes("completed its migration")
@@ -208,7 +219,7 @@ test("a specifically missing source invalidates the unresolved result when it be
     snapshot,
     task,
     evaluator((id) =>
-      id === "conflict" || id.startsWith("passage_")
+      id === "conflict" || id === "counterpart" || id.startsWith("passage_")
         ? 1
         : id.startsWith("partner_")
           ? "p0"
@@ -275,7 +286,7 @@ test("oversized full pages remain incomplete instead of being silently truncated
   assert.equal(result.status, "incomplete");
 });
 
-test("long positive pages fit localization and partner requests without duplicated text", async () => {
+test("long positive pages fit localization and direct-pair preparation without truncation", async () => {
   const markdown = Array.from(
     { length: 32 },
     (_, i) => `Passage ${i}: ${"x".repeat(1800)} unique-marker-${i}.`,
@@ -286,7 +297,15 @@ test("long positive pages fit localization and partner requests without duplicat
     snapshot,
     createAnalysisTasks(snapshot)[0],
     evaluator((id) => {
-      if (["duplicate", "actionable", "passage_0", "passage_1"].includes(id))
+      if (
+        [
+          "duplicate",
+          "counterpart",
+          "actionable",
+          "passage_0",
+          "passage_1",
+        ].includes(id)
+      )
         return 1;
       if (id.startsWith("partner_")) return "p0";
       if (id === "destination") return "equivalent";
@@ -298,7 +317,9 @@ test("long positive pages fit localization and partner requests without duplicat
   const localized = calls.filter(
     (call) => call.questions.passage_0 || call.questions.partner_0,
   );
-  assert.ok(localized.length >= 2);
+  assert.ok(localized.length >= 1);
+  assert.ok(calls.some((call) => call.questions.counterpart));
+  assert.ok(calls.every((call) => !call.questions.partner_0));
   for (const request of localized) {
     const serialized = JSON.stringify(request.state);
     assert.equal(serialized.split("unique-marker-0.").length - 1, 1);
@@ -321,7 +342,7 @@ test("screening below 80% ends the task without localization or preparation", as
   }
 });
 
-test("localization below 80% cannot generate partner or preparation requests", async () => {
+test("localization below 70% cannot generate partner or preparation requests", async () => {
   const { snapshot, task } = pair();
   const calls: EvaluationRequest[] = [];
   const result = await analyzeTask(
@@ -329,7 +350,7 @@ test("localization below 80% cannot generate partner or preparation requests", a
     task,
     evaluator((id) => {
       if (id === "duplicate") return 0.8;
-      if (id.startsWith("passage_")) return 0.799;
+      if (id.startsWith("passage_")) return 0.699;
       return 0;
     }, calls),
   );
@@ -339,7 +360,10 @@ test("localization below 80% cannot generate partner or preparation requests", a
 });
 
 test("partner probability, rather than distribution confidence, gates preparation at 80%", async () => {
-  const { snapshot, task } = pair();
+  const { snapshot, task } = pair(
+    "Giulia leads Atlas.\n\nGiulia approves its budget.",
+    "Giulia leads Atlas and approves its budget.",
+  );
   for (const probability of [0.79, 0.8]) {
     const calls: EvaluationRequest[] = [];
     const answer = evaluator((id) => {
@@ -357,7 +381,12 @@ test("partner probability, rather than distribution confidence, gates preparatio
       const response = await answer(request);
       for (const [id, value] of Object.entries(response.answers)) {
         if (id.startsWith("partner_") && value.type === "choice") {
-          value.probabilities = { p0: probability, none: 1 - probability };
+          value.probabilities = Object.fromEntries(
+            Object.keys(value.probabilities).map((key) => [
+              key,
+              key === "p0" ? probability : key === "none" ? 1 - probability : 0,
+            ]),
+          );
           value.confidence = probability < 0.8 ? 1 : 0;
         }
         if (id === "destination" && value.type === "choice") {
@@ -371,8 +400,104 @@ test("partner probability, rather than distribution confidence, gates preparatio
       calls.some((call) => call.questions.actionable !== undefined),
       probability >= 0.8,
     );
-    assert.equal(result.findings.length, probability >= 0.8 ? 1 : 0);
+    assert.equal(result.findings.length, probability >= 0.8 ? 2 : 0);
     if (probability >= 0.8)
       assert.equal(result.findings[0].status, "supported");
   }
+});
+
+test("direct pairs require 80% confirmation even when speculative intervention answers pass", async () => {
+  for (const kind of ["duplicate", "conflict"] as const) {
+    const { snapshot, task } = pair();
+    for (const probability of [0, 0.79, 0.8]) {
+      const calls: EvaluationRequest[] = [];
+      const result = await analyzeTask(
+        snapshot,
+        task,
+        evaluator((id) => {
+          if (id === kind || id === "actionable") return 1;
+          if (id.startsWith("passage_")) return 0.7;
+          if (id === "counterpart") return probability;
+          if (id === "destination" || id === "resolution") return "a";
+          return 0;
+        }, calls),
+      );
+      assert.equal(calls.length, 3);
+      assert.ok(calls.every((call) => !call.questions.partner_0));
+      assert.ok(calls[2].questions.counterpart);
+      assert.ok(
+        calls[2].questions[kind === "duplicate" ? "actionable" : "resolution"],
+      );
+      assert.equal(result.findings.length, probability >= 0.8 ? 1 : 0);
+      if (probability >= 0.8)
+        assert.equal(result.findings[0].status, "supported");
+    }
+  }
+});
+
+test("two passages in one document use the direct-pair path", async () => {
+  const snapshot = buildSnapshot([
+    page("a", "Giulia leads Atlas.\n\nAtlas is led by Giulia."),
+  ]);
+  const calls: EvaluationRequest[] = [];
+  const result = await analyzeTask(
+    snapshot,
+    createAnalysisTasks(snapshot)[0],
+    evaluator((id) => {
+      if (["duplicate", "counterpart", "actionable"].includes(id)) return 1;
+      if (id.startsWith("passage_")) return 0.7;
+      if (id === "destination") return "a";
+      return 0;
+    }, calls),
+  );
+  assert.equal(calls.length, 3);
+  assert.equal(result.findings[0].kind, "deduplicate");
+  assert.equal(result.findings[0].status, "supported");
+});
+
+test("page-pair candidates in the same page cannot be treated as a cross-page counterpart", async () => {
+  const { snapshot, task } = pair(
+    "Giulia leads Atlas.\n\nAtlas is led by Giulia.",
+    "Unrelated information.",
+  );
+  const calls: EvaluationRequest[] = [];
+  const result = await analyzeTask(
+    snapshot,
+    task,
+    evaluator((id) => {
+      if (["duplicate", "counterpart", "actionable"].includes(id)) return 1;
+      if (id === "passage_0" || id === "passage_1") return 0.7;
+      return 0;
+    }, calls),
+  );
+  assert.equal(calls.length, 2);
+  assert.deepEqual(result.findings, []);
+});
+
+test("an unconfirmed direct conflict pair does not fetch speculative resolution sources", async () => {
+  const { snapshot: initial, task } = pair(
+    "Current state A. See /pages/source/.",
+    "Current state B.",
+  );
+  const snapshot = buildSnapshot([
+    ...initial.pages,
+    page("source", "Decision."),
+  ]);
+  const calls: EvaluationRequest[] = [];
+  const result = await analyzeTask(
+    snapshot,
+    task,
+    evaluator((id) => {
+      if (id === "conflict" || id.startsWith("passage_")) return 1;
+      if (id === "counterpart") return 0.79;
+      if (id === "resolution") return "insufficient";
+      return 0;
+    }, calls),
+  );
+  assert.equal(calls.length, 3);
+  assert.equal(
+    result.dependencies?.some((ref) => ref.pageId === "source"),
+    false,
+  );
+  assert.deepEqual(result.findings, []);
 });

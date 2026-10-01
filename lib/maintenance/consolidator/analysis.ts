@@ -1,10 +1,15 @@
 import type { BrainPage, LinkType } from "../../brain/types";
 import { batchQuestions } from "./batching";
-import { analystGates, SCREENING_THRESHOLD } from "./decision-policy";
+import {
+  analystGates,
+  LOCALIZATION_THRESHOLD,
+  SCREENING_THRESHOLD,
+} from "./decision-policy";
 import { validateEvaluation } from "./jev";
 import {
   booleanQuestion,
   choiceQuestion,
+  pairPreparationQuestions,
   preparationQuestions,
   RELATION_MEANINGS,
   screeningQuestions,
@@ -146,7 +151,8 @@ export async function analyzeTask(
     const selected = units.filter((_, i) => {
       const answer = localization[`passage_${i}`];
       return (
-        answer?.type === "boolean" && answer.probability >= SCREENING_THRESHOLD
+        answer?.type === "boolean" &&
+        answer.probability >= LOCALIZATION_THRESHOLD
       );
     });
     if (!selected.length) {
@@ -167,7 +173,12 @@ export async function analyzeTask(
     }
     const pairs: EvidenceUnit[][] = [];
     const seen = new Set<string>();
+    const directPair =
+      kind !== "residue" &&
+      selected.length === 2 &&
+      (task.kind === "document" || selected[0].pageId !== selected[1].pageId);
     if (kind === "residue") pairs.push(...selected.map((unit) => [unit]));
+    else if (directPair) pairs.push(selected);
     else {
       const selections: { anchor: EvidenceUnit; options: EvidenceUnit[] }[] =
         [];
@@ -215,8 +226,12 @@ export async function analyzeTask(
       let evidencePages = pages;
       let preparation = await ask(
         { pages: evidencePages.map(evidencePage), target },
-        preparationQuestions(kind),
+        directPair
+          ? pairPreparationQuestions(kind)
+          : preparationQuestions(kind),
       );
+      if (result.errors?.length) return result;
+      if (directPair && !analystGates.yes(preparation.counterpart)) continue;
       if (
         kind === "conflict" &&
         preparation.resolution?.type === "choice" &&
