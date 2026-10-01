@@ -22,18 +22,25 @@ const paletteUtility =
   /\b(?:bg|text|border|divide|outline|ring|ring-offset|shadow|fill|stroke|accent|decoration|from|via|to|caret)-(?:white\b|black\b|(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d+\b)/;
 const namedColor =
   /\b(?:color|background|backgroundColor|borderColor|fill|stroke)\s*[:=]\s*["'](?:white|black|red|green|blue|gray|grey|yellow|orange|purple|pink|silver|navy|teal|aqua|fuchsia|lime|maroon|olive)["']/i;
+// Vendored shadcn may derive tints from a theme token (relative color syntax,
+// e.g. `oklch(from_var(--primary)_…)`) and select a library's default
+// attributes (e.g. Recharts' `[stroke='#ccc']`) to restyle them with tokens.
+const vendoredTokenColor =
+  /\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch)\(from_var\(--[\w-]+\)[^\]\s]*\)|\[(?:fill|stroke)=['"]#[\da-f]{3,8}['"]\]/gi;
 
 test("UI colors are defined by theme tokens, including vendored components", () => {
   const violations: string[] = [];
   for (const path of [...uiFiles("app"), ...uiFiles("components")]) {
     const file = relative(process.cwd(), path);
+    const vendored = file.startsWith("components/ui/");
     readFileSync(path, "utf8")
       .split("\n")
       .forEach((line, index) => {
         const token =
           file === "app/globals.css" && /^\s*--[\w-]+\s*:/.test(line);
+        const styles = vendored ? line.replace(vendoredTokenColor, "") : line;
         if (
-          (!token && literalColor.test(line)) ||
+          (!token && literalColor.test(styles)) ||
           (!file.startsWith("components/ui/") && paletteUtility.test(line)) ||
           namedColor.test(line)
         ) {
