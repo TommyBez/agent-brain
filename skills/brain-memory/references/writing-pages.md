@@ -16,7 +16,7 @@ Use the page's current `version` as `expectedVersion`. Do not build a replacemen
 | Change content, title, summary, relationships, aliases, tags or outgoing links | `write` with the page `id`, current positive `expectedVersion` and the full intended state. |
 | Create an entity after resolving possible duplicates | `write` with `expectedVersion: 0` and **no `id`**. |
 
-`write` replaces `markdown`, `summary`, `aliases`, `tags` and all outgoing `links`. Omitted summary becomes empty; omitted arrays become empty. The exception is `relationships`: omitting it on update keeps a company's stored relationships, while an empty array clears them. Explicitly preserve values you intend to keep. Pass the existing `slug` unless renaming it deliberately. Do not spread a read result into a write: the input schema is strict and rejects read-only fields such as `version`, timestamps and `backlinks`.
+`write` replaces `markdown`, `summary`, `relationships`, `aliases`, `tags` and all outgoing `links`. Omitted summary becomes empty; omitted arrays become empty. Explicitly preserve values you intend to keep. Pass the existing `slug` unless renaming it deliberately. Do not spread a read result into a write: the input schema is strict and rejects read-only fields such as `version`, timestamps and `backlinks`.
 
 An update's payload can be constructed as follows, where `page` is the fresh read result and `revisedMarkdown`, `changeReason` and `sourceReference` describe the actual change:
 

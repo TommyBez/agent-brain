@@ -62,7 +62,7 @@ const tools = [
     scope: "brain:write",
     config: {
       description:
-        "Create or replace one entity page and outgoing links atomically. Requires expectedVersion=0 for create or matching current version and id for updates. Resolve before creating; preserve metadata when replacing. Company pages carry relationships (client, prospect, former_employer); omitting relationships on update keeps the stored value.",
+        "Create or replace one entity page and outgoing links atomically. Requires expectedVersion=0 for create or matching current version and id for updates. Resolve before creating; preserve metadata when replacing. Company pages carry relationships (client, prospect, former_employer).",
       inputSchema: schemas.writeSchema,
       annotations: { ...write, destructiveHint: true },
     },

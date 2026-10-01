@@ -57,20 +57,19 @@ export const writeSchema = z
     summary: z.string().trim().max(2000).default(""),
     aliases: z.array(z.string().trim().min(1).max(200)).max(30).default([]),
     tags: z.array(z.string().trim().min(1).max(80)).max(30).default([]),
-    // Omitted on update keeps the stored relationships of a company page.
     relationships: z
       .array(z.enum(COMPANY_RELATIONSHIPS))
       .max(COMPANY_RELATIONSHIPS.length)
-      .optional()
+      .default([])
       .describe(
-        "Company pages only: client, prospect and/or former_employer. Empty for a plain company contact. Omit on update to keep the current value.",
+        "Company pages only: client, prospect and/or former_employer. Empty for a plain company contact.",
       ),
     links: z.array(linkSchema).max(100).default([]),
     ...provenance,
   })
   .strict()
   .superRefine((input, context) => {
-    if (input.type !== "company" && input.relationships?.length) {
+    if (input.type !== "company" && input.relationships.length) {
       context.addIssue({
         code: "custom",
         path: ["relationships"],

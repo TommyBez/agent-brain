@@ -219,15 +219,7 @@ export async function write(
       const version = (existing?.version ?? 0) + 1;
       const aliases = [...new Set(data.aliases)];
       const tags = [...new Set(data.tags)];
-      const relationships =
-        data.type === "company"
-          ? [
-              ...new Set(
-                data.relationships ??
-                  (existing?.type === "company" ? existing.relationships : []),
-              ),
-            ]
-          : [];
+      const relationships = [...new Set(data.relationships)];
       const identities = [
         ...new Set([data.title, ...aliases].map(normalizeIdentity)),
       ];

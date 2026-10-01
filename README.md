@@ -85,7 +85,7 @@ External headless agents have a separate optional token path: create a scoped to
 
 Maintenance tools expose paginated pages, gaps and pending chunk embeddings. `pending_embeddings` with `chunkLimit` returns a bounded batch of missing inputs; `index_chunks` accepts version-checked batches and publishes the index only when the full page is covered. Procedures are MCP instructions, resource `brain://procedures`, and prompts `before_work`, `after_conversation`, `nightly_consolidation`. The canonical procedure text lives in `lib/mcp/server.ts`; the portable skill refers to these prompts.
 
-All tools scope data to the authenticated owner. Foreign keys prevent cross-owner links. Accepted writes create full revisions and audit entries. On conflict, reread and reconcile. `write` replaces aliases, tags and outgoing links, so callers must preserve existing values deliberately. A company's `relationships` are kept when omitted on update.
+All tools scope data to the authenticated owner. Foreign keys prevent cross-owner links. Accepted writes create full revisions and audit entries. On conflict, reread and reconcile. `write` replaces relationships, aliases, tags and outgoing links, so callers must preserve existing values deliberately.
 
 ## Agent skill
 

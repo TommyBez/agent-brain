@@ -43,11 +43,7 @@ export async function readRevision(
     id: row.id,
     pageId: row.page_id,
     version: row.version,
-    // Snapshots saved before company relationships existed lack the field.
-    snapshot: {
-      ...row.snapshot,
-      relationships: row.snapshot.relationships ?? [],
-    },
+    snapshot: row.snapshot,
     reason: row.reason,
     source: row.source,
     createdAt: iso(row.created_at),

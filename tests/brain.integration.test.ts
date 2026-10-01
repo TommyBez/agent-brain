@@ -85,7 +85,7 @@ test(
       );
 
       await t.test(
-        "company relationships persist, survive omission and filter lists",
+        "company relationships persist, are replaced by writes and filter lists",
         async () => {
           assert.deepEqual(client.relationships, ["client"]);
           let employer = await brain.write(owner, {
@@ -103,13 +103,11 @@ test(
             id: employer.id,
             title: employer.title,
             type: "company",
+            relationships: ["prospect"],
             markdown: "I worked here before. Now in talks.",
             expectedVersion: employer.version,
           });
-          assert.deepEqual(employer.relationships, [
-            "former_employer",
-            "prospect",
-          ]);
+          assert.deepEqual(employer.relationships, ["prospect"]);
           const listed = await brain.listPages(owner, {
             relationship: "prospect",
           });

@@ -54,7 +54,7 @@ test("write inputs cannot smuggle ownership or untyped graph relations", () => {
   assert.equal(
     writeSchema.safeParse({
       ...newPage,
-      links: [{ targetRef: "client/acme", type: "arbitrary" }],
+      links: [{ targetRef: "company/acme", type: "arbitrary" }],
     }).success,
     false,
   );
@@ -73,12 +73,8 @@ test("only company pages accept known relationships", () => {
     }).relationships,
     ["client", "former_employer"],
   );
-  // Omitted is distinct from empty: an update then keeps stored relationships.
-  assert.equal(writeSchema.parse(company).relationships, undefined);
-  assert.deepEqual(
-    writeSchema.parse({ ...company, relationships: [] }).relationships,
-    [],
-  );
+  // Like tags, an omitted array is empty: write replaces the whole page.
+  assert.deepEqual(writeSchema.parse(company).relationships, []);
   assert.equal(
     writeSchema.safeParse({ ...company, relationships: ["partner"] }).success,
     false,
