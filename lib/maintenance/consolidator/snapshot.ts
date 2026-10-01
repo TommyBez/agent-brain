@@ -1,52 +1,12 @@
-import { createHash } from "node:crypto";
 import type { BrainPage } from "../../brain/types";
+import { fingerprint } from "../../canonical-json";
+import { evidencePage } from "./projections";
 import {
   type AnalysisTask,
   type EvidenceUnit,
   POLICY,
   type Snapshot,
 } from "./types";
-
-export function fingerprint(value: unknown): string {
-  return createHash("sha256")
-    .update(
-      JSON.stringify(value, (_key, item) =>
-        item && typeof item === "object" && !Array.isArray(item)
-          ? Object.fromEntries(
-              Object.keys(item)
-                .sort()
-                .map((key) => [key, item[key]]),
-            )
-          : item,
-      ),
-    )
-    .digest("hex");
-}
-
-/** Only source-owned semantic data participates in model inputs and cache keys. */
-export function evidencePage(page: BrainPage) {
-  return {
-    id: page.id,
-    slug: page.slug,
-    title: page.title,
-    type: page.type,
-    summary: page.summary,
-    aliases: page.aliases,
-    tags: page.tags,
-    markdown: page.markdown,
-    links: page.links
-      .map(({ sourceId, targetId, type, label }) => ({
-        sourceId,
-        targetId,
-        type,
-        label,
-      }))
-      .sort(
-        (a, b) =>
-          a.targetId.localeCompare(b.targetId) || a.type.localeCompare(b.type),
-      ),
-  };
-}
 
 export function pageEvidenceFingerprint(page: BrainPage): string {
   return fingerprint(evidencePage(page));

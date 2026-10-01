@@ -6,6 +6,7 @@ import { listPagesSchema } from "@/lib/brain/schemas";
 import * as brain from "@/lib/brain/service";
 import type { PageType } from "@/lib/brain/types";
 import { workspaceCacheTag } from "./cache";
+import { WORKSPACE_PAGE_SIZE } from "./pagination";
 import { getWorkspaceUser } from "./session";
 import { GRAPH_PAGE_SIZE } from "./urls";
 
@@ -45,7 +46,11 @@ async function revisionsForOwner(ownerId: string, id: string, offset: number) {
   "use cache";
   cacheTag(workspaceCacheTag(ownerId));
   cacheLife({ stale: 30, revalidate: 30, expire: 60 });
-  return brain.listRevisionSummaries(ownerId, { ref: id, limit: 51, offset });
+  return brain.listRevisionSummaries(ownerId, {
+    ref: id,
+    limit: WORKSPACE_PAGE_SIZE + 1,
+    offset,
+  });
 }
 
 async function revisionForOwner(ownerId: string, id: string, version: number) {
@@ -74,7 +79,10 @@ async function activityForOwner(ownerId: string, offset: number) {
   "use cache";
   cacheTag(workspaceCacheTag(ownerId));
   cacheLife({ stale: 30, revalidate: 30, expire: 60 });
-  return brain.listActivity(ownerId, { limit: 51, offset });
+  return brain.listActivity(ownerId, {
+    limit: WORKSPACE_PAGE_SIZE + 1,
+    offset,
+  });
 }
 
 // Authorize outside every cache boundary. Only these owner-free getters are

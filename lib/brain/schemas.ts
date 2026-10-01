@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { LINK_TYPES, PAGE_TYPES } from "./types";
+import { LINK_TYPES, MAX_PAGE_CHARACTERS, PAGE_TYPES } from "./types";
 
 // Changing dimensions requires a matching migration and re-embedding the corpus.
 export const EMBEDDING_DIMENSIONS = 1536;
@@ -48,7 +48,7 @@ export const writeSchema = z
       .optional(),
     title: z.string().trim().min(1).max(200),
     type: z.enum(PAGE_TYPES),
-    markdown: z.string().min(1).max(200_000),
+    markdown: z.string().min(1).max(MAX_PAGE_CHARACTERS),
     summary: z.string().trim().max(2000).default(""),
     aliases: z.array(z.string().trim().min(1).max(200)).max(30).default([]),
     tags: z.array(z.string().trim().min(1).max(80)).max(30).default([]),

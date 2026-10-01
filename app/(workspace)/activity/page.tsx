@@ -1,7 +1,6 @@
 import { Activity, ChevronRight, FileText } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
-import { relativeTime } from "@/components/brain-types";
 import {
   Item,
   ItemActions,
@@ -14,6 +13,7 @@ import {
 import { Pagination } from "@/components/workspace/pagination";
 import { Empty, Loading, PageHeading } from "@/components/workspace/primitives";
 import { RefreshButton } from "@/components/workspace/refresh-button";
+import { relativeTime } from "@/lib/formatters";
 import { getWorkspaceActivity } from "@/lib/workspace/data";
 import {
   type PaginationSearchParams,

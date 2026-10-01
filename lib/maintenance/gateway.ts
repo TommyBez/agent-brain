@@ -1,3 +1,5 @@
+import { retryAfterMilliseconds } from "../retry-after";
+
 const GATEWAY_ORIGIN = "https://ai-gateway.vercel.sh/v1/";
 const REQUEST_TIMEOUT_MS = 120_000;
 
@@ -26,17 +28,6 @@ export class GatewayRequestError extends Error {
     this.status = options.status ?? null;
     this.retryAfterMs = options.retryAfterMs ?? null;
   }
-}
-
-function retryAfterMilliseconds(value: string | null): number | null {
-  if (!value) return null;
-  const seconds = Number(value);
-  const milliseconds = Number.isFinite(seconds)
-    ? seconds * 1000
-    : Date.parse(value) - Date.now();
-  return Number.isFinite(milliseconds) && milliseconds >= 0
-    ? Math.min(milliseconds, 15 * 60_000)
-    : null;
 }
 
 /** One bounded request. The durable workflow, rather than an in-memory loop, retries. */
@@ -86,9 +77,7 @@ export async function gatewayRequest<T>(
           response.status === 429 ||
           response.status >= 500,
         status: response.status,
-        retryAfterMs: retryAfterMilliseconds(
-          response.headers.get("retry-after"),
-        ),
+        retryAfterMs: boundedRetryAfter(response.headers.get("retry-after")),
       },
     );
   }
@@ -104,3 +93,8 @@ export async function gatewayRequest<T>(
 }
 
 export type GatewayCall = typeof gatewayRequest;
+
+function boundedRetryAfter(value: string | null) {
+  const delay = retryAfterMilliseconds(value);
+  return delay === null ? null : Math.min(delay, 15 * 60_000);
+}

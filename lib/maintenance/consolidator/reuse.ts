@@ -1,5 +1,12 @@
+import { recordKeys } from "./keys";
+import { selectIndependentPlans } from "./planner";
 import { pageEvidenceFingerprint } from "./snapshot";
-import type { AnalysisResult, DecisionRecord, Snapshot } from "./types";
+import type {
+  AnalysisResult,
+  DecisionRecord,
+  OperationPlan,
+  Snapshot,
+} from "./types";
 
 export function canReuseAnalysis(
   snapshot: Snapshot,
@@ -31,4 +38,24 @@ export function canReuseDecision(
         );
       }),
   );
+}
+
+export function unreusedPlans(
+  snapshot: Snapshot,
+  plans: OperationPlan[],
+  decisions: ReadonlyMap<string, DecisionRecord>,
+) {
+  const remaining: OperationPlan[] = [];
+  let capacityLimited = 0;
+  for (const plan of plans) {
+    const decision = decisions.get(recordKeys.decision(plan.id));
+    if (!canReuseDecision(snapshot, decision)) remaining.push(plan);
+    else if (decision?.reason === "capacity") capacityLimited++;
+  }
+  const selected = selectIndependentPlans(remaining);
+  return {
+    selected: selected.selected,
+    deferred: selected.deferred.length,
+    capacityLimited,
+  };
 }

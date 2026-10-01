@@ -1,10 +1,11 @@
 import { FatalError, RetryableError } from "workflow";
+import { readConsolidationPages } from "../../brain/consolidation";
 import { BrainError } from "../../brain/types";
+import { fingerprint } from "../../canonical-json";
 import { revalidateWorkspaceCache } from "../../workspace/cache";
 import { GatewayRequestError } from "../gateway";
 import { analyzeTask } from "./analysis";
 import { BudgetExhaustedError, budgetedGateway } from "./budget";
-import { canReuseAnalysis, canReuseDecision } from "./cache";
 import { CapacityError, capacityVerification } from "./capacity";
 import {
   EditorResponseError,
@@ -13,15 +14,16 @@ import {
 } from "./diagnostics";
 import { draftChanges, materializeDraft } from "./editor";
 import { evaluateJev, JEV_MODEL } from "./jev";
-import { planOperations, selectIndependentPlans } from "./planner";
-import { buildSnapshot, createAnalysisTasks, fingerprint } from "./snapshot";
+import { type RecordKey, recordKeys, recordKind } from "./keys";
+import { planOperations } from "./planner";
+import { canReuseAnalysis, unreusedPlans } from "./reuse";
+import { buildSnapshot, createAnalysisTasks } from "./snapshot";
 import {
   applyConsolidationChangeSet,
   beginConsolidationRun,
   findConsolidationRecord,
   findConsolidationRecords,
   finishConsolidationRun,
-  readConsolidationPages,
   readConsolidationQueue,
   readConsolidationRecord,
   saveConsolidationQueue,
@@ -104,7 +106,7 @@ export async function initializeConsolidation(ownerId: string, runId: string) {
 export async function snapshotConsolidation(ownerId: string, runId: string) {
   "use step";
   const snapshot = buildSnapshot(await readConsolidationPages(ownerId));
-  const key = `snapshot:${snapshot.id}`;
+  const key = recordKeys.snapshot(snapshot.id);
   // The first timestamp belongs to the immutable snapshot; content identity is stable.
   const existing = await readConsolidationRecord<Snapshot>(ownerId, runId, key);
   if (existing) return existing;
@@ -120,7 +122,7 @@ async function loadSnapshot(
   const snapshot = await readConsolidationRecord<Snapshot>(
     ownerId,
     runId,
-    `snapshot:${snapshotId}`,
+    recordKeys.snapshot(snapshotId),
   );
   if (!snapshot || snapshot.id !== snapshotId)
     throw new FatalError(
@@ -144,12 +146,12 @@ export async function prepareConsolidationScan(
     Omit<AnalysisResult, "judgments">
   >(
     ownerId,
-    tasks.map((task) => `analysis:${task.id}`),
+    tasks.map((task) => recordKeys.analysis(task.id)),
     ["judgments"],
   );
   let reused = 0;
   for (const task of tasks) {
-    const result = records.get(`analysis:${task.id}`);
+    const result = records.get(recordKeys.analysis(task.id));
     if (result && canReuseAnalysis(snapshot, result)) {
       reused++;
       if (!result.findings.some((finding) => finding.status === "supported"))
@@ -164,17 +166,19 @@ export async function prepareConsolidationScan(
   const decisions = await findConsolidationRecords<DecisionRecord>(
     ownerId,
     [...cachedPlans.values()].flatMap((plans) =>
-      plans.map((plan) => `decision:${plan.id}`),
+      plans.map((plan) => recordKeys.decision(plan.id)),
     ),
     ["changeSet", "verification"],
   );
+  const verdicts = new Map(
+    [...cachedPlans].map(([id, plans]) => [
+      id,
+      unreusedPlans(snapshot, plans, decisions),
+    ]),
+  );
   const completed = new Set(
-    [...cachedPlans]
-      .filter(([, plans]) =>
-        plans.every((plan) =>
-          canReuseDecision(snapshot, decisions.get(`decision:${plan.id}`)),
-        ),
-      )
+    [...verdicts]
+      .filter(([, verdict]) => !verdict.selected.length && !verdict.deferred)
       .map(([id]) => id),
   );
   const outstanding = pending.filter((task) => !completed.has(task.id));
@@ -192,6 +196,9 @@ export async function prepareConsolidationScan(
   const selectedIds = new Set(selected.map((task) => task.id));
   return {
     tasks: selected,
+    plans: Object.fromEntries(
+      [...verdicts].filter(([id]) => selectedIds.has(id)),
+    ),
     cached: cached.filter((result) => selectedIds.has(result.taskId)),
     reused,
     total: tasks.length,
@@ -204,7 +211,7 @@ async function evaluatePersisted(
   runId: string,
   request: EvaluationRequest,
 ): Promise<Evaluation> {
-  const key = `evaluation:${fingerprint({ model: JEV_MODEL, request })}`;
+  const key = recordKeys.evaluation(fingerprint({ model: JEV_MODEL, request }));
   let stage = "evaluation_cache";
   try {
     const previous = await findConsolidationRecord<Evaluation>(ownerId, key);
@@ -257,14 +264,14 @@ export async function analyzeConsolidationTask(
       await saveConsolidationRecord(
         ownerId,
         runId,
-        `analysis:${task.id}`,
+        recordKeys.analysis(task.id),
         result,
       );
     else
       await saveConsolidationRecord(
         ownerId,
         runId,
-        `incomplete-analysis:${task.id}:${snapshot.id}`,
+        recordKeys.incompleteAnalysis(task.id, snapshot.id),
         result,
       );
     // Full judgments remain in immutable audit storage. Replaying Workflow only
@@ -285,24 +292,12 @@ export async function planConsolidation(
   try {
     const snapshot = await loadSnapshot(ownerId, runId, snapshotId);
     const plans = planOperations(snapshot, results);
-    const remaining: OperationPlan[] = [];
-    let capacityLimited = 0;
     const decisions = await findConsolidationRecords<DecisionRecord>(
       ownerId,
-      plans.map((plan) => `decision:${plan.id}`),
+      plans.map((plan) => recordKeys.decision(plan.id)),
       ["changeSet", "verification"],
     );
-    for (const plan of plans) {
-      const decision = decisions.get(`decision:${plan.id}`);
-      if (!canReuseDecision(snapshot, decision)) remaining.push(plan);
-      else if (decision?.reason === "capacity") capacityLimited++;
-    }
-    const selected = selectIndependentPlans(remaining);
-    return {
-      selected: selected.selected,
-      deferred: selected.deferred.length,
-      capacityLimited,
-    };
+    return unreusedPlans(snapshot, plans, decisions);
   } catch (error) {
     failProvider(error);
   }
@@ -326,7 +321,9 @@ export async function draftConsolidation(
   feedback?: string[],
 ): Promise<DraftOutcome> {
   "use step";
-  const key = `draft:${fingerprint({ plan, attempt, feedback: feedback ?? [] })}`;
+  const key = recordKeys.draft(
+    fingerprint({ plan, attempt, feedback: feedback ?? [] }),
+  );
   const previous = await readConsolidationRecord<Draft>(ownerId, runId, key);
   if (previous) return previous;
   try {
@@ -382,7 +379,9 @@ export async function reviewConsolidation(
     await saveConsolidationRecord(
       ownerId,
       runId,
-      `verification:${fingerprint({ changeSet, policy: POLICY.version })}`,
+      recordKeys.verification(
+        fingerprint({ changeSet, policy: POLICY.version }),
+      ),
       verification,
     );
     return { changeSet, verification: { ...verification, judgments: [] } };
@@ -413,11 +412,11 @@ export async function applyConsolidation(
 export async function recordConsolidation(
   ownerId: string,
   runId: string,
-  key: string,
+  key: RecordKey,
   value: unknown,
 ) {
   "use step";
-  if (key.startsWith("task-error:"))
+  if (recordKind(key) === "task-error")
     console.error("consolidation.task_error", { runId, key, failure: value });
   await saveConsolidationRecord(ownerId, runId, key, value);
 }

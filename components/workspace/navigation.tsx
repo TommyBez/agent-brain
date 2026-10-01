@@ -3,8 +3,9 @@
 import { Activity, BookOpen, Bot, Network, Settings2 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { type ReactNode, Suspense } from "react";
-import { entityTypes, type Stats } from "@/components/brain-types";
 import { Button } from "@/components/ui/button";
+import { entityTypes } from "@/lib/brain/labels";
+import type { BrainStats as Stats } from "@/lib/brain/types";
 import {
   collectionHref,
   collectionTypeFromPathname,
@@ -139,31 +140,4 @@ export function SettingsNavigation() {
       </NavigationLink>
     </nav>
   );
-}
-
-export function WorkspaceBreadcrumb() {
-  const pathname = usePathname();
-  const collection = collectionTypeFromPathname(pathname);
-  const title = collection
-    ? entityTypes.find((item) => item.id === collection)?.label
-    : pathname === "/"
-      ? "All pages"
-      : pathname === "/graph"
-        ? "Knowledge graph"
-        : pathname === "/activity"
-          ? "Activity"
-          : pathname === "/agents"
-            ? "Agents & access"
-            : pathname === "/operations"
-              ? "Operations"
-              : pathname === "/pages/new"
-                ? "New page"
-                : pathname.endsWith("/edit")
-                  ? "Edit page"
-                  : pathname.endsWith("/history")
-                    ? "Page history"
-                    : /\/history\/[^/]+$/.test(pathname)
-                      ? "Page revision"
-                      : "Page";
-  return <span className="truncate text-foreground">{title}</span>;
 }

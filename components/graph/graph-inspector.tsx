@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { entityTypes } from "@/lib/brain/labels";
 import type { LinkType, PageType } from "@/lib/brain/types";
+import { formatDate } from "@/lib/formatters";
 import { type GraphEdge, type GraphNode, linkLabel } from "@/lib/graph/model";
 import { pageHref } from "@/lib/workspace/urls";
-import { entityTypes, formatDate } from "../brain-types";
 import { EntityIcon } from "../workspace/primitives";
 
 export interface GraphInspectorProps {

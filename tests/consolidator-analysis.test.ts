@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { analyzeTask } from "../lib/maintenance/consolidator/analysis";
-import { canReuseAnalysis } from "../lib/maintenance/consolidator/cache";
+import { canReuseAnalysis } from "../lib/maintenance/consolidator/reuse";
 import {
   buildSnapshot,
   createAnalysisTasks,

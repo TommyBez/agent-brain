@@ -11,9 +11,11 @@ import {
   useRef,
 } from "react";
 
+type SearchEntry = { cancel: () => void; focus: () => void };
 type SearchNavigation = {
-  register: (cancel: () => void) => () => void;
+  register: (entry: SearchEntry) => () => void;
   cancel: () => void;
+  focus: () => boolean;
 };
 
 const SearchNavigationContext = createContext<SearchNavigation | null>(null);
@@ -23,15 +25,23 @@ export function SearchNavigationProvider({
 }: {
   children: ReactNode;
 }) {
-  const activeSearch = useRef<(() => void) | null>(null);
-  const register = useCallback((cancel: () => void) => {
-    activeSearch.current = cancel;
+  const activeSearch = useRef<SearchEntry | null>(null);
+  const register = useCallback((entry: SearchEntry) => {
+    activeSearch.current = entry;
     return () => {
-      if (activeSearch.current === cancel) activeSearch.current = null;
+      if (activeSearch.current === entry) activeSearch.current = null;
     };
   }, []);
-  const cancel = useCallback(() => activeSearch.current?.(), []);
-  const value = useMemo(() => ({ register, cancel }), [register, cancel]);
+  const cancel = useCallback(() => activeSearch.current?.cancel(), []);
+  const focus = useCallback(() => {
+    if (!activeSearch.current) return false;
+    activeSearch.current.focus();
+    return true;
+  }, []);
+  const value = useMemo(
+    () => ({ register, cancel, focus }),
+    [register, cancel, focus],
+  );
   return (
     <SearchNavigationContext value={value}>{children}</SearchNavigationContext>
   );

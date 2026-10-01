@@ -1,14 +1,11 @@
 "use client";
 
-import { ArrowUpRight, Link2, LoaderCircle, Plus, Save, X } from "lucide-react";
-import dynamic from "next/dynamic";
+import { ArrowUpRight, LoaderCircle, Save } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   startTransition,
   useActionState,
-  useEffect,
-  useRef,
   useState,
   useTransition,
 } from "react";
@@ -24,66 +21,44 @@ import {
   NativeSelect,
   NativeSelectOption,
 } from "@/components/ui/native-select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
-import type {
-  BrainPage,
-  LinkType,
-  PageSummary,
-  PageType,
-} from "@/lib/brain/types";
-import { entityTypes, linkTypes, request } from "../brain-types";
+import { entityTypes } from "@/lib/brain/labels";
 import {
-  type ConnectionChoice,
-  type ConnectionChoices,
-  ConnectionPicker,
-} from "./connection-picker";
-
-const MarkdownPreview = dynamic(() => import("./markdown-preview"), {
-  loading: () => (
-    <output className="block text-sm text-muted-foreground">
-      Loading preview…
-    </output>
-  ),
-});
-type DraftLink = {
-  targetRef: string;
-  type: LinkType;
-  label: string;
-  targetTitle?: string;
-};
+  type DecoratedPage,
+  isPageType,
+  type PageType,
+} from "@/lib/brain/types";
+import { draftFromPage, type PageDraft } from "@/lib/workspace/page-draft";
+import type { ConnectionChoices } from "./connection-picker";
+import { ConnectionsEditor } from "./connections-editor";
+import { MarkdownField, MarkdownPreview } from "./markdown-field";
+import { useDuplicateCheck } from "./use-duplicate-check";
 
 export function PageEditor({
   initialPage,
   initialType = "note",
   choices,
 }: {
-  initialPage: BrainPage | null;
+  initialPage: DecoratedPage | null;
   initialType?: PageType;
   choices: ConnectionChoices;
 }) {
   const router = useRouter();
   const [page, setPage] = useState(initialPage);
   const id = initialPage?.id;
-  const [title, setTitle] = useState(initialPage?.title ?? "");
-  const [type, setType] = useState<PageType>(initialPage?.type ?? initialType);
-  const [summary, setSummary] = useState(initialPage?.summary ?? "");
-  const [markdown, setMarkdown] = useState(initialPage?.markdown ?? "");
-  const [aliases, setAliases] = useState(initialPage?.aliases.join(", ") ?? "");
-  const [tags, setTags] = useState(initialPage?.tags.join(", ") ?? "");
-  const [reason, setReason] = useState("");
-  const [links, setLinks] = useState<DraftLink[]>(
-    initialPage?.links.map((link) => ({
-      targetRef: link.targetId,
-      type: link.type,
-      label: link.label || "",
-      targetTitle: link.targetTitle,
-    })) ?? [],
+  const [draft, setDraft] = useState(() =>
+    draftFromPage(initialPage, initialType),
   );
-  const [linkTarget, setLinkTarget] = useState<ConnectionChoice | null>(null);
-  const [linkType, setLinkType] = useState<LinkType>("relates_to");
-  const [preview, setPreview] = useState(false);
-  const [duplicates, setDuplicates] = useState<PageSummary[]>([]);
+  const { title, type, summary, markdown, aliases, tags, reason, links } =
+    draft;
+  function updateDraft<K extends keyof PageDraft>(key: K, value: PageDraft[K]) {
+    setDraft((current) => ({ ...current, [key]: value }));
+  }
+  const [connectionsEpoch, setConnectionsEpoch] = useState(0);
+  const {
+    duplicates,
+    error: duplicateError,
+    reset: resetDuplicates,
+  } = useDuplicateCheck(title, type, !id);
   const [state, formAction, saving] = useActionState(
     async (
       previous: Parameters<typeof savePageAction>[0],
@@ -104,71 +79,17 @@ export function PageEditor({
   const [loadingLatest, startLatest] = useTransition();
   const [notice, setNotice] = useState("");
   const [comparison, setComparison] = useState(false);
-  const resolveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const resolveRequest = useRef<AbortController | null>(null);
   const conflict =
     state.code === "VERSION_CONFLICT" &&
     state.expectedVersion === page?.version;
-  const error = notice || state.message;
+  const error = notice || state.message || duplicateError;
 
-  function resetDraft(current: BrainPage | null) {
-    if (resolveTimer.current) clearTimeout(resolveTimer.current);
-    resolveRequest.current?.abort();
-    setTitle(current?.title ?? "");
-    setType(current?.type ?? initialType);
-    setSummary(current?.summary ?? "");
-    setMarkdown(current?.markdown ?? "");
-    setAliases(current?.aliases.join(", ") ?? "");
-    setTags(current?.tags.join(", ") ?? "");
-    setReason("");
-    setLinks(
-      current?.links.map((link) => ({
-        targetRef: link.targetId,
-        type: link.type,
-        label: link.label || "",
-        targetTitle: link.targetTitle,
-      })) ?? [],
-    );
-    setLinkTarget(null);
-    setPreview(false);
-    setDuplicates([]);
+  function resetDraft(current: DecoratedPage | null) {
+    resetDuplicates();
+    setDraft(draftFromPage(current, initialType));
+    setConnectionsEpoch((epoch) => epoch + 1);
     setComparison(false);
     setNotice("");
-  }
-
-  // Clean up user-triggered lookups when Activity hides this editor, preserving the draft itself.
-  useEffect(
-    () => () => {
-      if (resolveTimer.current) clearTimeout(resolveTimer.current);
-      resolveRequest.current?.abort();
-    },
-    [],
-  );
-
-  function scheduleResolve(name: string, pageType: PageType) {
-    if (id) return;
-    if (resolveTimer.current) clearTimeout(resolveTimer.current);
-    resolveRequest.current?.abort();
-    setDuplicates([]);
-    if (name.trim().length < 3) return;
-    const controller = new AbortController();
-    resolveRequest.current = controller;
-    resolveTimer.current = setTimeout(async () => {
-      try {
-        const data = await request<{ candidates: PageSummary[] }>(
-          `/api/brain/resolve?name=${encodeURIComponent(name)}&type=${pageType}`,
-          { signal: controller.signal },
-        );
-        if (!controller.signal.aborted) setDuplicates(data.candidates);
-      } catch (cause) {
-        if (!controller.signal.aborted)
-          setNotice(
-            cause instanceof Error
-              ? cause.message
-              : "Unable to check for duplicate pages.",
-          );
-      }
-    }, 300);
   }
 
   function loadLatest() {
@@ -193,21 +114,11 @@ export function PageEditor({
     <form
       action={formAction}
       onSubmit={() => setNotice("")}
+      onReset={(event) => event.preventDefault()}
       className="mx-auto grid max-w-4xl gap-7"
     >
       <input type="hidden" name="id" value={id ?? ""} />
       <input type="hidden" name="expectedVersion" value={page?.version ?? 0} />
-      <input
-        type="hidden"
-        name="links"
-        value={JSON.stringify(
-          links.map(({ targetRef, type, label }) => ({
-            targetRef,
-            type,
-            label,
-          })),
-        )}
-      />
       <div className="flex items-center justify-end gap-2 border-b pb-5">
         <h1 className="mr-auto text-sm font-medium">
           {id ? "Edit page" : "New page"}
@@ -267,8 +178,7 @@ export function PageEditor({
             name="title"
             className="h-16 rounded-none border-0 border-b bg-transparent px-0 font-serif text-3xl font-normal shadow-none md:text-4xl"
             onChange={(e) => {
-              setTitle(e.target.value);
-              scheduleResolve(e.target.value, type);
+              updateDraft("title", e.target.value);
             }}
             placeholder="Untitled page"
             maxLength={200}
@@ -282,9 +192,9 @@ export function PageEditor({
             value={type}
             name="type"
             onChange={(e) => {
-              const next = e.target.value as PageType;
-              setType(next);
-              scheduleResolve(title, next);
+              const next = e.target.value;
+              if (!isPageType(next)) return;
+              updateDraft("type", next);
             }}
           >
             {entityTypes.map((item) => (
@@ -323,46 +233,16 @@ export function PageEditor({
           name="summary"
           className="rounded-none border-0 border-b bg-transparent px-0 shadow-none"
           value={summary}
-          onChange={(e) => setSummary(e.target.value)}
+          onChange={(e) => updateDraft("summary", e.target.value)}
           maxLength={2000}
           placeholder="A sentence that captures what this page is about."
         />
       </Label>
-      <input type="hidden" name="markdown" value={markdown} />
-      <Tabs
-        value={preview ? "preview" : "write"}
-        onValueChange={(value) => setPreview(value === "preview")}
-      >
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <Label htmlFor="markdown-content">Page content</Label>
-          <TabsList>
-            <TabsTrigger value="write">Write</TabsTrigger>
-            <TabsTrigger value="preview">Preview</TabsTrigger>
-          </TabsList>
-        </div>
-        <TabsContent
-          value="preview"
-          className="markdown-body reading-body min-h-[32rem] border-y bg-card p-6 sm:p-10"
-        >
-          {preview && (
-            <MarkdownPreview
-              markdown={markdown || "*Nothing to preview yet.*"}
-            />
-          )}
-        </TabsContent>
-        <TabsContent value="write">
-          <Textarea
-            id="markdown-content"
-            className="min-h-[32rem] resize-y rounded-none border-x-0 bg-card p-6 font-mono leading-relaxed shadow-none sm:p-10"
-            value={markdown}
-            onChange={(e) => setMarkdown(e.target.value)}
-            placeholder={
-              "## Overview\n\nWhat is useful to remember?\n\n## Context\n\nAdd facts, sources, and the decisions behind them."
-            }
-            required
-          />
-        </TabsContent>
-      </Tabs>
+      <MarkdownField
+        key={connectionsEpoch}
+        markdown={markdown}
+        onChange={(value) => updateDraft("markdown", value)}
+      />
       <details className="group/details border-y py-5">
         <summary className="cursor-pointer text-sm font-medium">
           Connections & metadata
@@ -374,7 +254,7 @@ export function PageEditor({
               <Input
                 name="aliases"
                 value={aliases}
-                onChange={(e) => setAliases(e.target.value)}
+                onChange={(e) => updateDraft("aliases", e.target.value)}
                 placeholder="Other names, separated by commas"
               />
             </Label>
@@ -383,100 +263,24 @@ export function PageEditor({
               <Input
                 name="tags"
                 value={tags}
-                onChange={(e) => setTags(e.target.value)}
+                onChange={(e) => updateDraft("tags", e.target.value)}
                 placeholder="Tags, separated by commas"
               />
             </Label>
           </div>
-          <div className="space-y-4 border-y py-6">
-            <h3 className="flex items-center gap-2 font-medium">
-              <Link2 size={16} /> Connections
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              Link this page to related people, projects, or notes.
-            </p>
-            {links.map((link, index) => (
-              <div
-                className="flex items-center gap-3 border-b pb-4 text-sm"
-                key={`${link.targetRef}-${link.type}`}
-              >
-                <span className="text-muted-foreground">
-                  {link.type.replaceAll("_", " ")}
-                </span>
-                <strong className="min-w-0 wrap-anywhere">
-                  {link.targetTitle ||
-                    choices.pages.find((p) => p.id === link.targetRef)?.title ||
-                    page?.links.find((l) => l.targetId === link.targetRef)
-                      ?.targetTitle ||
-                    link.targetRef}
-                </strong>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  className="ml-auto shrink-0"
-                  aria-label="Remove connection"
-                  onClick={() => setLinks(links.filter((_, i) => i !== index))}
-                >
-                  <X size={15} />
-                </Button>
-              </div>
-            ))}
-            <div className="flex flex-col items-stretch gap-4 lg:flex-row lg:items-start">
-              <Label className="grid gap-2">
-                <span className="sr-only">Relationship type</span>
-                <NativeSelect
-                  value={linkType}
-                  onChange={(e) => setLinkType(e.target.value as LinkType)}
-                >
-                  {linkTypes.map((item) => (
-                    <NativeSelectOption key={item} value={item}>
-                      {item.replaceAll("_", " ")}
-                    </NativeSelectOption>
-                  ))}
-                </NativeSelect>
-              </Label>
-              <ConnectionPicker
-                initialChoices={choices}
-                excludeId={id}
-                value={linkTarget}
-                onChange={setLinkTarget}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                disabled={
-                  !linkTarget ||
-                  links.some(
-                    (link) =>
-                      link.targetRef === linkTarget?.id &&
-                      link.type === linkType,
-                  )
-                }
-                onClick={() => {
-                  if (!linkTarget) return;
-                  setLinks([
-                    ...links,
-                    {
-                      targetRef: linkTarget.id,
-                      targetTitle: linkTarget.title,
-                      type: linkType,
-                      label: "",
-                    },
-                  ]);
-                  setLinkTarget(null);
-                }}
-              >
-                <Plus size={15} /> Add
-              </Button>
-            </div>
-          </div>
+          <ConnectionsEditor
+            key={connectionsEpoch}
+            links={links}
+            onChange={(links) => updateDraft("links", links)}
+            choices={choices}
+            id={id}
+          />
           <Label className="grid gap-2">
             Reason for this change
             <Input
               name="reason"
               value={reason}
-              onChange={(e) => setReason(e.target.value)}
+              onChange={(e) => updateDraft("reason", e.target.value)}
               placeholder="What changed, and why?"
               maxLength={1000}
             />

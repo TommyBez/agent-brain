@@ -8,6 +8,8 @@ import {
   getSession,
   isAuthConfigured,
   mcpResource,
+  ownerEmail,
+  READ_WRITE_SCOPES,
 } from "@/lib/auth";
 import { getPool } from "@/lib/db";
 
@@ -73,10 +75,7 @@ export async function principalFromAgentToken(
      FROM "user" AS u WHERE t.token_hash = $1 AND t.revoked_at IS NULL AND t.expires_at > now()
        AND u.id = t.owner_id AND lower(u.email) = $2
      RETURNING t.id, t.owner_id, t.scopes`,
-    [
-      tokenHash(token),
-      process.env.BRAIN_OWNER_EMAIL?.trim().toLowerCase() ?? "",
-    ],
+    [tokenHash(token), ownerEmail()],
   );
   if (!rows[0])
     throw new AuthError(
@@ -115,10 +114,7 @@ export async function getPrincipal(request: Request): Promise<Principal> {
           );
         const { rows } = await getPool().query(
           `SELECT id FROM "user" WHERE id = $1 AND lower(email) = $2`,
-          [
-            claims.sub,
-            process.env.BRAIN_OWNER_EMAIL?.trim().toLowerCase() ?? "",
-          ],
+          [claims.sub, ownerEmail()],
         );
         if (!rows.length)
           throw new AuthError(
@@ -136,7 +132,7 @@ export async function getPrincipal(request: Request): Promise<Principal> {
       },
       {
         resource: mcpResource(),
-        challengeScopes: ["brain:read", "brain:write"],
+        challengeScopes: READ_WRITE_SCOPES.split(" "),
       },
     )(request);
     if (!principal)
@@ -155,7 +151,7 @@ export async function getPrincipal(request: Request): Promise<Principal> {
       "Sign in or provide an agent token.",
       401,
       {
-        "WWW-Authenticate": `Bearer resource_metadata="${appOrigin()}/.well-known/oauth-protected-resource/mcp", scope="brain:read brain:write"`,
+        "WWW-Authenticate": `Bearer resource_metadata="${appOrigin()}/.well-known/oauth-protected-resource/mcp", scope="${READ_WRITE_SCOPES}"`,
       },
     );
   if (!["GET", "HEAD", "OPTIONS"].includes(request.method))

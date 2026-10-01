@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { entityTypes } from "@/components/brain-types";
-import { KnowledgeGraph } from "@/components/knowledge-graph";
+import { KnowledgeGraph } from "@/components/graph/knowledge-graph";
 import { Button } from "@/components/ui/button";
+import { Pagination } from "@/components/workspace/pagination";
 import { Loading, PageHeading } from "@/components/workspace/primitives";
 import { RefreshButton } from "@/components/workspace/refresh-button";
-import { PAGE_TYPES, type PageType } from "@/lib/brain/types";
+import { entityTypes } from "@/lib/brain/labels";
+import { isPageType, type PageType } from "@/lib/brain/types";
 import { getWorkspaceGraph, getWorkspaceStats } from "@/lib/workspace/data";
 import { paginationOffset } from "@/lib/workspace/pagination";
 import {
@@ -56,11 +57,7 @@ async function Graph({
   searchParams: Promise<RouteSearchParams>;
 }) {
   const params = await searchParams;
-  const type =
-    typeof params.type === "string" &&
-    PAGE_TYPES.includes(params.type as PageType)
-      ? (params.type as PageType)
-      : "";
+  const type = isPageType(params.type) ? params.type : "";
   const offset = paginationOffset(params.offset);
   const focus = typeof params.node === "string" ? params.node : undefined;
   const [graph, stats] = await Promise.all([
@@ -68,7 +65,6 @@ async function Graph({
     getWorkspaceStats(),
   ]);
   const end = offset + graph.nodes.length;
-  const paginated = offset > 0 || offset + GRAPH_PAGE_SIZE < graph.total;
   return (
     <>
       <nav
@@ -113,31 +109,15 @@ async function Graph({
         graph={graph}
         initialSelected={focus}
       />
-      {paginated && (
-        <nav
-          aria-label="Graph pagination"
-          className="mt-6 flex justify-between gap-3"
-        >
-          {offset > 0 ? (
-            <Button variant="outline" asChild>
-              <Link
-                href={graphHref(type, Math.max(0, offset - GRAPH_PAGE_SIZE))}
-              >
-                Newer pages
-              </Link>
-            </Button>
-          ) : (
-            <span />
-          )}
-          {offset + GRAPH_PAGE_SIZE < graph.total && (
-            <Button variant="outline" asChild>
-              <Link href={graphHref(type, offset + GRAPH_PAGE_SIZE)}>
-                Older pages
-              </Link>
-            </Button>
-          )}
-        </nav>
-      )}
+      <Pagination
+        offset={offset}
+        hasMore={offset + GRAPH_PAGE_SIZE < graph.total}
+        pageSize={GRAPH_PAGE_SIZE}
+        href={(offset) => graphHref(type, offset)}
+        label="Graph pagination"
+        previousLabel="Newer pages"
+        nextLabel="Older pages"
+      />
     </>
   );
 }

@@ -1,15 +1,10 @@
-import {
-  ArrowLeft,
-  ArrowRight,
-  ArrowUpRight,
-  BookOpen,
-  Plus,
-} from "lucide-react";
+import { ArrowRight, ArrowUpRight, BookOpen, Plus } from "lucide-react";
 import { Suspense } from "react";
-import { entityTypes, relativeTime } from "@/components/brain-types";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { entityTypes } from "@/lib/brain/labels";
 import type { PageType } from "@/lib/brain/types";
+import { relativeTime } from "@/lib/formatters";
 import { getWorkspacePages, getWorkspaceStats } from "@/lib/workspace/data";
 import {
   LIBRARY_PAGE_SIZE,
@@ -20,6 +15,7 @@ import {
   routeSearchParams,
 } from "@/lib/workspace/urls";
 import { LibraryCollections, LibraryControls } from "./library-controls";
+import { Pagination } from "./pagination";
 import { Empty, EntityIcon, PageHeading } from "./primitives";
 import { WorkspaceLink as Link } from "./search-navigation";
 
@@ -166,45 +162,19 @@ async function LibraryResults({
           )}
         </Empty>
       )}
-      {(filters.offset > 0 || filters.offset + pages.length < total) && (
-        <nav
-          aria-label="Page results"
-          className="flex items-center justify-between gap-4 mt-6 text-xs"
-        >
-          <span>
-            {total ? filters.offset + 1 : 0}–
-            {Math.min(filters.offset + pages.length, total)} of {total}
-          </span>
-          <div className="flex gap-3">
-            {filters.offset > 0 && (
-              <Button asChild variant="outline">
-                <Link
-                  href={libraryHref({
-                    ...filters,
-                    offset: Math.max(0, filters.offset - LIBRARY_PAGE_SIZE),
-                  })}
-                >
-                  <ArrowLeft size={14} />
-                  Previous
-                </Link>
-              </Button>
-            )}
-            {filters.offset + pages.length < total && (
-              <Button asChild variant="outline">
-                <Link
-                  href={libraryHref({
-                    ...filters,
-                    offset: filters.offset + LIBRARY_PAGE_SIZE,
-                  })}
-                >
-                  Next
-                  <ArrowRight size={14} />
-                </Link>
-              </Button>
-            )}
-          </div>
-        </nav>
-      )}
+      <Pagination
+        offset={filters.offset}
+        hasMore={filters.offset + pages.length < total}
+        href={(offset) => libraryHref({ ...filters, offset })}
+        label="Page results"
+        previousLabel="Previous"
+        nextLabel="Next"
+      >
+        <span className="text-xs">
+          {total ? filters.offset + 1 : 0}–
+          {Math.min(filters.offset + pages.length, total)} of {total}
+        </span>
+      </Pagination>
     </section>
   );
 }

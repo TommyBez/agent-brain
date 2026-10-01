@@ -39,7 +39,7 @@ export function failure(error: unknown) {
             (issue) => `${issue.path.join(".") || "Request"}: ${issue.message}`,
           )
           .join("; "),
-        code: "validation_error",
+        code: "INVALID_INPUT",
       },
       400,
     );
@@ -57,9 +57,9 @@ export function failure(error: unknown) {
 export async function body(request: Request): Promise<Record<string, unknown>> {
   const text = await request.text();
   if (text.length > 400_000)
-    throw new BrainError("request_too_large", "The page is too large.", 413);
+    throw new BrainError("REQUEST_TOO_LARGE", "The page is too large.", 413);
   const data = JSON.parse(text);
   if (!data || typeof data !== "object" || Array.isArray(data))
-    throw new BrainError("invalid_request", "Expected a JSON object.", 400);
+    throw new BrainError("INVALID_REQUEST", "Expected a JSON object.", 400);
   return data;
 }

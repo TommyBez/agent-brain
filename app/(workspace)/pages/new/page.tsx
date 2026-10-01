@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { PageBackLink } from "@/components/page-detail";
 import { PageEditor } from "@/components/workspace/page-editor";
 import { Loading } from "@/components/workspace/primitives";
-import { PAGE_TYPES, type PageType } from "@/lib/brain/types";
+import { isPageType } from "@/lib/brain/types";
 import { getWorkspacePages } from "@/lib/workspace/data";
 import { CONNECTION_PAGE_SIZE } from "@/lib/workspace/urls";
 
@@ -13,11 +13,7 @@ async function Editor({ searchParams }: { searchParams: SearchParams }) {
     searchParams,
     getWorkspacePages({ limit: CONNECTION_PAGE_SIZE, sort: "title" }),
   ]);
-  const type =
-    typeof params.type === "string" &&
-    PAGE_TYPES.includes(params.type as PageType)
-      ? (params.type as PageType)
-      : "note";
+  const type = isPageType(params.type) ? params.type : "note";
   return (
     <PageEditor
       key={type}
