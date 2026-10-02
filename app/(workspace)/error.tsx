@@ -1,23 +1,20 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { ErrorState } from "@/components/error-state";
 
 export default function WorkspaceError({
+  error,
   retry,
 }: {
   error: Error & { digest?: string };
   retry: () => void;
 }) {
   return (
-    <div
-      role="alert"
-      className="rounded-md border border-destructive/20 bg-destructive/5 p-6"
-    >
-      <h2>Unable to load this view.</h2>
-      <p className="my-3 text-sm text-muted-foreground">
-        Your knowledge is temporarily unavailable. Please try again.
-      </p>
-      <Button onClick={retry}>Try again</Button>
-    </div>
+    <ErrorState
+      error={error}
+      retry={retry}
+      title="Unable to load this view"
+      description="Your knowledge is temporarily unavailable. Please try again."
+    />
   );
 }
