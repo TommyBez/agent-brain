@@ -20,10 +20,10 @@ Put organization-wide policies in the company and initiative-specific scope or m
 
 When employment or responsibility changes, reconcile current wording and summary with the dated evidence while preserving useful history. Avoid making an old affiliation appear current simply because it was mentioned in a recent conversation.
 
-Use `person → works_at → company` for supported employment, not for a customer contact or external advisor without evidence of employment. `collaborates_with` or a labeled `relates_to` may better describe other relationships. Use `owns` only when ownership is established; working on a project does not prove ownership.
+Use `person → works_at → company` for supported current employment, not for a former employer, customer contact or external advisor without evidence of current employment. `collaborates_with` or a labeled `relates_to` may better describe other relationships. Use `owns` only when ownership is established; working on a project does not prove ownership.
 
-Links do not carry structured employment dates. Keep those dates and qualifications in Markdown and label historical links clearly when retaining them is useful. Do not add a reverse link solely for navigation.
+Links do not carry structured employment dates, and a label such as "historical" does not change the meaning of a `works_at` edge. When evidence confirms that employment has ended, remove that edge through a reconciled `write`, preserving unrelated outgoing links and the dated employment history in Markdown. Replace it with another type only when evidence supports a relationship that remains true, such as ongoing collaboration. Do not infer that employment ended from silence or old source dates. Do not add a reverse link solely for navigation.
 
 ## Example
 
-"Elena told the owner she moved from Acme to Beta in September and still advises Acme's Portal team." Update Elena's current role and dated history. Reconcile the employment links and represent the advisory relationship accurately. Do not merge the companies or transfer Portal to Beta on the strength of her move.
+"Elena told the owner she moved from Acme to Beta in September and still advises Acme's Portal team." Remove Elena's `works_at` edge to Acme and add the supported current employment edge to Beta. Keep the dated Acme employment history in Markdown and represent the ongoing advisory relationship with a justified `collaborates_with` or labeled `relates_to` link. Do not merge the companies or transfer Portal to Beta on the strength of her move.
