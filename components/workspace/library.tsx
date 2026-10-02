@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { entityTypes, relationshipLabels } from "@/lib/brain/labels";
 import type { PageType } from "@/lib/brain/types";
-import { relativeTime } from "@/lib/formatters";
 import { getWorkspacePages, getWorkspaceStats } from "@/lib/workspace/data";
 import {
   LIBRARY_PAGE_SIZE,
@@ -23,6 +22,7 @@ import {
 } from "./library-controls";
 import { Pagination } from "./pagination";
 import { Empty, EntityIcon, PageHeading } from "./primitives";
+import { RelativeTime } from "./relative-time";
 
 async function WorkspaceCollections({ type }: { type: PageType | "" }) {
   const stats = await getWorkspaceStats();
@@ -121,9 +121,7 @@ async function LibraryResults({
                   </p>
                 )}
                 <div className="mt-auto flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-t border-border/60 pt-4 text-[10px] text-muted-foreground">
-                  <time dateTime={page.updatedAt}>
-                    {relativeTime(page.updatedAt)}
-                  </time>
+                  <RelativeTime value={page.updatedAt} />
                   {page.tags.length > 0 && (
                     <span
                       className="min-w-0 max-w-[60%] truncate"

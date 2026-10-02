@@ -13,7 +13,7 @@ import {
 import { Pagination } from "@/components/workspace/pagination";
 import { Empty, Loading, PageHeading } from "@/components/workspace/primitives";
 import { RefreshButton } from "@/components/workspace/refresh-button";
-import { relativeTime } from "@/lib/formatters";
+import { RelativeTime } from "@/components/workspace/relative-time";
 import { getWorkspaceActivity } from "@/lib/workspace/data";
 import {
   type PaginationSearchParams,
@@ -64,12 +64,10 @@ async function ActivityFeed({
                 </ItemDescription>
               </ItemContent>
               <ItemActions>
-                <time
-                  dateTime={item.createdAt}
+                <RelativeTime
+                  value={item.createdAt}
                   className="text-muted-foreground"
-                >
-                  {relativeTime(item.createdAt)}
-                </time>
+                />
                 <ChevronRight size={16} />
               </ItemActions>
             </Link>
