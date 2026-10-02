@@ -5,7 +5,7 @@ import { ZodError } from "zod";
 import { read, write } from "@/lib/brain/service";
 import { BrainError, type DecoratedPage } from "@/lib/brain/types";
 import { updateWorkspaceCache } from "@/lib/workspace/cache";
-import { getWorkspaceUser } from "@/lib/workspace/session";
+import { requireWorkspaceUser } from "@/lib/workspace/session";
 
 export interface SavePageState {
   savedPage?: DecoratedPage;
@@ -33,7 +33,7 @@ export async function savePageAction(
   let savedPage: DecoratedPage;
   let ownerId: string;
   try {
-    const user = await getWorkspaceUser();
+    const user = await requireWorkspaceUser();
     ownerId = user.id;
     savedPage = await write(user.id, {
       ...(id ? { id } : {}),
@@ -91,7 +91,7 @@ export async function savePageAction(
 }
 
 export async function readLatestPageAction(id: string) {
-  const user = await getWorkspaceUser();
+  const user = await requireWorkspaceUser();
   // Conflict reconciliation must compare against the committed version, not a cached reader.
   return read(user.id, { ref: id });
 }

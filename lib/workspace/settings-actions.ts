@@ -4,10 +4,10 @@ import { revalidatePath } from "next/cache";
 import { createAgentToken, revokeAgentToken } from "@/lib/agent-tokens";
 import { AuthError } from "@/lib/auth-principal";
 import { startNightlyMaintenance } from "@/lib/maintenance/start";
-import { getWorkspaceUser } from "@/lib/workspace/session";
+import { requireWorkspaceUser } from "@/lib/workspace/session";
 
 export async function createTokenAction(form: FormData) {
-  const user = await getWorkspaceUser();
+  const user = await requireWorkspaceUser();
   try {
     const result = await createAgentToken(user.id, {
       name: form.get("name"),
@@ -27,7 +27,7 @@ export async function createTokenAction(form: FormData) {
 }
 
 export async function revokeTokenAction(id: string) {
-  const user = await getWorkspaceUser();
+  const user = await requireWorkspaceUser();
   try {
     await revokeAgentToken(user.id, { id });
     revalidatePath("/agents");
@@ -43,7 +43,7 @@ export async function revokeTokenAction(id: string) {
 }
 
 export async function runMaintenanceAction() {
-  const user = await getWorkspaceUser();
+  const user = await requireWorkspaceUser();
   try {
     const run = await startNightlyMaintenance(user.id, "manual");
     revalidatePath("/operations");
