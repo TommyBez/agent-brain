@@ -60,9 +60,7 @@ Append inserts a paragraph break before the new passage and preserves metadata a
 
 ## Organize entities and links
 
-Current page types are `person`, `company`, `project`, `article`, `decision`, and `note`. Choose the type describing the entity; a decision can have its own page when its rationale and consequences warrant one, linked to its project. Prefer updating the appropriate existing page for small related facts.
-
-A `company` page covers every organization the owner deals with. Its `relationships` array records how the owner relates to it: `client`, `prospect` and `former_employer`, in any combination (a former employer can become a client), or empty for a company the owner has simply been in touch with. Only company pages accept relationships. Update them when the evidence changes, for example a prospect signing becomes a client; keep the history of that change in the page's Markdown. A person's employment stays a `works_at` link from the person to the company.
+For page placement and the boundaries between types, use [Choosing entities](choosing-entities.md) and the relevant type guide linked from `SKILL.md`. Company relationship semantics live in [Companies](companies.md). This reference covers payloads, link mechanics and failure handling.
 
 Current typed links are `works_at`, `owns`, `part_of`, `relates_to`, `decided_in`, `references`, `depends_on`, `supersedes`, and `collaborates_with`. Resolve the target before using its canonical ID or slug as `targetRef`. The edited page is the source: a new decision `supersedes` an older decision, a project `depends_on` another project, and an article `references` its subject. Use the most specific supported relationship justified by evidence.
 

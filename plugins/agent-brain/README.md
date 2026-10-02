@@ -11,7 +11,11 @@ agent-brain/
 ├── assets/icon.svg
 ├── skills/brain-memory/
 │   ├── SKILL.md
-│   └── references/writing-pages.md
+│   └── references/
+│       ├── choosing-entities.md
+│       ├── people.md, companies.md, projects.md
+│       ├── articles.md, decisions.md, notes.md
+│       └── writing-pages.md
 ├── .mcp.json
 ├── .claude-plugin/plugin.json
 ├── .codex-plugin/plugin.json

@@ -45,6 +45,21 @@ Save when authorized by the user's request or standing instructions, without ask
 - Store knowledge about the page's subject, not reports, logs or diaries of the agent's saving or maintenance activity. Keep operational failures and unresolved mutation outcomes in the tool/job state or completion report. Avoid cosmetic maintenance rewrites and edits that merely increase the write count; an explicitly requested presentation change remains within scope.
 - Include an accurate `reason` and `source` for each mutation. Put supporting dates and source references in the Markdown where readers need them. Do not invent source URLs or retain credentials and unnecessary sensitive details.
 
+## Choose where and how to write
+
+Before an authorized save, read [Choosing entities](references/choosing-entities.md) to decide which existing pages to update and whether new pages are warranted. Route by the subject of the knowledge, not by the conversation or document that supplied it. Then read only the guides for the page types you will create or change:
+
+| Page type | Writing guide | Use for |
+| --- | --- | --- |
+| `person` | [People](references/people.md) | A person's identity, roles and relationship with the owner. |
+| `company` | [Companies](references/companies.md) | An organization's context and relationship with the owner across engagements. |
+| `project` | [Projects](references/projects.md) | A distinct initiative's goals, scope, constraints and state. |
+| `article` | [Articles](references/articles.md) | An identifiable external publication and its attributed claims. |
+| `decision` | [Decisions](references/decisions.md) | A consequential choice with independently useful rationale and effects. |
+| `note` | [Notes](references/notes.md) | A reusable synthesis, concept or substantive meeting record with its own subject. |
+
+These guides define editorial choices, not additional API fields or rigid page templates. Keep the shared quality rules above and use [Writing pages](references/writing-pages.md) for mutation mechanics; the live server contract remains authoritative.
+
 ## Maintenance is a separate task
 
 Built-in nightly maintenance already runs in Vercel Workflow. Ordinary agents do not need to launch another schedule, regenerate embeddings or export Git backups after saving.

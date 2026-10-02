@@ -107,7 +107,7 @@ For Git-based installation once these files are committed and pushed, replace `.
 
 ## Agent skill
 
-The portable [`brain-memory` skill](plugins/agent-brain/skills/brain-memory/SKILL.md) guides agents using a native brain: retrieve context, resolve identities, preserve durable knowledge and verify saves. Its [writing reference](plugins/agent-brain/skills/brain-memory/references/writing-pages.md) explains full replacements, link payloads and conflict handling. The live MCP instructions, prompts and tool schemas remain authoritative; clients that expose only tools can follow the skill's workflow directly.
+The portable [`brain-memory` skill](plugins/agent-brain/skills/brain-memory/SKILL.md) guides agents using a native brain: retrieve context, resolve identities, preserve durable knowledge and verify saves. Its [entity selection guide](plugins/agent-brain/skills/brain-memory/references/choosing-entities.md) explains where knowledge belongs, with dedicated references for people, companies, projects, articles, decisions and notes. The [writing reference](plugins/agent-brain/skills/brain-memory/references/writing-pages.md) explains full replacements, link payloads and conflict handling. The live MCP instructions, prompts and tool schemas remain authoritative; clients that expose only tools can follow the skill's workflow directly.
 
 Install it in a project using the [Skills CLI](https://github.com/vercel-labs/skills):
 
