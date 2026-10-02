@@ -1,6 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import { requireMcpAuth } from "@better-auth/mcp";
 import {
+  allowedEmails,
   appOrigin,
   BRAIN_SCOPES,
   type BrainScope,
@@ -8,7 +9,6 @@ import {
   getSession,
   isAuthConfigured,
   mcpResource,
-  ownerEmail,
   READ_WRITE_SCOPES,
 } from "@/lib/auth";
 import { getPool } from "@/lib/db";
@@ -73,9 +73,9 @@ export async function principalFromAgentToken(
   }>(
     `UPDATE agent_tokens AS t SET last_used_at = now()
      FROM "user" AS u WHERE t.token_hash = $1 AND t.revoked_at IS NULL AND t.expires_at > now()
-       AND u.id = t.owner_id AND lower(u.email) = $2
+       AND u.id = t.owner_id AND lower(u.email) = ANY($2::text[])
      RETURNING t.id, t.owner_id, t.scopes`,
-    [tokenHash(token), ownerEmail()],
+    [tokenHash(token), allowedEmails()],
   );
   if (!rows[0])
     throw new AuthError(
@@ -113,8 +113,8 @@ export async function getPrincipal(request: Request): Promise<Principal> {
             403,
           );
         const { rows } = await getPool().query(
-          `SELECT id FROM "user" WHERE id = $1 AND lower(email) = $2`,
-          [claims.sub, ownerEmail()],
+          `SELECT id FROM "user" WHERE id = $1 AND lower(email) = ANY($2::text[])`,
+          [claims.sub, allowedEmails()],
         );
         if (!rows.length)
           throw new AuthError(

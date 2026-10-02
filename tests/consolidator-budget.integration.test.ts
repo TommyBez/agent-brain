@@ -21,14 +21,20 @@ test(
     await setup.query(
       `CREATE TABLE ${schema}.brain_consolidation_spend (LIKE public.brain_consolidation_spend INCLUDING ALL)`,
     );
+    await setup.query(`CREATE TABLE ${schema}."user" (email text PRIMARY KEY)`);
     const isolated = new URL(database);
     isolated.searchParams.set("options", `-c search_path=${schema},public`);
     process.env.DATABASE_URL = isolated.toString();
     const owner = `budget-test-${randomUUID()}`;
     const other = `${owner}-other`;
+    const email = `${owner}@example.invalid`;
+    const secondEmail = `${other}@example.invalid`;
     const pool = getPool();
     const previousKey = process.env.AI_GATEWAY_API_KEY;
+    const previousOwner = process.env.BRAIN_OWNER_EMAIL;
     process.env.AI_GATEWAY_API_KEY = "test-only";
+    process.env.BRAIN_OWNER_EMAIL = email;
+    await pool.query(`INSERT INTO "user" (email) VALUES ($1)`, [email]);
     t.after(async () => {
       await pool.query(
         "DELETE FROM brain_consolidation_spend WHERE owner_id=ANY($1::text[])",
@@ -36,6 +42,8 @@ test(
       );
       if (previousKey === undefined) delete process.env.AI_GATEWAY_API_KEY;
       else process.env.AI_GATEWAY_API_KEY = previousKey;
+      if (previousOwner === undefined) delete process.env.BRAIN_OWNER_EMAIL;
+      else process.env.BRAIN_OWNER_EMAIL = previousOwner;
       await pool.end();
       await setup.query(`DROP SCHEMA ${schema} CASCADE`);
       await setup.end();
@@ -68,6 +76,31 @@ test(
     );
     assert.equal(total.rows[0].total, "1049999999");
     await pool.query("DELETE FROM brain_consolidation_spend");
+
+    process.env.BRAIN_OWNER_EMAIL = `${email},${secondEmail}`;
+    await pool.query(`INSERT INTO "user" (email) VALUES ($1)`, [secondEmail]);
+    const withinCeiling = await startSpend(
+      other,
+      "two-account-room",
+      "typesafe-ai/jev",
+    );
+    await pool.query(
+      "UPDATE brain_consolidation_spend SET actual_nano=2000000000 WHERE id=$1",
+      [withinCeiling],
+    );
+    await assert.rejects(
+      startSpend(owner, "two-account-blocked", "typesafe-ai/jev"),
+      BudgetExhaustedError,
+    );
+    await pool.query(
+      "UPDATE brain_consolidation_spend SET actual_nano=1500000000 WHERE id=$1",
+      [withinCeiling],
+    );
+    assert.ok(
+      await startSpend(owner, "two-account-allowed", "typesafe-ai/jev"),
+    );
+    await pool.query("DELETE FROM brain_consolidation_spend");
+    process.env.BRAIN_OWNER_EMAIL = email;
 
     fetch.mock.mockImplementation(async () => {
       throw new Error("Unknown provider outcome");

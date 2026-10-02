@@ -3,6 +3,7 @@ import { getRun } from "workflow/api";
 import { queryEmbeddingsConfigured } from "@/lib/brain/embeddings";
 import { assertOwner, embeddingModel } from "@/lib/brain/utils";
 import { getPool, transaction } from "@/lib/db";
+import { exportRepositoryForEmail } from "@/lib/maintenance/export-repositories";
 import type {
   WorkflowJobKind,
   WorkflowJobStatus,
@@ -31,6 +32,7 @@ export type MaintenanceJob = {
     budgetReached?: boolean;
     commit?: string;
     repository?: string;
+    skipped?: boolean;
   } | null;
 };
 
@@ -84,6 +86,11 @@ export async function operationsStatus(ownerId: string) {
       job.error ||= `Workflow ${run.status} before this stage recorded completion. Run maintenance to retry.`;
     }
   }
+  const { rows: owners } = await getPool().query<{ email: string }>(
+    `SELECT email FROM "user" WHERE id = $1`,
+    [ownerId],
+  );
+  const exportRepository = exportRepositoryForEmail(owners[0]?.email ?? "");
   const checks = [
     {
       name: "Postgres",
@@ -112,8 +119,15 @@ export async function operationsStatus(ownerId: string) {
     },
     {
       name: "Git export",
-      status: process.env.BRAIN_EXPORT_GITHUB_TOKEN ? "ready" : "missing",
-      detail: `Daily commits to ${process.env.BRAIN_EXPORT_REPOSITORY || "TommyBez/agent-brain-memory"} through GitHub's API. No GitHub Actions runner or AI request is involved in exporting.`,
+      status:
+        !exportRepository || process.env.BRAIN_EXPORT_GITHUB_TOKEN
+          ? "ready"
+          : "missing",
+      detail: exportRepository
+        ? process.env.BRAIN_EXPORT_GITHUB_TOKEN
+          ? `Daily commits to ${exportRepository} through GitHub's API. No GitHub Actions runner or AI request is involved in exporting.`
+          : `This account exports to ${exportRepository}. Add BRAIN_EXPORT_GITHUB_TOKEN before nightly export can publish.`
+        : "No repository is configured for this account, so nightly export is skipped.",
     },
     {
       name: "Consolidation models",

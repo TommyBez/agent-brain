@@ -4,7 +4,7 @@ import {
   Client,
   StreamableHTTPClientTransport,
 } from "@modelcontextprotocol/client";
-import { mcpResource } from "../lib/auth";
+import { allowedEmails, isAllowedEmail, mcpResource } from "../lib/auth";
 import {
   AuthError,
   assertSameOrigin,
@@ -13,6 +13,23 @@ import {
   tokenHash,
 } from "../lib/auth-principal";
 import { createBrainHandler, requiredMcpScope } from "../lib/mcp/server";
+
+test("BRAIN_OWNER_EMAIL is a case-insensitive allowlist of separate accounts", () => {
+  const previous = process.env.BRAIN_OWNER_EMAIL;
+  try {
+    process.env.BRAIN_OWNER_EMAIL =
+      " Owner@Example.com, other@example.com, owner@example.com, ";
+    assert.deepEqual(allowedEmails(), [
+      "owner@example.com",
+      "other@example.com",
+    ]);
+    assert.equal(isAllowedEmail("OTHER@example.com"), true);
+    assert.equal(isAllowedEmail("stranger@example.com"), false);
+  } finally {
+    if (previous === undefined) delete process.env.BRAIN_OWNER_EMAIL;
+    else process.env.BRAIN_OWNER_EMAIL = previous;
+  }
+});
 
 test("headless credentials contain 256 random bits and only their hash is used for storage", () => {
   const first = newAgentToken();

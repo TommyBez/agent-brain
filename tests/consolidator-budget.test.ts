@@ -3,11 +3,15 @@ import test from "node:test";
 import {
   actualCost,
   DAILY_BUDGET_NANO,
+  dailyBudgetNano,
   EDITOR_MODEL,
 } from "../lib/maintenance/consolidator/budget";
 
-test("daily spending target remains one dollar", () => {
+test("daily spending target is one dollar for each present account", () => {
   assert.equal(DAILY_BUDGET_NANO, 1e9);
+  assert.equal(dailyBudgetNano(1), 1e9);
+  assert.equal(dailyBudgetNano(3), 3e9);
+  assert.equal(dailyBudgetNano(0), 0);
 });
 
 test("actual spend prefers Gateway cost and includes both editor input and output", () => {

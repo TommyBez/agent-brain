@@ -4,6 +4,7 @@ import {
   beginJob,
   completeJob,
   embedBatch,
+  exportRepositoryForOwner,
   nextEmbeddingBatch,
   pendingEmbeddingCount,
   publishExport,
@@ -76,8 +77,19 @@ async function runPhase(
         result,
       );
     }
+    const repository = await exportRepositoryForOwner(ownerId);
+    if (!repository)
+      return await completeJob(ownerId, job.id, runId, "succeeded", {
+        skipped: true,
+      });
     const snapshot = await takeExportSnapshot(ownerId);
-    const result = await publishExport(snapshot, runDate, job.id, job.attempts);
+    const result = await publishExport(
+      snapshot,
+      runDate,
+      job.id,
+      job.attempts,
+      repository,
+    );
     return await completeJob(ownerId, job.id, runId, "succeeded", result);
   } catch (error) {
     return await completeJob(

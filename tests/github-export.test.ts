@@ -809,22 +809,20 @@ test("fixed snapshot metadata generates stable commits and environment defaults 
   assert.equal(a.commit, b.commit);
   const previous = {
     BRAIN_EXPORT_GITHUB_TOKEN: process.env.BRAIN_EXPORT_GITHUB_TOKEN,
-    BRAIN_EXPORT_REPOSITORY: process.env.BRAIN_EXPORT_REPOSITORY,
     BRAIN_EXPORT_BRANCH: process.env.BRAIN_EXPORT_BRANCH,
   };
   try {
     process.env.BRAIN_EXPORT_GITHUB_TOKEN = "test-export-key";
-    delete process.env.BRAIN_EXPORT_REPOSITORY;
     delete process.env.BRAIN_EXPORT_BRANCH;
     const github = new GitHub();
-    const {
-      token: _token,
-      repository: _repository,
-      branch: _branch,
-      ...defaults
-    } = options(github);
+    const { token: _token, branch: _branch, ...defaults } = options(github);
     await exportBrainToGitHub(defaults);
     assert.ok(github.file("export/manifest.json"));
+    const { repository: _repository, ...withoutRepository } = defaults;
+    await assert.rejects(
+      exportBrainToGitHub(withoutRepository),
+      /valid export repository/,
+    );
   } finally {
     for (const [name, value] of Object.entries(previous)) {
       if (value === undefined) delete process.env[name];
