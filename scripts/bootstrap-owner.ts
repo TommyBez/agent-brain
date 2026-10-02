@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { hashPassword } from "better-auth/crypto";
+import { requireAllowedEmails } from "../lib/auth";
 import { getPool, transaction } from "../lib/db";
 
 try {
@@ -47,10 +48,30 @@ async function hiddenPassword(label: string): Promise<string> {
   });
 }
 
+function accountEmail(allowlist: string[]) {
+  const requested = process.argv[2]?.trim().toLowerCase();
+  if (requested) {
+    if (!allowlist.includes(requested))
+      throw new Error(`${requested} is not listed in BRAIN_OWNER_EMAIL.`);
+    return requested;
+  }
+  if (allowlist.length === 1 && allowlist[0]) return allowlist[0];
+  throw new Error(
+    `Pass the account email. Allowlisted addresses: ${allowlist.join(", ")}`,
+  );
+}
+
+function accountName(email: string, allowlist: string[]) {
+  const requested = process.argv[3]?.trim();
+  if (requested) return requested;
+  if (email === allowlist[0] && process.env.BRAIN_OWNER_NAME?.trim())
+    return process.env.BRAIN_OWNER_NAME.trim();
+  return email.split("@")[0] ?? email;
+}
+
 async function main() {
-  const email = process.env.BRAIN_OWNER_EMAIL?.trim().toLowerCase();
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
-    throw new Error("Set BRAIN_OWNER_EMAIL to the owner's email first.");
+  const allowlist = requireAllowedEmails();
+  const email = accountEmail(allowlist);
   let password = process.env.BRAIN_OWNER_PASSWORD;
   if (!password && process.env.BRAIN_OWNER_PASSWORD_FILE)
     password = (
@@ -58,7 +79,7 @@ async function main() {
     ).trimEnd();
   if (!password) {
     password = await hiddenPassword(
-      "Choose owner password (12+ characters; input hidden): ",
+      `Choose a password for ${email} (12+ characters; input hidden): `,
     );
     if (password !== (await hiddenPassword("Repeat password: ")))
       throw new Error("Passwords do not match.");
@@ -70,15 +91,18 @@ async function main() {
     await client.query(
       "SELECT pg_advisory_xact_lock(hashtext('agent-brain-owner-bootstrap'))",
     );
-    const existing = await client.query('SELECT id FROM "user" LIMIT 1');
+    const existing = await client.query(
+      'SELECT id FROM "user" WHERE lower(email) = $1',
+      [email],
+    );
     if (existing.rows.length)
       throw new Error(
-        "An owner already exists. Bootstrap never resets an existing password. Use the signed-in change-password flow.",
+        `An account for ${email} already exists. Bootstrap never resets an existing password. Use the signed-in change-password flow.`,
       );
     const id = randomUUID();
     await client.query(
       'INSERT INTO "user" (id,name,email,"emailVerified","createdAt","updatedAt") VALUES ($1,$2,$3,true,now(),now())',
-      [id, process.env.BRAIN_OWNER_NAME || "Tommaso", email],
+      [id, accountName(email, allowlist), email],
     );
     await client.query(
       'INSERT INTO "account" (id,"accountId","providerId","userId",password,"createdAt","updatedAt") VALUES ($1,$2,\'credential\',$2,$3,now(),now())',
@@ -86,7 +110,7 @@ async function main() {
     );
   });
   console.log(
-    "Owner created. Sign in with the chosen password. Public registration remains disabled.",
+    `Account created for ${email}. Sign in with the chosen password. Public registration remains disabled.`,
   );
 }
 

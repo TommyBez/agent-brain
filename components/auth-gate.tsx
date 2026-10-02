@@ -62,7 +62,7 @@ export function AuthGate({
                   <li>
                     <strong className="block">Configure authentication</strong>
                     <p className="text-muted-foreground">
-                      Set the application URL, auth secret, and owner email.
+                      Set the application URL, auth secret, and allowed emails.
                     </p>
                   </li>
                   <li>

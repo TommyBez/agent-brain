@@ -18,11 +18,33 @@ export const READ_WRITE_SCOPES = BRAIN_SCOPES.filter(
   (scope) => scope !== "brain:maintain",
 ).join(" ");
 
-export function ownerEmail() {
-  return process.env.BRAIN_OWNER_EMAIL?.trim().toLowerCase() ?? "";
+const EMAIL_ADDRESS = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export function allowedEmails() {
+  const emails = new Set<string>();
+  for (const part of (process.env.BRAIN_OWNER_EMAIL ?? "").split(",")) {
+    const email = part.trim().toLowerCase();
+    if (email) emails.add(email);
+  }
+  return [...emails];
 }
-export function isOwnerEmail(email: string) {
-  return email.toLowerCase() === ownerEmail();
+
+export function isAllowedEmail(email: string) {
+  return allowedEmails().includes(email.trim().toLowerCase());
+}
+
+export function requireAllowedEmails() {
+  const emails = allowedEmails();
+  if (!emails.length)
+    throw new Error(
+      "Set BRAIN_OWNER_EMAIL to one or more comma-separated email addresses.",
+    );
+  for (const email of emails)
+    if (!EMAIL_ADDRESS.test(email))
+      throw new Error(
+        `BRAIN_OWNER_EMAIL contains an invalid address: ${email}`,
+      );
+  return emails;
 }
 
 export function isAuthConfigured() {
@@ -30,7 +52,7 @@ export function isAuthConfigured() {
     process.env.DATABASE_URL &&
       configuredAppOrigin() &&
       process.env.BETTER_AUTH_SECRET &&
-      process.env.BRAIN_OWNER_EMAIL,
+      allowedEmails().length,
   );
 }
 
@@ -49,8 +71,7 @@ export function authOptions() {
   const secret = process.env.BETTER_AUTH_SECRET;
   if (!secret || secret.length < 32)
     throw new Error("BETTER_AUTH_SECRET must contain at least 32 characters.");
-  if (!process.env.BRAIN_OWNER_EMAIL)
-    throw new Error("BRAIN_OWNER_EMAIL is required.");
+  requireAllowedEmails();
   return {
     appName: "a native brain",
     baseURL: origin,
@@ -117,6 +138,6 @@ export function getAuth() {
 export async function getSession(requestHeaders: Headers) {
   if (!isAuthConfigured()) return null;
   const session = await getAuth().api.getSession({ headers: requestHeaders });
-  if (!session || !isOwnerEmail(session.user.email)) return null;
+  if (!session || !isAllowedEmail(session.user.email)) return null;
   return session;
 }

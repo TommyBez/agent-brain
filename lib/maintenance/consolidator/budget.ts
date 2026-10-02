@@ -1,7 +1,23 @@
+import { allowedEmails } from "../../auth";
 import { getPool } from "../../db";
 import { type GatewayCall, gatewayRequest } from "../gateway";
 
 export const DAILY_BUDGET_NANO = 1_000_000_000;
+
+export function dailyBudgetNano(accountCount: number) {
+  if (!Number.isSafeInteger(accountCount) || accountCount < 1) return 0;
+  return DAILY_BUDGET_NANO * accountCount;
+}
+
+export async function presentAccountCount() {
+  const emails = allowedEmails();
+  if (!emails.length) return 0;
+  const { rows } = await getPool().query<{ count: number }>(
+    `SELECT count(*)::int AS count FROM "user" WHERE lower(email) = ANY($1::text[])`,
+    [emails],
+  );
+  return rows[0]?.count ?? 0;
+}
 export const EDITOR_MODEL = "deepseek/deepseek-v4.1-flash";
 export class BudgetExhaustedError extends Error {
   constructor() {
@@ -42,6 +58,7 @@ export function actualCost(raw: unknown, model: string): number | null {
 }
 
 /** Start a physical attempt while recorded UTC-day spend is below the target.
+ * The target is one dollar for each allowlisted account that exists.
  * In-flight and unknown costs do not reserve credit; a completed call may overshoot.
  */
 export async function startSpend(
@@ -55,7 +72,7 @@ export async function startSpend(
      WHERE (SELECT COALESCE(sum(actual_nano),0) FROM brain_consolidation_spend
             WHERE day=(now() AT TIME ZONE 'UTC')::date) < $4
      RETURNING id`,
-    [ownerId, runId, model, DAILY_BUDGET_NANO],
+    [ownerId, runId, model, dailyBudgetNano(await presentAccountCount())],
   );
   if (!result.rows.length) throw new BudgetExhaustedError();
   return result.rows[0].id;

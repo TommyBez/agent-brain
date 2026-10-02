@@ -1,6 +1,8 @@
 import { FatalError, RetryableError } from "workflow";
 import * as brain from "@/lib/brain/service";
 import { BrainError } from "@/lib/brain/types";
+import { assertOwner } from "@/lib/brain/utils";
+import { getPool } from "@/lib/db";
 import { exportBrain } from "@/lib/operations";
 import { revalidateWorkspaceCache } from "@/lib/workspace/cache";
 import {
@@ -9,6 +11,7 @@ import {
   type EmbeddingBatch,
   parseEmbeddingResponse,
 } from "./embedding-batch";
+import { exportRepositoryForEmail } from "./export-repositories";
 import { GatewayRequestError, gatewayRequest } from "./gateway";
 import {
   type BrainExportSnapshot,
@@ -130,13 +133,27 @@ export async function takeExportSnapshot(ownerId: string) {
   return exportBrain(ownerId) as Promise<BrainExportSnapshot>;
 }
 
+export async function exportRepositoryForOwner(ownerId: string) {
+  "use step";
+  assertOwner(ownerId);
+  const { rows } = await getPool().query<{ email: string }>(
+    `SELECT email FROM "user" WHERE id = $1`,
+    [ownerId],
+  );
+  const email = rows[0]?.email;
+  return email ? (exportRepositoryForEmail(email) ?? null) : null;
+}
+
 export async function publishExport(
   snapshot: BrainExportSnapshot,
   runDate: string,
   jobId: string,
   attempts = 1,
+  repository?: string,
 ) {
   "use step";
+  if (!repository)
+    throw new FatalError("This account has no Git export repository.");
   if (!process.env.BRAIN_EXPORT_GITHUB_TOKEN)
     throw new FatalError(
       "BRAIN_EXPORT_GITHUB_TOKEN is required for Git export.",
@@ -145,6 +162,7 @@ export async function publishExport(
     return await exportBrainToGitHub({
       snapshot,
       runDate,
+      repository,
       jobId: workflowExportAttemptKey(jobId, attempts),
       signal: AbortSignal.timeout(240_000),
     });
