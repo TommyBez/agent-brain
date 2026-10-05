@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Expand,
   Maximize2,
   Network,
   Search,
@@ -13,6 +14,14 @@ import { useRouter } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Slider } from "@/components/ui/slider";
 import { entityTypes } from "@/lib/brain/labels";
 import type {
   BrainLink,
@@ -21,6 +30,7 @@ import type {
   PageType,
 } from "@/lib/brain/types";
 import { deriveGraphView } from "@/lib/graph/derive-view";
+import { MAX_SPACING, MIN_SPACING } from "@/lib/graph/layout";
 import { buildGraphModel } from "@/lib/graph/model";
 import { pageHref } from "@/lib/workspace/urls";
 import { Empty } from "../workspace/primitives";
@@ -59,6 +69,7 @@ export function KnowledgeGraph({
     () => new Set(),
   );
   const [showUnlinked, setShowUnlinked] = useState(true);
+  const [spacing, setSpacing] = useState(MIN_SPACING);
 
   const model = useMemo(() => buildGraphModel(graph), [graph]);
   const {
@@ -125,6 +136,7 @@ export function KnowledgeGraph({
           emphasizedEdges={emphasizedEdges}
           matched={matched}
           seed={seed}
+          spacing={spacing}
           onSelect={(id) => select(id)}
           onHover={setHovered}
           onOpen={(id) => router.push(pageHref(id))}
@@ -210,6 +222,37 @@ export function KnowledgeGraph({
             >
               <Shuffle />
             </Button>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={spacing > MIN_SPACING ? "secondary" : "ghost"}
+                  size="icon-sm"
+                  aria-label="Adjust spacing"
+                >
+                  <Expand />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent side="left" align="start" className="w-60 gap-3">
+                <PopoverHeader className="flex-row items-center justify-between">
+                  <PopoverTitle id="graph-spacing-label">Spacing</PopoverTitle>
+                  <span className="text-muted-foreground tabular-nums">
+                    {spacing.toFixed(1)}×
+                  </span>
+                </PopoverHeader>
+                <Slider
+                  aria-labelledby="graph-spacing-label"
+                  min={MIN_SPACING}
+                  max={MAX_SPACING}
+                  step={0.1}
+                  value={[spacing]}
+                  onValueChange={([value]) => setSpacing(value)}
+                />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>Compact</span>
+                  <span>Spacious</span>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
         <div className="pointer-events-none absolute inset-x-3 bottom-3 flex flex-wrap items-end justify-between gap-2 text-xs text-muted-foreground">
