@@ -1,11 +1,13 @@
 ---
 name: brain-memory
-description: Use a connected Agent Brain MCP server whenever you notice relevant information that may be worth saving for future work, or need context about people, projects, companies (clients, prospects, former employers) the user deals with, even when the user does not mention Brain or ask to remember. Also use for explicit Brain retrieval, saving and organization requests. Not for developing the Agent Brain application itself.
+description: Retrieve user context on people, companies and projects; assess new facts and decisions for memory.
 ---
 
 # Agent Brain
 
 Use the owner's private brain as a source of context and durable knowledge. Each person, company, project, article, decision or note has one canonical Markdown page, connected by typed links. Access it through MCP; no repository checkout, database access or embedding provider key is needed to use the brain.
+
+Use this skill even when the user does not mention Brain or ask to remember. It is not for developing the Agent Brain application itself.
 
 ## When to activate
 
