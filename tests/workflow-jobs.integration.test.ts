@@ -582,6 +582,33 @@ test(
             receipt,
           );
           assert.deepEqual(finished.result, receipt);
+          const skippedExport = await beginWorkflowJob(
+            owner,
+            "export",
+            "2035-01-17",
+            "run-export-skipped",
+          );
+          await assert.rejects(
+            finishWorkflowJob(
+              owner,
+              skippedExport.id,
+              "run-export-skipped",
+              "succeeded",
+              { skipped: true, pushed: true },
+            ),
+            (error) =>
+              error instanceof BrainError &&
+              error.code === "EXPORT_NOT_PERSISTED",
+          );
+          const skipped = await finishWorkflowJob(
+            owner,
+            skippedExport.id,
+            "run-export-skipped",
+            "succeeded",
+            { skipped: true },
+          );
+          assert.equal(skipped.status, "succeeded");
+          assert.deepEqual(skipped.result, { skipped: true });
           assert.deepEqual(
             await finishWorkflowJob(owner, job.id, "run-export", "succeeded"),
             finished,

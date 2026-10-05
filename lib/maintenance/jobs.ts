@@ -26,6 +26,18 @@ export interface WorkflowJob {
 const JOB_COLUMNS = `id, kind, run_date::text AS "runDate", status,
   workflow_run_id AS "workflowRunId", attempts, result, error`;
 
+function exportWasSkipped(result: Record<string, unknown> | undefined) {
+  return result?.skipped === true && Object.keys(result).length === 1;
+}
+
+function exportWasPublished(result: Record<string, unknown> | undefined) {
+  return (
+    result?.pushed === true &&
+    typeof result.commit === "string" &&
+    /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(result.commit)
+  );
+}
+
 function validateRunDate(runDate: string) {
   if (
     !/^\d{4}-\d{2}-\d{2}$/.test(runDate) ||
@@ -206,9 +218,8 @@ export async function finishWorkflowJob(
     if (
       current.kind === "export" &&
       status === "succeeded" &&
-      (result?.pushed !== true ||
-        typeof result.commit !== "string" ||
-        !/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(result.commit))
+      !exportWasPublished(result) &&
+      !exportWasSkipped(result)
     )
       throw new BrainError(
         "EXPORT_NOT_PERSISTED",

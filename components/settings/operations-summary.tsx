@@ -65,6 +65,9 @@ function OperationResult({ job }: { job: MaintenanceJob }) {
       {(job.status === "partial" || result.budgetReached) && (
         <p>Run limit reached. Remaining work continues the next night.</p>
       )}
+      {result.skipped === true && (
+        <p>Export skipped. This account has no Git repository configured.</p>
+      )}
       {commitUrl && (
         <Button variant="link" asChild>
           <a href={commitUrl} target="_blank" rel="noreferrer">

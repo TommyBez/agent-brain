@@ -67,10 +67,7 @@ function compare(left: string, right: string) {
 export async function exportBrainToGitHub(
   options: GitHubExportOptions,
 ): Promise<GitHubExportResult> {
-  const repository =
-    options.repository ??
-    process.env.BRAIN_EXPORT_REPOSITORY ??
-    "TommyBez/agent-brain-memory";
+  const repository = options.repository ?? "";
   const branch = options.branch ?? process.env.BRAIN_EXPORT_BRANCH ?? "main";
   const token = options.token ?? process.env.BRAIN_EXPORT_GITHUB_TOKEN;
   if (
