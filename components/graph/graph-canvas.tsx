@@ -21,11 +21,18 @@ export function GraphCanvas({
   emphasizedEdges,
   matched,
   seed,
+  spacing,
   onSelect,
   onHover,
   onOpen,
 }: GraphCanvasProps) {
-  const simulation = useGraphSimulation(nodes, layoutLinks, seed, visible);
+  const simulation = useGraphSimulation(
+    nodes,
+    layoutLinks,
+    seed,
+    visible,
+    spacing,
+  );
   const {
     containerRef,
     positions,

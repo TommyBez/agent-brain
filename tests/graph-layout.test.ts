@@ -6,7 +6,9 @@ import {
   createLayout,
   hashSeed,
   type Layout,
+  MAX_SPACING,
   reheat,
+  setSpacing,
   settle,
   tick,
 } from "../lib/graph/layout";
@@ -114,6 +116,30 @@ test("graphs without links spread out instead of orbiting", () => {
   assert.ok(layout.nodes.every((node) => !node.isolated));
   const box = bounds(layout.nodes);
   assert.ok(box && box.maxX - box.minX > 50 && box.maxY - box.minY > 50);
+});
+
+test("spacing spreads pages apart without resizing them", () => {
+  const compact = settle(createLayout(nodes, links, 13));
+  const radii = compact.nodes.map((node) => node.r);
+  const before = distance(compact, "a", "b");
+  const ring = compact.ring;
+  setSpacing(compact, 2);
+  assert.equal(compact.spacing, 2);
+  assert.equal(compact.ring, ring * 2);
+  assert.equal(tick(compact), true);
+  settle(compact);
+  assert.ok(distance(compact, "a", "b") > before * 1.7);
+  assert.deepEqual(
+    compact.nodes.map((node) => node.r),
+    radii,
+  );
+  const fresh = settle(createLayout(nodes, links, 13, 2));
+  assert.ok(
+    Math.abs(distance(fresh, "a", "b") - distance(compact, "a", "b")) <
+      before * 0.3,
+  );
+  setSpacing(compact, 10);
+  assert.equal(compact.spacing, MAX_SPACING);
 });
 
 test("hashSeed is stable and sensitive to content", () => {

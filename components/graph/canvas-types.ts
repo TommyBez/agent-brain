@@ -25,6 +25,8 @@ export interface GraphCanvasProps {
   /** Search matches; null when there is no query. */
   matched: ReadonlySet<string> | null;
   seed: number;
+  /** Multiplies the distances between pages without resizing them. */
+  spacing: number;
   onSelect: (id: string | null) => void;
   onHover: (id: string | null) => void;
   onOpen: (id: string) => void;

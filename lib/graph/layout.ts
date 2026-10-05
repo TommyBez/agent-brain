@@ -40,10 +40,14 @@ export interface Layout {
   alpha: number;
   /** Radius of the orbit holding unlinked pages, 0 when every page is linked. */
   ring: number;
+  /** Multiplies every distance in the layout; node radii stay unchanged. */
+  spacing: number;
   seed: number;
 }
 
 export const ALPHA_MIN = 0.001;
+export const MIN_SPACING = 1;
+export const MAX_SPACING = 2.5;
 const ALPHA_DECAY = 0.035;
 const VELOCITY_DECAY = 0.6;
 const REPULSION = -280;
@@ -52,6 +56,7 @@ const GRAVITY = 0.05;
 const RING_STRENGTH = 0.35;
 const COLLISION_PADDING = 5;
 const COLLISION_STRENGTH = 0.7;
+const SPACING_ALPHA = 0.5;
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
 
 export function nodeRadius(degree: number) {
@@ -85,6 +90,7 @@ export function createLayout(
   inputNodes: LayoutInputNode[],
   inputLinks: LayoutInputLink[],
   seed = 1,
+  spacing = MIN_SPACING,
 ): Layout {
   const indexById = new Map(inputNodes.map((node, index) => [node.id, index]));
   const degree = new Array<number>(inputNodes.length).fill(0);
@@ -102,8 +108,10 @@ export function createLayout(
   const isolatedCount =
     connectedCount > 0 ? inputNodes.length - connectedCount : 0;
   const coreCount = connectedCount || inputNodes.length;
-  const coreRadius = Math.max(90, 34 * Math.sqrt(coreCount));
-  const ring = isolatedCount ? Math.max(coreRadius + 70, 7 * isolatedCount) : 0;
+  const coreRadius = Math.max(90, 34 * Math.sqrt(coreCount)) * spacing;
+  const ring = isolatedCount
+    ? Math.max(coreRadius + 70 * spacing, 7 * isolatedCount * spacing)
+    : 0;
   const random = seededRandom(seed);
   const ringOffset = random() * Math.PI * 2;
   let coreIndex = 0;
@@ -122,8 +130,8 @@ export function createLayout(
       const angle = coreIndex * GOLDEN_ANGLE + random() * 0.4;
       const radius = coreRadius * Math.sqrt((coreIndex + 0.5) / coreCount);
       coreIndex += 1;
-      x = Math.cos(angle) * radius + (random() - 0.5) * 8;
-      y = Math.sin(angle) * radius + (random() - 0.5) * 8;
+      x = Math.cos(angle) * radius + (random() - 0.5) * 8 * spacing;
+      y = Math.sin(angle) * radius + (random() - 0.5) * 8 * spacing;
     }
     return {
       id: node.id,
@@ -147,13 +155,13 @@ export function createLayout(
       60 + 12 * Math.sqrt(Math.max(degree[source], degree[target])),
     ),
   }));
-  return { nodes, links, alpha: 1, ring, seed };
+  return { nodes, links, alpha: 1, ring, spacing, seed };
 }
 
 /** Advances the simulation one step. Returns false once the layout is settled. */
 export function tick(layout: Layout) {
   if (layout.alpha < ALPHA_MIN) return false;
-  const { nodes, links } = layout;
+  const { nodes, links, spacing } = layout;
   const alpha = layout.alpha;
   layout.alpha += (0 - alpha) * ALPHA_DECAY;
   const jitter = seededRandom(layout.seed + Math.round(alpha * 1e6));
@@ -169,7 +177,8 @@ export function tick(layout: Layout) {
     }
     const length = Math.hypot(dx, dy);
     const strength = 1 / Math.min(source.degree, target.degree);
-    const pull = ((length - link.distance) / length) * alpha * strength;
+    const pull =
+      ((length - link.distance * spacing) / length) * alpha * strength;
     const bias = source.degree / (source.degree + target.degree);
     target.vx -= dx * pull * bias;
     target.vy -= dy * pull * bias;
@@ -177,7 +186,13 @@ export function tick(layout: Layout) {
     source.vy += dy * pull * (1 - bias);
   }
 
-  const maxDistanceSquared = REPULSION_MAX_DISTANCE * REPULSION_MAX_DISTANCE;
+  // Repulsion falls off with distance, so it grows with the square of the
+  // spacing to keep the settled layout a uniformly scaled copy.
+  const repulsion = REPULSION * spacing * spacing;
+  const maxDistance = REPULSION_MAX_DISTANCE * spacing;
+  const maxDistanceSquared = maxDistance * maxDistance;
+  const minDistanceSquared = 100 * spacing * spacing;
+  const padding = COLLISION_PADDING * spacing;
   for (let i = 0; i < nodes.length; i++) {
     const a = nodes[i];
     for (let j = i + 1; j < nodes.length; j++) {
@@ -191,7 +206,7 @@ export function tick(layout: Layout) {
         squared = dx * dx + dy * dy;
       }
       const length = Math.sqrt(squared);
-      const minimum = a.r + b.r + COLLISION_PADDING;
+      const minimum = a.r + b.r + padding;
       if (length < minimum) {
         const push = ((minimum - length) / length) * COLLISION_STRENGTH;
         a.vx -= dx * push * 0.5;
@@ -201,7 +216,7 @@ export function tick(layout: Layout) {
       }
       if (squared > maxDistanceSquared) continue;
       // REPULSION is negative: a is pushed away from b and b away from a.
-      const force = (REPULSION * alpha) / Math.max(squared, 100);
+      const force = (repulsion * alpha) / Math.max(squared, minDistanceSquared);
       a.vx += dx * force;
       a.vy += dy * force;
       b.vx -= dx * force;
@@ -247,6 +262,15 @@ export function settle(layout: Layout, maxTicks = 600) {
 /** Warms a settled layout so nearby nodes react to a moved neighbor. */
 export function reheat(layout: Layout, alpha = 0.3) {
   layout.alpha = Math.max(layout.alpha, alpha);
+}
+
+/** Changes the spacing and reheats so the layout eases into its new scale. */
+export function setSpacing(layout: Layout, spacing: number) {
+  const next = Math.min(MAX_SPACING, Math.max(MIN_SPACING, spacing));
+  if (next === layout.spacing) return;
+  layout.ring *= next / layout.spacing;
+  layout.spacing = next;
+  reheat(layout, SPACING_ALPHA);
 }
 
 export interface Bounds {

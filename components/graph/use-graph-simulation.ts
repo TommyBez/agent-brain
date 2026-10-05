@@ -5,6 +5,7 @@ import {
   type Layout,
   type LayoutInputLink,
   reheat,
+  setSpacing,
   settle,
   tick,
 } from "@/lib/graph/layout";
@@ -30,10 +31,11 @@ export function useGraphSimulation(
   layoutLinks: LayoutInputLink[],
   seed: number,
   visible: ReadonlySet<string>,
+  spacing: number,
 ) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [initialLayout] = useState(() =>
-    createLayout(nodes, layoutLinks, seed),
+    createLayout(nodes, layoutLinks, seed, spacing),
   );
   const layoutRef = useRef(initialLayout);
   const [positions, setPositions] = useState(() => snapshot(initialLayout));
@@ -127,6 +129,14 @@ export function useGraphSimulation(
     return () => observer.disconnect();
   }, [autoFit]);
 
+  useEffect(() => {
+    if (spacing === layoutRef.current.spacing) return;
+    // Keep the current zoom: refitting would shrink the pages and undo the extra room.
+    interactedRef.current = true;
+    setSpacing(layoutRef.current, spacing);
+    runSimulation();
+  }, [spacing, runSimulation]);
+
   const fit = useCallback(() => {
     interactedRef.current = true;
     setAnimated(true);
@@ -169,6 +179,7 @@ export function useGraphSimulation(
       nodes,
       layoutLinks,
       seed + shakeRef.current * 7919,
+      layoutRef.current.spacing,
     );
     interactedRef.current = false;
     setAnimated(false);
