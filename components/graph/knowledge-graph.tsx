@@ -2,7 +2,9 @@
 
 import {
   Expand,
+  Maximize,
   Maximize2,
+  Minimize,
   Network,
   Search,
   Shuffle,
@@ -11,7 +13,7 @@ import {
   ZoomOut,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -70,6 +72,32 @@ export function KnowledgeGraph({
   );
   const [showUnlinked, setShowUnlinked] = useState(true);
   const [spacing, setSpacing] = useState(MIN_SPACING);
+  const [fullscreen, setFullscreen] = useState(false);
+
+  useEffect(() => {
+    if (!fullscreen) return;
+    // Native fullscreen ends on Escape by itself; mirror that in the CSS
+    // fallback used where the Fullscreen API is unavailable or refused.
+    const onFullscreenChange = () => {
+      if (!document.fullscreenElement) setFullscreen(false);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || event.defaultPrevented) return;
+      if (document.fullscreenElement) return;
+      const target = event.target as Element | null;
+      if (target?.closest("svg, input, [role=dialog]")) return;
+      setFullscreen(false);
+    };
+    const { overflow } = document.body.style;
+    document.body.style.overflow = "hidden";
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = overflow;
+      document.removeEventListener("fullscreenchange", onFullscreenChange);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [fullscreen]);
 
   const model = useMemo(() => buildGraphModel(graph), [graph]);
   const {
@@ -108,6 +136,17 @@ export function KnowledgeGraph({
     );
   }
 
+  const toggleFullscreen = () => {
+    if (fullscreen) {
+      setFullscreen(false);
+      if (document.fullscreenElement) void document.exitFullscreen();
+      return;
+    }
+    setFullscreen(true);
+    // The whole document goes fullscreen so portalled popovers stay visible.
+    document.documentElement.requestFullscreen?.().catch(() => {});
+  };
+
   const select = (id: string | null, center = false) => {
     if (!id) {
       setTrail([]);
@@ -122,8 +161,12 @@ export function KnowledgeGraph({
   };
 
   return (
-    <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_21rem] xl:items-start">
-      <div className="relative min-w-0 h-[clamp(420px,62vh,760px)] overflow-hidden rounded-xl border bg-card">
+    <div
+      className={`grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_21rem] xl:items-start ${fullscreen ? "fixed inset-0 z-50 overflow-y-auto bg-background p-3" : ""}`}
+    >
+      <div
+        className={`relative min-w-0 overflow-hidden rounded-xl border bg-card ${fullscreen ? "h-[calc(100dvh-1.5rem)]" : "h-[clamp(420px,62vh,760px)]"}`}
+      >
         <GraphCanvas
           ref={canvas}
           nodes={model.nodes}
@@ -215,6 +258,15 @@ export function KnowledgeGraph({
               <Maximize2 />
             </Button>
             <Button
+              variant={fullscreen ? "secondary" : "ghost"}
+              size="icon-sm"
+              aria-label={fullscreen ? "Exit full screen" : "View full screen"}
+              aria-pressed={fullscreen}
+              onClick={toggleFullscreen}
+            >
+              {fullscreen ? <Minimize /> : <Maximize />}
+            </Button>
+            <Button
               variant="ghost"
               size="icon-sm"
               aria-label="Shuffle layout"
@@ -283,7 +335,7 @@ export function KnowledgeGraph({
       </div>
       <aside
         aria-label="Graph inspector"
-        className="min-w-0 rounded-xl border bg-card xl:h-[clamp(420px,62vh,760px)] xl:overflow-y-auto"
+        className={`min-w-0 rounded-xl border bg-card xl:overflow-y-auto ${fullscreen ? "xl:h-[calc(100dvh-1.5rem)]" : "xl:h-[clamp(420px,62vh,760px)]"}`}
       >
         <GraphInspector
           nodes={inspectorNodes}
