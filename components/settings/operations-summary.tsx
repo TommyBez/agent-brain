@@ -1,10 +1,8 @@
 import {
   ArrowUpRight,
-  CheckCircle2,
   ChevronDown,
   Clock3,
   ShieldCheck,
-  XCircle,
 } from "lucide-react";
 import { Fragment } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -27,7 +25,6 @@ import {
   ItemContent,
   ItemDescription,
   ItemGroup,
-  ItemMedia,
   ItemSeparator,
   ItemTitle,
 } from "@/components/ui/item";
@@ -99,49 +96,7 @@ function OperationResult({ job }: { job: MaintenanceJob }) {
 export function OperationsSummary({ data }: { data: OperationsData }) {
   return (
     <>
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
-        <h2 className="text-xl font-semibold">Infrastructure</h2>
-        <Badge variant={data.configured ? "default" : "secondary"}>
-          {data.configured ? "Configured" : "Setup incomplete"}
-        </Badge>
-      </div>
-      <ItemGroup className="rounded-xl border bg-card">
-        {data.checks.map((check, index) => (
-          <Fragment key={check.name}>
-            {index > 0 && <ItemSeparator />}
-            <Item role="listitem">
-              <ItemMedia variant="icon">
-                {check.status === "ready" ? (
-                  <CheckCircle2 className="text-primary" />
-                ) : (
-                  <XCircle className="text-muted-foreground" />
-                )}
-              </ItemMedia>
-              <ItemContent className="min-w-0">
-                <ItemTitle>{check.name}</ItemTitle>
-                <ItemDescription className="line-clamp-none break-words">
-                  {check.detail}
-                </ItemDescription>
-              </ItemContent>
-              <ItemActions>
-                <Badge
-                  variant={
-                    check.status === "ready"
-                      ? "default"
-                      : check.status === "error"
-                        ? "destructive"
-                        : "secondary"
-                  }
-                  className="capitalize"
-                >
-                  {check.status === "missing" ? "Not configured" : check.status}
-                </Badge>
-              </ItemActions>
-            </Item>
-          </Fragment>
-        ))}
-      </ItemGroup>
-      <section className="mt-8">
+      <section>
         <div className="mb-5 space-y-2">
           <h2 className="text-xl font-semibold">Recent maintenance</h2>
           <p className="text-sm text-muted-foreground">
