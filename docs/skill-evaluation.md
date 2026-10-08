@@ -105,7 +105,3 @@ node --import tsx --test tests/skill-eval.test.ts
 pnpm exec biome check scripts/evaluate-brain-skill.ts scripts/skill-eval tests/skill-eval.test.ts
 pnpm exec tsc --noEmit
 ```
-
-## Prima esecuzione completa
-
-Il [confronto del 2026-10-08](evaluations/decisions-2026-10-08.md) contiene i risultati delle 120 prove con `gpt-6.1-sol`, i limiti e i giudizi per ciascuna prova.
