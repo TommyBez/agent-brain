@@ -1,9 +1,4 @@
-import {
-  ArrowUpRight,
-  ChevronDown,
-  Clock3,
-  ShieldCheck,
-} from "lucide-react";
+import { ArrowUpRight, ChevronDown, Clock3, ShieldCheck } from "lucide-react";
 import { Fragment } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

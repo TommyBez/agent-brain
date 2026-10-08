@@ -7,7 +7,7 @@ Use `note` for a knowledge subject that is useful to retrieve in its own right: 
 A note is warranted when its reasoning, synthesis or source context remains useful beyond individual facts already stored on entity pages. Reuse an existing topic note when the new information extends the same subject.
 
 - A meeting may justify a note when its agenda, attributed discussion or reasoning matters independently. A routine status meeting that adds only a project deadline usually needs a project update, not another page.
-- A comparison or proposal may remain a note while no choice has been adopted. When a decision is later confirmed, record the choice in its appropriate home and retain the note's distinct analysis if useful.
+- A comparison or proposal may remain a note while no choice has been adopted. When a choice that guides future work is confirmed, create or update its [decision page](decisions.md) and retain the note's distinct analysis if useful.
 - A cross-project method can be a note when its applicability is supported. A lesson observed on one project should retain that scope rather than being promoted to a universal rule.
 - An explicit request to preserve a particular meeting or analysis can warrant a note. Follow that requested scope without manufacturing unrelated entity pages.
 

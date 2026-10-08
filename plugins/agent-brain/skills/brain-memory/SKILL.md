@@ -40,7 +40,7 @@ When you notice a candidate memory or receive a requested update, assess its fut
 
 Save when authorized by the user's request or standing instructions, without asking again for already authorized updates. Otherwise, briefly propose the concrete information worth preserving and ask before writing. Discovering useful information or having a write-capable connection does not itself authorize a save. Keep the user's language and terminology; do not turn the entire conversation into a transcript or create a page for every isolated fact.
 
-- Resolve each entity and link target, then read current pages before changing them. Create a page only when no existing entity fits. A similar name alone is insufficient to merge people, companies or projects. Compare the proposed information with existing content, including other relevant pages; keep shared knowledge in its appropriate canonical home and reference it where useful rather than copying it. Preserve necessary local context and distinct details or sources.
+- Resolve each entity and link target, then read current pages before changing them. Reuse an existing page for the same subject; a related project or company is not the same subject as a decision made within it. A similar name alone is insufficient to merge people, companies or projects. Compare the proposed information with existing content, including other relevant pages; keep shared knowledge in its appropriate canonical home and reference it where useful rather than copying it. Preserve necessary local context and distinct details or sources.
 - Choose `append` for a genuinely additive, sourced passage. Choose `write` to revise or reorganize the full page, including its metadata and outgoing links. Read [Writing pages](references/writing-pages.md) before constructing either payload.
 - Preserve useful earlier knowledge, decision rationale, sources, dates, scope, conditions, exceptions, negations, quantities and degree of certainty. Distinguish confirmed information from inference and date time-sensitive statements. Do not introduce incompatible claims about the same subject, scope and period. Reconcile contradictions only when evidence establishes a correction or a difference in time or scope; otherwise retain the attributed conflict without choosing a winner. Page update timestamps do not establish factual recency.
 - Preserve original user requests, substantive questions and genuine uncertainty already present in the conversation, sources or pages. Do not invent open issues, confirmation requests, checklists or human tasks to fill missing evidence. If a clarification is necessary for the user's current task, ask in the conversation and continue independent confirmed updates; do not persist the clarification request as new work for the owner. Autonomous maintenance leaves unsupported changes unapplied.
@@ -49,7 +49,9 @@ Save when authorized by the user's request or standing instructions, without ask
 
 ## Choose where and how to write
 
-Before an authorized save, read [Choosing entities](references/choosing-entities.md) to decide which existing pages to update and whether new pages are warranted. Route by the subject of the knowledge, not by the conversation or document that supplied it. Then read only the guides for the page types you will create or change:
+Before an authorized save, read [Choosing entities](references/choosing-entities.md) to decide which existing pages to update and whether new pages are warranted. Route by the subject of the knowledge, not by the conversation or document that supplied it. Then read only the guides for the page types you will create or change.
+
+When an adopted choice guides future work on approach, scope, technology, priorities or operating rules, create or update a `decision` page. An existing project does not replace it: keep the choice and its supported rationale on the decision, with a short implication in the project and a `decided_in` link from the decision. Unadopted proposals and routine execution details stay in the relevant project or note. Read [Decisions](references/decisions.md) when such a choice appears, even if you initially planned only a project update.
 
 | Page type | Writing guide | Use for |
 | --- | --- | --- |
@@ -57,7 +59,7 @@ Before an authorized save, read [Choosing entities](references/choosing-entities
 | `company` | [Companies](references/companies.md) | An organization's context and relationship with the owner across engagements. |
 | `project` | [Projects](references/projects.md) | A distinct initiative's goals, scope, constraints and state. |
 | `article` | [Articles](references/articles.md) | An identifiable external publication and its attributed claims. |
-| `decision` | [Decisions](references/decisions.md) | A consequential choice with independently useful rationale and effects. |
+| `decision` | [Decisions](references/decisions.md) | An adopted choice that guides future work, with its scope and supported rationale. |
 | `note` | [Notes](references/notes.md) | A reusable synthesis, concept or substantive meeting record with its own subject. |
 
 These guides define editorial choices, not additional API fields or rigid page templates. Keep the shared quality rules above and use [Writing pages](references/writing-pages.md) for mutation mechanics; the live server contract remains authoritative.

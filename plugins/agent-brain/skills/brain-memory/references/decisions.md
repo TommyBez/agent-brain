@@ -1,10 +1,18 @@
 # Decisions
 
-Use `decision` for a consequential choice whose rationale, scope or effects are useful to retrieve independently. Small choices can remain in their project. Use [Choosing entities](choosing-entities.md) when distinguishing a decision from a proposal or comparison.
+Use `decision` for an adopted choice that guides future work on approach, scope, technology, priorities or operating rules. Create or update its own page even when the project already exists. Routine execution details and progress remain in the project. Use [Choosing entities](choosing-entities.md) for routing examples.
+
+## Recognize a decision
+
+Look for a confirmed direction that future work should respect: choosing a hosting approach, excluding a customer segment, prioritizing one phase over another, or adopting an operating rule. The user need not say "save a decision" or provide a formal alternatives analysis. A brief statement such as "for this product, we will support only regulatory affairs" can establish a decision; retain exactly that scope.
+
+Resolve the choice itself, not just the project name, and read any existing decision before creating another. Keep the choice and supported rationale on the decision page and the short practical implication on the project. The `decided_in` link makes the decision discoverable from its project through backlinks; do not copy the full rationale into both pages.
 
 ## Establish what was decided
 
 An option being discussed, recommended by an agent or selected for an experiment is not evidence of a broader adopted choice. Retain who made or confirmed the choice and the source when known. Distinguish the decision from its implementation: adopting a plan does not establish that it has shipped.
+
+An explicitly adopted experiment can itself be a decision when it sets direction for a bounded phase; record that boundary without presenting its tested option as the permanent choice. A one-off tool selection or bug fix is ordinarily an execution detail, not a new direction.
 
 A proposed choice normally belongs in a note or the relevant project. If the user requests a decision register that includes proposals, make proposed status explicit in the title, summary and Markdown where needed; do not phrase it as adopted. Status is content, not a separate API field.
 

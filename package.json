@@ -12,6 +12,7 @@
     "db:migrate": "drizzle-kit migrate",
     "owner:bootstrap": "node --import tsx scripts/bootstrap-owner.ts",
     "test": "BRAIN_QUERY_EMBEDDINGS=false node --import tsx --test tests/*.test.ts",
+    "eval:skill": "node --import tsx scripts/evaluate-brain-skill.ts",
     "db:generate": "drizzle-kit generate",
     "db:check": "drizzle-kit check && node scripts/check-schema-migrations.mjs",
     "vercel-build": "pnpm db:migrate && next build"
