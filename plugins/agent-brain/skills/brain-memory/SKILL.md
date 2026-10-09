@@ -1,6 +1,6 @@
 ---
 name: brain-memory
-description: Retrieve user context on people, companies and projects; assess new facts and decisions for memory.
+description: Read this skill before replying when lasting facts about the user or their work emerge.
 ---
 
 # Agent Brain

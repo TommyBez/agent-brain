@@ -8,6 +8,11 @@ export type Scenario = {
   group: "development" | "holdout";
   request: string;
   initial: Page[];
+  activation?: {
+    shouldActivate: boolean;
+    category: "explicit" | "retrieval" | "memory" | "negative";
+    rationale: string;
+  };
   expected: {
     newDecisions: number;
     updatedIds: string[];
@@ -302,7 +307,16 @@ export function validateDataset(cases: Scenario[]) {
     "Duplicate case IDs",
   );
   for (const c of cases) {
-    assert.match(c.id, /^[DN]\d{2}$/);
+    assert.match(c.id, /^[DNA]\d{2}$/);
+    if (c.id.startsWith("A")) {
+      assert(c.activation, "Activation expectation missing");
+      assert.equal(typeof c.activation.shouldActivate, "boolean");
+      assert(c.activation.rationale.trim());
+      assert.equal(
+        c.activation.shouldActivate,
+        c.activation.category !== "negative",
+      );
+    } else assert(!c.activation, "Unexpected activation expectation");
     assert(c.request && c.expected.content.length);
     assert(
       Number.isInteger(c.expected.newDecisions) && c.expected.newDecisions >= 0,

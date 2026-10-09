@@ -2,7 +2,11 @@ import { z } from "zod";
 import type { Page, Trace } from "./brain";
 import type { Scenario } from "./dataset";
 
-export type Bundle = { files: Record<string, string>; instructions: string };
+export type Bundle = {
+  files: Record<string, string>;
+  instructions: string;
+  catalog?: { name: string; description: string; path: string }[];
+};
 export type Session = {
   id: string;
   bundle: Bundle;
