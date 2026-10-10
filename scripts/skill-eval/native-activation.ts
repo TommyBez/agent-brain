@@ -60,6 +60,33 @@ export const nativeCases = [
     rationale:
       "Transient circumstance and one-off scheduling, not a durable preference or rule.",
   },
+  {
+    id: "R01",
+    category: "retrieval",
+    expected: true,
+    request:
+      "Per Portale Iris, quale soluzione di hosting avevamo scelto e quali compromessi avevamo accettato? Lavora soltanto qui in chat, senza modificare file o servizi.",
+    rationale:
+      "Recall of an existing project decision, without naming a skill or supplying the answer.",
+  },
+  {
+    id: "R02",
+    category: "retrieval",
+    expected: true,
+    request:
+      "Domani incontro Studio Selva per riprendere Portale Iris. Preparami una scaletta breve che rispetti le priorità e i vincoli concordati con loro. Lavora soltanto qui in chat, senza modificare file o servizi.",
+    rationale:
+      "Meeting preparation needs prior client and project context absent from the message; recall is not explicitly requested.",
+  },
+  {
+    id: "R03",
+    category: "retrieval",
+    expected: true,
+    request:
+      "Riprendiamo il lavoro su Portale Iris: suggeriscimi il prossimo passo coerente con quello che avevamo lasciato aperto. Lavora soltanto qui in chat, senza modificare file o servizi.",
+    rationale:
+      "Continuing prior work requires its stored state, without new durable facts or an explicit skill invocation.",
+  },
 ];
 
 export function validateNativeCases(
@@ -80,7 +107,9 @@ export function validateNativeCases(
     );
     ids.add(c.id);
     assert(
-      ["proactive", "implicit", "explicit", "negative"].includes(c.category),
+      ["proactive", "retrieval", "implicit", "explicit", "negative"].includes(
+        c.category,
+      ),
       "Invalid native category",
     );
     assert(
@@ -198,10 +227,14 @@ export function parseNativeRollout(
       String(e.payload.type),
     ),
   );
+  const installedPath = new RegExp(
+    `(?:^|[\\s"'\\x60<])${skill.path.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?=$|[\\s"'\\x60\\\\;|&<>)])`,
+  );
   const evidence = calls.flatMap((call) => {
     const source = String(call.payload.input ?? call.payload.arguments ?? "");
-    // A requested read alone is insufficient. The paired output must contain the body.
-    if (!source.includes(`${skillName}/SKILL.md`)) return [];
+    // Bind literal reads to the frozen installation, not another copy with the same body.
+    // Relative or dynamically constructed paths require separate manual review.
+    if (!installedPath.test(source)) return [];
     const output = outputs.find(
       (e) => e.payload.call_id === call.payload.call_id,
     );
@@ -561,6 +594,13 @@ export async function nativeCommand(
     outcome: "TP" | "FN" | "FP" | "TN" | null;
   })[] = [];
   const sessions = new Set<string>();
+  const repairChanges: {
+    trialId: string;
+    originalLoaded: boolean;
+    correctedLoaded: boolean;
+    originalEvidence: Observation["loadEvidence"];
+    correctedEvidence: Observation["loadEvidence"];
+  }[] = [];
   for (const trial of manifest.trials) {
     const scenario = manifest.cases.find((c) => c.id === trial.caseId);
     assert(scenario);
@@ -608,12 +648,33 @@ export async function nativeCommand(
       );
       if (checkedDispatch.promptVerification === "manual-encrypted")
         assert.equal(observation.review.dispatchMatchesFrozenPrompt, true);
-      for (const key of Object.keys(replay) as (keyof typeof replay)[])
+      for (const key of Object.keys(replay) as (keyof typeof replay)[]) {
+        if (repair && (key === "loaded" || key === "loadEvidence")) continue;
         assert.deepEqual(
           observation[key],
           replay[key],
           `Observation mismatch: ${key}`,
         );
+      }
+      if (repair) {
+        if (
+          observation.loaded !== replay.loaded ||
+          digest(observation.loadEvidence) !== digest(replay.loadEvidence)
+        )
+          repairChanges.push({
+            trialId: trial.id,
+            originalLoaded: observation.loaded,
+            correctedLoaded: replay.loaded,
+            originalEvidence: observation.loadEvidence,
+            correctedEvidence: replay.loadEvidence,
+          });
+        // Recompute report values only; retain the original per-trial observation.
+        observation = {
+          ...observation,
+          loaded: replay.loaded,
+          loadEvidence: replay.loadEvidence,
+        };
+      }
       assert(
         !sessions.has(observation.sessionId),
         "Session reused across trials",
@@ -639,6 +700,9 @@ export async function nativeCommand(
   const categories = [
     "all",
     "proactive",
+    ...(manifest.cases.some((c) => c.category === "retrieval")
+      ? ["retrieval"]
+      : []),
     ...(manifest.cases.some((c) => c.category === "implicit")
       ? ["implicit"]
       : []),
@@ -675,7 +739,15 @@ export async function nativeCommand(
     "",
     "Fresh subagents with the native catalog; the harness adds no catalog or evaluation instructions to the task. The client may still inject global instructions and user memory despite fork_turns:none. Counts measure skill loading, separately from manually reviewed proposals. Task scope and restrictions are defined by the frozen cases. This does not measure authorized persistence or full desktop conversations; information from tool results is covered only when included in those cases.",
     `Prompt checks: ${rows.filter((r) => r.observation?.promptVerification === "exact").length} exact; ${rows.filter((r) => r.observation?.promptVerification === "manual-encrypted").length} manually checked because the runtime encrypted the dispatch text.`,
-    ...(repair ? [`Observer repair: ${repair.reason}`] : []),
+    ...(repair
+      ? [
+          `Observer repair: ${repair.reason}. Activation observations corrected: ${repairChanges.length}. Original trial records retained.`,
+          ...repairChanges.map(
+            (change) =>
+              `- ${change.trialId}: loaded ${change.originalLoaded} → ${change.correctedLoaded}.`,
+          ),
+        ]
+      : []),
     "",
     "| Category | Scheduled | Completed | Pending | Incomplete | TP | FN | FP | TN | Proposals | Write violations |",
     "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
@@ -695,7 +767,7 @@ export async function nativeCommand(
   await writeFile(join(dir, "report.md"), lines.join("\n"));
   await writeFile(
     join(dir, "results.json"),
-    `${JSON.stringify({ summaries, rows }, null, 2)}\n`,
+    `${JSON.stringify({ summaries, rows, ...(repair ? { observerRepair: { ...repair, changes: repairChanges } } : {}) }, null, 2)}\n`,
   );
   console.log(JSON.stringify(summaries, null, 2));
 }
