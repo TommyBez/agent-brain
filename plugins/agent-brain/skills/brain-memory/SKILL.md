@@ -1,6 +1,6 @@
 ---
 name: brain-memory
-description: Read this skill before replying when lasting facts about the user or their work emerge.
+description: Always read this skill before replying when lasting facts about the user or their work emerge.
 ---
 
 # Agent Brain
