@@ -179,8 +179,45 @@ export async function evaluateJev(
       { retryable: false },
     );
   }
-  return parseEvaluation(
-    request,
-    await send<unknown>("evaluate", { model: JEV_MODEL, ...request }),
-  );
+  try {
+    return parseEvaluation(
+      request,
+      await send<unknown>("evaluate", { model: JEV_MODEL, ...request }),
+    );
+  } catch (error) {
+    // Character limits cannot predict Jev's tokenizer. Split only its explicit
+    // capacity rejection, preserving full evidence and every choice per question.
+    if (
+      !(error instanceof GatewayRequestError) ||
+      error.reason !== "max_tokens_exceeded" ||
+      questionCount === 1
+    )
+      throw error;
+    const entries = Object.entries(request.questions);
+    const midpoint = Math.ceil(entries.length / 2);
+    const batches: Evaluation[] = [];
+    for (const questions of [
+      entries.slice(0, midpoint),
+      entries.slice(midpoint),
+    ])
+      batches.push(
+        await evaluateJev(
+          { state: request.state, questions: Object.fromEntries(questions) },
+          send,
+        ),
+      );
+    const usage = (field: "inputTokens" | "outputTokens") =>
+      batches.some((batch) => batch[field] === null)
+        ? null
+        : batches.reduce((total, batch) => total + (batch[field] ?? 0), 0);
+    return validateEvaluation(request, {
+      model: JEV_MODEL,
+      answers: Object.assign({}, ...batches.map((batch) => batch.answers)),
+      inputTokens: usage("inputTokens"),
+      outputTokens: usage("outputTokens"),
+      providerMetadata: {
+        batches: batches.map((batch) => batch.providerMetadata ?? null),
+      },
+    });
+  }
 }

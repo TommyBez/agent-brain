@@ -13,7 +13,12 @@ export class GatewayRequestError extends Error {
   constructor(
     message: string,
     options: {
-      reason?: "configuration" | "transport" | "timeout" | "invalid_json";
+      reason?:
+        | "configuration"
+        | "transport"
+        | "timeout"
+        | "invalid_json"
+        | "max_tokens_exceeded";
       retryable: boolean;
       status?: number;
       retryAfterMs?: number | null;
@@ -66,12 +71,16 @@ export async function gatewayRequest<T>(
   }
 
   if (!response.ok) {
-    // Neither credentials nor provider errors (which can echo private prompts)
-    // belong in workflow error messages or operational logs.
+    // Extract only an allowlisted code; provider messages can echo private prompts.
+    const reason =
+      path === "evaluate" && response.status === 400
+        ? await evaluationFailureReason(response)
+        : undefined;
     await response.body?.cancel().catch(() => undefined);
     throw new GatewayRequestError(
       `AI Gateway returned HTTP ${response.status}.`,
       {
+        reason,
         retryable:
           response.status === 408 ||
           response.status === 429 ||
@@ -93,6 +102,45 @@ export async function gatewayRequest<T>(
 }
 
 export type GatewayCall = typeof gatewayRequest;
+
+async function evaluationFailureReason(
+  response: Response,
+): Promise<"max_tokens_exceeded" | undefined> {
+  const reader = response.body?.getReader();
+  if (!reader) return;
+  try {
+    const chunks: Uint8Array[] = [];
+    let size = 0;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.length;
+      if (size > 64 * 1024) return;
+      chunks.push(value);
+    }
+    const raw = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+    const attempts = raw?.providerMetadata?.gateway?.routing?.modelAttempts;
+    if (!Array.isArray(attempts)) return;
+    for (const model of attempts) {
+      if (!Array.isArray(model?.providerAttempts)) continue;
+      for (const attempt of model.providerAttempts) {
+        if (attempt?.provider !== "typesafe-ai" || attempt.statusCode !== 400)
+          continue;
+        try {
+          if (JSON.parse(attempt.error)?.error_type === "max_tokens_exceeded")
+            return "max_tokens_exceeded";
+        } catch {
+          // Other providers may return plain text. Never persist it.
+        }
+      }
+    }
+  } catch {
+    // A missing or malformed body leaves the original HTTP diagnostic intact.
+  } finally {
+    await reader.cancel().catch(() => undefined);
+    reader.releaseLock();
+  }
+}
 
 function boundedRetryAfter(value: string | null) {
   const delay = retryAfterMilliseconds(value);
