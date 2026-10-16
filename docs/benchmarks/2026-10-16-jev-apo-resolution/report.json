@@ -1,0 +1,2431 @@
+{
+  "id": "2026-10-16-ebf9a3ec-6178-4195-b7e1-80a6ca8c8b25",
+  "status": "complete",
+  "config": {
+    "tasks": [
+      "resolution"
+    ],
+    "seed": 20261018,
+    "iterations": 5,
+    "repeats": 2,
+    "patience": 2,
+    "maxErrors": 12,
+    "minImprovement": 0.01,
+    "maxSubgroupDrop": 0.05,
+    "maxFalsePositiveIncrease": 0,
+    "maxPromptCharacters": 4000,
+    "maxPromptTokens": 1200,
+    "maxLatencyMs": 10000,
+    "maxCalls": 3000,
+    "maxTokens": 3000000,
+    "maxDollars": 0.45,
+    "optimizerModel": "deepseek/deepseek-v4.1-flash",
+    "judgeModels": [],
+    "optimizerMaxTokens": 8192,
+    "optimizerTemperature": 0,
+    "smoke": false
+  },
+  "datasetHash": "1833412c90a24d174fce320c4d8270ac9b943610663d9dd274fb137bb0b2c7ef",
+  "splits": {
+    "train": [
+      "resolution-it-v2-02-referenced-source-absent",
+      "resolution-it-v2-02-simultaneous-scopes",
+      "resolution-it-v2-02-source-supports-a",
+      "resolution-it-v2-02-source-supports-b",
+      "resolution-it-v2-02-successive-periods",
+      "resolution-it-v2-02-unsupported-no-reference",
+      "resolution-it-v2-03-referenced-source-absent",
+      "resolution-it-v2-03-simultaneous-scopes",
+      "resolution-it-v2-03-source-supports-a",
+      "resolution-it-v2-03-source-supports-b",
+      "resolution-it-v2-03-successive-periods",
+      "resolution-it-v2-03-unsupported-no-reference",
+      "resolution-it-v2-07-referenced-source-absent",
+      "resolution-it-v2-07-simultaneous-scopes",
+      "resolution-it-v2-07-source-supports-a",
+      "resolution-it-v2-07-source-supports-b",
+      "resolution-it-v2-07-successive-periods",
+      "resolution-it-v2-07-unsupported-no-reference",
+      "resolution-it-v2-08-referenced-source-absent",
+      "resolution-it-v2-08-simultaneous-scopes",
+      "resolution-it-v2-08-source-supports-a",
+      "resolution-it-v2-08-source-supports-b",
+      "resolution-it-v2-08-successive-periods",
+      "resolution-it-v2-08-unsupported-no-reference",
+      "resolution-it-v2-10-referenced-source-absent",
+      "resolution-it-v2-10-simultaneous-scopes",
+      "resolution-it-v2-10-source-supports-a",
+      "resolution-it-v2-10-source-supports-b",
+      "resolution-it-v2-10-successive-periods",
+      "resolution-it-v2-10-unsupported-no-reference",
+      "resolution-it-v2-11-referenced-source-absent",
+      "resolution-it-v2-11-simultaneous-scopes",
+      "resolution-it-v2-11-source-supports-a",
+      "resolution-it-v2-11-source-supports-b",
+      "resolution-it-v2-11-successive-periods",
+      "resolution-it-v2-11-unsupported-no-reference",
+      "resolution-it-v2-12-referenced-source-absent",
+      "resolution-it-v2-12-simultaneous-scopes",
+      "resolution-it-v2-12-source-supports-a",
+      "resolution-it-v2-12-source-supports-b",
+      "resolution-it-v2-12-successive-periods",
+      "resolution-it-v2-12-unsupported-no-reference",
+      "resolution-it-v2-14-referenced-source-absent",
+      "resolution-it-v2-14-simultaneous-scopes",
+      "resolution-it-v2-14-source-supports-a",
+      "resolution-it-v2-14-source-supports-b",
+      "resolution-it-v2-14-successive-periods",
+      "resolution-it-v2-14-unsupported-no-reference",
+      "resolution-it-v2-16-referenced-source-absent",
+      "resolution-it-v2-16-simultaneous-scopes",
+      "resolution-it-v2-16-source-supports-a",
+      "resolution-it-v2-16-source-supports-b",
+      "resolution-it-v2-16-successive-periods",
+      "resolution-it-v2-16-unsupported-no-reference",
+      "resolution-it-v2-18-referenced-source-absent",
+      "resolution-it-v2-18-simultaneous-scopes",
+      "resolution-it-v2-18-source-supports-a",
+      "resolution-it-v2-18-source-supports-b",
+      "resolution-it-v2-18-successive-periods",
+      "resolution-it-v2-18-unsupported-no-reference",
+      "resolution-it-v2-21-referenced-source-absent",
+      "resolution-it-v2-21-simultaneous-scopes",
+      "resolution-it-v2-21-source-supports-a",
+      "resolution-it-v2-21-source-supports-b",
+      "resolution-it-v2-21-successive-periods",
+      "resolution-it-v2-21-unsupported-no-reference",
+      "resolution-it-v2-22-referenced-source-absent",
+      "resolution-it-v2-22-simultaneous-scopes",
+      "resolution-it-v2-22-source-supports-a",
+      "resolution-it-v2-22-source-supports-b",
+      "resolution-it-v2-22-successive-periods",
+      "resolution-it-v2-22-unsupported-no-reference",
+      "resolution-it-v2-23-referenced-source-absent",
+      "resolution-it-v2-23-simultaneous-scopes",
+      "resolution-it-v2-23-source-supports-a",
+      "resolution-it-v2-23-source-supports-b",
+      "resolution-it-v2-23-successive-periods",
+      "resolution-it-v2-23-unsupported-no-reference",
+      "resolution-it-v2-24-referenced-source-absent",
+      "resolution-it-v2-24-simultaneous-scopes",
+      "resolution-it-v2-24-source-supports-a",
+      "resolution-it-v2-24-source-supports-b",
+      "resolution-it-v2-24-successive-periods",
+      "resolution-it-v2-24-unsupported-no-reference",
+      "resolution-it-v2-25-referenced-source-absent",
+      "resolution-it-v2-25-simultaneous-scopes",
+      "resolution-it-v2-25-source-supports-a",
+      "resolution-it-v2-25-source-supports-b",
+      "resolution-it-v2-25-successive-periods",
+      "resolution-it-v2-25-unsupported-no-reference",
+      "resolution-it-v2-27-referenced-source-absent",
+      "resolution-it-v2-27-simultaneous-scopes",
+      "resolution-it-v2-27-source-supports-a",
+      "resolution-it-v2-27-source-supports-b",
+      "resolution-it-v2-27-successive-periods",
+      "resolution-it-v2-27-unsupported-no-reference",
+      "resolution-it-v2-28-referenced-source-absent",
+      "resolution-it-v2-28-simultaneous-scopes",
+      "resolution-it-v2-28-source-supports-a",
+      "resolution-it-v2-28-source-supports-b",
+      "resolution-it-v2-28-successive-periods",
+      "resolution-it-v2-28-unsupported-no-reference",
+      "resolution-it-v2-29-referenced-source-absent",
+      "resolution-it-v2-29-simultaneous-scopes",
+      "resolution-it-v2-29-source-supports-a",
+      "resolution-it-v2-29-source-supports-b",
+      "resolution-it-v2-29-successive-periods",
+      "resolution-it-v2-29-unsupported-no-reference"
+    ],
+    "validation": [
+      "resolution-it-v2-04-referenced-source-absent",
+      "resolution-it-v2-04-simultaneous-scopes",
+      "resolution-it-v2-04-source-supports-a",
+      "resolution-it-v2-04-source-supports-b",
+      "resolution-it-v2-04-successive-periods",
+      "resolution-it-v2-04-unsupported-no-reference",
+      "resolution-it-v2-06-referenced-source-absent",
+      "resolution-it-v2-06-simultaneous-scopes",
+      "resolution-it-v2-06-source-supports-a",
+      "resolution-it-v2-06-source-supports-b",
+      "resolution-it-v2-06-successive-periods",
+      "resolution-it-v2-06-unsupported-no-reference",
+      "resolution-it-v2-09-referenced-source-absent",
+      "resolution-it-v2-09-simultaneous-scopes",
+      "resolution-it-v2-09-source-supports-a",
+      "resolution-it-v2-09-source-supports-b",
+      "resolution-it-v2-09-successive-periods",
+      "resolution-it-v2-09-unsupported-no-reference",
+      "resolution-it-v2-17-referenced-source-absent",
+      "resolution-it-v2-17-simultaneous-scopes",
+      "resolution-it-v2-17-source-supports-a",
+      "resolution-it-v2-17-source-supports-b",
+      "resolution-it-v2-17-successive-periods",
+      "resolution-it-v2-17-unsupported-no-reference",
+      "resolution-it-v2-20-referenced-source-absent",
+      "resolution-it-v2-20-simultaneous-scopes",
+      "resolution-it-v2-20-source-supports-a",
+      "resolution-it-v2-20-source-supports-b",
+      "resolution-it-v2-20-successive-periods",
+      "resolution-it-v2-20-unsupported-no-reference",
+      "resolution-it-v2-26-referenced-source-absent",
+      "resolution-it-v2-26-simultaneous-scopes",
+      "resolution-it-v2-26-source-supports-a",
+      "resolution-it-v2-26-source-supports-b",
+      "resolution-it-v2-26-successive-periods",
+      "resolution-it-v2-26-unsupported-no-reference"
+    ],
+    "test": [
+      "resolution-it-v2-00-referenced-source-absent",
+      "resolution-it-v2-00-simultaneous-scopes",
+      "resolution-it-v2-00-source-supports-a",
+      "resolution-it-v2-00-source-supports-b",
+      "resolution-it-v2-00-successive-periods",
+      "resolution-it-v2-00-unsupported-no-reference",
+      "resolution-it-v2-01-referenced-source-absent",
+      "resolution-it-v2-01-simultaneous-scopes",
+      "resolution-it-v2-01-source-supports-a",
+      "resolution-it-v2-01-source-supports-b",
+      "resolution-it-v2-01-successive-periods",
+      "resolution-it-v2-01-unsupported-no-reference",
+      "resolution-it-v2-05-referenced-source-absent",
+      "resolution-it-v2-05-simultaneous-scopes",
+      "resolution-it-v2-05-source-supports-a",
+      "resolution-it-v2-05-source-supports-b",
+      "resolution-it-v2-05-successive-periods",
+      "resolution-it-v2-05-unsupported-no-reference",
+      "resolution-it-v2-13-referenced-source-absent",
+      "resolution-it-v2-13-simultaneous-scopes",
+      "resolution-it-v2-13-source-supports-a",
+      "resolution-it-v2-13-source-supports-b",
+      "resolution-it-v2-13-successive-periods",
+      "resolution-it-v2-13-unsupported-no-reference",
+      "resolution-it-v2-15-referenced-source-absent",
+      "resolution-it-v2-15-simultaneous-scopes",
+      "resolution-it-v2-15-source-supports-a",
+      "resolution-it-v2-15-source-supports-b",
+      "resolution-it-v2-15-successive-periods",
+      "resolution-it-v2-15-unsupported-no-reference",
+      "resolution-it-v2-19-referenced-source-absent",
+      "resolution-it-v2-19-simultaneous-scopes",
+      "resolution-it-v2-19-source-supports-a",
+      "resolution-it-v2-19-source-supports-b",
+      "resolution-it-v2-19-successive-periods",
+      "resolution-it-v2-19-unsupported-no-reference"
+    ]
+  },
+  "supervision": {
+    "total": 180,
+    "excluded": 0,
+    "origins": {
+      "synthetic": 180
+    },
+    "methods": {
+      "deterministic": 180
+    },
+    "statuses": {
+      "constructed": 180
+    },
+    "languages": {
+      "it": 180
+    },
+    "tasks": {
+      "resolution": 180
+    },
+    "meanAgreement": null
+  },
+  "usage": {
+    "calls": 721,
+    "tokens": 1018441,
+    "dollars": 0.04837647599999997,
+    "unknownCostCalls": 1,
+    "errors": 1
+  },
+  "frozen": {
+    "prompts": {
+      "duplicate": "Is there substantial repeated factual information {scope} that could benefit from consolidation? Shared topic alone is not duplication. Identify existence, not a specific deletion.",
+      "conflict": "Are there apparently incompatible claims {scope} about the same entity and scope that require correction or clarification of their periods or scopes? A supported resolution is not required to flag the issue.",
+      "link": "Does the text of pages[0] and pages[1] support a specific useful directed relationship from pages[{source}] to pages[{target}] missing from pages[{source}].links? Shared topic alone does not establish a relationship.",
+      "residue": "Does pages[0] contain a consolidator maintenance diary or an agent-added human follow-up that could be removed while preserving subject knowledge? Original user requests and genuine factual uncertainty are knowledge, not residue.",
+      "actionable": "Would consolidating the repeated factual information in these exact two target passages meaningfully improve the pages? Judge the usefulness of reducing this established repetition, not a hypothetical editor output. Distinct details and sources must be merged rather than discarded; the actual draft will be checked separately for preservation. A claim and its source attribution are complementary, not duplicate knowledge; matching citation dates, source labels or headings alone are insufficient. A useful local introduction or summary may repeat a fact without needing removal. A cosmetic rewrite or simply moving complementary facts together is not a useful consolidation. For different pages, the result must preserve necessary local context with a useful reference to the retained page.",
+      "resolution": "Which intervention on target[0] and target[1] is established by pages and supplied sources? Technical update timestamps, confidence of tone and disagreement alone never justify choosing a winner.\n\nApply the fixed criteria exactly:\n- Choose 'a' only when the supplied evidence establishes target[0]'s claim and explicitly supports correcting the incompatible claim in target[1].\n- Choose 'b' only when the supplied evidence establishes target[1]'s claim and explicitly supports correcting the incompatible claim in target[0].\n- Choose 'temporal' only when the supplied evidence documents successive factual states; then clarify their actual periods while preserving history.\n- Choose 'scope' only when the supplied evidence establishes different scopes; then clarify the distinction without discarding either fact.\n- Choose 'insufficient' only when an intervention needs a specifically referenced source that is not supplied here. A mere lack of evidence is not 'insufficient'.\n- Choose 'none' when no supported useful correction or clarification can be made from the evidence.\n\nWhen a supplied source explicitly identifies one target's claim as the original/correct and the other as an erroneous copy, and states that both concern the same entity, period, and scope, that evidence directly satisfies the 'a' or 'b' criterion for the claim it identifies as original. Do not treat the mere existence of a conflict, or the absence of a timestamp, as a reason to avoid that criterion.\n\nIf no supplied source supports any intervention, and no supplied evidence references a specific missing source, choose 'none' rather than 'insufficient'.\n\nDo not choose 'temporal' or 'scope' unless the supplied evidence explicitly documents successive states or different scopes."
+    },
+    "frozenAt": "2026-10-16T14:53:09.981Z",
+    "stoppedBy": "search_complete",
+    "configHash": "f74d5c8e2b4ed9000cfc89741ea7aeb2b4ef396e75bc60d01e5ad0ccc54e34aa",
+    "datasetHash": "1833412c90a24d174fce320c4d8270ac9b943610663d9dd274fb137bb0b2c7ef"
+  },
+  "tasks": {
+    "resolution": {
+      "beforeTraining": {
+        "count": 216,
+        "accuracy": 0.5972222222222222,
+        "macroF1": 0.632695374800638,
+        "confusion": {
+          "a": {
+            "a": 2,
+            "b": 0,
+            "temporal": 0,
+            "scope": 0,
+            "insufficient": 0,
+            "none": 0,
+            "abstain": 34,
+            "error": 0
+          },
+          "b": {
+            "a": 0,
+            "b": 19,
+            "temporal": 0,
+            "scope": 0,
+            "insufficient": 0,
+            "none": 0,
+            "abstain": 17,
+            "error": 0
+          },
+          "temporal": {
+            "a": 0,
+            "b": 0,
+            "temporal": 36,
+            "scope": 0,
+            "insufficient": 0,
+            "none": 0,
+            "abstain": 0,
+            "error": 0
+          },
+          "scope": {
+            "a": 0,
+            "b": 0,
+            "temporal": 0,
+            "scope": 36,
+            "insufficient": 0,
+            "none": 0,
+            "abstain": 0,
+            "error": 0
+          },
+          "insufficient": {
+            "a": 0,
+            "b": 0,
+            "temporal": 0,
+            "scope": 0,
+            "insufficient": 36,
+            "none": 0,
+            "abstain": 0,
+            "error": 0
+          },
+          "none": {
+            "a": 0,
+            "b": 0,
+            "temporal": 0,
+            "scope": 0,
+            "insufficient": 0,
+            "none": 0,
+            "abstain": 35,
+            "error": 1
+          }
+        },
+        "perClass": {
+          "a": {
+            "support": 36,
+            "precision": 1,
+            "recall": 0.05555555555555555,
+            "f1": 0.10526315789473684
+          },
+          "b": {
+            "support": 36,
+            "precision": 1,
+            "recall": 0.5277777777777778,
+            "f1": 0.6909090909090909
+          },
+          "temporal": {
+            "support": 36,
+            "precision": 1,
+            "recall": 1,
+            "f1": 1
+          },
+          "scope": {
+            "support": 36,
+            "precision": 1,
+            "recall": 1,
+            "f1": 1
+          },
+          "insufficient": {
+            "support": 36,
+            "precision": 1,
+            "recall": 1,
+            "f1": 1
+          },
+          "none": {
+            "support": 36,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0
+          }
+        },
+        "examples": 108,
+        "sourceGroups": 18,
+        "byLanguage": {
+          "it": {
+            "count": 216,
+            "accuracy": 0.5972222222222222,
+            "macroF1": 0.632695374800638,
+            "confusion": {
+              "a": {
+                "a": 2,
+                "b": 0,
+                "temporal": 0,
+                "scope": 0,
+                "insufficient": 0,
+                "none": 0,
+                "abstain": 34,
+                "error": 0
+              },
+              "b": {
+                "a": 0,
+                "b": 19,
+                "temporal": 0,
+                "scope": 0,
+                "insufficient": 0,
+                "none": 0,
+                "abstain": 17,
+                "error": 0
+              },
+              "temporal": {
+                "a": 0,
+                "b": 0,
+                "temporal": 36,
+                "scope": 0,
+                "insufficient": 0,
+                "none": 0,
+                "abstain": 0,
+                "error": 0
+              },
+              "scope": {
+                "a": 0,
+                "b": 0,
+                "temporal": 0,
+                "scope": 36,
+                "insufficient": 0,
+                "none": 0,
+                "abstain": 0,
+                "error": 0
+              },
+              "insufficient": {
+                "a": 0,
+                "b": 0,
+                "temporal": 0,
+                "scope": 0,
+                "insufficient": 36,
+                "none": 0,
+                "abstain": 0,
+                "error": 0
+              },
+              "none": {
+                "a": 0,
+                "b": 0,
+                "temporal": 0,
+                "scope": 0,
+                "insufficient": 0,
+                "none": 0,
+                "abstain": 35,
+                "error": 1
+              }
+            },
+            "perClass": {
+              "a": {
+                "support": 36,
+                "precision": 1,
+                "recall": 0.05555555555555555,
+                "f1": 0.10526315789473684
+              },
+              "b": {
+                "support": 36,
+                "precision": 1,
+                "recall": 0.5277777777777778,
+                "f1": 0.6909090909090909
+              },
+              "temporal": {
+                "support": 36,
+                "precision": 1,
+                "recall": 1,
+                "f1": 1
+              },
+              "scope": {
+                "support": 36,
+                "precision": 1,
+                "recall": 1,
+                "f1": 1
+              },
+              "insufficient": {
+                "support": 36,
+                "precision": 1,
+                "recall": 1,
+                "f1": 1
+              },
+              "none": {
+                "support": 36,
+                "precision": 0,
+                "recall": 0,
+                "f1": 0
+              }
+            }
+          }
+        },
+        "byCategory": {
+          "referenced-source-absent": {
+            "count": 36,
+            "accuracy": 1,
+            "macroF1": 1,
+            "confusion": {
+              "insufficient": {
+                "insufficient": 36,
+                "abstain": 0,
+                "error": 0
+              }
+            },
+            "perClass": {
+              "insufficient": {
+                "support": 36,
+                "precision": 1,
+                "recall": 1,
+                "f1": 1
+              }
+            }
+          },
+          "simultaneous-scopes": {
+            "count": 36,
+            "accuracy": 1,
+            "macroF1": 1,
+            "confusion": {
+              "scope": {
+                "scope": 36,
+                "abstain": 0,
+                "error": 0
+              }
+            },
+            "perClass": {
+              "scope": {
+                "support": 36,
+                "precision": 1,
+                "recall": 1,
+                "f1": 1
+              }
+            }
+          },
+          "source-supports-a": {
+            "count": 36,
+            "accuracy": 0.05555555555555555,
+            "macroF1": 0.10526315789473684,
+            "confusion": {
+              "a": {
+                "a": 2,
+                "abstain": 34,
+                "error": 0
+              }
+            },
+            "perClass": {
+              "a": {
+                "support": 36,
+                "precision": 1,
+                "recall": 0.05555555555555555,
+                "f1": 0.10526315789473684
+              }
+            }
+          },
+          "source-supports-b": {
+            "count": 36,
+            "accuracy": 0.5277777777777778,
+            "macroF1": 0.6909090909090909,
+            "confusion": {
+              "b": {
+                "b": 19,
+                "abstain": 17,
+                "error": 0
+              }
+            },
+            "perClass": {
+              "b": {
+                "support": 36,
+                "precision": 1,
+                "recall": 0.5277777777777778,
+                "f1": 0.6909090909090909
+              }
+            }
+          },
+          "successive-periods": {
+            "count": 36,
+            "accuracy": 1,
+            "macroF1": 1,
+            "confusion": {
+              "temporal": {
+                "temporal": 36,
+                "abstain": 0,
+                "error": 0
+              }
+            },
+            "perClass": {
+              "temporal": {
+                "support": 36,
+                "precision": 1,
+                "recall": 1,
+                "f1": 1
+              }
+            }
+          },
+          "unsupported-no-reference": {
+            "count": 36,
+            "accuracy": 0,
+            "macroF1": 0,
+            "confusion": {
+              "none": {
+                "none": 0,
+                "abstain": 35,
+                "error": 1
+              }
+            },
+            "perClass": {
+              "none": {
+                "support": 36,
+                "precision": 0,
+                "recall": 0,
+                "f1": 0
+              }
+            }
+          }
+        },
+        "formatSuccess": 0.9953703703703703,
+        "failures": 1,
+        "abstentions": 86,
+        "falsePositiveRate": null,
+        "averagePrecision": null,
+        "repeatDisagreement": 0.05555555555555555,
+        "latencyMs": {
+          "mean": 376.2441801851852,
+          "p50": 309.5001669999983,
+          "p95": 579.5683330000029
+        },
+        "meanInputTokens": null,
+        "meanOutputTokens": null,
+        "meanCostDollars": null
+      },
+      "afterTraining": {
+        "count": 216,
+        "accuracy": 0.9953703703703703,
+        "macroF1": 0.9976525821596244,
+        "confusion": {
+          "a": {
+            "a": 36,
+            "b": 0,
+            "temporal": 0,
+            "scope": 0,
+            "insufficient": 0,
+            "none": 0,
+            "abstain": 0,
+            "error": 0
+          },
+          "b": {
+            "a": 0,
+            "b": 36,
+            "temporal": 0,
+            "scope": 0,
+            "insufficient": 0,
+            "none": 0,
+            "abstain": 0,
+            "error": 0
+          },
+          "temporal": {
+            "a": 0,
+            "b": 0,
+            "temporal": 35,
+            "scope": 0,
+            "insufficient": 0,
+            "none": 0,
+            "abstain": 0,
+            "error": 1
+          },
+          "scope": {
+            "a": 0,
+            "b": 0,
+            "temporal": 0,
+            "scope": 36,
+            "insufficient": 0,
+            "none": 0,
+            "abstain": 0,
+            "error": 0
+          },
+          "insufficient": {
+            "a": 0,
+            "b": 0,
+            "temporal": 0,
+            "scope": 0,
+            "insufficient": 36,
+            "none": 0,
+            "abstain": 0,
+            "error": 0
+          },
+          "none": {
+            "a": 0,
+            "b": 0,
+            "temporal": 0,
+            "scope": 0,
+            "insufficient": 0,
+            "none": 36,
+            "abstain": 0,
+            "error": 0
+          }
+        },
+        "perClass": {
+          "a": {
+            "support": 36,
+            "precision": 1,
+            "recall": 1,
+            "f1": 1
+          },
+          "b": {
+            "support": 36,
+            "precision": 1,
+            "recall": 1,
+            "f1": 1
+          },
+          "temporal": {
+            "support": 36,
+            "precision": 1,
+            "recall": 0.9722222222222222,
+            "f1": 0.9859154929577465
+          },
+          "scope": {
+            "support": 36,
+            "precision": 1,
+            "recall": 1,
+            "f1": 1
+          },
+          "insufficient": {
+            "support": 36,
+            "precision": 1,
+            "recall": 1,
+            "f1": 1
+          },
+          "none": {
+            "support": 36,
+            "precision": 1,
+            "recall": 1,
+            "f1": 1
+          }
+        },
+        "examples": 108,
+        "sourceGroups": 18,
+        "byLanguage": {
+          "it": {
+            "count": 216,
+            "accuracy": 0.9953703703703703,
+            "macroF1": 0.9976525821596244,
+            "confusion": {
+              "a": {
+                "a": 36,
+                "b": 0,
+                "temporal": 0,
+                "scope": 0,
+                "insufficient": 0,
+                "none": 0,
+                "abstain": 0,
+                "error": 0
+              },
+              "b": {
+                "a": 0,
+                "b": 36,
+                "temporal": 0,
+                "scope": 0,
+                "insufficient": 0,
+                "none": 0,
+                "abstain": 0,
+                "error": 0
+              },
+              "temporal": {
+                "a": 0,
+                "b": 0,
+                "temporal": 35,
+                "scope": 0,
+                "insufficient": 0,
+                "none": 0,
+                "abstain": 0,
+                "error": 1
+              },
+              "scope": {
+                "a": 0,
+                "b": 0,
+                "temporal": 0,
+                "scope": 36,
+                "insufficient": 0,
+                "none": 0,
+                "abstain": 0,
+                "error": 0
+              },
+              "insufficient": {
+                "a": 0,
+                "b": 0,
+                "temporal": 0,
+                "scope": 0,
+                "insufficient": 36,
+                "none": 0,
+                "abstain": 0,
+                "error": 0
+              },
+              "none": {
+                "a": 0,
+                "b": 0,
+                "temporal": 0,
+                "scope": 0,
+                "insufficient": 0,
+                "none": 36,
+                "abstain": 0,
+                "error": 0
+              }
+            },
+            "perClass": {
+              "a": {
+                "support": 36,
+                "precision": 1,
+                "recall": 1,
+                "f1": 1
+              },
+              "b": {
+                "support": 36,
+                "precision": 1,
+                "recall": 1,
+                "f1": 1
+              },
+              "temporal": {
+                "support": 36,
+                "precision": 1,
+                "recall": 0.9722222222222222,
+                "f1": 0.9859154929577465
+              },
+              "scope": {
+                "support": 36,
+                "precision": 1,
+                "recall": 1,
+                "f1": 1
+              },
+              "insufficient": {
+                "support": 36,
+                "precision": 1,
+                "recall": 1,
+                "f1": 1
+              },
+              "none": {
+                "support": 36,
+                "precision": 1,
+                "recall": 1,
+                "f1": 1
+              }
+            }
+          }
+        },
+        "byCategory": {
+          "referenced-source-absent": {
+            "count": 36,
+            "accuracy": 1,
+            "macroF1": 1,
+            "confusion": {
+              "insufficient": {
+                "insufficient": 36,
+                "abstain": 0,
+                "error": 0
+              }
+            },
+            "perClass": {
+              "insufficient": {
+                "support": 36,
+                "precision": 1,
+                "recall": 1,
+                "f1": 1
+              }
+            }
+          },
+          "simultaneous-scopes": {
+            "count": 36,
+            "accuracy": 1,
+            "macroF1": 1,
+            "confusion": {
+              "scope": {
+                "scope": 36,
+                "abstain": 0,
+                "error": 0
+              }
+            },
+            "perClass": {
+              "scope": {
+                "support": 36,
+                "precision": 1,
+                "recall": 1,
+                "f1": 1
+              }
+            }
+          },
+          "source-supports-a": {
+            "count": 36,
+            "accuracy": 1,
+            "macroF1": 1,
+            "confusion": {
+              "a": {
+                "a": 36,
+                "abstain": 0,
+                "error": 0
+              }
+            },
+            "perClass": {
+              "a": {
+                "support": 36,
+                "precision": 1,
+                "recall": 1,
+                "f1": 1
+              }
+            }
+          },
+          "source-supports-b": {
+            "count": 36,
+            "accuracy": 1,
+            "macroF1": 1,
+            "confusion": {
+              "b": {
+                "b": 36,
+                "abstain": 0,
+                "error": 0
+              }
+            },
+            "perClass": {
+              "b": {
+                "support": 36,
+                "precision": 1,
+                "recall": 1,
+                "f1": 1
+              }
+            }
+          },
+          "successive-periods": {
+            "count": 36,
+            "accuracy": 0.9722222222222222,
+            "macroF1": 0.9859154929577465,
+            "confusion": {
+              "temporal": {
+                "temporal": 35,
+                "abstain": 0,
+                "error": 1
+              }
+            },
+            "perClass": {
+              "temporal": {
+                "support": 36,
+                "precision": 1,
+                "recall": 0.9722222222222222,
+                "f1": 0.9859154929577465
+              }
+            }
+          },
+          "unsupported-no-reference": {
+            "count": 36,
+            "accuracy": 1,
+            "macroF1": 1,
+            "confusion": {
+              "none": {
+                "none": 36,
+                "abstain": 0,
+                "error": 0
+              }
+            },
+            "perClass": {
+              "none": {
+                "support": 36,
+                "precision": 1,
+                "recall": 1,
+                "f1": 1
+              }
+            }
+          }
+        },
+        "formatSuccess": 0.9953703703703703,
+        "failures": 1,
+        "abstentions": 0,
+        "falsePositiveRate": null,
+        "averagePrecision": null,
+        "repeatDisagreement": 0.009259259259259259,
+        "latencyMs": {
+          "mean": 322.8944710833337,
+          "p50": 295.31895899999654,
+          "p95": 487.3183330000029
+        },
+        "meanInputTokens": null,
+        "meanOutputTokens": null,
+        "meanCostDollars": null
+      },
+      "beforeValidation": {
+        "count": 72,
+        "accuracy": 0.625,
+        "macroF1": 0.658974358974359,
+        "confusion": {
+          "a": {
+            "a": 1,
+            "b": 0,
+            "temporal": 0,
+            "scope": 0,
+            "insufficient": 0,
+            "none": 0,
+            "abstain": 11,
+            "error": 0
+          },
+          "b": {
+            "a": 0,
+            "b": 8,
+            "temporal": 0,
+            "scope": 0,
+            "insufficient": 0,
+            "none": 0,
+            "abstain": 4,
+            "error": 0
+          },
+          "temporal": {
+            "a": 0,
+            "b": 0,
+            "temporal": 12,
+            "scope": 0,
+            "insufficient": 0,
+            "none": 0,
+            "abstain": 0,
+            "error": 0
+          },
+          "scope": {
+            "a": 0,
+            "b": 0,
+            "temporal": 0,
+            "scope": 12,
+            "insufficient": 0,
+            "none": 0,
+            "abstain": 0,
+            "error": 0
+          },
+          "insufficient": {
+            "a": 0,
+            "b": 0,
+            "temporal": 0,
+            "scope": 0,
+            "insufficient": 12,
+            "none": 0,
+            "abstain": 0,
+            "error": 0
+          },
+          "none": {
+            "a": 0,
+            "b": 0,
+            "temporal": 0,
+            "scope": 0,
+            "insufficient": 0,
+            "none": 0,
+            "abstain": 12,
+            "error": 0
+          }
+        },
+        "perClass": {
+          "a": {
+            "support": 12,
+            "precision": 1,
+            "recall": 0.08333333333333333,
+            "f1": 0.15384615384615385
+          },
+          "b": {
+            "support": 12,
+            "precision": 1,
+            "recall": 0.6666666666666666,
+            "f1": 0.8
+          },
+          "temporal": {
+            "support": 12,
+            "precision": 1,
+            "recall": 1,
+            "f1": 1
+          },
+          "scope": {
+            "support": 12,
+            "precision": 1,
+            "recall": 1,
+            "f1": 1
+          },
+          "insufficient": {
+            "support": 12,
+            "precision": 1,
+            "recall": 1,
+            "f1": 1
+          },
+          "none": {
+            "support": 12,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0
+          }
+        },
+        "examples": 36,
+        "sourceGroups": 6,
+        "byLanguage": {
+          "it": {
+            "count": 72,
+            "accuracy": 0.625,
+            "macroF1": 0.658974358974359,
+            "confusion": {
+              "a": {
+                "a": 1,
+                "b": 0,
+                "temporal": 0,
+                "scope": 0,
+                "insufficient": 0,
+                "none": 0,
+                "abstain": 11,
+                "error": 0
+              },
+              "b": {
+                "a": 0,
+                "b": 8,
+                "temporal": 0,
+                "scope": 0,
+                "insufficient": 0,
+                "none": 0,
+                "abstain": 4,
+                "error": 0
+              },
+              "temporal": {
+                "a": 0,
+                "b": 0,
+                "temporal": 12,
+                "scope": 0,
+                "insufficient": 0,
+                "none": 0,
+                "abstain": 0,
+                "error": 0
+              },
+              "scope": {
+                "a": 0,
+                "b": 0,
+                "temporal": 0,
+                "scope": 12,
+                "insufficient": 0,
+                "none": 0,
+                "abstain": 0,
+                "error": 0
+              },
+              "insufficient": {
+                "a": 0,
+                "b": 0,
+                "temporal": 0,
+                "scope": 0,
+                "insufficient": 12,
+                "none": 0,
+                "abstain": 0,
+                "error": 0
+              },
+              "none": {
+                "a": 0,
+                "b": 0,
+                "temporal": 0,
+                "scope": 0,
+                "insufficient": 0,
+                "none": 0,
+                "abstain": 12,
+                "error": 0
+              }
+            },
+            "perClass": {
+              "a": {
+                "support": 12,
+                "precision": 1,
+                "recall": 0.08333333333333333,
+                "f1": 0.15384615384615385
+              },
+              "b": {
+                "support": 12,
+                "precision": 1,
+                "recall": 0.6666666666666666,
+                "f1": 0.8
+              },
+              "temporal": {
+                "support": 12,
+                "precision": 1,
+                "recall": 1,
+                "f1": 1
+              },
+              "scope": {
+                "support": 12,
+                "precision": 1,
+                "recall": 1,
+                "f1": 1
+              },
+              "insufficient": {
+                "support": 12,
+                "precision": 1,
+                "recall": 1,
+                "f1": 1
+              },
+              "none": {
+                "support": 12,
+                "precision": 0,
+                "recall": 0,
+                "f1": 0
+              }
+            }
+          }
+        },
+        "byCategory": {
+          "referenced-source-absent": {
+            "count": 12,
+            "accuracy": 1,
+            "macroF1": 1,
+            "confusion": {
+              "insufficient": {
+                "insufficient": 12,
+                "abstain": 0,
+                "error": 0
+              }
+            },
+            "perClass": {
+              "insufficient": {
+                "support": 12,
+                "precision": 1,
+                "recall": 1,
+                "f1": 1
+              }
+            }
+          },
+          "simultaneous-scopes": {
+            "count": 12,
+            "accuracy": 1,
+            "macroF1": 1,
+            "confusion": {
+              "scope": {
+                "scope": 12,
+                "abstain": 0,
+                "error": 0
+              }
+            },
+            "perClass": {
+              "scope": {
+                "support": 12,
+                "precision": 1,
+                "recall": 1,
+                "f1": 1
+              }
+            }
+          },
+          "source-supports-a": {
+            "count": 12,
+            "accuracy": 0.08333333333333333,
+            "macroF1": 0.15384615384615385,
+            "confusion": {
+              "a": {
+                "a": 1,
+                "abstain": 11,
+                "error": 0
+              }
+            },
+            "perClass": {
+              "a": {
+                "support": 12,
+                "precision": 1,
+                "recall": 0.08333333333333333,
+                "f1": 0.15384615384615385
+              }
+            }
+          },
+          "source-supports-b": {
+            "count": 12,
+            "accuracy": 0.6666666666666666,
+            "macroF1": 0.8,
+            "confusion": {
+              "b": {
+                "b": 8,
+                "abstain": 4,
+                "error": 0
+              }
+            },
+            "perClass": {
+              "b": {
+                "support": 12,
+                "precision": 1,
+                "recall": 0.6666666666666666,
+                "f1": 0.8
+              }
+            }
+          },
+          "successive-periods": {
+            "count": 12,
+            "accuracy": 1,
+            "macroF1": 1,
+            "confusion": {
+              "temporal": {
+                "temporal": 12,
+                "abstain": 0,
+                "error": 0
+              }
+            },
+            "perClass": {
+              "temporal": {
+                "support": 12,
+                "precision": 1,
+                "recall": 1,
+                "f1": 1
+              }
+            }
+          },
+          "unsupported-no-reference": {
+            "count": 12,
+            "accuracy": 0,
+            "macroF1": 0,
+            "confusion": {
+              "none": {
+                "none": 0,
+                "abstain": 12,
+                "error": 0
+              }
+            },
+            "perClass": {
+              "none": {
+                "support": 12,
+                "precision": 0,
+                "recall": 0,
+                "f1": 0
+              }
+            }
+          }
+        },
+        "formatSuccess": 1,
+        "failures": 0,
+        "abstentions": 27,
+        "falsePositiveRate": null,
+        "averagePrecision": null,
+        "repeatDisagreement": 0.08333333333333333,
+        "latencyMs": {
+          "mean": 402.2675445972218,
+          "p50": 291.18829099999857,
+          "p95": 504.0541660000017
+        },
+        "meanInputTokens": 1164.9166666666667,
+        "meanOutputTokens": 63.75,
+        "meanCostDollars": 0.00004892649999999999
+      },
+      "afterValidation": {
+        "count": 72,
+        "accuracy": 1,
+        "macroF1": 1,
+        "confusion": {
+          "a": {
+            "a": 12,
+            "b": 0,
+            "temporal": 0,
+            "scope": 0,
+            "insufficient": 0,
+            "none": 0,
+            "abstain": 0,
+            "error": 0
+          },
+          "b": {
+            "a": 0,
+            "b": 12,
+            "temporal": 0,
+            "scope": 0,
+            "insufficient": 0,
+            "none": 0,
+            "abstain": 0,
+            "error": 0
+          },
+          "temporal": {
+            "a": 0,
+            "b": 0,
+            "temporal": 12,
+            "scope": 0,
+            "insufficient": 0,
+            "none": 0,
+            "abstain": 0,
+            "error": 0
+          },
+          "scope": {
+            "a": 0,
+            "b": 0,
+            "temporal": 0,
+            "scope": 12,
+            "insufficient": 0,
+            "none": 0,
+            "abstain": 0,
+            "error": 0
+          },
+          "insufficient": {
+            "a": 0,
+            "b": 0,
+            "temporal": 0,
+            "scope": 0,
+            "insufficient": 12,
+            "none": 0,
+            "abstain": 0,
+            "error": 0
+          },
+          "none": {
+            "a": 0,
+            "b": 0,
+            "temporal": 0,
+            "scope": 0,
+            "insufficient": 0,
+            "none": 12,
+            "abstain": 0,
+            "error": 0
+          }
+        },
+        "perClass": {
+          "a": {
+            "support": 12,
+            "precision": 1,
+            "recall": 1,
+            "f1": 1
+          },
+          "b": {
+            "support": 12,
+            "precision": 1,
+            "recall": 1,
+            "f1": 1
+          },
+          "temporal": {
+            "support": 12,
+            "precision": 1,
+            "recall": 1,
+            "f1": 1
+          },
+          "scope": {
+            "support": 12,
+            "precision": 1,
+            "recall": 1,
+            "f1": 1
+          },
+          "insufficient": {
+            "support": 12,
+            "precision": 1,
+            "recall": 1,
+            "f1": 1
+          },
+          "none": {
+            "support": 12,
+            "precision": 1,
+            "recall": 1,
+            "f1": 1
+          }
+        },
+        "examples": 36,
+        "sourceGroups": 6,
+        "byLanguage": {
+          "it": {
+            "count": 72,
+            "accuracy": 1,
+            "macroF1": 1,
+            "confusion": {
+              "a": {
+                "a": 12,
+                "b": 0,
+                "temporal": 0,
+                "scope": 0,
+                "insufficient": 0,
+                "none": 0,
+                "abstain": 0,
+                "error": 0
+              },
+              "b": {
+                "a": 0,
+                "b": 12,
+                "temporal": 0,
+                "scope": 0,
+                "insufficient": 0,
+                "none": 0,
+                "abstain": 0,
+                "error": 0
+              },
+              "temporal": {
+                "a": 0,
+                "b": 0,
+                "temporal": 12,
+                "scope": 0,
+                "insufficient": 0,
+                "none": 0,
+                "abstain": 0,
+                "error": 0
+              },
+              "scope": {
+                "a": 0,
+                "b": 0,
+                "temporal": 0,
+                "scope": 12,
+                "insufficient": 0,
+                "none": 0,
+                "abstain": 0,
+                "error": 0
+              },
+              "insufficient": {
+                "a": 0,
+                "b": 0,
+                "temporal": 0,
+                "scope": 0,
+                "insufficient": 12,
+                "none": 0,
+                "abstain": 0,
+                "error": 0
+              },
+              "none": {
+                "a": 0,
+                "b": 0,
+                "temporal": 0,
+                "scope": 0,
+                "insufficient": 0,
+                "none": 12,
+                "abstain": 0,
+                "error": 0
+              }
+            },
+            "perClass": {
+              "a": {
+                "support": 12,
+                "precision": 1,
+                "recall": 1,
+                "f1": 1
+              },
+              "b": {
+                "support": 12,
+                "precision": 1,
+                "recall": 1,
+                "f1": 1
+              },
+              "temporal": {
+                "support": 12,
+                "precision": 1,
+                "recall": 1,
+                "f1": 1
+              },
+              "scope": {
+                "support": 12,
+                "precision": 1,
+                "recall": 1,
+                "f1": 1
+              },
+              "insufficient": {
+                "support": 12,
+                "precision": 1,
+                "recall": 1,
+                "f1": 1
+              },
+              "none": {
+                "support": 12,
+                "precision": 1,
+                "recall": 1,
+                "f1": 1
+              }
+            }
+          }
+        },
+        "byCategory": {
+          "referenced-source-absent": {
+            "count": 12,
+            "accuracy": 1,
+            "macroF1": 1,
+            "confusion": {
+              "insufficient": {
+                "insufficient": 12,
+                "abstain": 0,
+                "error": 0
+              }
+            },
+            "perClass": {
+              "insufficient": {
+                "support": 12,
+                "precision": 1,
+                "recall": 1,
+                "f1": 1
+              }
+            }
+          },
+          "simultaneous-scopes": {
+            "count": 12,
+            "accuracy": 1,
+            "macroF1": 1,
+            "confusion": {
+              "scope": {
+                "scope": 12,
+                "abstain": 0,
+                "error": 0
+              }
+            },
+            "perClass": {
+              "scope": {
+                "support": 12,
+                "precision": 1,
+                "recall": 1,
+                "f1": 1
+              }
+            }
+          },
+          "source-supports-a": {
+            "count": 12,
+            "accuracy": 1,
+            "macroF1": 1,
+            "confusion": {
+              "a": {
+                "a": 12,
+                "abstain": 0,
+                "error": 0
+              }
+            },
+            "perClass": {
+              "a": {
+                "support": 12,
+                "precision": 1,
+                "recall": 1,
+                "f1": 1
+              }
+            }
+          },
+          "source-supports-b": {
+            "count": 12,
+            "accuracy": 1,
+            "macroF1": 1,
+            "confusion": {
+              "b": {
+                "b": 12,
+                "abstain": 0,
+                "error": 0
+              }
+            },
+            "perClass": {
+              "b": {
+                "support": 12,
+                "precision": 1,
+                "recall": 1,
+                "f1": 1
+              }
+            }
+          },
+          "successive-periods": {
+            "count": 12,
+            "accuracy": 1,
+            "macroF1": 1,
+            "confusion": {
+              "temporal": {
+                "temporal": 12,
+                "abstain": 0,
+                "error": 0
+              }
+            },
+            "perClass": {
+              "temporal": {
+                "support": 12,
+                "precision": 1,
+                "recall": 1,
+                "f1": 1
+              }
+            }
+          },
+          "unsupported-no-reference": {
+            "count": 12,
+            "accuracy": 1,
+            "macroF1": 1,
+            "confusion": {
+              "none": {
+                "none": 12,
+                "abstain": 0,
+                "error": 0
+              }
+            },
+            "perClass": {
+              "none": {
+                "support": 12,
+                "precision": 1,
+                "recall": 1,
+                "f1": 1
+              }
+            }
+          }
+        },
+        "formatSuccess": 1,
+        "failures": 0,
+        "abstentions": 0,
+        "falsePositiveRate": null,
+        "averagePrecision": null,
+        "repeatDisagreement": 0,
+        "latencyMs": {
+          "mean": 342.9582314027765,
+          "p50": 304.0130000000063,
+          "p95": 509.7972920000029
+        },
+        "meanInputTokens": 1474.9166666666667,
+        "meanOutputTokens": 63.666666666666664,
+        "meanCostDollars": 0.00006194650000000001
+      },
+      "final": {
+        "before": {
+          "count": 72,
+          "accuracy": 0.5416666666666666,
+          "macroF1": 0.5732600732600733,
+          "confusion": {
+            "a": {
+              "a": 2,
+              "b": 0,
+              "temporal": 0,
+              "scope": 0,
+              "insufficient": 0,
+              "none": 0,
+              "abstain": 10,
+              "error": 0
+            },
+            "b": {
+              "a": 0,
+              "b": 1,
+              "temporal": 0,
+              "scope": 0,
+              "insufficient": 0,
+              "none": 0,
+              "abstain": 11,
+              "error": 0
+            },
+            "temporal": {
+              "a": 0,
+              "b": 0,
+              "temporal": 12,
+              "scope": 0,
+              "insufficient": 0,
+              "none": 0,
+              "abstain": 0,
+              "error": 0
+            },
+            "scope": {
+              "a": 0,
+              "b": 0,
+              "temporal": 0,
+              "scope": 12,
+              "insufficient": 0,
+              "none": 0,
+              "abstain": 0,
+              "error": 0
+            },
+            "insufficient": {
+              "a": 0,
+              "b": 0,
+              "temporal": 0,
+              "scope": 0,
+              "insufficient": 12,
+              "none": 0,
+              "abstain": 0,
+              "error": 0
+            },
+            "none": {
+              "a": 0,
+              "b": 0,
+              "temporal": 0,
+              "scope": 0,
+              "insufficient": 0,
+              "none": 0,
+              "abstain": 12,
+              "error": 0
+            }
+          },
+          "perClass": {
+            "a": {
+              "support": 12,
+              "precision": 1,
+              "recall": 0.16666666666666666,
+              "f1": 0.2857142857142857
+            },
+            "b": {
+              "support": 12,
+              "precision": 1,
+              "recall": 0.08333333333333333,
+              "f1": 0.15384615384615385
+            },
+            "temporal": {
+              "support": 12,
+              "precision": 1,
+              "recall": 1,
+              "f1": 1
+            },
+            "scope": {
+              "support": 12,
+              "precision": 1,
+              "recall": 1,
+              "f1": 1
+            },
+            "insufficient": {
+              "support": 12,
+              "precision": 1,
+              "recall": 1,
+              "f1": 1
+            },
+            "none": {
+              "support": 12,
+              "precision": 0,
+              "recall": 0,
+              "f1": 0
+            }
+          },
+          "examples": 36,
+          "sourceGroups": 6,
+          "byLanguage": {
+            "it": {
+              "count": 72,
+              "accuracy": 0.5416666666666666,
+              "macroF1": 0.5732600732600733,
+              "confusion": {
+                "a": {
+                  "a": 2,
+                  "b": 0,
+                  "temporal": 0,
+                  "scope": 0,
+                  "insufficient": 0,
+                  "none": 0,
+                  "abstain": 10,
+                  "error": 0
+                },
+                "b": {
+                  "a": 0,
+                  "b": 1,
+                  "temporal": 0,
+                  "scope": 0,
+                  "insufficient": 0,
+                  "none": 0,
+                  "abstain": 11,
+                  "error": 0
+                },
+                "temporal": {
+                  "a": 0,
+                  "b": 0,
+                  "temporal": 12,
+                  "scope": 0,
+                  "insufficient": 0,
+                  "none": 0,
+                  "abstain": 0,
+                  "error": 0
+                },
+                "scope": {
+                  "a": 0,
+                  "b": 0,
+                  "temporal": 0,
+                  "scope": 12,
+                  "insufficient": 0,
+                  "none": 0,
+                  "abstain": 0,
+                  "error": 0
+                },
+                "insufficient": {
+                  "a": 0,
+                  "b": 0,
+                  "temporal": 0,
+                  "scope": 0,
+                  "insufficient": 12,
+                  "none": 0,
+                  "abstain": 0,
+                  "error": 0
+                },
+                "none": {
+                  "a": 0,
+                  "b": 0,
+                  "temporal": 0,
+                  "scope": 0,
+                  "insufficient": 0,
+                  "none": 0,
+                  "abstain": 12,
+                  "error": 0
+                }
+              },
+              "perClass": {
+                "a": {
+                  "support": 12,
+                  "precision": 1,
+                  "recall": 0.16666666666666666,
+                  "f1": 0.2857142857142857
+                },
+                "b": {
+                  "support": 12,
+                  "precision": 1,
+                  "recall": 0.08333333333333333,
+                  "f1": 0.15384615384615385
+                },
+                "temporal": {
+                  "support": 12,
+                  "precision": 1,
+                  "recall": 1,
+                  "f1": 1
+                },
+                "scope": {
+                  "support": 12,
+                  "precision": 1,
+                  "recall": 1,
+                  "f1": 1
+                },
+                "insufficient": {
+                  "support": 12,
+                  "precision": 1,
+                  "recall": 1,
+                  "f1": 1
+                },
+                "none": {
+                  "support": 12,
+                  "precision": 0,
+                  "recall": 0,
+                  "f1": 0
+                }
+              }
+            }
+          },
+          "byCategory": {
+            "referenced-source-absent": {
+              "count": 12,
+              "accuracy": 1,
+              "macroF1": 1,
+              "confusion": {
+                "insufficient": {
+                  "insufficient": 12,
+                  "abstain": 0,
+                  "error": 0
+                }
+              },
+              "perClass": {
+                "insufficient": {
+                  "support": 12,
+                  "precision": 1,
+                  "recall": 1,
+                  "f1": 1
+                }
+              }
+            },
+            "simultaneous-scopes": {
+              "count": 12,
+              "accuracy": 1,
+              "macroF1": 1,
+              "confusion": {
+                "scope": {
+                  "scope": 12,
+                  "abstain": 0,
+                  "error": 0
+                }
+              },
+              "perClass": {
+                "scope": {
+                  "support": 12,
+                  "precision": 1,
+                  "recall": 1,
+                  "f1": 1
+                }
+              }
+            },
+            "source-supports-a": {
+              "count": 12,
+              "accuracy": 0.16666666666666666,
+              "macroF1": 0.2857142857142857,
+              "confusion": {
+                "a": {
+                  "a": 2,
+                  "abstain": 10,
+                  "error": 0
+                }
+              },
+              "perClass": {
+                "a": {
+                  "support": 12,
+                  "precision": 1,
+                  "recall": 0.16666666666666666,
+                  "f1": 0.2857142857142857
+                }
+              }
+            },
+            "source-supports-b": {
+              "count": 12,
+              "accuracy": 0.08333333333333333,
+              "macroF1": 0.15384615384615385,
+              "confusion": {
+                "b": {
+                  "b": 1,
+                  "abstain": 11,
+                  "error": 0
+                }
+              },
+              "perClass": {
+                "b": {
+                  "support": 12,
+                  "precision": 1,
+                  "recall": 0.08333333333333333,
+                  "f1": 0.15384615384615385
+                }
+              }
+            },
+            "successive-periods": {
+              "count": 12,
+              "accuracy": 1,
+              "macroF1": 1,
+              "confusion": {
+                "temporal": {
+                  "temporal": 12,
+                  "abstain": 0,
+                  "error": 0
+                }
+              },
+              "perClass": {
+                "temporal": {
+                  "support": 12,
+                  "precision": 1,
+                  "recall": 1,
+                  "f1": 1
+                }
+              }
+            },
+            "unsupported-no-reference": {
+              "count": 12,
+              "accuracy": 0,
+              "macroF1": 0,
+              "confusion": {
+                "none": {
+                  "none": 0,
+                  "abstain": 12,
+                  "error": 0
+                }
+              },
+              "perClass": {
+                "none": {
+                  "support": 12,
+                  "precision": 0,
+                  "recall": 0,
+                  "f1": 0
+                }
+              }
+            }
+          },
+          "formatSuccess": 1,
+          "failures": 0,
+          "abstentions": 33,
+          "falsePositiveRate": null,
+          "averagePrecision": null,
+          "repeatDisagreement": 0.027777777777777776,
+          "latencyMs": {
+            "mean": 360.43759904166615,
+            "p50": 287.8295419999922,
+            "p95": 345.4945000000007
+          },
+          "meanInputTokens": 1139.3333333333333,
+          "meanOutputTokens": 63.75,
+          "meanCostDollars": 0.000047852
+        },
+        "after": {
+          "count": 72,
+          "accuracy": 0.9722222222222222,
+          "macroF1": 0.9848484848484849,
+          "confusion": {
+            "a": {
+              "a": 12,
+              "b": 0,
+              "temporal": 0,
+              "scope": 0,
+              "insufficient": 0,
+              "none": 0,
+              "abstain": 0,
+              "error": 0
+            },
+            "b": {
+              "a": 0,
+              "b": 12,
+              "temporal": 0,
+              "scope": 0,
+              "insufficient": 0,
+              "none": 0,
+              "abstain": 0,
+              "error": 0
+            },
+            "temporal": {
+              "a": 0,
+              "b": 0,
+              "temporal": 12,
+              "scope": 0,
+              "insufficient": 0,
+              "none": 0,
+              "abstain": 0,
+              "error": 0
+            },
+            "scope": {
+              "a": 0,
+              "b": 0,
+              "temporal": 0,
+              "scope": 12,
+              "insufficient": 0,
+              "none": 0,
+              "abstain": 0,
+              "error": 0
+            },
+            "insufficient": {
+              "a": 0,
+              "b": 0,
+              "temporal": 0,
+              "scope": 0,
+              "insufficient": 12,
+              "none": 0,
+              "abstain": 0,
+              "error": 0
+            },
+            "none": {
+              "a": 0,
+              "b": 0,
+              "temporal": 0,
+              "scope": 0,
+              "insufficient": 0,
+              "none": 10,
+              "abstain": 2,
+              "error": 0
+            }
+          },
+          "perClass": {
+            "a": {
+              "support": 12,
+              "precision": 1,
+              "recall": 1,
+              "f1": 1
+            },
+            "b": {
+              "support": 12,
+              "precision": 1,
+              "recall": 1,
+              "f1": 1
+            },
+            "temporal": {
+              "support": 12,
+              "precision": 1,
+              "recall": 1,
+              "f1": 1
+            },
+            "scope": {
+              "support": 12,
+              "precision": 1,
+              "recall": 1,
+              "f1": 1
+            },
+            "insufficient": {
+              "support": 12,
+              "precision": 1,
+              "recall": 1,
+              "f1": 1
+            },
+            "none": {
+              "support": 12,
+              "precision": 1,
+              "recall": 0.8333333333333334,
+              "f1": 0.9090909090909091
+            }
+          },
+          "examples": 36,
+          "sourceGroups": 6,
+          "byLanguage": {
+            "it": {
+              "count": 72,
+              "accuracy": 0.9722222222222222,
+              "macroF1": 0.9848484848484849,
+              "confusion": {
+                "a": {
+                  "a": 12,
+                  "b": 0,
+                  "temporal": 0,
+                  "scope": 0,
+                  "insufficient": 0,
+                  "none": 0,
+                  "abstain": 0,
+                  "error": 0
+                },
+                "b": {
+                  "a": 0,
+                  "b": 12,
+                  "temporal": 0,
+                  "scope": 0,
+                  "insufficient": 0,
+                  "none": 0,
+                  "abstain": 0,
+                  "error": 0
+                },
+                "temporal": {
+                  "a": 0,
+                  "b": 0,
+                  "temporal": 12,
+                  "scope": 0,
+                  "insufficient": 0,
+                  "none": 0,
+                  "abstain": 0,
+                  "error": 0
+                },
+                "scope": {
+                  "a": 0,
+                  "b": 0,
+                  "temporal": 0,
+                  "scope": 12,
+                  "insufficient": 0,
+                  "none": 0,
+                  "abstain": 0,
+                  "error": 0
+                },
+                "insufficient": {
+                  "a": 0,
+                  "b": 0,
+                  "temporal": 0,
+                  "scope": 0,
+                  "insufficient": 12,
+                  "none": 0,
+                  "abstain": 0,
+                  "error": 0
+                },
+                "none": {
+                  "a": 0,
+                  "b": 0,
+                  "temporal": 0,
+                  "scope": 0,
+                  "insufficient": 0,
+                  "none": 10,
+                  "abstain": 2,
+                  "error": 0
+                }
+              },
+              "perClass": {
+                "a": {
+                  "support": 12,
+                  "precision": 1,
+                  "recall": 1,
+                  "f1": 1
+                },
+                "b": {
+                  "support": 12,
+                  "precision": 1,
+                  "recall": 1,
+                  "f1": 1
+                },
+                "temporal": {
+                  "support": 12,
+                  "precision": 1,
+                  "recall": 1,
+                  "f1": 1
+                },
+                "scope": {
+                  "support": 12,
+                  "precision": 1,
+                  "recall": 1,
+                  "f1": 1
+                },
+                "insufficient": {
+                  "support": 12,
+                  "precision": 1,
+                  "recall": 1,
+                  "f1": 1
+                },
+                "none": {
+                  "support": 12,
+                  "precision": 1,
+                  "recall": 0.8333333333333334,
+                  "f1": 0.9090909090909091
+                }
+              }
+            }
+          },
+          "byCategory": {
+            "referenced-source-absent": {
+              "count": 12,
+              "accuracy": 1,
+              "macroF1": 1,
+              "confusion": {
+                "insufficient": {
+                  "insufficient": 12,
+                  "abstain": 0,
+                  "error": 0
+                }
+              },
+              "perClass": {
+                "insufficient": {
+                  "support": 12,
+                  "precision": 1,
+                  "recall": 1,
+                  "f1": 1
+                }
+              }
+            },
+            "simultaneous-scopes": {
+              "count": 12,
+              "accuracy": 1,
+              "macroF1": 1,
+              "confusion": {
+                "scope": {
+                  "scope": 12,
+                  "abstain": 0,
+                  "error": 0
+                }
+              },
+              "perClass": {
+                "scope": {
+                  "support": 12,
+                  "precision": 1,
+                  "recall": 1,
+                  "f1": 1
+                }
+              }
+            },
+            "source-supports-a": {
+              "count": 12,
+              "accuracy": 1,
+              "macroF1": 1,
+              "confusion": {
+                "a": {
+                  "a": 12,
+                  "abstain": 0,
+                  "error": 0
+                }
+              },
+              "perClass": {
+                "a": {
+                  "support": 12,
+                  "precision": 1,
+                  "recall": 1,
+                  "f1": 1
+                }
+              }
+            },
+            "source-supports-b": {
+              "count": 12,
+              "accuracy": 1,
+              "macroF1": 1,
+              "confusion": {
+                "b": {
+                  "b": 12,
+                  "abstain": 0,
+                  "error": 0
+                }
+              },
+              "perClass": {
+                "b": {
+                  "support": 12,
+                  "precision": 1,
+                  "recall": 1,
+                  "f1": 1
+                }
+              }
+            },
+            "successive-periods": {
+              "count": 12,
+              "accuracy": 1,
+              "macroF1": 1,
+              "confusion": {
+                "temporal": {
+                  "temporal": 12,
+                  "abstain": 0,
+                  "error": 0
+                }
+              },
+              "perClass": {
+                "temporal": {
+                  "support": 12,
+                  "precision": 1,
+                  "recall": 1,
+                  "f1": 1
+                }
+              }
+            },
+            "unsupported-no-reference": {
+              "count": 12,
+              "accuracy": 0.8333333333333334,
+              "macroF1": 0.9090909090909091,
+              "confusion": {
+                "none": {
+                  "none": 10,
+                  "abstain": 2,
+                  "error": 0
+                }
+              },
+              "perClass": {
+                "none": {
+                  "support": 12,
+                  "precision": 1,
+                  "recall": 0.8333333333333334,
+                  "f1": 0.9090909090909091
+                }
+              }
+            }
+          },
+          "formatSuccess": 1,
+          "failures": 0,
+          "abstentions": 2,
+          "falsePositiveRate": null,
+          "averagePrecision": null,
+          "repeatDisagreement": 0,
+          "latencyMs": {
+            "mean": 309.15377776388533,
+            "p50": 295.99333299999125,
+            "p95": 403.4730420000269
+          },
+          "meanInputTokens": 1449.3333333333333,
+          "meanOutputTokens": 63.666666666666664,
+          "meanCostDollars": 0.000060871999999999996
+        },
+        "delta": 0.41158841158841153,
+        "relativeDelta": 0.7179785071158871,
+        "interval": {
+          "lower": 0.35,
+          "upper": 0.48484848484848486,
+          "method": "paired-source-cluster-bootstrap-1000",
+          "groups": 6
+        },
+        "corrected": [
+          "resolution-it-v2-00-source-supports-a",
+          "resolution-it-v2-00-source-supports-b",
+          "resolution-it-v2-00-unsupported-no-reference",
+          "resolution-it-v2-01-source-supports-b",
+          "resolution-it-v2-01-unsupported-no-reference",
+          "resolution-it-v2-05-source-supports-a",
+          "resolution-it-v2-05-source-supports-b",
+          "resolution-it-v2-13-source-supports-a",
+          "resolution-it-v2-13-source-supports-b",
+          "resolution-it-v2-13-unsupported-no-reference",
+          "resolution-it-v2-15-source-supports-a",
+          "resolution-it-v2-15-source-supports-b",
+          "resolution-it-v2-15-unsupported-no-reference",
+          "resolution-it-v2-19-source-supports-a",
+          "resolution-it-v2-19-source-supports-b",
+          "resolution-it-v2-19-unsupported-no-reference"
+        ],
+        "regressions": [],
+        "recommendation": "candidate_for_review",
+        "limitations": "Synthetic cases establish performance only on constructed examples. Repeats and variants are clustered by source. This is not production accuracy or human validation. Test results never feed another optimizer iteration."
+      },
+      "history": [
+        {
+          "proposal": {
+            "candidate_prompt": "Which intervention on target[0] and target[1] is established by pages and supplied sources? Technical update timestamps, confidence of tone and disagreement alone never justify choosing a winner.\n\nApply the fixed criteria exactly:\n- Choose 'a' only when the supplied evidence establishes target[0]'s claim and explicitly supports correcting the incompatible claim in target[1].\n- Choose 'b' only when the supplied evidence establishes target[1]'s claim and explicitly supports correcting the incompatible claim in target[0].\n- Choose 'temporal' only when the supplied evidence documents successive factual states; then clarify their actual periods while preserving history.\n- Choose 'scope' only when the supplied evidence establishes different scopes; then clarify the distinction without discarding either fact.\n- Choose 'insufficient' only when an intervention needs a specifically referenced source that is not supplied here. A mere lack of evidence is not 'insufficient'.\n- Choose 'none' when no supported useful correction or clarification can be made from the evidence.\n\nWhen a supplied source explicitly identifies one target's claim as the original/correct and the other as an erroneous copy, and states that both concern the same entity, period, and scope, that evidence directly satisfies the 'a' or 'b' criterion for the claim it identifies as original. Do not treat the mere existence of a conflict, or the absence of a timestamp, as a reason to avoid that criterion.\n\nIf no supplied source supports any intervention, and no supplied evidence references a specific missing source, choose 'none' rather than 'insufficient'.\n\nDo not choose 'temporal' or 'scope' unless the supplied evidence explicitly documents successive states or different scopes.",
+            "changes": [
+              "Added explicit mapping of each option to its fixed criterion from the immutable answer contract.",
+              "Added rule distinguishing 'insufficient' from 'none': 'insufficient' requires a specifically referenced missing source; a mere lack of evidence is not 'insufficient'.",
+              "Added rule that an explicit source identifying one claim as original and the other as an erroneous copy, with same entity/period/scope, directly satisfies 'a' or 'b'.",
+              "Added rule that mere conflict or absence of a timestamp is not a reason to avoid 'a' or 'b'.",
+              "Added rule that 'temporal' and 'scope' require explicit evidence of successive states or different scopes."
+            ],
+            "targeted_failure_modes": [
+              "Underconfidence when a supplied source explicitly refutes one claim and supports the other, leading to abstention despite matching 'a' or 'b'.",
+              "Confusing 'insufficient' with 'none' when no source is supplied and no specific missing source is referenced.",
+              "Overweighting mere conflict or lack of timestamps as reasons to avoid 'a' or 'b'.",
+              "Choosing 'temporal' or 'scope' without explicit evidence of successive states or different scopes."
+            ],
+            "rationale": "The training errors show the model often selects the correct option but with insufficient confidence, and sometimes confuses 'insufficient' with 'none'. The added rules clarify the exact conditions for each option, especially the decisive role of an explicit source that identifies an erroneous copy, and the distinction between a missing specific source and a mere lack of evidence. This should increase confidence when criteria are met without suppressing uncertainty.",
+            "potential_regressions": [
+              "The model might over-apply the 'a'/'b' rule to cases where the source is ambiguous or does not explicitly state same entity/period/scope.",
+              "The distinction between 'insufficient' and 'none' might be misapplied if the evidence implicitly references a missing source.",
+              "The added emphasis on explicit statements might cause the model to ignore subtle evidence."
+            ],
+            "hypothesis": "By explicitly mapping each option to its fixed criterion and clarifying the decisive conditions for 'a'/'b' and the 'insufficient'/'none' distinction, the model will more reliably select the correct option with appropriate confidence when the evidence matches a criterion, reducing abstentions on clear cases and misclassifications on unsupported cases."
+          },
+          "accepted": true,
+          "reasons": [],
+          "promptHash": "f3ba8f7fc9f51548a67d37d90640d434bbc7de07659bee1b8f8f87ca4f7449f8"
+        }
+      ],
+      "stoppedBy": "no_semantic_errors_in_valid_training",
+      "prompt": {
+        "baselineCharacters": 195,
+        "selectedCharacters": 1761,
+        "baselineTokens": 36,
+        "selectedTokens": 334,
+        "selectedHash": "f3ba8f7fc9f51548a67d37d90640d434bbc7de07659bee1b8f8f87ca4f7449f8"
+      }
+    }
+  }
+}

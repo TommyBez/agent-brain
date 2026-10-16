@@ -1,6 +1,7 @@
 import type { BrainPage, LinkType } from "../../brain/types";
 import { DECISION_POLICY } from "./decision-policy";
 import type { RecordKey } from "./keys";
+import { promptPolicyVersion } from "./prompts";
 
 export type Json =
   | null
@@ -34,6 +35,8 @@ export type Evaluation = {
   inputTokens: number | null;
   outputTokens: number | null;
   providerMetadata?: Json;
+  /** Exact rendered questions, independent of provider aliases and profile names. */
+  promptVersion?: string;
 };
 export type Evaluate = (request: EvaluationRequest) => Promise<Evaluation>;
 export type Judgment = EvaluationRequest & Evaluation;
@@ -161,7 +164,9 @@ export type DecisionRecord = {
 };
 
 export const POLICY = {
-  version: DECISION_POLICY.id,
+  get version() {
+    return promptPolicyVersion(DECISION_POLICY.id);
+  },
   maxUnitCharacters: 2400,
   evaluationCharacters: 100_000,
   questionsPerRequest: 48,

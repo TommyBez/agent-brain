@@ -1,0 +1,27 @@
+{
+  "profileId": "apo-2026-10-16-completo-italiano-v1",
+  "currentCycles": {
+    "calls": 11838,
+    "tokens": 15652049,
+    "accountedDollars": 0.7843176119999995,
+    "unknownProviderCostCalls": 1,
+    "reservedUnknownCostDollars": 0.000515256
+  },
+  "usableExamples": 3587,
+  "rawExamples": 3720,
+  "excludedBeforeTest": 133,
+  "newApprovedTasks": [
+    "actionable",
+    "destination",
+    "duplicate",
+    "residue"
+  ],
+  "audit": {
+    "passed": 14,
+    "total": 16,
+    "scenarios": 8,
+    "uncertainValidDeduplicationRepeats": 2
+  },
+  "defaultProfile": "baseline",
+  "deploymentPerformed": false
+}

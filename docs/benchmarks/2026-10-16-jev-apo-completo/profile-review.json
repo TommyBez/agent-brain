@@ -1,0 +1,95 @@
+{
+  "reviewedAt": "2026-10-16T16:13:34.153943+00:00",
+  "profileId": "apo-2026-10-16-completo-italiano-v1",
+  "components": {
+    "link": {
+      "sourceProfile": "apo-2026-10-16-2fd13c1f-c13c-440c-865f-534349d046fc",
+      "basis": "Previously reviewed and independently evaluated component; unchanged."
+    },
+    "resolution": {
+      "sourceProfile": "apo-2026-10-16-ebf9a3ec-6178-4195-b7e1-80a6ca8c8b25",
+      "basis": "Previously reviewed and independently evaluated component; unchanged."
+    },
+    "actionable": {
+      "experiment": "2026-10-16-7237a6b1-0cca-4659-8ec5-3e5fe84f571d",
+      "report": "reviewed-report.json",
+      "baselineMacroF1": 0.5872235872235873,
+      "candidateMacroF1": 1,
+      "interval": {
+        "lower": 0.33333333333333326,
+        "upper": 0.4571428571428571,
+        "method": "paired-source-cluster-bootstrap-1000",
+        "groups": 3
+      },
+      "semanticReview": "compatible"
+    },
+    "destination": {
+      "experiment": "2026-10-16-6f77cc4b-ced0-4c96-8a2a-2b0d9266c062",
+      "report": "report.json",
+      "baselineMacroF1": 0.9299999999999999,
+      "candidateMacroF1": 1,
+      "interval": {
+        "lower": 0.0357142857142857,
+        "upper": 0.11363636363636365,
+        "method": "paired-source-cluster-bootstrap-1000",
+        "groups": 4
+      },
+      "semanticReview": "compatible"
+    },
+    "duplicate": {
+      "experiment": "2026-10-16-6f77cc4b-ced0-4c96-8a2a-2b0d9266c062",
+      "report": "report.json",
+      "baselineMacroF1": 0.7078260869565217,
+      "candidateMacroF1": 1,
+      "interval": {
+        "lower": 0.25174825174825166,
+        "upper": 0.33333333333333337,
+        "method": "paired-source-cluster-bootstrap-1000",
+        "groups": 4
+      },
+      "semanticReview": "compatible"
+    },
+    "residue": {
+      "experiment": "2026-10-16-6f77cc4b-ced0-4c96-8a2a-2b0d9266c062",
+      "report": "report.json",
+      "baselineMacroF1": 0.6875,
+      "candidateMacroF1": 1,
+      "interval": {
+        "lower": 0.3125,
+        "upper": 0.3125,
+        "method": "paired-source-cluster-bootstrap-1000",
+        "groups": 4
+      },
+      "semanticReview": "compatible"
+    }
+  },
+  "retainedBaseline": [
+    "verification",
+    "localize_duplicate",
+    "localize_conflict",
+    "localize_residue",
+    "partner_duplicate",
+    "partner_conflict",
+    "counterpart_duplicate",
+    "counterpart_conflict",
+    "removable",
+    "relation",
+    "conflict"
+  ],
+  "rejectedOrUnproven": {
+    "verification": "No candidate passed all validation categories; baseline audit has 14/16 correct outcomes, with two uncertain outcomes on the same valid deduplication.",
+    "removable": "Selected candidate improved test but source-cluster interval includes zero; retain baseline.",
+    "relation": "Initial candidate contradicted the existing-link case; fresh candidates regressed on topic-only negatives. One 503 was preserved and did not stop work.",
+    "destination_initial": "Initial candidate incorrectly excluded event pages; superseded by separately evaluated compatible candidate from fresh sources.",
+    "duplicate_initial": "Page-subject restriction held for fresh evaluation; superseded by claim-level identity candidate.",
+    "residue_initial": "Citation/follow-up conflation rejected; superseded by candidate preserving useful citations and human testimony."
+  },
+  "semanticRationale": {
+    "actionable": "Keeps useful introductions/summaries, original sources and distinct details; clarifies paraphrase and repeated-core consolidation without weakening preservation.",
+    "destination": "Judges page suitability relative to the shared information, includes canonical event pages, distinguishes equal suitability from neither supported. Fixed criteria and deterministic tie breaking remain unchanged.",
+    "duplicate": "Compares the factual claim and its referent, explicitly permits shared claims across pages with different primary subjects, preserves distinct homonyms.",
+    "residue": "Separates agent maintenance and invented human tasks from subject facts, useful citations and original human testimony; detection does not authorize deleting mixed content."
+  },
+  "activation": "Registered locally only. JEV_PROMPT_PROFILE remains baseline.",
+  "compositionLimit": "Each component has its own independent offline evaluation. No claim of measured end-to-end improvement from combining all components; editor and production pages were not exercised."
+}

@@ -10,11 +10,7 @@ import {
 } from "./finding-analysis";
 import { validateEvaluation } from "./jev";
 import { evidencePage } from "./projections";
-import {
-  choiceQuestion,
-  RELATION_MEANINGS,
-  screeningQuestions,
-} from "./questions";
+import { relationQuestion, screeningQuestions } from "./questions";
 import { pageEvidenceFingerprint } from "./snapshot";
 import type {
   AnalysisResult,
@@ -126,13 +122,7 @@ export async function analyzeTask(
       const answers = await ask(
         { source: evidencePage(source), target: evidencePage(target) },
         {
-          relation: choiceQuestion(
-            "Which exact useful directed relationship from source to target is established by their text and missing from source.links? Entities must be unambiguous; shared topic is insufficient. Select none if the matching relationship already exists.",
-            {
-              none: "No supported missing relationship.",
-              ...RELATION_MEANINGS,
-            },
-          ),
+          relation: relationQuestion(),
         },
       );
       const relation = analystGates.certainChoice(answers.relation);

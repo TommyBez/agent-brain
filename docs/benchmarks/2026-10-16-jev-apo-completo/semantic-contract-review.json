@@ -1,0 +1,22 @@
+{
+  "recordedAt": "2026-10-16T16:01:41.831976+00:00",
+  "basis": "Only candidate wording and fixed application contracts; no held-out outcomes consulted for these decisions or the follow-up design.",
+  "tasks": {
+    "destination": {
+      "decision": "retain_baseline",
+      "reason": "Unconditional exclusion of temporary event pages from canonical ownership."
+    },
+    "relation": {
+      "decision": "retain_baseline",
+      "reason": "Assumes a missing typed link and states none only applies when no relationship is evidenced, conflicting with the existing-link case."
+    },
+    "duplicate": {
+      "decision": "hold_for_fresh_contract_evaluation",
+      "reason": "Page-subject identity wording requires a check where distinct page subjects share a repeated claim about a third entity."
+    },
+    "residue": {
+      "decision": "retain_baseline",
+      "reason": "A source citation is conflated with an agent-added human follow-up; useful provenance is not removable residue."
+    }
+  }
+}

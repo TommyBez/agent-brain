@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { fingerprint } from "../../canonical-json";
 import {
   type GatewayCall,
   GatewayRequestError,
@@ -138,6 +139,7 @@ export function parseEvaluation(
   }
   return {
     model: response.model,
+    promptVersion: fingerprint(request.questions),
     answers,
     inputTokens: response.usage?.inputTokens ?? null,
     outputTokens: response.usage?.outputTokens ?? null,

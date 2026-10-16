@@ -1,0 +1,19 @@
+{
+  "reviewed_at": "2026-10-16T14:52:15.465750+00:00",
+  "candidate_file": "candidates/resolution-1.json",
+  "candidate_file_sha256": "82cbbc2fd352d0d44c8017db4bc541eb6c474062021561e657a7e4e5cd14e576",
+  "before_test": true,
+  "result": "compatible_with_application_contract",
+  "checks": [
+    "Tutte le sei definizioni applicative conservate.",
+    "insufficient richiede una fonte specifica citata ma assente; none resta la mancanza di un intervento supportato.",
+    "a e b richiedono prove che autorizzano la correzione; originale e copia errata sono un caso sufficiente, non l unica prova ammessa.",
+    "temporal preserva la storia e scope conserva entrambi i fatti.",
+    "Nessuna istruzione di concentrare probabilita o abbassare la soglia.",
+    "Clausola protetta su timestamp, tono e disaccordo preservata."
+  ],
+  "limitations": [
+    "Revisione del testo effettuata dall agente, non validazione umana.",
+    "Corpus sintetico, senza pagine reali lunghe, sorgenti inaffidabili o attacchi tramite contenuto."
+  ]
+}

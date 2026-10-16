@@ -1,0 +1,12 @@
+{
+  "resumedWithoutNewCalls": true,
+  "callCounts": {
+    "2026-10-16-missing-italiano-v1": 8046,
+    "2026-10-16-contract-italiano-v1": 3776,
+    "2026-10-16-verifier-integration-v1": 16
+  },
+  "auditPredeclaredEvidenceMatches": true,
+  "auditEvidenceHash": "486b5c77211bcff4169cb2e726fdaf2103f5c4d627d0a4cdf62e2b64ad34c7d3",
+  "operationalSnapshotCaptureTimeExcludedFromIdentity": true,
+  "providerRequestEvidenceUnchanged": true
+}
