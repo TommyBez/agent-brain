@@ -14,7 +14,7 @@ import {
 
 export const JEV_MODEL = "typesafe-ai/jev-1.14.0";
 
-const probability = z.number().finite().min(0).max(1);
+const probability = z.number().min(0).max(1);
 const tokenCount = z.number().int().nonnegative().nullable().optional();
 const envelope = z.object({
   model: z.string().min(1),
