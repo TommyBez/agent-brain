@@ -1,0 +1,16 @@
+{
+  "profileId": "apo-2026-10-16-completo-italiano-v1",
+  "defaultProfile": "baseline",
+  "changedTasks": [
+    "duplicate",
+    "link",
+    "residue",
+    "actionable",
+    "resolution",
+    "destination"
+  ],
+  "legacyProfilesUnchanged": true,
+  "verifierIdenticalToAuditedBaseline": true,
+  "profileHash": "12ac28df5ec147d03c7e09d8414a292574a98e2d67089a70075c4211c664a1d6",
+  "policyVersion": "page-consolidator-v5:apo-2026-10-16-completo-italiano-v1:12ac28df5ec147d03c7e09d8414a292574a98e2d67089a70075c4211c664a1d6"
+}

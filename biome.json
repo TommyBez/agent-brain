@@ -38,6 +38,10 @@
   },
   "overrides": [
     {
+      "includes": ["docs/benchmarks/**/*.json"],
+      "formatter": { "enabled": false }
+    },
+    {
       "includes": ["components/ui/**"],
       "linter": {
         "rules": {

@@ -2,9 +2,9 @@ import type { BrainPage } from "../../brain/types";
 import { analystGates, LOCALIZATION_THRESHOLD } from "./decision-policy";
 import { evidencePage } from "./projections";
 import {
-  booleanQuestion,
-  choiceQuestion,
+  localizationQuestion,
   pairPreparationQuestions,
+  partnerQuestion,
   preparationQuestions,
 } from "./questions";
 import { explicitReferences, referencedPages } from "./references";
@@ -35,18 +35,12 @@ type PassageKind = "duplicate" | "conflict" | "residue";
 async function localize(
   { ask, passageState, units, add, task }: FindingContext,
   kind: PassageKind,
-  instruction: string,
 ) {
   // Linear localization, only after a positive whole-page signal.
   const localization = await ask(
     passageState,
     Object.fromEntries(
-      units.map((_, i) => [
-        `passage_${i}`,
-        booleanQuestion(
-          `Select whether units[${i}] ${instruction}. All passages of each page are supplied in units in source order; use them as the complete page context. This question identifies an edit target, not permission to remove it.`,
-        ),
-      ]),
+      units.map((_, i) => [`passage_${i}`, localizationQuestion(kind, i)]),
     ),
   );
   const selected = units.filter((_, i) => {
@@ -98,16 +92,7 @@ async function pairTargets(
         const options = candidates.slice(start, start + 254);
         const id = `partner_${selections.length}`;
         selections.push({ anchor, options });
-        questions[id] = choiceQuestion(
-          `For anchor passage ${anchor.id} in units, which of the candidate passages listed in this question's choices ${kind === "duplicate" ? "repeats factual information from that anchor" : "makes a claim apparently incompatible with that anchor about the same entity and scope"}? Identify the counterpart only; a supported correction or deletion is NOT required. Select none when no counterpart exists; shared topic alone is insufficient.`,
-          Object.fromEntries([
-            ["none", "No suitable partner."],
-            ...options.map((unit, index) => [
-              `p${index}`,
-              `Passage ${unit.id} in units.`,
-            ]),
-          ]),
-        );
+        questions[id] = partnerQuestion(kind, anchor.id, options);
       }
     }
     // These selections are independent and share the same complete page state.
@@ -154,11 +139,7 @@ function findingBase(
   };
 }
 export async function analyzeDuplicate(ctx: FindingContext) {
-  const selected = await localize(
-    ctx,
-    "duplicate",
-    "contains factual information substantially repeated by another passage in the supplied page or opposite page of this pair",
-  );
+  const selected = await localize(ctx, "duplicate");
   for (const pair of await pairTargets(ctx, selected, "duplicate")) {
     const preparation = await preparePair(ctx, "duplicate", pair);
     if (!preparation) continue;
@@ -195,11 +176,7 @@ export async function analyzeDuplicate(ctx: FindingContext) {
   }
 }
 export async function analyzeConflict(ctx: FindingContext) {
-  const selected = await localize(
-    ctx,
-    "conflict",
-    "contains a claim involved in the apparent incompatibility or temporal/scope ambiguity signaled between passages in these pages",
-  );
+  const selected = await localize(ctx, "conflict");
   const { snapshot, pages, dependencies, depend, ask, add } = ctx;
   for (const pair of await pairTargets(ctx, selected, "conflict")) {
     let preparation = await preparePair(ctx, "conflict", pair);
@@ -242,11 +219,7 @@ export async function analyzeConflict(ctx: FindingContext) {
   }
 }
 export async function analyzeResidue(ctx: FindingContext) {
-  const selected = await localize(
-    ctx,
-    "residue",
-    "contains consolidator activity-only text or agent-added human follow-up, rather than an original user request",
-  );
+  const selected = await localize(ctx, "residue");
   for (const unit of selected) {
     const target = [unit];
     const preparation = await ctx.ask(
