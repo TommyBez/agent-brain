@@ -9,6 +9,7 @@ import {
   verificationThreshold,
 } from "../lib/maintenance/consolidator/decision-policy";
 import { materializeDraft } from "../lib/maintenance/consolidator/editor";
+import { promptPolicyVersion } from "../lib/maintenance/consolidator/prompts";
 import { buildSnapshot } from "../lib/maintenance/consolidator/snapshot";
 import {
   type Evaluate,
@@ -77,7 +78,7 @@ test("selection policy advances while text verification thresholds retain their 
       reject: 0.1,
     },
   });
-  assert.equal(POLICY.version, DECISION_POLICY.id);
+  assert.equal(POLICY.version, promptPolicyVersion(DECISION_POLICY.id));
   assert.equal(SCREENING_THRESHOLD, 0.8);
   assert.equal(LOCALIZATION_THRESHOLD, 0.7);
 });

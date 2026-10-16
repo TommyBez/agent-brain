@@ -73,6 +73,8 @@ export const BASELINE_PROFILE: PromptProfile = {
   prompts: BASELINE_PROMPTS,
 };
 
+export const DEFAULT_PROMPT_PROFILE_ID = "apo-2026-10-16-completo-italiano-v1";
+
 export function validateTemplate(task: PromptTask, template: string) {
   if (task === "verification" && template === "") return;
   if (template.length < 20 || template.length > 6000)
@@ -108,7 +110,7 @@ export function validateProfile(input: unknown): PromptProfile {
 }
 
 export function resolvePromptProfile(
-  id = process.env.JEV_PROMPT_PROFILE || "baseline",
+  id = process.env.JEV_PROMPT_PROFILE || DEFAULT_PROMPT_PROFILE_ID,
 ): PromptProfile {
   if (id === "baseline") return BASELINE_PROFILE;
   const candidate = (profiles as Record<string, unknown>)[id];

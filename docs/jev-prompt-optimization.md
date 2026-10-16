@@ -178,7 +178,7 @@ L'esportazione produce il prompt selezionato su validation, anche quando il test
 pnpm apo register --profile .evals/jev-apo/candidate.json
 ```
 
-La registrazione aggiunge una versione a `lib/maintenance/consolidator/prompt-profiles.json`; non sovrascrive versioni esistenti. L'attivazione richiede una modifica esplicita di `JEV_PROMPT_PROFILE` all'ID esportato e il normale rilascio. Il valore predefinito rimane `baseline`; per rollback impostare `JEV_PROMPT_PROFILE=baseline`. Non cambiare il profilo durante un workflow in corso: completare o interrompere quel run prima del rilascio.
+La registrazione aggiunge una versione a `lib/maintenance/consolidator/prompt-profiles.json`; non sovrascrive versioni esistenti. Il profilo approvato `apo-2026-10-16-completo-italiano-v1` è ora il valore predefinito nel codice e si attiva con il normale rilascio, senza configurazione esterna. La registrazione di futuri candidati non cambia questo valore. `JEV_PROMPT_PROFILE` è un override facoltativo, utilizzabile anche per un rollback esplicito a `baseline`. Non cambiare il profilo durante un workflow in corso: completare o interrompere quel run prima del rilascio.
 
 L'identità del profilo e l'hash dei suoi prompt entrano nelle chiavi di task/piani, evitando il riuso di decisioni ottenute con istruzioni diverse. Ogni valutazione registra inoltre `promptVersion`, hash delle domande effettivamente renderizzate. Le normali tracce conservano probabilità, consumi, errori ed esiti; dopo una promozione vanno confrontati anche l'incidenza di interventi respinti/incerti e i difetti del verificatore per questa versione. Il benchmark offline non sostituisce tale osservazione.
 

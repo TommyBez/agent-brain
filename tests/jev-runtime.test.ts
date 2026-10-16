@@ -17,10 +17,10 @@ import {
 import type { EvaluationRequest } from "../lib/maintenance/consolidator/types";
 import type { GatewayCall } from "../lib/maintenance/gateway";
 
-test("runtime probe sends the six adopted prompts selected by the environment", async () => {
+test("runtime probe uses the six adopted prompts by default without environment configuration", async () => {
   const previous = process.env.JEV_PROMPT_PROFILE;
   try {
-    process.env.JEV_PROMPT_PROFILE = "apo-2026-10-16-completo-italiano-v1";
+    delete process.env.JEV_PROMPT_PROFILE;
     const requests = jevDiagnosticRequests();
     for (const [request, baseline, keys] of [
       [
@@ -74,7 +74,7 @@ test("runtime probe sends the six adopted prompts selected by the environment", 
       } as T;
     };
     const result = await checkJevRuntime(send);
-    assert.equal(result.profileId, process.env.JEV_PROMPT_PROFILE);
+    assert.equal(result.profileId, "apo-2026-10-16-completo-italiano-v1");
     assert.equal(
       result.profileHash,
       fingerprint(resolvePromptProfile().prompts),
