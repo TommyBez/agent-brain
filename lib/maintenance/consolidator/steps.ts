@@ -26,6 +26,7 @@ import {
   finishConsolidationRun,
   readConsolidationQueue,
   readConsolidationRecord,
+  readConsolidationTaskSnapshot,
   saveConsolidationQueue,
   saveConsolidationRecord,
 } from "./store";
@@ -118,12 +119,15 @@ async function loadSnapshot(
   ownerId: string,
   runId: string,
   snapshotId: string,
+  pageIds?: string[],
 ): Promise<Snapshot> {
-  const snapshot = await readConsolidationRecord<Snapshot>(
-    ownerId,
-    runId,
-    recordKeys.snapshot(snapshotId),
-  );
+  const snapshot = pageIds
+    ? await readConsolidationTaskSnapshot(ownerId, runId, snapshotId, pageIds)
+    : await readConsolidationRecord<Snapshot>(
+        ownerId,
+        runId,
+        recordKeys.snapshot(snapshotId),
+      );
   if (!snapshot || snapshot.id !== snapshotId)
     throw new FatalError(
       "The immutable consolidation snapshot is unavailable.",
@@ -256,7 +260,12 @@ export async function analyzeConsolidationTask(
 ) {
   "use step";
   try {
-    const snapshot = await loadSnapshot(ownerId, runId, snapshotId);
+    const snapshot = await loadSnapshot(
+      ownerId,
+      runId,
+      snapshotId,
+      task.pageIds,
+    );
     const result = await analyzeTask(snapshot, task, (request) =>
       evaluatePersisted(ownerId, runId, request),
     );
