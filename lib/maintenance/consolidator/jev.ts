@@ -12,7 +12,7 @@ import {
   POLICY,
 } from "./types";
 
-export const JEV_MODEL = "typesafe-ai/jev";
+export const JEV_MODEL = "typesafe-ai/jev-1.14.0";
 
 const probability = z.number().finite().min(0).max(1);
 const tokenCount = z.number().int().nonnegative().nullable().optional();

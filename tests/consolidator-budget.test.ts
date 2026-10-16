@@ -27,6 +27,10 @@ test("actual spend prefers Gateway cost and includes both editor input and outpu
     42000,
   );
   assert.equal(
+    actualCost({ usage: { inputTokens: 1000 } }, "typesafe-ai/jev-1.14.0"),
+    42000,
+  );
+  assert.equal(
     actualCost(
       { usage: { prompt_tokens: 1000, completion_tokens: 2000 } },
       EDITOR_MODEL,

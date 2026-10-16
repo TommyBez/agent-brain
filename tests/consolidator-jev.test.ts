@@ -25,7 +25,7 @@ const request: EvaluationRequest = {
 
 function response() {
   return {
-    model: "typesafe-ai/jev",
+    model: "typesafe-ai/jev-1.14.0",
     answers: {
       supported: { type: "boolean", probability: 0.93 },
       target: {
@@ -55,7 +55,7 @@ test("Jev calls the evaluation endpoint and retains probabilities, provider conf
     async (url: string | URL | Request, init?: RequestInit) => {
       assert.equal(String(url), "https://ai-gateway.vercel.sh/v1/evaluate");
       assert.deepEqual(JSON.parse(String(init?.body)), {
-        model: "typesafe-ai/jev",
+        model: "typesafe-ai/jev-1.14.0",
         ...request,
       });
       return Response.json(response());
@@ -74,7 +74,7 @@ test("Jev calls the evaluation endpoint and retains probabilities, provider conf
 });
 
 test("Jev does not substitute selected probability for unavailable confidence or zero for unavailable usage", () => {
-  const raw = { model: "typesafe-ai/jev", answers: response().answers };
+  const raw = { model: "typesafe-ai/jev-1.14.0", answers: response().answers };
   const evaluation = parseEvaluation(request, raw);
   assert.equal(
     evaluation.answers.target.type === "choice" &&
@@ -313,7 +313,7 @@ test("Jev retains observed cent-rounded choice distributions without normalizati
       },
     };
     const evaluation = parseEvaluation(roundedRequest, {
-      model: "typesafe-ai/jev",
+      model: "typesafe-ai/jev-1.14.0",
       answers: { selected: { type: "choice", choice, probabilities } },
     });
     assert.equal(evaluation.answers.selected.type, "choice");

@@ -68,7 +68,7 @@ function verificationFixtures() {
 
 test("selection policy advances while text verification thresholds retain their values", () => {
   assert.deepEqual(DECISION_POLICY, {
-    id: "page-consolidator-v4",
+    id: "page-consolidator-v5",
     analyst: { yes: 0.8, choiceProbability: 0.8 },
     verifier: {
       objective: 0.8,

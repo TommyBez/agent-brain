@@ -46,7 +46,8 @@ export function actualCost(raw: unknown, model: string): number | null {
   const output = usage.outputTokens ?? usage.completion_tokens;
   if (typeof input !== "number" || !Number.isFinite(input) || input < 0)
     return null;
-  if (model === "typesafe-ai/jev") return Math.ceil(input * 42);
+  if (model === "typesafe-ai/jev" || model === "typesafe-ai/jev-1.14.0")
+    return Math.ceil(input * 42);
   if (
     model === EDITOR_MODEL &&
     typeof output === "number" &&

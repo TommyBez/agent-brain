@@ -1,7 +1,7 @@
 import type { Answer } from "./types";
 
 export const DECISION_POLICY = {
-  id: "page-consolidator-v4",
+  id: "page-consolidator-v5",
   analyst: {
     yes: 0.8,
     choiceProbability: 0.8,
