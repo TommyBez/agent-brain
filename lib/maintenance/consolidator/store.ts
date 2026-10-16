@@ -5,7 +5,9 @@ import { BrainError, LINK_TYPES, MAX_PAGE_CHARACTERS } from "../../brain/types";
 import { assertOwner } from "../../brain/utils";
 import { canonicalJson, fingerprint } from "../../canonical-json";
 import { getPool, transaction } from "../../db";
-import type { ApplyResult, ChangeSet } from "./types";
+import { recordKeys } from "./keys";
+import { explicitReferences } from "./references";
+import type { ApplyResult, ChangeSet, Snapshot } from "./types";
 
 const identifier = z
   .string()
@@ -168,6 +170,48 @@ export async function readConsolidationRecord<T = unknown>(
     [ownerId, runId, key],
   );
   return result.rows[0]?.payload ?? null;
+}
+
+/** Project the immutable snapshot in Postgres, before its JSON crosses the wire.
+ * Keep source order, full pages and existing unit IDs for identical model/cache inputs.
+ */
+export async function readConsolidationTaskSnapshot(
+  ownerId: string,
+  runId: string,
+  snapshotId: string,
+  pageIds: string[],
+): Promise<Snapshot | null> {
+  assertOwner(ownerId);
+  identifier.parse(runId);
+  const key = recordKeys.snapshot(snapshotId);
+  identifier.parse(key);
+  const read = async (refs: string[] = []) => {
+    const result = await getPool().query<{ payload: Snapshot }>(
+      `WITH record AS (
+         SELECT payload FROM brain_consolidation_records
+         WHERE owner_id=$1 AND run_id=$2 AND kind='record' AND record_key=$3
+       ), selected_pages AS (
+         SELECT page,position FROM record,
+           jsonb_array_elements(payload->'pages') WITH ORDINALITY AS p(page,position)
+         WHERE page->>'id'=ANY($4::text[])
+           OR page->>'id'=ANY($5::text[]) OR page->>'slug'=ANY($5::text[])
+       )
+       SELECT jsonb_build_object(
+         'id',payload->'id','createdAt',payload->'createdAt',
+         'pages',COALESCE((SELECT jsonb_agg(page ORDER BY position) FROM selected_pages),'[]'::jsonb),
+         'units',COALESCE((SELECT jsonb_agg(unit ORDER BY position)
+           FROM jsonb_array_elements(payload->'units') WITH ORDINALITY AS u(unit,position)
+           WHERE unit->>'pageId' IN (SELECT page->>'id' FROM selected_pages)),'[]'::jsonb)
+       ) AS payload FROM record`,
+      [ownerId, runId, key, pageIds, refs],
+    );
+    return result.rows[0]?.payload ?? null;
+  };
+  const snapshot = await read();
+  if (!snapshot) return null;
+  // Conflict analysis can consult direct explicit sources, but never their sources.
+  const references = [...explicitReferences(snapshot.pages)];
+  return references.length ? read(references) : snapshot;
 }
 
 export async function beginConsolidationRun(
