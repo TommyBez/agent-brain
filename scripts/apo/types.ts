@@ -78,7 +78,7 @@ export const configSchema = z
     maxCalls: z.number().int().positive().default(6000),
     maxTokens: z.number().int().positive().default(4_000_000),
     maxDollars: z.number().positive().default(2),
-    optimizerModel: z.string().min(1).default("deepseek/deepseek-v4.1-flash"),
+    optimizerModel: z.string().min(1).default("deepseek/deepseek-v4.1-flash-1017"),
     judgeModels: z.array(z.string().min(1)).default([]),
     optimizerMaxTokens: z.number().int().min(1000).max(16000).default(8192),
     optimizerTemperature: z.number().min(0).max(2).default(0),
