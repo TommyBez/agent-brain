@@ -18,7 +18,7 @@ export async function presentAccountCount() {
   );
   return rows[0]?.count ?? 0;
 }
-export const EDITOR_MODEL = "deepseek/deepseek-v4.1-flash";
+export const EDITOR_MODEL = "deepseek/deepseek-v4.1-flash-1017";
 export class BudgetExhaustedError extends Error {
   constructor() {
     super("Daily consolidation budget exhausted");
@@ -54,7 +54,7 @@ export function actualCost(raw: unknown, model: string): number | null {
     Number.isFinite(output) &&
     output >= 0
   )
-    return Math.ceil(input * 300 + output * 1200);
+    return Math.ceil(input * 150 + output * 600);
   return null;
 }
 

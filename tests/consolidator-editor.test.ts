@@ -361,7 +361,7 @@ test("DeepSeek receives strict JSON schema, complete scoped sources and no write
     })),
   };
   let responseContent = JSON.stringify(proposal);
-  const expectedModel = "deepseek/deepseek-v4.1-flash";
+  const expectedModel = "deepseek/deepseek-v4.1-flash-1017";
   t.mock.method(
     globalThis,
     "fetch",

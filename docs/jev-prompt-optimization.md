@@ -100,7 +100,7 @@ Per la modalità economica, aggiungere `--smoke` a `prepare`: seleziona cinque f
   "patience": 2,
   "maxDollars": 2,
   "maxTokens": 4000000,
-  "optimizerModel": "deepseek/deepseek-v4.1-flash"
+  "optimizerModel": "deepseek/deepseek-v4.1-flash-1017"
 }
 ```
 

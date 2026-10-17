@@ -35,7 +35,7 @@ test("actual spend prefers Gateway cost and includes both editor input and outpu
       { usage: { prompt_tokens: 1000, completion_tokens: 2000 } },
       EDITOR_MODEL,
     ),
-    2_700_000,
+    1_350_000,
   );
   assert.equal(actualCost({}, EDITOR_MODEL), null);
   assert.equal(
