@@ -54,7 +54,7 @@ export function actualCost(raw: unknown, model: string): number | null {
     Number.isFinite(output) &&
     output >= 0
   )
-    return Math.ceil(input * 300 + output * 1200);
+    return Math.ceil(input * 150 + output * 600);
   return null;
 }
 
