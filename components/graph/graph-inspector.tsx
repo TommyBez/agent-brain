@@ -7,12 +7,19 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { entityTypes } from "@/lib/brain/labels";
 import type { LinkType, PageType } from "@/lib/brain/types";
 import { formatDate } from "@/lib/formatters";
 import { type GraphEdge, type GraphNode, linkLabel } from "@/lib/graph/model";
+import type { OverlayTaskNode } from "@/lib/graph/task-overlay";
 import { pageHref } from "@/lib/workspace/urls";
 import { EntityIcon } from "../workspace/primitives";
+import type { TaskLayer } from "./canvas-types";
+import { NodeButton, SectionTitle, typeLabel } from "./inspector-parts";
+import {
+  PageTasks,
+  TaskDetails,
+  TaskOverlaySummary,
+} from "./task-overlay-inspector";
 
 export interface GraphInspectorProps {
   nodes: GraphNode[];
@@ -37,53 +44,12 @@ export interface GraphInspectorProps {
   onToggleUnlinked: () => void;
   visibleCount: number;
   visibleLinkCount: number;
-}
-
-function SectionTitle({ children }: { children: React.ReactNode }) {
-  return (
-    <h3 className="text-xs font-medium tracking-widest text-muted-foreground">
-      {children}
-    </h3>
-  );
-}
-
-function typeLabel(type: PageType) {
-  return entityTypes.find((item) => item.id === type)?.label ?? type;
-}
-
-function NodeButton({
-  node,
-  caption,
-  onSelect,
-}: {
-  node: GraphNode;
-  caption: string;
-  onSelect: (id: string) => void;
-}) {
-  return (
-    <div className="flex items-center gap-1">
-      <button
-        type="button"
-        onClick={() => onSelect(node.id)}
-        className={`entity-${node.type} flex min-w-0 flex-1 items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none`}
-      >
-        <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
-          <EntityIcon type={node.type} size={14} />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block truncate text-foreground">{node.title}</span>
-          <span className="block truncate text-xs text-muted-foreground">
-            {caption}
-          </span>
-        </span>
-      </button>
-      <Button variant="ghost" size="icon-sm" asChild>
-        <Link href={pageHref(node.id)} aria-label={`Open ${node.title}`}>
-          <ArrowUpRight />
-        </Link>
-      </Button>
-    </div>
-  );
+  /** The open-task layer; null while it is off. */
+  taskLayer?: TaskLayer | null;
+  /** Tasks loaded for the layer and all tasks linked to the loaded pages. */
+  taskTotals?: { loaded: number; total: number };
+  selectedTask?: OverlayTaskNode | null;
+  onSelectTask?: (id: string) => void;
 }
 
 function Details({
@@ -410,12 +376,39 @@ function Overview({
 }
 
 export function GraphInspector(props: GraphInspectorProps) {
+  const { taskLayer, selectedTask, onSelectTask } = props;
   return (
     <div className="p-5">
-      {props.selected ? (
-        <Details {...props} selected={props.selected} />
+      {taskLayer && selectedTask ? (
+        <TaskDetails
+          task={selectedTask}
+          layer={taskLayer}
+          nodes={props.nodes}
+          onSelect={props.onSelect}
+          onClear={props.onClear}
+        />
+      ) : props.selected ? (
+        <div className="space-y-5">
+          <Details {...props} selected={props.selected} />
+          {taskLayer && onSelectTask && (
+            <PageTasks
+              pageId={props.selected.id}
+              layer={taskLayer}
+              onSelectTask={onSelectTask}
+            />
+          )}
+        </div>
       ) : (
-        <Overview {...props} />
+        <div className="space-y-6">
+          <Overview {...props} />
+          {taskLayer && (
+            <TaskOverlaySummary
+              layer={taskLayer}
+              loaded={props.taskTotals?.loaded ?? taskLayer.nodes.length}
+              total={props.taskTotals?.total ?? taskLayer.nodes.length}
+            />
+          )}
+        </div>
       )}
     </div>
   );

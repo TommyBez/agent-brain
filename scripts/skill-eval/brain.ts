@@ -3,6 +3,14 @@ import { z } from "zod";
 import * as schemas from "../../lib/brain/schemas";
 import type { PageType } from "../../lib/brain/types";
 import { normalizeIdentity, slugify } from "../../lib/brain/utils";
+import {
+  FakeTaskStore,
+  isTaskTool,
+  TaskToolError,
+  type TaskWorld,
+} from "./task-brain";
+
+export { taskToolDefinitions } from "./task-brain";
 
 export type Page = z.infer<typeof schemas.writeSchema> & {
   id: string;
@@ -67,14 +75,23 @@ const retrieval = {
 export class FakeBrain {
   readonly pages: Page[];
   readonly trace: Trace[];
+  private readonly tasks?: FakeTaskStore;
   constructor(
     initial: Page[],
     private readonly files: Record<string, string>,
     trace: Trace[] = [],
     private readonly nextId: () => string = randomUUID,
+    // Task suites only: without a world the task tools stay unknown.
+    tasks?: { world: TaskWorld; seed: string },
   ) {
     this.pages = structuredClone(initial);
     this.trace = structuredClone(trace);
+    if (tasks)
+      this.tasks = new FakeTaskStore(tasks.world, tasks.seed, this.pages);
+  }
+
+  get taskWorld(): TaskWorld | undefined {
+    return this.tasks?.world;
   }
 
   private find(ref: string): Page {
@@ -149,14 +166,30 @@ export class FakeBrain {
 
   call(tool: string, input: unknown): unknown {
     const entry: Trace = { tool, input: structuredClone(input), output: null };
+    this.tasks?.before(tool, input, this.trace);
     try {
       entry.output = structuredClone(this.execute(tool, input, entry));
     } catch (error) {
       entry.error = error instanceof Error ? error.message : "Tool failed";
-      entry.output = { error: entry.error };
+      entry.output =
+        error instanceof TaskToolError
+          ? { error: entry.error, code: error.code, details: error.details }
+          : { error: entry.error };
     }
     this.trace.push(entry);
+    this.tasks?.after(this.trace);
     return entry.output;
+  }
+
+  private withOpenTasks<T extends object>(
+    pages: Page[],
+    value: T,
+    withProject: boolean,
+  ) {
+    const projects = pages.filter((page) => page.type === "project");
+    if (!this.tasks || !projects.length) return value;
+    const openTasks = this.tasks.openTasks(projects, withProject);
+    return openTasks ? { ...value, openTasks } : value;
   }
 
   private execute(tool: string, input: unknown, entry: Trace): unknown {
@@ -173,7 +206,7 @@ export class FakeBrain {
         const page = this.find(schemas.readSchema.parse(input).ref);
         entry.pageId = page.id;
         entry.version = page.version;
-        return this.decorated(page);
+        return this.withOpenTasks([page], this.decorated(page), false);
       }
       case "resolve": {
         const data = schemas.resolveSchema.parse(input);
@@ -223,7 +256,7 @@ export class FakeBrain {
               `## ${p.title}\n[${p.slug}] · ${p.type} · v${p.version}\n${p.markdown}`,
           )
           .join("\n\n");
-        return {
+        const bundle = {
           query: data.query,
           markdown: markdown.slice(0, data.maxCharacters),
           citations: pages.map((p) => this.summary(p)),
@@ -233,6 +266,7 @@ export class FakeBrain {
               : [],
           retrieval,
         };
+        return this.withOpenTasks(pages, bundle, true);
       }
       case "list_pages": {
         const data = schemas.listPagesSchema.parse(input);
@@ -303,6 +337,7 @@ export class FakeBrain {
         };
         if (previous) this.pages[this.pages.indexOf(previous)] = next;
         else this.pages.push(next);
+        this.tasks?.recordRevision(next.id, next.version);
         entry.pageId = next.id;
         entry.version = next.version;
         entry.mutation = true;
@@ -324,12 +359,15 @@ export class FakeBrain {
         });
         page.markdown = markdown;
         page.version++;
+        this.tasks?.recordRevision(page.id, page.version);
         entry.pageId = page.id;
         entry.version = page.version;
         entry.mutation = true;
         return this.decorated(page);
       }
       default:
+        if (this.tasks && isTaskTool(tool))
+          return this.tasks.execute(tool, input, this.trace);
         throw new Error(`Unknown tool: ${tool}`);
     }
   }

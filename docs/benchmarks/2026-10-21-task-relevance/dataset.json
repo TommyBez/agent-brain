@@ -1,0 +1,610 @@
+{
+  "id": "task-relevance-2026-10-21",
+  "language": "it",
+  "synthetic": true,
+  "labels": "Etichette note per costruzione, nessuna validazione umana. expected: decision | stakeholder | context | none.",
+  "categories": {
+    "decisione_pertinente": "Una decisione che definisce o vincola come o se svolgere il task: atteso decision.",
+    "stakeholder": "Una persona o un'azienda per cui, con cui o su cui si svolge il task: atteso stakeholder.",
+    "contesto_pertinente": "Una nota con fatti, vincoli o esiti precedenti che chi esegue il task deve usare: atteso context.",
+    "stesso_tema_non_pertinente": "Stesso argomento del task, nessuna conoscenza utile per svolgerlo: atteso none.",
+    "decisione_superata": "Una decisione sullo stesso punto che le fonti dichiarano superata o revocata: atteso none.",
+    "menzione_incidentale": "Nomi o parole del task citati di sfuggita in un contesto diverso, omonimi compresi: atteso none."
+  },
+  "scenarios": [
+    {
+      "id": "S01",
+      "task": {
+        "title": "Preparare il report trimestrale sugli studi clinici per Farmalab",
+        "description": "Raccogliere lo stato degli studi clinici attivi e inviare il report trimestrale al cliente entro la fine del trimestre.",
+        "acceptanceCriteria": ["Il report copre tutti gli studi attivi", "Il formato rispetta il modello concordato con il cliente"]
+      },
+      "pages": [
+        {
+          "id": "S01-P1",
+          "category": "decisione_pertinente",
+          "expected": "decision",
+          "page": {
+            "title": "Formato del report trimestrale Farmalab",
+            "type": "decision",
+            "summary": "Modello in due sezioni, invio in PDF entro l'ultimo giorno lavorativo del trimestre.",
+            "excerpt": "Decisione del 3/10 con Farmalab: il report trimestrale sugli studi clinici usa il modello in due sezioni (studi attivi e studi chiusi) e si invia in PDF entro l'ultimo giorno lavorativo del trimestre. Ogni studio riporta fase, numero di pazienti arruolati e prossima scadenza regolatoria."
+          }
+        },
+        {
+          "id": "S01-P2",
+          "category": "decisione_superata",
+          "expected": "none",
+          "page": {
+            "title": "Report mensile Farmalab in Excel",
+            "type": "decision",
+            "summary": "Report mensile in Excel; superata il 3/10.",
+            "excerpt": "Decisione del 12/05: il report per Farmalab si invia ogni mese in un foglio Excel con una riga per studio. Questa decisione è stata superata il 3/10 dalla decisione «Formato del report trimestrale Farmalab», che la sostituisce integralmente."
+          }
+        },
+        {
+          "id": "S01-P3",
+          "category": "stakeholder",
+          "expected": "stakeholder",
+          "page": {
+            "title": "Giulia Conti",
+            "type": "person",
+            "summary": "Responsabile qualità di Farmalab.",
+            "excerpt": "Giulia Conti è la responsabile qualità di Farmalab. Riceve il report trimestrale sugli studi clinici, lo approva e lo inoltra al comitato scientifico del cliente."
+          }
+        },
+        {
+          "id": "S01-P4",
+          "category": "stesso_tema_non_pertinente",
+          "expected": "none",
+          "page": {
+            "title": "Convegno di farmacologia a Bologna",
+            "type": "note",
+            "summary": "Appunti dal convegno di settembre.",
+            "excerpt": "Appunti dal convegno di farmacologia di Bologna: interventi sui nuovi studi clinici di fase II in oncologia e sull'uso dei dati reali. Nessun intervento riguardava i clienti dello studio o i loro report."
+          }
+        }
+      ]
+    },
+    {
+      "id": "S02",
+      "task": {
+        "title": "Pubblicare la versione 2.3 dell'app Orto Facile sul Play Store",
+        "description": "Preparare la build firmata, scrivere le note di rilascio in italiano e in inglese e caricare la versione sul canale di produzione.",
+        "acceptanceCriteria": ["Build firmata con la chiave di produzione", "Note di rilascio nelle due lingue"]
+      },
+      "pages": [
+        {
+          "id": "S02-P1",
+          "category": "decisione_pertinente",
+          "expected": "decision",
+          "page": {
+            "title": "Rilascio graduale delle versioni Android",
+            "type": "decision",
+            "summary": "Rilascio al 20% per 48 ore prima del 100%.",
+            "excerpt": "Decisione del 1/09: ogni nuova versione Android dell'app Orto Facile va pubblicata con rilascio graduale al 20% degli utenti per 48 ore; si passa al 100% solo se il tasso di crash resta sotto l'1%."
+          }
+        },
+        {
+          "id": "S02-P2",
+          "category": "stakeholder",
+          "expected": "stakeholder",
+          "page": {
+            "title": "Verdi Digital srl",
+            "type": "company",
+            "summary": "Agenzia che gestisce la Play Console di Orto Facile.",
+            "excerpt": "Verdi Digital srl gestisce l'account Play Console del cliente Orto Facile. Ogni pubblicazione in produzione deve essere confermata dal loro referente prima del caricamento."
+          }
+        },
+        {
+          "id": "S02-P3",
+          "category": "stesso_tema_non_pertinente",
+          "expected": "none",
+          "page": {
+            "title": "Analisi di un'app di giardinaggio concorrente",
+            "type": "note",
+            "summary": "Interfaccia, prezzi e recensioni di un concorrente.",
+            "excerpt": "Analisi dell'app di giardinaggio di un concorrente: interfaccia con calendario delle semine, abbonamento a 2,99 euro al mese, recensioni medie di 4,1 stelle. Non contiene informazioni sul processo di rilascio."
+          }
+        },
+        {
+          "id": "S02-P4",
+          "category": "menzione_incidentale",
+          "expected": "none",
+          "page": {
+            "title": "Verbale riunione marketing 10/10",
+            "type": "note",
+            "summary": "Budget pubblicitario 2027.",
+            "excerpt": "Riunione marketing del 10/10. Tra le varie, Marco ha ricordato che la versione 2.3 di Orto Facile sarà mostrata alla fiera di novembre. Il resto della riunione ha riguardato la ripartizione del budget pubblicitario del 2027 tra social e stampa locale."
+          }
+        }
+      ]
+    },
+    {
+      "id": "S03",
+      "task": {
+        "title": "Inviare l'offerta per il nuovo sito a Officine Rinaldi",
+        "description": "Preparare l'offerta economica per il rifacimento del sito e inviarla al cliente dopo la conferma interna.",
+        "acceptanceCriteria": ["Offerta in tre fasi con i prezzi", "Conferma interna prima dell'invio"]
+      },
+      "pages": [
+        {
+          "id": "S03-P1",
+          "category": "stakeholder",
+          "expected": "stakeholder",
+          "page": {
+            "title": "Paolo Damiani",
+            "type": "person",
+            "summary": "Socio dello studio.",
+            "excerpt": "Paolo Damiani è socio dello studio. Approva tutte le offerte sopra i 10.000 euro prima che vengano inviate ai clienti."
+          }
+        },
+        {
+          "id": "S03-P2",
+          "category": "decisione_pertinente",
+          "expected": "decision",
+          "page": {
+            "title": "Tariffe orarie 2026",
+            "type": "decision",
+            "summary": "85 euro l'ora per i progetti web.",
+            "excerpt": "Decisione del 15/12: dal 1/01/2026 la tariffa oraria per i progetti web è di 85 euro, con uno sconto del 10% per i clienti con contratto annuale. Tutte le offerte emesse nel 2026 applicano queste tariffe."
+          }
+        },
+        {
+          "id": "S03-P3",
+          "category": "stakeholder",
+          "expected": "stakeholder",
+          "page": {
+            "title": "Officine Rinaldi",
+            "type": "company",
+            "summary": "Azienda metalmeccanica di Lecco, cliente dal 2024.",
+            "excerpt": "Officine Rinaldi è un'azienda metalmeccanica di Lecco, cliente dal 2024. La referente Anna Rinaldi ha chiesto un preventivo per il rifacimento del sito aziendale."
+          }
+        },
+        {
+          "id": "S03-P4",
+          "category": "stesso_tema_non_pertinente",
+          "expected": "none",
+          "page": {
+            "title": "Tendenze del web design 2026",
+            "type": "article",
+            "summary": "Articolo sulle tendenze grafiche.",
+            "excerpt": "Articolo sulle tendenze del web design per il 2026: tipografia espressiva, animazioni leggere e temi scuri. Testo generale, senza riferimenti a clienti o prezzi."
+          }
+        }
+      ]
+    },
+    {
+      "id": "S04",
+      "task": {
+        "title": "Migrare la newsletter da Mailchimp a Brevo",
+        "description": "Esportare i contatti con il consenso, ricreare i modelli e attivare l'invio da Brevo.",
+        "acceptanceCriteria": ["Solo contatti con consenso registrato", "Modelli ricreati e provati"]
+      },
+      "pages": [
+        {
+          "id": "S04-P1",
+          "category": "decisione_pertinente",
+          "expected": "decision",
+          "page": {
+            "title": "Piattaforma della newsletter",
+            "type": "decision",
+            "summary": "Passaggio a Brevo; Mailchimp attivo fino a fine novembre.",
+            "excerpt": "Decisione del 20/09: la newsletter passa a Brevo per i costi e per i server in Europa. Mailchimp resta attivo fino a fine novembre per l'archivio; nessun nuovo invio parte da Mailchimp dopo la migrazione."
+          }
+        },
+        {
+          "id": "S04-P2",
+          "category": "decisione_superata",
+          "expected": "none",
+          "page": {
+            "title": "Newsletter su Substack",
+            "type": "decision",
+            "summary": "Revocata a settembre.",
+            "excerpt": "Decisione di marzo: pubblicare la newsletter su Substack. Revocata il 20/09 e sostituita dalla decisione «Piattaforma della newsletter»."
+          }
+        },
+        {
+          "id": "S04-P3",
+          "category": "contesto_pertinente",
+          "expected": "context",
+          "page": {
+            "title": "Registro dei consensi",
+            "type": "note",
+            "summary": "Dove sono i consensi e quali contatti escludere.",
+            "excerpt": "Il registro dei consensi è nel foglio «consensi-2026». I contatti importati dagli eventi prima del 2024 non hanno un consenso documentato e non vanno usati per l'invio di email."
+          }
+        },
+        {
+          "id": "S04-P4",
+          "category": "menzione_incidentale",
+          "expected": "none",
+          "page": {
+            "title": "Cena di fine anno",
+            "type": "note",
+            "summary": "Ristorante e data della cena.",
+            "excerpt": "Organizzazione della cena di fine anno: ristorante Al Ponte, venerdì 19 dicembre. Luca manderà l'invito con la newsletter interna della settimana."
+          }
+        }
+      ]
+    },
+    {
+      "id": "S05",
+      "task": {
+        "title": "Assumere uno sviluppatore junior per il team mobile",
+        "description": "Pubblicare l'annuncio, raccogliere le candidature e organizzare i colloqui entro dicembre.",
+        "acceptanceCriteria": ["Annuncio pubblicato su due canali", "Almeno tre colloqui svolti"]
+      },
+      "pages": [
+        {
+          "id": "S05-P1",
+          "category": "decisione_pertinente",
+          "expected": "decision",
+          "page": {
+            "title": "Budget assunzioni 2026",
+            "type": "decision",
+            "summary": "Un solo junior mobile, RAL massima 30.000 euro.",
+            "excerpt": "Decisione del consiglio del 2/10: nel 2026 si assume un solo profilo junior per il team mobile, con RAL massima di 30.000 euro e contratto a tempo indeterminato."
+          }
+        },
+        {
+          "id": "S05-P2",
+          "category": "stakeholder",
+          "expected": "stakeholder",
+          "page": {
+            "title": "Sara Leone",
+            "type": "person",
+            "summary": "Responsabile del team mobile.",
+            "excerpt": "Sara Leone guida il team mobile e conduce i colloqui tecnici dei candidati per il suo gruppo."
+          }
+        },
+        {
+          "id": "S05-P3",
+          "category": "stesso_tema_non_pertinente",
+          "expected": "none",
+          "page": {
+            "title": "Corso React Native di giugno",
+            "type": "note",
+            "summary": "Appunti personali dal corso.",
+            "excerpt": "Appunti dal corso React Native seguito a giugno: navigazione tra schermate, gestione dello stato e test sui dispositivi."
+          }
+        },
+        {
+          "id": "S05-P4",
+          "category": "contesto_pertinente",
+          "expected": "context",
+          "page": {
+            "title": "Procedura di selezione del personale",
+            "type": "note",
+            "summary": "Approvazione HR e registrazione dei colloqui.",
+            "excerpt": "Ogni annuncio di lavoro va approvato dall'ufficio HR prima della pubblicazione. I colloqui si registrano nel modulo «selezione» entro 24 ore, con l'esito e il nome di chi li ha condotti."
+          }
+        }
+      ]
+    },
+    {
+      "id": "S06",
+      "task": {
+        "title": "Chiudere il bilancio 2025 con il commercialista",
+        "description": "Raccogliere le fatture mancanti, verificare gli ammortamenti e consegnare la documentazione allo Studio Ferraris.",
+        "acceptanceCriteria": ["Fatture del 2025 complete", "Documentazione consegnata entro il 15 marzo"]
+      },
+      "pages": [
+        {
+          "id": "S06-P1",
+          "category": "stakeholder",
+          "expected": "stakeholder",
+          "page": {
+            "title": "Studio Ferraris",
+            "type": "company",
+            "summary": "Commercialista dello studio dal 2022.",
+            "excerpt": "Lo Studio Ferraris tiene la contabilità dal 2022 e prepara il bilancio annuale. La referente è la dott.ssa Elena Ferraris, che riceve la documentazione di fine anno."
+          }
+        },
+        {
+          "id": "S06-P2",
+          "category": "decisione_pertinente",
+          "expected": "decision",
+          "page": {
+            "title": "Ammortamento dei portatili in tre anni",
+            "type": "decision",
+            "summary": "Quote costanti su tre anni.",
+            "excerpt": "Decisione del 2024, concordata con il commercialista: i computer portatili si ammortizzano in tre anni a quote costanti a partire dall'anno di acquisto."
+          }
+        },
+        {
+          "id": "S06-P3",
+          "category": "decisione_superata",
+          "expected": "none",
+          "page": {
+            "title": "Regime forfettario",
+            "type": "decision",
+            "summary": "Superata dal passaggio al regime ordinario.",
+            "excerpt": "Decisione del 2021: adesione al regime forfettario. Superata dal 2023 con il passaggio al regime ordinario; non si applica più ai bilanci successivi."
+          }
+        },
+        {
+          "id": "S06-P4",
+          "category": "menzione_incidentale",
+          "expected": "none",
+          "page": {
+            "title": "Assemblea del condominio di via Roma",
+            "type": "note",
+            "summary": "Verbale dell'assemblea condominiale.",
+            "excerpt": "All'assemblea condominiale l'amministratore ha presentato il bilancio 2025 del condominio di via Roma e il preventivo per il rifacimento del tetto."
+          }
+        }
+      ]
+    },
+    {
+      "id": "S07",
+      "task": {
+        "title": "Organizzare il workshop sull'intelligenza artificiale per Cooperativa Valtellina",
+        "description": "Definire programma, sala e materiali del workshop di mezza giornata per i dipendenti della cooperativa.",
+        "acceptanceCriteria": ["Programma approvato dal cliente", "Materiali inviati tre giorni prima"]
+      },
+      "pages": [
+        {
+          "id": "S07-P1",
+          "category": "stakeholder",
+          "expected": "stakeholder",
+          "page": {
+            "title": "Cooperativa Valtellina",
+            "type": "company",
+            "summary": "Cooperativa agricola di Sondrio, cliente formazione.",
+            "excerpt": "Cooperativa Valtellina è una cooperativa agricola di Sondrio che ha acquistato un pacchetto di formazione per i dipendenti. La referente è Marta Gianoli."
+          }
+        },
+        {
+          "id": "S07-P2",
+          "category": "contesto_pertinente",
+          "expected": "context",
+          "page": {
+            "title": "Esito del workshop di Brescia",
+            "type": "note",
+            "summary": "Feedback dei partecipanti di maggio.",
+            "excerpt": "Al workshop di maggio a Brescia i partecipanti hanno chiesto più esempi pratici e meno teoria; la durata di quattro ore è risultata adeguata e i materiali stampati sono stati apprezzati."
+          }
+        },
+        {
+          "id": "S07-P3",
+          "category": "stesso_tema_non_pertinente",
+          "expected": "none",
+          "page": {
+            "title": "Abbonamenti a chatbot per uso personale",
+            "type": "note",
+            "summary": "Confronto di prezzi.",
+            "excerpt": "Confronto tra i prezzi degli abbonamenti mensili ai principali chatbot per uso personale, raccolto per scegliere quale usare a casa."
+          }
+        },
+        {
+          "id": "S07-P4",
+          "category": "menzione_incidentale",
+          "expected": "none",
+          "page": {
+            "title": "Marco Gianoli",
+            "type": "person",
+            "summary": "Fotografo.",
+            "excerpt": "Marco Gianoli è un fotografo di Lecco che ha scattato le foto al matrimonio di Luca nel 2023."
+          }
+        }
+      ]
+    },
+    {
+      "id": "S08",
+      "task": {
+        "title": "Rinnovare il certificato SSL del portale clienti",
+        "description": "Il certificato scade il 30 novembre: rinnovarlo e installarlo sul server di produzione senza interruzioni.",
+        "acceptanceCriteria": ["Nuovo certificato installato", "Nessuna interruzione del servizio"]
+      },
+      "pages": [
+        {
+          "id": "S08-P1",
+          "category": "decisione_pertinente",
+          "expected": "decision",
+          "page": {
+            "title": "Certificati con rinnovo automatico",
+            "type": "decision",
+            "summary": "Let's Encrypt con rinnovo automatico per tutti i domini.",
+            "excerpt": "Decisione del 5/06: per tutti i domini si usano certificati Let's Encrypt con rinnovo automatico gestito dal bilanciatore; non si acquistano più certificati manualmente."
+          }
+        },
+        {
+          "id": "S08-P2",
+          "category": "decisione_superata",
+          "expected": "none",
+          "page": {
+            "title": "Certificati wildcard annuali",
+            "type": "decision",
+            "summary": "Superata il 5/06.",
+            "excerpt": "Decisione del 2022: acquistare ogni anno un certificato wildcard da un rivenditore. Superata il 5/06 dalla decisione sui certificati con rinnovo automatico."
+          }
+        },
+        {
+          "id": "S08-P3",
+          "category": "contesto_pertinente",
+          "expected": "context",
+          "page": {
+            "title": "Manutenzione del server di produzione",
+            "type": "note",
+            "summary": "Finestre di intervento e avvisi.",
+            "excerpt": "Gli interventi sul server di produzione si fanno tra le 22 e le 6, con un avviso ai clienti del portale almeno 48 ore prima."
+          }
+        },
+        {
+          "id": "S08-P4",
+          "category": "stesso_tema_non_pertinente",
+          "expected": "none",
+          "page": {
+            "title": "Corso online sulla sicurezza informatica",
+            "type": "note",
+            "summary": "Appunti generali del corso.",
+            "excerpt": "Appunti dal corso online sulla sicurezza informatica: phishing, password e cifratura in generale, con esercizi a scelta multipla."
+          }
+        }
+      ]
+    },
+    {
+      "id": "S09",
+      "task": {
+        "title": "Rispondere al reclamo di Laura Bianchi sul ritardo della consegna",
+        "description": "La cliente lamenta un ritardo di due settimane nella consegna dell'ordine 4512: rispondere con le cause e la nuova data.",
+        "acceptanceCriteria": ["Risposta entro 48 ore", "Nuova data di consegna confermata dal magazzino"]
+      },
+      "pages": [
+        {
+          "id": "S09-P1",
+          "category": "stakeholder",
+          "expected": "stakeholder",
+          "page": {
+            "title": "Laura Bianchi",
+            "type": "person",
+            "summary": "Cliente privata dal 2023.",
+            "excerpt": "Laura Bianchi è una cliente privata dal 2023. Ha effettuato l'ordine 4512 di mobili da giardino a settembre."
+          }
+        },
+        {
+          "id": "S09-P2",
+          "category": "contesto_pertinente",
+          "expected": "context",
+          "page": {
+            "title": "Ritardi del corriere a ottobre",
+            "type": "note",
+            "summary": "Ritardi di 10-15 giorni in Lombardia.",
+            "excerpt": "Dal 7 ottobre il corriere ha ritardi di 10-15 giorni sulle consegne in Lombardia a causa di uno sciopero; il magazzino conferma le nuove date caso per caso."
+          }
+        },
+        {
+          "id": "S09-P3",
+          "category": "decisione_pertinente",
+          "expected": "decision",
+          "page": {
+            "title": "Compensazione per i ritardi di consegna",
+            "type": "decision",
+            "summary": "Buono del 10% oltre 10 giorni di ritardo.",
+            "excerpt": "Decisione del 1/07: per i ritardi di consegna oltre i 10 giorni si offre al cliente un buono del 10% sull'ordine successivo, indicato nella risposta al reclamo."
+          }
+        },
+        {
+          "id": "S09-P4",
+          "category": "menzione_incidentale",
+          "expected": "none",
+          "page": {
+            "title": "Laura Bianchini",
+            "type": "person",
+            "summary": "Architetta.",
+            "excerpt": "Laura Bianchini è l'architetta che ha progettato il nuovo ufficio nel 2021."
+          }
+        }
+      ]
+    },
+    {
+      "id": "S10",
+      "task": {
+        "title": "Aggiornare l'informativa privacy del sito",
+        "description": "Inserire nell'informativa pubblicata i nuovi strumenti di analisi del traffico e il nuovo responsabile del trattamento.",
+        "acceptanceCriteria": ["Elenco degli strumenti aggiornato", "Revisione del consulente legale"]
+      },
+      "pages": [
+        {
+          "id": "S10-P1",
+          "category": "decisione_pertinente",
+          "expected": "decision",
+          "page": {
+            "title": "Analisi del traffico con uno strumento europeo",
+            "type": "decision",
+            "summary": "Matomo ospitato in UE al posto di Google Analytics.",
+            "excerpt": "Decisione del 1/10: Google Analytics viene sostituito da Matomo ospitato in Unione europea su tutti i siti dello studio, a partire dal 1/11."
+          }
+        },
+        {
+          "id": "S10-P2",
+          "category": "decisione_superata",
+          "expected": "none",
+          "page": {
+            "title": "Banner dei cookie con il solo pulsante Accetta",
+            "type": "decision",
+            "summary": "Superata a marzo 2024.",
+            "excerpt": "Decisione del 2023: banner dei cookie con il solo pulsante «Accetta». Superata a marzo 2024 dopo il parere del consulente legale, che ha imposto anche il pulsante «Rifiuta»."
+          }
+        },
+        {
+          "id": "S10-P3",
+          "category": "stakeholder",
+          "expected": "stakeholder",
+          "page": {
+            "title": "Giorgio Sala",
+            "type": "person",
+            "summary": "Avvocato, consulente privacy.",
+            "excerpt": "L'avvocato Giorgio Sala è il consulente legale per la privacy e rivede ogni modifica all'informativa prima della pubblicazione."
+          }
+        },
+        {
+          "id": "S10-P4",
+          "category": "stesso_tema_non_pertinente",
+          "expected": "none",
+          "page": {
+            "title": "Newsletter del Garante di settembre",
+            "type": "article",
+            "summary": "Notizie generali sulla privacy.",
+            "excerpt": "Sintesi della newsletter del Garante di settembre: sanzioni a una catena di palestre, linee guida sul lavoro agile e un convegno sulla videosorveglianza."
+          }
+        }
+      ]
+    },
+    {
+      "id": "S11",
+      "task": {
+        "title": "Preparare l'export mensile dei dati di vendita per Nordica",
+        "description": "Generare il file con le vendite del mese e caricarlo nella cartella condivisa del cliente.",
+        "acceptanceCriteria": ["File nel formato concordato", "Caricato entro il 5 del mese"]
+      },
+      "pages": [
+        {
+          "id": "S11-P1",
+          "category": "decisione_pertinente",
+          "expected": "decision",
+          "page": {
+            "title": "Export di Nordica in CSV",
+            "type": "decision",
+            "summary": "CSV con separatore punto e virgola su SharePoint.",
+            "excerpt": "Decisione del 14/09 con Nordica: l'export mensile è un file CSV con separatore «;» e date nel formato GG/MM/AAAA, caricato nella cartella condivisa su SharePoint."
+          }
+        },
+        {
+          "id": "S11-P2",
+          "category": "decisione_superata",
+          "expected": "none",
+          "page": {
+            "title": "Export di Nordica in XML",
+            "type": "decision",
+            "summary": "Sostituita il 14/09.",
+            "excerpt": "Decisione di gennaio: export in XML inviato via FTP. Sostituita il 14/09 dalla decisione sull'export in CSV."
+          }
+        },
+        {
+          "id": "S11-P3",
+          "category": "contesto_pertinente",
+          "expected": "context",
+          "page": {
+            "title": "Cartella condivisa di Nordica",
+            "type": "note",
+            "summary": "Percorso e accesso della cartella.",
+            "excerpt": "La cartella condivisa di Nordica è «Vendite/2026». L'accesso è concesso all'account dello studio dal referente IT di Nordica; i file vanno nominati con anno e mese."
+          }
+        },
+        {
+          "id": "S11-P4",
+          "category": "menzione_incidentale",
+          "expected": "none",
+          "page": {
+            "title": "Riunione con Nordica sul nuovo logo",
+            "type": "note",
+            "summary": "Scelta del nuovo logo.",
+            "excerpt": "Riunione con Nordica sulla scelta del nuovo logo tra tre proposte. A margine si è detto che l'export di ottobre era arrivato in orario."
+          }
+        }
+      ]
+    }
+  ]
+}

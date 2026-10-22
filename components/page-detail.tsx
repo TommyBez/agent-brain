@@ -8,6 +8,7 @@ import {
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Markdown } from "@/components/markdown";
+import { PageKeeperSetting, PageTasks } from "@/components/tasks/page-tasks";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,10 @@ import {
   paginationOffset,
   WORKSPACE_PAGE_SIZE,
 } from "@/lib/workspace/pagination";
+import {
+  getWorkspaceRevisionActor,
+  getWorkspaceRevisionActors,
+} from "@/lib/workspace/revision-actors";
 
 export type PageParams = Promise<{ id: string }>;
 
@@ -157,9 +162,12 @@ export async function PageNavigation({
 export async function PageBody({ params }: { params: PageParams }) {
   const page = await readPage(params);
   return (
-    <article className="markdown-body reading-body min-w-0 max-w-[740px]">
-      <Markdown markdown={page.markdown} />
-    </article>
+    <div className="min-w-0 space-y-14">
+      <article className="markdown-body reading-body min-w-0 max-w-[740px]">
+        <Markdown markdown={page.markdown} />
+      </article>
+      <PageTasks page={page} />
+    </div>
   );
 }
 
@@ -256,6 +264,7 @@ export async function PageConnections({ params }: { params: PageParams }) {
               ? "Text + semantic search"
               : "Text search · awaiting embedding"}
           </dd>
+          <PageKeeperSetting pageId={page.id} />
         </dl>
       </CardContent>
     </Card>
@@ -271,7 +280,10 @@ export async function PageHistory({
 }) {
   const [{ id }, query] = await Promise.all([params, searchParams]);
   const offset = paginationOffset(query.offset);
-  const revisions = await getWorkspaceRevisions(id, offset);
+  const [revisions, actors] = await Promise.all([
+    getWorkspaceRevisions(id, offset),
+    getWorkspaceRevisionActors(id, offset),
+  ]);
   if (!revisions.length && offset === 0)
     return (
       <Empty
@@ -294,6 +306,7 @@ export async function PageHistory({
                   {item.reason || "Page saved"}
                 </ItemTitle>
                 <ItemDescription className="wrap-anywhere">
+                  {actors[item.version] && `${actors[item.version].label} · `}
                   {item.source || "Workspace"} · {formatDate(item.createdAt)}
                 </ItemDescription>
               </ItemContent>
@@ -338,13 +351,20 @@ export async function PageRevisionHeader({
 
 export async function PageRevision({ params }: { params: RevisionParams }) {
   const revision = await readPageRevision(params);
+  const actor = await getWorkspaceRevisionActor(
+    revision.pageId,
+    revision.version,
+  );
   return (
     <>
       <Alert className="mb-6">
         <Clock3 />
         <AlertTitle>Reading version {revision.version}</AlertTitle>
         <AlertDescription>
-          <p>{formatDate(revision.createdAt)}</p>
+          <p>
+            {formatDate(revision.createdAt)}
+            {actor && ` · saved by ${actor.label}`}
+          </p>
           <Button variant="link" asChild>
             <Link href={`/pages/${revision.pageId}/history`}>
               Back to history

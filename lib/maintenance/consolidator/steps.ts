@@ -1,6 +1,5 @@
 import { FatalError, RetryableError } from "workflow";
 import { readConsolidationPages } from "../../brain/consolidation";
-import { BrainError } from "../../brain/types";
 import { fingerprint } from "../../canonical-json";
 import { revalidateWorkspaceCache } from "../../workspace/cache";
 import { GatewayRequestError } from "../gateway";
@@ -13,7 +12,7 @@ import {
   failureMessage,
 } from "./diagnostics";
 import { draftChanges, materializeDraft } from "./editor";
-import { evaluateJev, JEV_MODEL } from "./jev";
+import { evaluatePersisted } from "./evaluation-cache";
 import { type RecordKey, recordKeys, recordKind } from "./keys";
 import { planOperations } from "./planner";
 import { canReuseAnalysis, unreusedPlans } from "./reuse";
@@ -21,7 +20,6 @@ import { buildSnapshot, createAnalysisTasks } from "./snapshot";
 import {
   applyConsolidationChangeSet,
   beginConsolidationRun,
-  findConsolidationRecord,
   findConsolidationRecords,
   finishConsolidationRun,
   readConsolidationQueue,
@@ -37,7 +35,6 @@ import {
   type DecisionRecord,
   type Draft,
   type DraftOutcome,
-  type Evaluation,
   type EvaluationRequest,
   type OperationPlan,
   POLICY,
@@ -210,46 +207,10 @@ export async function prepareConsolidationScan(
   };
 }
 
-async function evaluatePersisted(
-  ownerId: string,
-  runId: string,
-  request: EvaluationRequest,
-): Promise<Evaluation> {
-  const key = recordKeys.evaluation(fingerprint({ model: JEV_MODEL, request }));
-  let stage = "evaluation_cache";
-  try {
-    const previous = await findConsolidationRecord<Evaluation>(ownerId, key);
-    if (previous) return previous;
-    stage = "evaluation_provider";
-    const evaluation = await evaluateJev(
-      request,
-      budgetedGateway(ownerId, runId),
-    );
-    stage = "evaluation_save";
-    try {
-      await saveConsolidationRecord(ownerId, runId, key, evaluation);
-    } catch (error) {
-      if (error instanceof BrainError && error.code === "RECORD_CONFLICT") {
-        const committed = await readConsolidationRecord<Evaluation>(
-          ownerId,
-          runId,
-          key,
-        );
-        if (committed) return committed;
-      }
-      throw error;
-    }
-    return evaluation;
-  } catch (error) {
-    if (error instanceof BudgetExhaustedError) throw error;
-    console.error("consolidation.evaluation_error", {
-      runId,
-      requestKey: key,
-      stage,
-      ...failureDiagnostic(error),
-    });
-    throw error;
-  }
+/** Page analysis and verification are charged to the pages budget. */
+function evaluatePages(ownerId: string, runId: string) {
+  return (request: EvaluationRequest) =>
+    evaluatePersisted(ownerId, runId, request, budgetedGateway(ownerId, runId));
 }
 
 export async function analyzeConsolidationTask(
@@ -266,8 +227,10 @@ export async function analyzeConsolidationTask(
       snapshotId,
       task.pageIds,
     );
-    const result = await analyzeTask(snapshot, task, (request) =>
-      evaluatePersisted(ownerId, runId, request),
+    const result = await analyzeTask(
+      snapshot,
+      task,
+      evaluatePages(ownerId, runId),
     );
     if (result.status === "complete")
       await saveConsolidationRecord(
@@ -382,8 +345,10 @@ export async function reviewConsolidation(
     };
   }
   try {
-    const verification = await verifyChangeSet(scope, changeSet, (request) =>
-      evaluatePersisted(ownerId, runId, request),
+    const verification = await verifyChangeSet(
+      scope,
+      changeSet,
+      evaluatePages(ownerId, runId),
     );
     await saveConsolidationRecord(
       ownerId,

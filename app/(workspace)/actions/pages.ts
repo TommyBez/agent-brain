@@ -4,6 +4,7 @@ import { unstable_rethrow } from "next/navigation";
 import { ZodError } from "zod";
 import { read, write } from "@/lib/brain/service";
 import { BrainError, type DecoratedPage } from "@/lib/brain/types";
+import { ownerActor } from "@/lib/tasks/actors";
 import { updateWorkspaceCache } from "@/lib/workspace/cache";
 import { requireWorkspaceUser } from "@/lib/workspace/session";
 
@@ -35,22 +36,27 @@ export async function savePageAction(
   try {
     const user = await requireWorkspaceUser();
     ownerId = user.id;
-    savedPage = await write(user.id, {
-      ...(id ? { id } : {}),
-      expectedVersion,
-      title: value(form, "title"),
-      type: value(form, "type"),
-      summary: value(form, "summary"),
-      relationships: list(value(form, "relationships")),
-      markdown: value(form, "markdown"),
-      aliases: list(value(form, "aliases")),
-      tags: list(value(form, "tags")),
-      links: JSON.parse(value(form, "links") || "[]"),
-      reason:
-        value(form, "reason") ||
-        (id ? "Edited in workspace" : "Created in workspace"),
-      source: "workspace",
-    });
+    const owner = await ownerActor(user.id);
+    savedPage = await write(
+      user.id,
+      {
+        ...(id ? { id } : {}),
+        expectedVersion,
+        title: value(form, "title"),
+        type: value(form, "type"),
+        summary: value(form, "summary"),
+        relationships: list(value(form, "relationships")),
+        markdown: value(form, "markdown"),
+        aliases: list(value(form, "aliases")),
+        tags: list(value(form, "tags")),
+        links: JSON.parse(value(form, "links") || "[]"),
+        reason:
+          value(form, "reason") ||
+          (id ? "Edited in workspace" : "Created in workspace"),
+        source: "workspace",
+      },
+      { actorAgentId: owner.agentId },
+    );
   } catch (error) {
     unstable_rethrow(error);
     if (error instanceof BrainError) {

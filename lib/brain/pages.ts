@@ -159,6 +159,14 @@ export async function pageFromRow(
   return (await hydrateRows(db, ownerId, [row]))[0];
 }
 
+/**
+ * Server-side write context, never part of the tool input schemas: the agent
+ * resolved from the request credential or nightly process signs the revision.
+ */
+export interface PageWriteOptions {
+  actorAgentId?: string | null;
+}
+
 export async function recordRevision(
   db: PoolClient,
   ownerId: string,
@@ -166,10 +174,11 @@ export async function recordRevision(
   action: "create" | "write" | "append",
   reason: string,
   source: string,
-  operationKey?: string,
+  options: PageWriteOptions & { operationKey?: string } = {},
 ) {
+  const actorAgentId = options.actorAgentId ?? null;
   await db.query(
-    "INSERT INTO brain_revisions (owner_id,page_id,version,snapshot,reason,source,operation_key) VALUES ($1,$2,$3,$4::jsonb,$5,$6,$7)",
+    "INSERT INTO brain_revisions (owner_id,page_id,version,snapshot,reason,source,operation_key,actor_agent_id) VALUES ($1,$2,$3,$4::jsonb,$5,$6,$7,$8)",
     [
       ownerId,
       page.id,
@@ -177,12 +186,13 @@ export async function recordRevision(
       JSON.stringify(page),
       reason,
       source,
-      operationKey ?? null,
+      options.operationKey ?? null,
+      actorAgentId,
     ],
   );
   await db.query(
-    "INSERT INTO brain_activity (owner_id,page_id,action,version,reason,source) VALUES ($1,$2,$3,$4,$5,$6)",
-    [ownerId, page.id, action, page.version, reason, source],
+    "INSERT INTO brain_activity (owner_id,page_id,action,version,reason,source,actor_agent_id) VALUES ($1,$2,$3,$4,$5,$6,$7)",
+    [ownerId, page.id, action, page.version, reason, source, actorAgentId],
   );
 }
 
@@ -202,6 +212,7 @@ export async function read(
 export async function write(
   ownerId: string,
   input: unknown,
+  options: PageWriteOptions = {},
 ): Promise<DecoratedPage> {
   assertOwner(ownerId);
   const data = schemas.writeSchema.parse(input);
@@ -308,6 +319,7 @@ export async function write(
         existing ? "write" : "create",
         data.reason,
         data.source,
+        options,
       );
       return page;
     });
@@ -330,6 +342,7 @@ export async function write(
 export async function append(
   ownerId: string,
   input: unknown,
+  options: PageWriteOptions = {},
 ): Promise<DecoratedPage> {
   assertOwner(ownerId);
   const data = schemas.appendSchema.parse(input);
@@ -347,7 +360,15 @@ export async function append(
       [ownerId, current.id, markdown],
     );
     const page = await pageFromRow(db, ownerId, result.rows[0]);
-    await recordRevision(db, ownerId, page, "append", data.reason, data.source);
+    await recordRevision(
+      db,
+      ownerId,
+      page,
+      "append",
+      data.reason,
+      data.source,
+      options,
+    );
     return page;
   });
 }

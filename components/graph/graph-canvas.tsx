@@ -1,5 +1,6 @@
 "use client";
-import { useImperativeHandle } from "react";
+import { useImperativeHandle, useMemo } from "react";
+import { placeTaskNodes } from "@/lib/graph/task-overlay";
 import type { GraphCanvasProps } from "./canvas-types";
 
 export type { GraphCanvasHandle } from "./canvas-types";
@@ -7,6 +8,11 @@ export type { GraphCanvasHandle } from "./canvas-types";
 import { GraphEdges } from "./graph-edges";
 import { GraphNodes } from "./graph-nodes";
 import { GraphTooltip } from "./graph-tooltip";
+import {
+  TaskOverlayEdges,
+  TaskOverlayNodes,
+  TaskTooltip,
+} from "./task-overlay-layer";
 import { useGraphGestures } from "./use-graph-gestures";
 import { useGraphSimulation } from "./use-graph-simulation";
 export function GraphCanvas({
@@ -25,6 +31,10 @@ export function GraphCanvas({
   onSelect,
   onHover,
   onOpen,
+  taskLayer = null,
+  onSelectTask,
+  onHoverTask,
+  onOpenTask,
 }: GraphCanvasProps) {
   const simulation = useGraphSimulation(
     nodes,
@@ -51,7 +61,12 @@ export function GraphCanvas({
     onPointerMove,
     onPointerUp,
     onKeyDown,
-  } = useGraphGestures(simulation, { onSelect, onOpen });
+  } = useGraphGestures(simulation, {
+    onSelect,
+    onOpen,
+    onSelectTask,
+    onOpenTask,
+  });
   useImperativeHandle(ref, () => ({ fit, zoomBy, focusNode, shake }), [
     fit,
     zoomBy,
@@ -60,6 +75,28 @@ export function GraphCanvas({
   ]);
   const hoveredNode = nodes.find((node) => node.id === hovered);
   const hoveredPosition = hovered ? positions[hovered] : undefined;
+  const radius = useMemo(
+    () => new Map(nodes.map((node) => [node.id, node.r])),
+    [nodes],
+  );
+  // Tasks orbit the pages' current positions; the page layout never sees them.
+  const taskPositions = useMemo(
+    () =>
+      taskLayer
+        ? placeTaskNodes(
+            taskLayer.nodes,
+            positions,
+            (id) => radius.get(id) ?? 0,
+          )
+        : {},
+    [taskLayer, positions, radius],
+  );
+  const hoveredTask = taskLayer?.hovered
+    ? taskLayer.nodes.find((task) => task.id === taskLayer.hovered)
+    : undefined;
+  const hoveredTaskPosition = hoveredTask
+    ? taskPositions[hoveredTask.id]
+    : undefined;
   const transform = `translate(${view.tx}px, ${view.ty}px) scale(${view.k})`;
   return (
     <div
@@ -140,6 +177,14 @@ export function GraphCanvas({
                 emphasizedEdges={emphasizedEdges}
                 matched={matched}
               />
+              {taskLayer && (
+                <TaskOverlayEdges
+                  layer={taskLayer}
+                  nodes={nodes}
+                  positions={positions}
+                  taskPositions={taskPositions}
+                />
+              )}
               <GraphNodes
                 nodes={nodes}
                 positions={positions}
@@ -153,6 +198,15 @@ export function GraphCanvas({
                 onHover={onHover}
                 onSelect={onSelect}
               />
+              {taskLayer && (
+                <TaskOverlayNodes
+                  layer={taskLayer}
+                  taskPositions={taskPositions}
+                  view={view}
+                  onHover={(id) => onHoverTask?.(id)}
+                  onSelect={(id) => onSelectTask?.(id)}
+                />
+              )}
             </>
           )}
         </g>
@@ -164,6 +218,16 @@ export function GraphCanvas({
           view={view}
         />
       )}
+      {hoveredTask &&
+        hoveredTaskPosition &&
+        !dragging &&
+        hoveredTask.id !== taskLayer?.selected && (
+          <TaskTooltip
+            task={hoveredTask}
+            position={hoveredTaskPosition}
+            view={view}
+          />
+        )}
     </div>
   );
 }

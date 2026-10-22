@@ -8,6 +8,7 @@ import type {
   WorkflowJobKind,
   WorkflowJobStatus,
 } from "@/lib/maintenance/jobs";
+import { tasksEnabledFor } from "@/lib/tasks/feature";
 
 export type MaintenanceJob = {
   id: string;
@@ -29,6 +30,7 @@ export type MaintenanceJob = {
     outputTokens?: number;
     pages?: number;
     links?: number;
+    tasks?: number;
     budgetReached?: boolean;
     commit?: string;
     repository?: string;
@@ -152,7 +154,196 @@ export async function operationsStatus(ownerId: string) {
   };
 }
 
+/** A closed task as exported in schemaVersion 2, separate from the pages. */
+export interface ExportTask {
+  id: string;
+  number: number;
+  ref: string;
+  title: string;
+  description: string;
+  status: "done" | "canceled";
+  priority: number;
+  expectedOutput: string;
+  reviewPolicy: string;
+  requiresHuman: boolean;
+  requiredCapability: string | null;
+  due: {
+    kind: string;
+    on: string | null;
+    at: string | null;
+    text: string | null;
+  };
+  project: string | null;
+  parent: string | null;
+  origin: string;
+  ownerQuote: string | null;
+  createdBy: string;
+  approvedBy: string | null;
+  approvedAt: string | null;
+  delegate: string | null;
+  acceptanceCriteria: string[];
+  completion: {
+    summary: string;
+    criteria: unknown[];
+    artifacts: unknown[];
+    remaining: string | null;
+    pagesChanged: unknown[];
+    completedBy: string | null;
+  } | null;
+  completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  archivedAt: string | null;
+  version: number;
+  links: {
+    page: string;
+    role: string;
+    origin: string;
+    confidence: number | null;
+  }[];
+  history: {
+    events: number;
+    byAction: Record<string, number>;
+    timeline: {
+      at: string;
+      action: string;
+      from: string | null;
+      to: string | null;
+      actor: string;
+    }[];
+  };
+}
+
+/** High-volume bookkeeping stays in the counts, out of the timeline. */
+const UNTIMED_ACTIONS = new Set([
+  "reported",
+  "note",
+  "edited",
+  "links_changed",
+]);
+export const EXPORT_TIMELINE_LIMIT = 100;
+
+const isoOrNull = (value: Date | string | null) =>
+  value === null ? null : new Date(value).toISOString();
+
+type ExportClient = Parameters<Parameters<typeof transaction>[0]>[0];
+
+// Only done and canceled tasks: open work changes daily and is covered by
+// Neon snapshots. A purged task is absent here, so it leaves the next export.
+async function closedTasksForExport(
+  client: ExportClient,
+  ownerId: string,
+): Promise<ExportTask[]> {
+  const closed = "t.owner_id = $1 AND t.status IN ('done', 'canceled')";
+  // One transaction client: run the reads in sequence.
+  const { rows } = await client.query(
+    `SELECT t.id, t.number, t.title, t.description, t.acceptance_criteria, t.expected_output,
+         t.status, t.priority, t.due_kind, to_char(t.due_on, 'YYYY-MM-DD') AS due_on, t.due_at,
+         t.due_text, t.requires_human, t.review_policy, t.required_capability, t.origin,
+         t.owner_quote, t.completion, t.completed_at, t.created_at, t.updated_at, t.archived_at,
+         t.approved_at, t.version, creator.label AS creator_label, delegate.label AS delegate_label,
+         approver.label AS approver_label, project.slug AS project_slug, parent.number AS parent_number
+       FROM brain_tasks t
+       JOIN brain_agents creator ON creator.owner_id = t.owner_id AND creator.id = t.created_by_agent_id
+       LEFT JOIN brain_agents delegate ON delegate.owner_id = t.owner_id AND delegate.id = t.delegate_agent_id
+       LEFT JOIN brain_agents approver ON approver.owner_id = t.owner_id AND approver.id = t.approved_by_agent_id
+       LEFT JOIN brain_pages project ON project.owner_id = t.owner_id AND project.id = t.project_page_id
+       LEFT JOIN brain_tasks parent ON parent.owner_id = t.owner_id AND parent.id = t.parent_task_id
+       WHERE ${closed} ORDER BY t.number`,
+    [ownerId],
+  );
+  const links = await client.query(
+    `SELECT l.task_id, p.slug, l.role, l.origin, l.confidence FROM brain_task_links l
+       JOIN brain_tasks t ON t.owner_id = l.owner_id AND t.id = l.task_id
+       JOIN brain_pages p ON p.owner_id = l.owner_id AND p.id = l.page_id
+       WHERE ${closed} AND l.status = 'active' ORDER BY t.number, p.slug, l.role`,
+    [ownerId],
+  );
+  const events = await client.query(
+    `SELECT e.task_id, e.action, e.from_status, e.to_status, e.created_at, a.label AS actor
+       FROM brain_task_events e
+       JOIN brain_tasks t ON t.owner_id = e.owner_id AND t.id = e.task_id
+       JOIN brain_agents a ON a.owner_id = e.owner_id AND a.id = e.actor_agent_id
+       WHERE ${closed} ORDER BY t.number, e.id`,
+    [ownerId],
+  );
+  const linksByTask = Map.groupBy(links.rows, (row) => row.task_id as string);
+  const eventsByTask = Map.groupBy(events.rows, (row) => row.task_id as string);
+  return rows.map((row): ExportTask => {
+    const history = eventsByTask.get(row.id) ?? [];
+    const byAction: Record<string, number> = {};
+    for (const event of history)
+      byAction[event.action] = (byAction[event.action] ?? 0) + 1;
+    const completion = row.completion;
+    return {
+      id: row.id,
+      number: row.number,
+      ref: `T-${row.number}`,
+      title: row.title,
+      description: row.description,
+      status: row.status,
+      priority: row.priority,
+      expectedOutput: row.expected_output,
+      reviewPolicy: row.review_policy,
+      requiresHuman: row.requires_human,
+      requiredCapability: row.required_capability,
+      due: {
+        kind: row.due_kind,
+        on: row.due_on,
+        at: isoOrNull(row.due_at),
+        text: row.due_text,
+      },
+      project: row.project_slug,
+      parent: row.parent_number ? `T-${row.parent_number}` : null,
+      origin: row.origin,
+      ownerQuote: row.owner_quote,
+      createdBy: row.creator_label,
+      approvedBy: row.approver_label,
+      approvedAt: isoOrNull(row.approved_at),
+      delegate: row.delegate_label,
+      acceptanceCriteria: row.acceptance_criteria,
+      completion: completion
+        ? {
+            summary: completion.summary,
+            criteria: completion.criteria ?? [],
+            artifacts: completion.artifacts ?? [],
+            remaining: completion.remaining ?? null,
+            pagesChanged: completion.pagesChanged ?? [],
+            completedBy: completion.completedByLabel ?? null,
+          }
+        : null,
+      completedAt: isoOrNull(row.completed_at),
+      createdAt: isoOrNull(row.created_at) as string,
+      updatedAt: isoOrNull(row.updated_at) as string,
+      archivedAt: isoOrNull(row.archived_at),
+      version: row.version,
+      links: (linksByTask.get(row.id) ?? []).map((link) => ({
+        page: link.slug,
+        role: link.role,
+        origin: link.origin,
+        confidence: link.confidence,
+      })),
+      history: {
+        events: history.length,
+        byAction,
+        timeline: history
+          .filter((event) => !UNTIMED_ACTIONS.has(event.action))
+          .slice(-EXPORT_TIMELINE_LIMIT)
+          .map((event) => ({
+            at: isoOrNull(event.created_at) as string,
+            action: event.action,
+            from: event.from_status,
+            to: event.to_status,
+            actor: event.actor,
+          })),
+      },
+    };
+  });
+}
+
 // Repeatable-read preserves a consistent graph and page set while agents continue writing.
+// When the owner has the task manager on, schemaVersion 2 adds the closed tasks
+// in their own list; the switch is read in the same snapshot.
 export async function exportBrain(ownerId: string) {
   assertOwner(ownerId);
   return transaction(async (client) => {
@@ -173,11 +364,15 @@ export async function exportBrain(ownerId: string) {
        WHERE l.owner_id = $1 ORDER BY l.source_id, l.target_id, l.type`,
       [ownerId],
     );
+    const exportedAt = new Date().toISOString();
+    if (!(await tasksEnabledFor(ownerId, client)))
+      return { schemaVersion: 1 as const, exportedAt, pages, links };
     return {
-      schemaVersion: 1,
-      exportedAt: new Date().toISOString(),
+      schemaVersion: 2 as const,
+      exportedAt,
       pages,
       links,
+      tasks: await closedTasksForExport(client, ownerId),
     };
   });
 }

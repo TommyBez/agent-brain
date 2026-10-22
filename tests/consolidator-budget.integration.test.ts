@@ -21,7 +21,14 @@ test(
     await setup.query(
       `CREATE TABLE ${schema}.brain_consolidation_spend (LIKE public.brain_consolidation_spend INCLUDING ALL)`,
     );
-    await setup.query(`CREATE TABLE ${schema}."user" (email text PRIMARY KEY)`);
+    await setup.query(
+      `CREATE TABLE ${schema}."user" (id text PRIMARY KEY, email text NOT NULL)`,
+    );
+    // No account has the task manager on: pages keep the whole pooled cap.
+    // spend-purpose covers the soft caps of accounts that turn it on.
+    await setup.query(
+      `CREATE TABLE ${schema}.brain_task_settings (LIKE public.brain_task_settings INCLUDING ALL)`,
+    );
     const isolated = new URL(database);
     isolated.searchParams.set("options", `-c search_path=${schema},public`);
     process.env.DATABASE_URL = isolated.toString();
@@ -34,7 +41,10 @@ test(
     const previousOwner = process.env.BRAIN_OWNER_EMAIL;
     process.env.AI_GATEWAY_API_KEY = "test-only";
     process.env.BRAIN_OWNER_EMAIL = email;
-    await pool.query(`INSERT INTO "user" (email) VALUES ($1)`, [email]);
+    await pool.query(`INSERT INTO "user" (id, email) VALUES ($1, $2)`, [
+      owner,
+      email,
+    ]);
     t.after(async () => {
       await pool.query(
         "DELETE FROM brain_consolidation_spend WHERE owner_id=ANY($1::text[])",
@@ -78,7 +88,10 @@ test(
     await pool.query("DELETE FROM brain_consolidation_spend");
 
     process.env.BRAIN_OWNER_EMAIL = `${email},${secondEmail}`;
-    await pool.query(`INSERT INTO "user" (email) VALUES ($1)`, [secondEmail]);
+    await pool.query(`INSERT INTO "user" (id, email) VALUES ($1, $2)`, [
+      other,
+      secondEmail,
+    ]);
     const withinCeiling = await startSpend(
       other,
       "two-account-room",

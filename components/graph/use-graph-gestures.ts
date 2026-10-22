@@ -17,6 +17,8 @@ type Gesture =
       start: Point;
       last: Point;
       moved: boolean;
+      /** A task square under the pointer: a click selects it, a drag pans. */
+      taskId?: string;
     }
   | {
       type: "drag";
@@ -31,7 +33,15 @@ const DOUBLE_CLICK_MS = 350;
 const DRAG_THRESHOLD = 4;
 export function useGraphGestures(
   simulation: ReturnType<typeof useGraphSimulation>,
-  { onSelect, onOpen }: Pick<GraphCanvasProps, "onSelect" | "onOpen">,
+  {
+    onSelect,
+    onOpen,
+    onSelectTask,
+    onOpenTask,
+  }: Pick<
+    GraphCanvasProps,
+    "onSelect" | "onOpen" | "onSelectTask" | "onOpenTask"
+  >,
 ) {
   const { pin, unpin, dragTo, zoom, pan, pinch, fit, zoomBy } = simulation;
   const svgRef = useRef<SVGSVGElement>(null);
@@ -66,16 +76,18 @@ export function useGraphGestures(
     };
   };
 
-  const handleClick = (id: string) => {
+  const handleClick = (id: string, task = false) => {
     const now = performance.now();
     const last = lastClickRef.current;
     if (last && last.id === id && now - last.time < DOUBLE_CLICK_MS) {
       lastClickRef.current = null;
-      onOpen(id);
+      if (task) onOpenTask?.(id);
+      else onOpen(id);
       return;
     }
     lastClickRef.current = { id, time: now };
-    onSelect(id);
+    if (task) onSelectTask?.(id);
+    else onSelect(id);
   };
 
   const onPointerDown = (event: ReactPointerEvent<SVGSVGElement>) => {
@@ -114,12 +126,16 @@ export function useGraphGestures(
       setDragging(nodeId);
       return;
     }
+    const taskId = (event.target as Element)
+      .closest?.("[data-task-id]")
+      ?.getAttribute("data-task-id");
     gestureRef.current = {
       type: "pan",
       pointerId: event.pointerId,
       start: point,
       last: point,
       moved: false,
+      ...(taskId ? { taskId } : {}),
     };
   };
 
@@ -189,7 +205,9 @@ export function useGraphGestures(
       if (!cancelled) handleClick(gesture.nodeId);
       return;
     }
-    if (!gesture.moved && !cancelled) onSelect(null);
+    if (gesture.moved || cancelled) return;
+    if (gesture.taskId) handleClick(gesture.taskId, true);
+    else onSelect(null);
   };
 
   const onKeyDown = (event: KeyboardEvent<SVGSVGElement>) => {

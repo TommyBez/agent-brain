@@ -17,10 +17,12 @@ test(
     const ownerId = `workspace-test-${randomUUID()}`;
     const otherOwner = `workspace-test-${randomUUID()}`;
     let invalidations = 0;
+    // Writes are signed by the caller's agent, registered on first use.
     const handler = createBrainHandler(
       {
         ownerId,
-        kind: "token",
+        kind: "oauth",
+        clientId: `workspace-test-client-${randomUUID()}`,
         scopes: ["brain:read", "brain:write", "brain:maintain"],
       },
       () => {
@@ -187,6 +189,10 @@ test(
       await client.close();
       await getPool().query(
         "DELETE FROM brain_pages WHERE owner_id=ANY($1::text[])",
+        [[ownerId, otherOwner]],
+      );
+      await getPool().query(
+        "DELETE FROM brain_agents WHERE owner_id=ANY($1::text[])",
         [[ownerId, otherOwner]],
       );
       await getPool().end();

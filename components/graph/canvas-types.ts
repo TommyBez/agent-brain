@@ -1,11 +1,25 @@
 import type { Ref } from "react";
 import type { LayoutInputLink } from "@/lib/graph/layout";
 import type { GraphEdge, GraphNode } from "@/lib/graph/model";
+import type {
+  OverlayEdge,
+  OverlayTaskNode,
+  overlayEmphasis,
+} from "@/lib/graph/task-overlay";
 export interface GraphCanvasHandle {
   fit(): void;
   zoomBy(factor: number): void;
   focusNode(id: string): void;
   shake(): void;
+}
+
+/** The open-task layer: drawn around the pages, never part of their layout. */
+export interface TaskLayer {
+  nodes: OverlayTaskNode[];
+  edges: OverlayEdge[];
+  focus: ReturnType<typeof overlayEmphasis>;
+  selected: string | null;
+  hovered: string | null;
 }
 
 export interface GraphCanvasProps {
@@ -30,4 +44,9 @@ export interface GraphCanvasProps {
   onSelect: (id: string | null) => void;
   onHover: (id: string | null) => void;
   onOpen: (id: string) => void;
+  /** Null while the task overlay is off. */
+  taskLayer?: TaskLayer | null;
+  onSelectTask?: (id: string) => void;
+  onHoverTask?: (id: string | null) => void;
+  onOpenTask?: (id: string) => void;
 }

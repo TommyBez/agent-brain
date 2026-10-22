@@ -1,5 +1,7 @@
 import { allowedEmails } from "../../auth";
 import { getPool } from "../../db";
+import { tasksEnabledAccountCount } from "../../tasks/feature";
+import { SPEND_PURPOSES, type SpendPurpose } from "../../tasks/types";
 import { type GatewayCall, gatewayRequest } from "../gateway";
 
 export const DAILY_BUDGET_NANO = 1_000_000_000;
@@ -7,6 +9,36 @@ export const DAILY_BUDGET_NANO = 1_000_000_000;
 export function dailyBudgetNano(accountCount: number) {
   if (!Number.isSafeInteger(accountCount) || accountCount < 1) return 0;
   return DAILY_BUDGET_NANO * accountCount;
+}
+
+/** Soft caps inside the pooled daily cap, in tenths (§8.4). */
+export const SPEND_SHARE_TENTHS = { pages: 9, tasks: 1 } as const;
+/** The nightly task phases share one quota. */
+export const TASK_SPEND_PURPOSES: readonly SpendPurpose[] = [
+  "task_keeper",
+  "task_links",
+];
+
+/** Purposes whose recorded spend counts against `purpose`'s soft cap. */
+export function spendPurposeGroup(
+  purpose: SpendPurpose,
+): readonly SpendPurpose[] {
+  return purpose === "pages" ? ["pages"] : TASK_SPEND_PURPOSES;
+}
+
+/** Each account with the task manager on gives a tenth of its dollar to the
+ * task phases; pages keep the rest. With every account on this is the 9:1
+ * split, and with none on pages keep the whole cap (no task phase runs).
+ */
+export function purposeBudgetNano(
+  purpose: SpendPurpose,
+  accountCount: number,
+  tasksAccountCount: number,
+) {
+  const tasks =
+    (dailyBudgetNano(tasksAccountCount) / 10) * SPEND_SHARE_TENTHS.tasks;
+  if (purpose !== "pages") return tasks;
+  return Math.max(0, dailyBudgetNano(accountCount) - tasks);
 }
 
 export async function presentAccountCount() {
@@ -20,8 +52,12 @@ export async function presentAccountCount() {
 }
 export const EDITOR_MODEL = "deepseek/deepseek-v4.1-flash-1017";
 export class BudgetExhaustedError extends Error {
-  constructor() {
-    super("Daily consolidation budget exhausted");
+  constructor(readonly purpose: SpendPurpose = "pages") {
+    super(
+      purpose === "pages"
+        ? "Daily consolidation budget exhausted"
+        : "Daily task maintenance budget exhausted",
+    );
   }
 }
 
@@ -59,33 +95,71 @@ export function actualCost(raw: unknown, model: string): number | null {
 }
 
 /** Start a physical attempt while recorded UTC-day spend is below the target.
- * The target is one dollar for each allowlisted account that exists.
+ * The target is one dollar for each allowlisted account that exists, shared by
+ * every owner; the purpose's soft cap, sized by how many of those accounts have
+ * the task manager on, applies inside it.
  * In-flight and unknown costs do not reserve credit; a completed call may overshoot.
  */
 export async function startSpend(
   ownerId: string,
   runId: string,
   model: string,
+  purpose: SpendPurpose = "pages",
 ): Promise<string> {
+  if (!SPEND_PURPOSES.includes(purpose))
+    throw new Error("Unknown spending purpose");
+  const [accounts, taskAccounts] = await Promise.all([
+    presentAccountCount(),
+    tasksEnabledAccountCount(),
+  ]);
   const result = await getPool().query<{ id: string }>(
-    `INSERT INTO brain_consolidation_spend(owner_id,run_id,model,day)
-     SELECT $1,$2,$3,(now() AT TIME ZONE 'UTC')::date
+    `INSERT INTO brain_consolidation_spend(owner_id,run_id,model,day,purpose)
+     SELECT $1,$2,$3,(now() AT TIME ZONE 'UTC')::date,$4
      WHERE (SELECT COALESCE(sum(actual_nano),0) FROM brain_consolidation_spend
-            WHERE day=(now() AT TIME ZONE 'UTC')::date) < $4
+            WHERE day=(now() AT TIME ZONE 'UTC')::date) < $5
+       AND (SELECT COALESCE(sum(actual_nano),0) FROM brain_consolidation_spend
+            WHERE day=(now() AT TIME ZONE 'UTC')::date
+              AND purpose=ANY($6::text[])) < $7
      RETURNING id`,
-    [ownerId, runId, model, dailyBudgetNano(await presentAccountCount())],
+    [
+      ownerId,
+      runId,
+      model,
+      purpose,
+      dailyBudgetNano(accounts),
+      spendPurposeGroup(purpose),
+      purposeBudgetNano(purpose, accounts, taskAccounts),
+    ],
   );
-  if (!result.rows.length) throw new BudgetExhaustedError();
+  if (!result.rows.length) throw new BudgetExhaustedError(purpose);
   return result.rows[0].id;
 }
 
-export function budgetedGateway(ownerId: string, runId: string): GatewayCall {
+/** Known cost of one run's calls for these purposes; unknown costs count as zero. */
+export async function recordedSpendNano(
+  ownerId: string,
+  runId: string,
+  purposes: readonly SpendPurpose[],
+): Promise<number> {
+  const { rows } = await getPool().query<{ total: string }>(
+    `SELECT COALESCE(sum(actual_nano),0)::text AS total FROM brain_consolidation_spend
+     WHERE owner_id=$1 AND run_id=$2 AND purpose=ANY($3::text[])`,
+    [ownerId, runId, purposes],
+  );
+  return Number(rows[0]?.total ?? 0);
+}
+
+export function budgetedGateway(
+  ownerId: string,
+  runId: string,
+  purpose: SpendPurpose = "pages",
+): GatewayCall {
   return async <T>(
     path: Parameters<GatewayCall>[0],
     body: unknown,
   ): Promise<T> => {
     const model = String(object(body).model);
-    const id = await startSpend(ownerId, runId, model);
+    const id = await startSpend(ownerId, runId, model, purpose);
     const response = await gatewayRequest<T>(path, body);
     const cost = actualCost(response, model);
     if (cost !== null)

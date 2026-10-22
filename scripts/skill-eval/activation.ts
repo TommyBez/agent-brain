@@ -3,7 +3,7 @@ import type { Scenario } from "./dataset";
 import type { Bundle, Session } from "./evaluate";
 
 const entrypoint = "brain-memory/SKILL.md";
-const alternatives = [
+export const alternatives = [
   {
     name: "text-editing",
     description:

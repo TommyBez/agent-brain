@@ -1,5 +1,7 @@
 import { body, failure, json, owner } from "@/app/api/shared";
+import { getPrincipal, requireScope } from "@/lib/auth-principal";
 import { listPages, write } from "@/lib/brain/service";
+import { resolveActor } from "@/lib/tasks/actors";
 import { revalidateWorkspaceCache } from "@/lib/workspace/cache";
 
 export async function GET(request: Request) {
@@ -20,14 +22,22 @@ export async function GET(request: Request) {
 }
 export async function POST(request: Request) {
   try {
-    const ownerId = await owner(request, "brain:write");
+    const principal = await getPrincipal(request);
+    requireScope(principal, "brain:write");
+    const ownerId = principal.ownerId;
     const input = await body(request);
     if (input.id)
       return json(
         { error: "Use the page endpoint to update an existing page." },
         400,
       );
-    const page = await write(ownerId, { ...input, source: "workspace" });
+    // A browser session signs as the owner; a bearer credential as its agent.
+    const actor = await resolveActor(ownerId, principal);
+    const page = await write(
+      ownerId,
+      { ...input, source: "workspace" },
+      { actorAgentId: actor.agentId },
+    );
     revalidateWorkspaceCache(ownerId);
     return json({ page }, 201);
   } catch (error) {

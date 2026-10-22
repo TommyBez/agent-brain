@@ -1,6 +1,6 @@
 # Agent Brain plugin
 
-Retrieve context about people, clients and projects, and preserve durable knowledge in the owner's private a native brain. This package bundles the portable `brain-memory` skill and a remote MCP connection. It contains no application runtime or database credentials.
+Retrieve context about people, clients and projects, preserve durable knowledge in the owner's private a native brain, and coordinate tracked tasks. This package (version 0.2.0) bundles the portable `brain-memory` and `brain-tasks` skills and a remote MCP connection. It contains no application runtime or database credentials.
 
 ## Package
 
@@ -16,13 +16,18 @@ agent-brain/
 │       ├── people.md, companies.md, projects.md
 │       ├── articles.md, decisions.md, notes.md
 │       └── writing-pages.md
+├── skills/brain-tasks/
+│   ├── SKILL.md
+│   └── references/
+│       ├── lifecycle.md
+│       └── meetings.md
 ├── .mcp.json
 ├── .claude-plugin/plugin.json
 ├── .codex-plugin/plugin.json
 └── .cursor-plugin/plugin.json
 ```
 
-`plugin.json` and `mcp.json` follow [Agent Plugins 1.0.0](https://agent-plugins.org/plugin-authors/build-an-agent-plugin). The memory skill follows [Agent Skills](https://agentskills.io/specification) and has one canonical copy. The live server's instructions and tool schemas remain authoritative for its behavior.
+`plugin.json` and `mcp.json` follow [Agent Plugins 1.0.0](https://agent-plugins.org/plugin-authors/build-an-agent-plugin). Both skills follow [Agent Skills](https://agentskills.io/specification) and have one canonical copy each. brain-memory keeps its trigger description unchanged; brain-tasks loads only for tracked work in Agent Brain or a task reference such as `T-42`. The live server's instructions and tool schemas remain authoritative for its behavior.
 
 Codex and Cursor support the portable format. Compatibility manifests also support their native plugin formats. Claude Code uses `.claude-plugin/plugin.json` and discovers `.mcp.json`. The compatibility MCP configuration uses `type: "http"`, while the standard requires `type: "streamable-http"`. Keep server names and URLs in both files aligned; keep names, versions and descriptions aligned across manifests when releasing.
 
@@ -57,6 +62,8 @@ The bundled endpoint is `https://agent-brain.vercel.app/mcp`. Authentication use
 For a self-hosted Brain, copy the package and replace the URL in both `mcp.json` and `.mcp.json` with the canonical URL shown in that instance's **Agents & access** screen. Agent Plugins 1.0.0 does not expand environment placeholders in remote URLs. Browser-hosted clients may also require their origin in the server's `MCP_ALLOWED_ORIGINS` setting.
 
 Use natural-language requests such as “Recover the context and decisions for this project” or “Save the decisions from this conversation, preserving sources and rationale.” Claude Code also supports `/agent-brain:brain-memory`; Codex supports explicit skill invocation with `$brain-memory`. The skill assesses useful memories proactively and saves only when authorized.
+
+For tracked work, ask for example “Track the maintenance contract draft as a task” or “Work on T-12”. The task tools exist only for an owner who has turned on the task manager in that Brain's **Agents & access** screen (off by default); they use the same `brain:read` and `brain:write` scopes, so no new consent is needed. A change applies from the agent's next MCP request; a client that cached its tool list may need to reconnect to see it. Claude Code supports `/agent-brain:brain-tasks`; Codex supports `$brain-tasks`.
 
 ## Validate and distribute
 

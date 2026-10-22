@@ -50,6 +50,34 @@
       "when": 1790884802725,
       "tag": "0006_company_relationships",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792595173826,
+      "tag": "0007_tasks",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792595241284,
+      "tag": "0008_task_keeper",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792595271634,
+      "tag": "0009_task_dependencies",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792695864260,
+      "tag": "0010_task_feature_setting",
+      "breakpoints": true
     }
   ]
 }

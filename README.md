@@ -4,7 +4,7 @@ A private, agent-native second brain. The “a” also stands for “agent”. O
 
 The MCP request path exposes validated storage and retrieval primitives, with automatic query embeddings. Vercel Cron starts a durable Vercel Workflow for consolidation, page embeddings and Git export. Remote MCP is the primary interface. The browser provides a knowledge desk for reading, editing, graph navigation, revisions, credentials and operational status.
 
-Using a native brain from an agent? Install the [Agent Brain plugin](#agent-plugin), which bundles the MCP connection and memory skill. You can also [connect MCP](#connect-an-agent) and [install the skill](#agent-skill) separately.
+Using a native brain from an agent? Install the [Agent Brain plugin](#agent-plugin), which bundles the MCP connection, the memory skill and the tasks skill. You can also [connect MCP](#connect-an-agent) and [install the skill](#agent-skill) separately.
 
 ## Local setup
 
@@ -87,9 +87,32 @@ Maintenance tools expose paginated pages, gaps and pending chunk embeddings. `pe
 
 All tools scope data to the authenticated owner. Foreign keys prevent cross-owner links. Accepted writes create full revisions and audit entries. On conflict, reread and reconcile. `write` replaces relationships, aliases, tags and outgoing links, so callers must preserve existing values deliberately.
 
+## Tasks
+
+Pages hold knowledge; tasks hold work: who does what, by when, and where it stands. Tasks live in their own tables (`brain_tasks` with events, links, participants, suggestions, dependencies and recurrences), never in page Markdown, and are numbered `T-1`, `T-2`… External codes such as meeting action items stay text.
+
+The task manager is a per-owner setting, off by default. Each owner turns it on or off in **Agents & access → Task manager**, independently of the other allowlisted accounts. While it is off for an owner, that owner's agents get no task tools, no `brain://procedures/tasks` resource and no task guidance in the MCP instructions, and `read` and `context` return no open tasks. The workspace hides the `/tasks` routes, the Tasks entries in the sidebar and command menu, the graph's task overlay and the task sections on project and person pages. The Git export leaves tasks out, and the nightly task phases skip that owner. Turning it off hides tasks and deletes nothing; turning it back on brings them back.
+
+Agents identify as named agents in **Agents** (`/agents`): each headless token belongs to an agent, OAuth clients and the browser session map to theirs, and revisions and task events record the real actor. The eight task tools use the existing scopes, so no client needs new consent:
+
+| Tool | Scope | Behavior |
+| --- | --- | --- |
+| `list_tasks` | `brain:read` | Open tasks in queue order, filtered by status, project, `mine`, `claimable`, reference or full text; `changedSince` for polling. |
+| `read_task` | `brain:read` | Criteria, linked pages, participants, dependencies, history, the owner's answer and `nextActions`; agent-written fields are marked untrusted. |
+| `create_task` | `brain:write` | Only for owner requests (quoted), owner-adopted plans, or subtasks and handoffs of a held task. Agent tasks start in triage; idempotent by key. |
+| `update_task` | `brain:write` | Version-checked edits by the creator before approval; holders only change context pages. |
+| `claim_task` | `brain:write` | Claim by reference or the next claimable task; returns the secret `leaseId` (30 minutes by default) and a cited brief. `onOwnerRequest` claims a task the owner explicitly named in the conversation. |
+| `report_task` | `brain:write` | Progress notes and the only lease renewal; a `question` waits for the owner in `needs_input`. |
+| `release_task` | `brain:write` | Hand off, give up or report a block. |
+| `complete_task` | `brain:write` | Summary, criteria with evidence, `pagesChanged` and artifacts; verified pages become `produced` links. Done, or in review when the owner reviews. |
+
+Fencing pairs the agent identity with the lease id; leases expire lazily, without a sweeper. Approving, delegating, answering questions, reviewing, pausing projects, revoking claims and purging are owner actions in the app, not tools; results carry `owner_action` links such as `/tasks/T-42#answer` for agents to show. The full protocol is the resource `brain://procedures/tasks`, and the [`brain-tasks` skill](plugins/agent-brain/skills/brain-tasks/SKILL.md) guides agents through it. Task tools invalidate only the `tasks:<owner>` cache tag.
+
+At night, after embeddings, the **task keeper** (a system agent distinct from the consolidator) transcribes commitments written explicitly in changed pages into triage tasks with a cited source excerpt, deduplicates them and proposes hygiene suggestions for the owner; the **task links** phase suggests pages relevant to open tasks. Neither changes pages, and the consolidator never creates, edits or closes tasks. Both phases run only for owners with the task manager on. Each such account gives $0.10 of its daily $1 spending target to the two task phases, which share it; pages keep the rest. With the task manager on for every account, that is 10% for tasks and 90% for pages; with it off everywhere, pages keep the whole target. **Operations → Run now** runs only the task phases, for example after saving a meeting; it is available only while the task manager is on.
+
 ## Agent plugin
 
-[`plugins/agent-brain`](plugins/agent-brain/README.md) is a self-contained [Agent Plugins 1.0.0](https://agent-plugins.org/) package: root `plugin.json`, `mcp.json` with Streamable HTTP, and `skills/brain-memory/`. It includes compatibility manifests for Claude Code, Codex and Cursor, and this repository provides their marketplace catalogs. The plugin connects to `https://agent-brain.vercel.app/mcp`; sign in through the client's OAuth flow after installation.
+[`plugins/agent-brain`](plugins/agent-brain/README.md) is a self-contained [Agent Plugins 1.0.0](https://agent-plugins.org/) package (version 0.2.0): root `plugin.json`, `mcp.json` with Streamable HTTP, `skills/brain-memory/` and `skills/brain-tasks/`. It includes compatibility manifests for Claude Code, Codex and Cursor, and this repository provides their marketplace catalogs. The plugin connects to `https://agent-brain.vercel.app/mcp`; sign in through the client's OAuth flow after installation.
 
 From this checkout:
 
@@ -115,6 +138,8 @@ Install it in a project using the [Skills CLI](https://github.com/vercel-labs/sk
 npx skills add TommyBez/agent-brain --skill brain-memory
 ```
 
+The [`brain-tasks` skill](plugins/agent-brain/skills/brain-tasks/SKILL.md) covers tracked work: when to create a task, claiming before working, reports and questions to the owner, and completion with the pages written. Its [lifecycle](plugins/agent-brain/skills/brain-tasks/references/lifecycle.md) and [meetings](plugins/agent-brain/skills/brain-tasks/references/meetings.md) references explain leases, errors and tasks transcribed from sources. Install it the same way with `--skill brain-tasks`; it works only for an owner who has turned on the task manager in **Agents & access**, because otherwise the server exposes no task tools.
+
 From a local checkout, use `npx skills add ./plugins/agent-brain --skill brain-memory`. Alternatively, copy the complete `plugins/agent-brain/skills/brain-memory` folder into your client's supported skill directory. Repository access is required if the repository is private. Installing only the skill does not connect or authorize MCP; complete [the connection steps](#connect-an-agent) separately.
 
 Example requests after connecting:
@@ -122,8 +147,9 @@ Example requests after connecting:
 - “Use a native brain to recover the context and open decisions for this project.”
 - “Save the decisions from this conversation in a native brain, preserving their rationale and sources.”
 - “Review possible duplicates in a native brain and show me the uncertain cases.”
+- “Track the draft maintenance contract for this project as a task.” or “Work on T-12.”
 
-Explicit invocation depends on the client: Codex supports `$brain-memory`; the Claude Code plugin exposes `/agent-brain:brain-memory`. No database credentials, Git export access or model provider key is needed for ordinary agent use.
+Explicit invocation depends on the client: Codex supports `$brain-memory` and `$brain-tasks`; the Claude Code plugin exposes `/agent-brain:brain-memory` and `/agent-brain:brain-tasks`. No database credentials, Git export access or model provider key is needed for ordinary agent use.
 
 ## Retrieval
 

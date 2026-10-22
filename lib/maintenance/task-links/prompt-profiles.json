@@ -1,0 +1,10 @@
+{
+  "task-linker-baseline-2026-10-21": {
+    "id": "task-linker-baseline-2026-10-21",
+    "prompts": {
+      "relevant": "Does pages.{page} contain specific knowledge that whoever carries out the task described in task should use: a decision, a constraint, a fact, an involved person or organization, or a previous outcome? A page about a person or organization counts when that entity is involved in the task: the work is done for, with or about them, or they must review, approve, confirm or receive it. A shared topic alone is not enough, and neither is an incidental mention of the same names or words or a different entity with a similar name. Information that the evidence marks as superseded, revoked or no longer valid does not count, unless the task is about that history.",
+      "governs": "Does the decision recorded in pages.{page} define, limit or constrain how or whether the task described in task should be carried out, for example by setting a rule, method, format, schedule, rate, budget, tool or recipient that the work must apply? A decision on a related subject that leaves this task unaffected does not govern it, and neither does a decision that the evidence marks as superseded or revoked.",
+      "stakeholder": "Is the person or organization described in pages.{page} a party for whom, with whom or about whom the task described in task is carried out, including whoever must review, approve, confirm or receive the work, inside or outside the organization? An incidental mention, a different entity with a similar name, or an entity related only to the general topic is not a party."
+    }
+  }
+}

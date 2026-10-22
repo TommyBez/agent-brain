@@ -4,7 +4,7 @@ Use `project` for a distinct initiative, engagement or product effort with its o
 
 ## What belongs here
 
-Retain the intended outcome, relevant scope and exclusions, stakeholders and responsibilities, requirements, constraints, dependencies and evidence-backed state. Preserve meaningful milestones, decisions and lessons that affect future work. Keep requested future actions when they actually come from the user or source; do not generate a backlog to compensate for missing information.
+Retain the intended outcome, relevant scope and exclusions, stakeholders and responsibilities, requirements, constraints, dependencies and evidence-backed state. Preserve meaningful milestones, decisions and lessons that affect future work. Keep requested future actions when they actually come from the user or source; when the Brain task tools are available and the owner asks to track them, they become Brain tasks, and the project keeps its durable outcome, scope, constraints and state rather than a mirror of task status. Do not generate a backlog to compensate for missing information.
 
 Distinguish the initiative from its company, people and publications. Keep organization-wide context on the company and a person's general role on their page. When an adopted choice guides future work, create or update its [decision page](decisions.md), even if this project already exists. Keep the short implication needed to understand the project's current direction here; the decision owns the choice and supported rationale. Routine execution details and progress remain in this project.
 

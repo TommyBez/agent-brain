@@ -23,6 +23,8 @@ export const config = {
     "/pages/:path*",
     "/graph",
     "/activity",
+    "/tasks",
+    "/tasks/:path*",
     "/agents",
     "/operations",
   ],
