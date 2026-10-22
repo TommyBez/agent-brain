@@ -6,6 +6,10 @@ import {
 } from "@/components/brain-settings";
 import { AgentRegistry } from "@/components/settings/agent-registry";
 import { PasswordSettings } from "@/components/settings/password-settings";
+import {
+  TaskManagerToggle,
+  TaskManagerToggleFallback,
+} from "@/components/settings/task-manager-toggle";
 import { TokenCreator } from "@/components/settings/token-creator";
 import { TokenRevoke } from "@/components/settings/token-revoke";
 import {
@@ -29,12 +33,12 @@ import { Empty, Loading, PageHeading } from "@/components/workspace/primitives";
 import { listAgentTokens } from "@/lib/agent-tokens";
 import { mcpResource } from "@/lib/auth";
 import { formatDate } from "@/lib/formatters";
-import { tasksEnabled } from "@/lib/tasks/types";
 import {
   agentRegistry,
   tokenAgentChoices,
 } from "@/lib/workspace/agent-registry";
 import { getWorkspaceUser } from "@/lib/workspace/session";
+import { getTasksEnabled } from "@/lib/workspace/tasks-data";
 
 export const metadata = { title: "Agents & access · a native brain" };
 
@@ -50,6 +54,18 @@ export default function AgentsPage() {
         title="Agents & access"
         description="Connect your agents and manage access to your workspace."
       />
+      <section className="mb-8">
+        <div className="mb-5 space-y-2">
+          <h2 className="text-xl font-semibold">Task manager</h2>
+          <p className="text-sm text-muted-foreground">
+            Off by default. When it is on, you and your agents can create, claim
+            and track tasks.
+          </p>
+        </div>
+        <Suspense fallback={<TaskManagerToggleFallback />}>
+          <TaskManager />
+        </Suspense>
+      </section>
       <AgentConnection endpoint={endpoint} />
       <section className="mt-8">
         <div className="mb-5 space-y-2">
@@ -82,14 +98,18 @@ export default function AgentsPage() {
   );
 }
 
+// The owner's setting needs the session, so it is read below Suspense.
+async function TaskManager() {
+  return <TaskManagerToggle enabled={await getTasksEnabled()} />;
+}
+
 async function Registry() {
   const user = await getWorkspaceUser();
-  return (
-    <AgentRegistry
-      agents={await loadRegistry(user.id)}
-      tasks={tasksEnabled()}
-    />
-  );
+  const [agents, tasks] = await Promise.all([
+    loadRegistry(user.id),
+    getTasksEnabled(),
+  ]);
+  return <AgentRegistry agents={agents} tasks={tasks} />;
 }
 
 async function AgentTokens() {

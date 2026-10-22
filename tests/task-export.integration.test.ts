@@ -7,6 +7,7 @@ import { getPool } from "../lib/db";
 import { loadTaskOverlay } from "../lib/graph/task-overlay-query";
 import { exportBrain } from "../lib/operations";
 import { ownerActor, systemActor } from "../lib/tasks/actors";
+import { setTasksEnabled } from "../lib/tasks/feature";
 import {
   archiveTask,
   cancelTask,
@@ -26,19 +27,18 @@ test(
     const saved = {
       owner: process.env.BRAIN_OWNER_EMAIL,
       embeddings: process.env.BRAIN_QUERY_EMBEDDINGS,
-      tasks: process.env.TASKS_ENABLED,
     };
     process.env.BRAIN_OWNER_EMAIL = [saved.owner, email]
       .filter(Boolean)
       .join(",");
     process.env.BRAIN_QUERY_EMBEDDINGS = "false";
-    process.env.TASKS_ENABLED = "1";
     await pool.query(
       `INSERT INTO "user" (id,name,email,"emailVerified","createdAt","updatedAt") VALUES ($1,'Export Owner',$2,true,now(),now())`,
       [ownerId, email],
     );
     try {
       const owner = await ownerActor(ownerId);
+      await setTasksEnabled(owner, true);
       const page = (title: string, type: "project" | "note") =>
         brain.write(
           ownerId,
@@ -168,17 +168,24 @@ test(
       });
 
       await t.test(
-        "with TASKS_ENABLED off the export stays schemaVersion 1",
+        "with the owner's task manager off the export stays schemaVersion 1",
         async () => {
-          process.env.TASKS_ENABLED = "false";
+          await setTasksEnabled(owner, false);
           try {
             const snapshot = await exportBrain(ownerId);
             assert.equal(snapshot.schemaVersion, 1);
             assert.equal("tasks" in snapshot, false);
             assert.equal(snapshot.pages.length, 3);
           } finally {
-            process.env.TASKS_ENABLED = "1";
+            await setTasksEnabled(owner, true);
           }
+          // Turning it back on brings the closed tasks back; none were deleted.
+          const restored = await exportBrain(ownerId);
+          assert.equal(restored.schemaVersion, 2);
+          assert.deepEqual(
+            restored.tasks.map((task) => task.ref),
+            [done.ref, canceled.ref],
+          );
         },
       );
 
@@ -243,7 +250,6 @@ test(
       for (const [name, value] of [
         ["BRAIN_OWNER_EMAIL", saved.owner],
         ["BRAIN_QUERY_EMBEDDINGS", saved.embeddings],
-        ["TASKS_ENABLED", saved.tasks],
       ] as const) {
         if (value === undefined) delete process.env[name];
         else process.env[name] = value;

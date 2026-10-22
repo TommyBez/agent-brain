@@ -21,7 +21,14 @@ test(
     await setup.query(
       `CREATE TABLE ${schema}.brain_consolidation_spend (LIKE public.brain_consolidation_spend INCLUDING ALL)`,
     );
-    await setup.query(`CREATE TABLE ${schema}."user" (email text PRIMARY KEY)`);
+    await setup.query(
+      `CREATE TABLE ${schema}."user" (id text PRIMARY KEY, email text NOT NULL)`,
+    );
+    // No account has the task manager on: pages keep the whole pooled cap.
+    // spend-purpose covers the soft caps of accounts that turn it on.
+    await setup.query(
+      `CREATE TABLE ${schema}.brain_task_settings (LIKE public.brain_task_settings INCLUDING ALL)`,
+    );
     const isolated = new URL(database);
     isolated.searchParams.set("options", `-c search_path=${schema},public`);
     process.env.DATABASE_URL = isolated.toString();
@@ -32,12 +39,12 @@ test(
     const pool = getPool();
     const previousKey = process.env.AI_GATEWAY_API_KEY;
     const previousOwner = process.env.BRAIN_OWNER_EMAIL;
-    const previousTasks = process.env.TASKS_ENABLED;
     process.env.AI_GATEWAY_API_KEY = "test-only";
-    // The pooled cap without the task release; spend-purpose covers soft caps.
-    delete process.env.TASKS_ENABLED;
     process.env.BRAIN_OWNER_EMAIL = email;
-    await pool.query(`INSERT INTO "user" (email) VALUES ($1)`, [email]);
+    await pool.query(`INSERT INTO "user" (id, email) VALUES ($1, $2)`, [
+      owner,
+      email,
+    ]);
     t.after(async () => {
       await pool.query(
         "DELETE FROM brain_consolidation_spend WHERE owner_id=ANY($1::text[])",
@@ -47,8 +54,6 @@ test(
       else process.env.AI_GATEWAY_API_KEY = previousKey;
       if (previousOwner === undefined) delete process.env.BRAIN_OWNER_EMAIL;
       else process.env.BRAIN_OWNER_EMAIL = previousOwner;
-      if (previousTasks === undefined) delete process.env.TASKS_ENABLED;
-      else process.env.TASKS_ENABLED = previousTasks;
       await pool.end();
       await setup.query(`DROP SCHEMA ${schema} CASCADE`);
       await setup.end();
@@ -83,7 +88,10 @@ test(
     await pool.query("DELETE FROM brain_consolidation_spend");
 
     process.env.BRAIN_OWNER_EMAIL = `${email},${secondEmail}`;
-    await pool.query(`INSERT INTO "user" (email) VALUES ($1)`, [secondEmail]);
+    await pool.query(`INSERT INTO "user" (id, email) VALUES ($1, $2)`, [
+      other,
+      secondEmail,
+    ]);
     const withinCeiling = await startSpend(
       other,
       "two-account-room",

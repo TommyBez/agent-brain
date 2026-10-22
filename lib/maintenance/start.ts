@@ -2,7 +2,7 @@ import { getHookByToken, start } from "workflow/api";
 import { HookNotFoundError } from "workflow/errors";
 import { BrainError } from "@/lib/brain/types";
 import { assertOwner } from "@/lib/brain/utils";
-import { tasksEnabled } from "@/lib/tasks/types";
+import { tasksEnabledFor } from "@/lib/tasks/feature";
 import { nightlyMaintenance } from "@/workflows/nightly";
 import {
   dailyWorkflowStatus,
@@ -14,7 +14,7 @@ import {
 } from "./jobs";
 import type { TaskPhaseScope } from "./task-phase";
 
-/** The Workflow runtime and job ledger, injectable for tests. */
+/** The Workflow runtime, job ledger and task manager setting, injectable for tests. */
 export interface StartDeps {
   start: (
     workflow: typeof nightlyMaintenance,
@@ -26,7 +26,8 @@ export interface StartDeps {
   dailyWorkflowStatus: typeof dailyWorkflowStatus;
   queueWorkflowJobs: typeof queueWorkflowJobs;
   requeueTaskWorkflowJobs: typeof requeueTaskWorkflowJobs;
-  env?: Record<string, string | undefined>;
+  /** The owner's task manager setting, read when a run is started. */
+  tasksEnabled: (ownerId: string) => Promise<boolean>;
   now?: () => Date;
 }
 
@@ -36,6 +37,7 @@ const runtime: StartDeps = {
   dailyWorkflowStatus,
   queueWorkflowJobs,
   requeueTaskWorkflowJobs,
+  tasksEnabled: (ownerId) => tasksEnabledFor(ownerId),
 };
 
 /** The run holding the owner's lock, if any. Older runs carry no scope. */
@@ -60,6 +62,10 @@ function today(deps: StartDeps) {
   return (deps.now?.() ?? new Date()).toISOString().slice(0, 10);
 }
 
+/** Starts one owner's night. The owner's task manager setting decides here
+ * whether it includes the task phases; the run keeps that decision even if
+ * the setting changes before it ends.
+ */
 export async function startNightlyMaintenance(
   ownerId: string,
   trigger: "manual" | "scheduled",
@@ -67,7 +73,8 @@ export async function startNightlyMaintenance(
 ) {
   assertOwner(ownerId);
   const runDate = today(deps);
-  const kinds = enabledWorkflowJobKinds(deps.env);
+  const tasks = await deps.tasksEnabled(ownerId);
+  const kinds = enabledWorkflowJobKinds(tasks);
   const jobs = await deps.dailyWorkflowStatus(ownerId, runDate);
   if (trigger === "scheduled" && workflowJobsComplete(jobs, kinds))
     return { completed: true, runDate };
@@ -85,21 +92,22 @@ export async function startNightlyMaintenance(
     ownerId,
     runDate,
     rerunConsolidationFrom,
-    { scope: "nightly", tasks: kinds.some(isTaskJobKind) },
+    { scope: "nightly", tasks },
   ]);
   return { runId: run.runId, runDate, completed: false };
 }
 
 /** Operations "Run now" for the task keeper and task links: requeues only
  * today's two task phases and starts a run that executes only them. A run
- * already holding today's lock with a pending task phase is reused.
+ * already holding today's lock with a pending task phase is reused. Refused
+ * while the owner's task manager is off.
  */
 export async function startTaskMaintenance(
   ownerId: string,
   deps: StartDeps = runtime,
 ) {
   assertOwner(ownerId);
-  if (!tasksEnabled(deps.env))
+  if (!(await deps.tasksEnabled(ownerId)))
     throw new BrainError(
       "TASKS_DISABLED",
       "Task maintenance is not enabled.",

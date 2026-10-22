@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import type { WorkflowJobKind } from "../lib/maintenance/jobs";
 import {
+  type NightlyOptions,
   runNightlyStages,
   type StageOutcome,
 } from "../lib/maintenance/nightly-stages";
@@ -67,18 +68,25 @@ test("the night runs consolidation, then embeddings → task_keeper → task_lin
   ordered("end:consolidation", "start:export", "start:task_keeper");
 });
 
-test("without the task release the night keeps its three stages", async () => {
-  const { run, events, ordered } = recorder({}, "embeddings");
-  const { failed, jobs } = await runNightlyStages(run);
-  assert.equal(failed, false);
-  assert.deepEqual(Object.keys(jobs).sort(), [
-    "consolidation",
-    "embeddings",
-    "export",
-  ]);
-  assert.equal(events.length, 6);
-  ordered("end:consolidation", "start:embeddings", "end:embeddings");
-  ordered("end:consolidation", "start:export", "end:export");
+test("with the owner's task manager off the night keeps its three stages", async () => {
+  const off: (NightlyOptions | undefined)[] = [
+    undefined,
+    { tasks: false },
+    { scope: "nightly", tasks: false },
+  ];
+  for (const options of off) {
+    const { run, events, ordered } = recorder({}, "embeddings");
+    const { failed, jobs } = await runNightlyStages(run, options);
+    assert.equal(failed, false);
+    assert.deepEqual(Object.keys(jobs).sort(), [
+      "consolidation",
+      "embeddings",
+      "export",
+    ]);
+    assert.equal(events.length, 6);
+    ordered("end:consolidation", "start:embeddings", "end:embeddings");
+    ordered("end:consolidation", "start:export", "end:export");
+  }
 });
 
 test("failed or throwing task phases never fail the night, and the chain continues", async () => {

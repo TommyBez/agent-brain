@@ -7,7 +7,6 @@ import {
 } from "@/app/(workspace)/actions/tasks";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { tasksEnabled } from "@/lib/tasks/types";
 import type { TaskRow } from "@/lib/workspace/task-queries";
 import {
   newTaskHref,
@@ -19,6 +18,7 @@ import {
   getPersonTasks,
   getProjectTasks,
   getTaskSettingsView,
+  getTasksEnabled,
 } from "@/lib/workspace/tasks-data";
 import { ActionButton } from "./action-state";
 import { dueLabel } from "./labels";
@@ -143,10 +143,12 @@ async function PersonTasks({ pageId }: { pageId: string }) {
   );
 }
 
-/** "Open tasks" on project pages and "Tasks" on person pages, suspended apart. */
-export function PageTasks({ page }: { page: { id: string; type: string } }) {
-  if (!tasksEnabled()) return null;
-  if (page.type !== "project" && page.type !== "person") return null;
+async function EnabledPageTasks({
+  page,
+}: {
+  page: { id: string; type: string };
+}) {
+  if (!(await getTasksEnabled())) return null;
   return (
     <Suspense
       fallback={<Skeleton className="h-32" aria-label="Loading tasks" />}
@@ -160,7 +162,22 @@ export function PageTasks({ page }: { page: { id: string; type: string } }) {
   );
 }
 
+/**
+ * "Open tasks" on project pages and "Tasks" on person pages, suspended apart.
+ * Nothing at all, not even a placeholder, while the owner's task manager is
+ * off; the page body never waits for that check.
+ */
+export function PageTasks({ page }: { page: { id: string; type: string } }) {
+  if (page.type !== "project" && page.type !== "person") return null;
+  return (
+    <Suspense>
+      <EnabledPageTasks page={page} />
+    </Suspense>
+  );
+}
+
 async function KeeperSetting({ pageId }: { pageId: string }) {
+  if (!(await getTasksEnabled())) return null;
   const settings = await getTaskSettingsView();
   const excluded = settings.keeperExcludedPageIds.includes(pageId);
   return (
@@ -187,7 +204,6 @@ async function KeeperSetting({ pageId }: { pageId: string }) {
 
 /** Confidential pages can be kept away from task extraction. */
 export function PageKeeperSetting({ pageId }: { pageId: string }) {
-  if (!tasksEnabled()) return null;
   return (
     <Suspense>
       <KeeperSetting pageId={pageId} />

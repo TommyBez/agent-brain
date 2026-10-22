@@ -1,10 +1,7 @@
 import { allowedEmails } from "../../auth";
 import { getPool } from "../../db";
-import {
-  SPEND_PURPOSES,
-  type SpendPurpose,
-  tasksEnabled,
-} from "../../tasks/types";
+import { tasksEnabledAccountCount } from "../../tasks/feature";
+import { SPEND_PURPOSES, type SpendPurpose } from "../../tasks/types";
 import { type GatewayCall, gatewayRequest } from "../gateway";
 
 export const DAILY_BUDGET_NANO = 1_000_000_000;
@@ -29,15 +26,19 @@ export function spendPurposeGroup(
   return purpose === "pages" ? ["pages"] : TASK_SPEND_PURPOSES;
 }
 
-/** Without the task release no task phase runs, so pages keep the whole cap. */
+/** Each account with the task manager on gives a tenth of its dollar to the
+ * task phases; pages keep the rest. With every account on this is the 9:1
+ * split, and with none on pages keep the whole cap (no task phase runs).
+ */
 export function purposeBudgetNano(
   purpose: SpendPurpose,
   accountCount: number,
-  tasks = tasksEnabled(),
+  tasksAccountCount: number,
 ) {
-  const tenth = dailyBudgetNano(accountCount) / 10;
-  if (purpose !== "pages") return tenth * SPEND_SHARE_TENTHS.tasks;
-  return tenth * (tasks ? SPEND_SHARE_TENTHS.pages : 10);
+  const tasks =
+    (dailyBudgetNano(tasksAccountCount) / 10) * SPEND_SHARE_TENTHS.tasks;
+  if (purpose !== "pages") return tasks;
+  return Math.max(0, dailyBudgetNano(accountCount) - tasks);
 }
 
 export async function presentAccountCount() {
@@ -95,7 +96,8 @@ export function actualCost(raw: unknown, model: string): number | null {
 
 /** Start a physical attempt while recorded UTC-day spend is below the target.
  * The target is one dollar for each allowlisted account that exists, shared by
- * every owner; the purpose's soft cap applies inside it.
+ * every owner; the purpose's soft cap, sized by how many of those accounts have
+ * the task manager on, applies inside it.
  * In-flight and unknown costs do not reserve credit; a completed call may overshoot.
  */
 export async function startSpend(
@@ -106,7 +108,10 @@ export async function startSpend(
 ): Promise<string> {
   if (!SPEND_PURPOSES.includes(purpose))
     throw new Error("Unknown spending purpose");
-  const accounts = await presentAccountCount();
+  const [accounts, taskAccounts] = await Promise.all([
+    presentAccountCount(),
+    tasksEnabledAccountCount(),
+  ]);
   const result = await getPool().query<{ id: string }>(
     `INSERT INTO brain_consolidation_spend(owner_id,run_id,model,day,purpose)
      SELECT $1,$2,$3,(now() AT TIME ZONE 'UTC')::date,$4
@@ -123,7 +128,7 @@ export async function startSpend(
       purpose,
       dailyBudgetNano(accounts),
       spendPurposeGroup(purpose),
-      purposeBudgetNano(purpose, accounts),
+      purposeBudgetNano(purpose, accounts, taskAccounts),
     ],
   );
   if (!result.rows.length) throw new BudgetExhaustedError(purpose);

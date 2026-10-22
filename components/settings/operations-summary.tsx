@@ -26,7 +26,6 @@ import {
 import { formatDate } from "@/lib/formatters";
 import type { TaskPhaseHalt } from "@/lib/maintenance/task-phase";
 import type { MaintenanceJob, OperationsData } from "@/lib/operations";
-import { tasksEnabled } from "@/lib/tasks/types";
 import { TaskMaintenanceControl } from "./operations-controls";
 
 const JOB_LABELS: Record<MaintenanceJob["kind"], string> = {
@@ -177,8 +176,14 @@ function OperationResult({ job }: { job: MaintenanceJob }) {
   );
 }
 
-export function OperationsSummary({ data }: { data: OperationsData }) {
-  const tasks = tasksEnabled();
+export function OperationsSummary({
+  data,
+  tasks,
+}: {
+  data: OperationsData;
+  // The owner's task manager switch: "Run now" for the task phases.
+  tasks: boolean;
+}) {
   return (
     <>
       <section>

@@ -33,6 +33,7 @@ import {
   removeTaskDependency,
 } from "../lib/tasks/dependencies";
 import { eventsSince } from "../lib/tasks/events";
+import { setTasksEnabled } from "../lib/tasks/feature";
 import {
   answerTask,
   approveTask,
@@ -98,7 +99,6 @@ test(
     const suffix = ownerId.slice(0, 8);
     const originalOwner = process.env.BRAIN_OWNER_EMAIL;
     const originalEmbeddings = process.env.BRAIN_QUERY_EMBEDDINGS;
-    const originalTasks = process.env.TASKS_ENABLED;
     process.env.BRAIN_OWNER_EMAIL = [originalOwner, email]
       .filter(Boolean)
       .join(",");
@@ -1589,7 +1589,7 @@ test(
       await t.test(
         "MCP task tools sign as the calling agent and expire only tasks:<owner>",
         async () => {
-          process.env.TASKS_ENABLED = "1";
+          await setTasksEnabled(actors.owner, true);
           const kinds: CacheInvalidation[] = [];
           const handler = createBrainHandler(
             oauthPrincipal("mcp-client"),
@@ -1700,8 +1700,6 @@ test(
       if (originalEmbeddings)
         process.env.BRAIN_QUERY_EMBEDDINGS = originalEmbeddings;
       else delete process.env.BRAIN_QUERY_EMBEDDINGS;
-      if (originalTasks) process.env.TASKS_ENABLED = originalTasks;
-      else delete process.env.TASKS_ENABLED;
       for (const table of [
         "brain_task_events",
         "brain_tasks",

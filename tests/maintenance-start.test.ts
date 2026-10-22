@@ -19,6 +19,7 @@ type Status = WorkflowJob["status"];
 
 function harness(
   options: {
+    /** The owner's task manager setting; on unless said otherwise. */
     tasks?: boolean;
     hook?: { runId: string; metadata?: unknown } | null;
     jobs?: Partial<Record<WorkflowJobKind, Status>>;
@@ -28,6 +29,9 @@ function harness(
     started: [] as unknown[][],
     queued: [] as unknown[][],
     requeued: [] as unknown[][],
+    settings: [] as string[],
+    /** Hook and job ledger reads. */
+    lookups: 0,
   };
   const jobs = (): WorkflowJob[] =>
     Object.entries(options.jobs ?? {}).map(
@@ -39,7 +43,10 @@ function harness(
         }) as unknown as WorkflowJob,
     );
   const deps: StartDeps = {
-    env: { TASKS_ENABLED: options.tasks === false ? "false" : "true" },
+    tasksEnabled: async (ownerId) => {
+      calls.settings.push(ownerId);
+      return options.tasks !== false;
+    },
     now: () => new Date(`${TODAY}T20:00:00Z`),
     start: async (_workflow, args) => {
       calls.started.push(args);
@@ -47,11 +54,13 @@ function harness(
     },
     getHookByToken: async (token) => {
       assert.equal(token, `brain-nightly:${OWNER}`);
+      calls.lookups++;
       if (!options.hook) throw new HookNotFoundError(token);
       return options.hook;
     },
     dailyWorkflowStatus: async (ownerId, runDate) => {
       assert.deepEqual([ownerId, runDate], [OWNER, TODAY]);
+      calls.lookups++;
       return jobs();
     },
     queueWorkflowJobs: async (...args) => {
@@ -139,13 +148,37 @@ test("Run now starts a new tasks run when today's run finished its task phases o
   }
 });
 
-test("Run now is refused while the task release is off", async () => {
-  const { deps, calls } = harness({ tasks: false });
-  await assert.rejects(startTaskMaintenance(OWNER, deps), {
-    code: "TASKS_DISABLED",
-    status: 409,
-  });
-  assert.deepEqual([calls.requeued, calls.started], [[], []]);
+test("Run now is refused while the owner's task manager is off", async () => {
+  for (const hook of [null, nightly(), tasksRun]) {
+    const { deps, calls } = harness({
+      tasks: false,
+      hook,
+      jobs: { task_keeper: "failed", task_links: "queued" },
+    });
+    await assert.rejects(startTaskMaintenance(OWNER, deps), {
+      code: "TASKS_DISABLED",
+      status: 409,
+    });
+    // The owner's own setting is read first; nothing else is looked at.
+    assert.deepEqual(calls.settings, [OWNER]);
+    assert.equal(calls.lookups, 0);
+    assert.deepEqual([calls.requeued, calls.started], [[], []]);
+  }
+});
+
+test("a night reads the owner's setting once and keeps it for the whole run", async () => {
+  for (const tasks of [true, false]) {
+    const { deps, calls } = harness({ tasks });
+    await startNightlyMaintenance(OWNER, "scheduled", deps);
+    assert.deepEqual(calls.settings, [OWNER]);
+    const kinds = tasks
+      ? ["consolidation", "embeddings", "export", "task_keeper", "task_links"]
+      : ["consolidation", "embeddings", "export"];
+    assert.deepEqual(calls.queued, [[OWNER, TODAY, undefined, kinds]]);
+    assert.deepEqual(calls.started, [
+      [OWNER, TODAY, undefined, { scope: "nightly", tasks }],
+    ]);
+  }
 });
 
 test("a night reuses today's nightly run but never defers to a tasks-scope run", async () => {
@@ -222,7 +255,7 @@ test("a completed night is not started again; a manual night reruns consolidatio
     pending.deps,
   );
   assert.equal(result.completed, false);
-  // …and complete with the release off, whose night has three stages.
+  // …and complete with the owner's task manager off: three stages.
   const off = harness({
     tasks: false,
     jobs: {

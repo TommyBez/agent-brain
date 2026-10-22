@@ -14,6 +14,7 @@ const TASKS_ONLY = new Set([
   "activityForOwner",
   "formChoicesForOwner",
   "settingsForOwner",
+  "tasksEnabledForOwner",
 ]);
 
 test("cached task views that show project or page fields carry the workspace tag", () => {
@@ -43,4 +44,24 @@ test("cached task views that show project or page fields carry the workspace tag
       ),
       name,
     );
+});
+
+test("the task manager switch is cached under the tasks tag that turning it on or off expires", () => {
+  assert.match(
+    source,
+    /async function tasksEnabledForOwner\(ownerId: string\) \{\s*"use cache";\s*tasksOnly\(ownerId\);\s*return tasksEnabledFor\(ownerId\);/,
+  );
+  assert.match(
+    source,
+    /export const getTasksEnabled = cache\(async \(\) => \{\s*const user = await getWorkspaceUser\(\);\s*return tasksEnabledForOwner\(user\.id\);/,
+  );
+  const actions = readFileSync(
+    new URL("../lib/workspace/settings-actions.ts", import.meta.url),
+    "utf8",
+  );
+  const action = actions.match(
+    /export async function setTasksEnabledAction\([\s\S]*?\n\}/,
+  )?.[0];
+  assert.ok(action, "setTasksEnabledAction was found");
+  assert.match(action, /updateTasksCache\(user\.id\)/);
 });

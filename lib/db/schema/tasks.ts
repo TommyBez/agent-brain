@@ -655,6 +655,8 @@ export const brainTaskSettings = pgTable(
   "brain_task_settings",
   {
     ownerId: text("owner_id").primaryKey().notNull(),
+    /** The owner's task manager switch; off until the owner turns it on. */
+    enabled: boolean("enabled").default(false).notNull(),
     keeperExcludedPageIds: uuid("keeper_excluded_page_ids")
       .array()
       .default(sql`'{}'::uuid[]`)

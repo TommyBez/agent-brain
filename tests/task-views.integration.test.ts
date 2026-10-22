@@ -17,6 +17,7 @@ import {
 import { claimTask, completeTask, reportTask } from "../lib/tasks/claims";
 import { addTaskDependency } from "../lib/tasks/dependencies";
 import { latestTaskEventId } from "../lib/tasks/events";
+import { setTasksEnabled } from "../lib/tasks/feature";
 import { blockTask, closeTask, holdTask } from "../lib/tasks/owner";
 import { addTaskParty } from "../lib/tasks/parties";
 import { createTask } from "../lib/tasks/service";
@@ -60,13 +61,11 @@ test(
     const original = {
       owner: process.env.BRAIN_OWNER_EMAIL,
       embeddings: process.env.BRAIN_QUERY_EMBEDDINGS,
-      tasks: process.env.TASKS_ENABLED,
     };
     process.env.BRAIN_OWNER_EMAIL = [original.owner, email]
       .filter(Boolean)
       .join(",");
     process.env.BRAIN_QUERY_EMBEDDINGS = "false";
-    process.env.TASKS_ENABLED = "1";
     await pool.query(
       `INSERT INTO "user" (id,name,email,"emailVerified","createdAt","updatedAt") VALUES ($1,'Views Owner',$2,true,now(),now())`,
       [ownerId, email],
@@ -78,6 +77,7 @@ test(
       clientId: `${name}-${suffix}`,
     });
     const owner = await ownerActor(ownerId);
+    await setTasksEnabled(owner, true);
     const claude = await resolveActor(ownerId, oauth("claude-code"));
     const codex = await resolveActor(ownerId, oauth("codex"));
     const keeper = await systemActor(ownerId, "task_keeper");
@@ -560,9 +560,15 @@ test(
             (await call("", { authorization: "Bearer brain_nope" })).status,
             401,
           );
-          process.env.TASKS_ENABLED = "false";
-          assert.equal((await call()).status, 404);
-          process.env.TASKS_ENABLED = "1";
+          // The owner's task manager off hides the poll; nothing is lost.
+          await setTasksEnabled(owner, false);
+          const hidden = await call();
+          assert.equal(hidden.status, 404);
+          assert.equal(hidden.body.code, "NOT_FOUND");
+          await setTasksEnabled(owner, true);
+          const shown = await call();
+          assert.equal(shown.status, 200);
+          assert.equal(shown.body.needsYou, await queryNeedsYouCount(ownerId));
         },
       );
     } finally {
@@ -571,8 +577,6 @@ test(
       if (original.embeddings)
         process.env.BRAIN_QUERY_EMBEDDINGS = original.embeddings;
       else delete process.env.BRAIN_QUERY_EMBEDDINGS;
-      if (original.tasks) process.env.TASKS_ENABLED = original.tasks;
-      else delete process.env.TASKS_ENABLED;
       for (const table of [
         "brain_task_events",
         "brain_tasks",

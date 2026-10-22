@@ -199,6 +199,11 @@ async function setupOwner(
     `INSERT INTO "user" (id,name,email,"emailVerified","createdAt","updatedAt") VALUES ($1,'Keeper Audit',$2,true,now(),now())`,
     [ownerId, email],
   );
+  // Nightly task phases run, and are budgeted, only with the task manager on.
+  await pool.query(
+    "INSERT INTO brain_task_settings (owner_id, enabled) VALUES ($1, true) ON CONFLICT (owner_id) DO UPDATE SET enabled = true",
+    [ownerId],
+  );
   t.after(async () => {
     for (const [name, value] of Object.entries(previous))
       if (value === undefined) delete process.env[name];

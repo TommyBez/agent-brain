@@ -1,14 +1,13 @@
 import { CalendarClock } from "lucide-react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { requireTasksEnabled } from "@/app/(workspace)/tasks/enabled";
 import { AgendaSeriesForm } from "@/components/tasks/agenda-series-form";
 import { AgendaView } from "@/components/tasks/agenda-view";
 import { TasksNav } from "@/components/tasks/tasks-nav";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Empty, Loading, PageHeading } from "@/components/workspace/primitives";
 import { formatTaskDate } from "@/lib/tasks/recurrences";
-import { tasksEnabled } from "@/lib/tasks/types";
 import { cn } from "@/lib/utils";
 import {
   type RouteSearchParams,
@@ -57,6 +56,7 @@ async function AgendaPanel({ id }: { id: string }) {
 }
 
 async function AgendaContent({ searchParams }: { searchParams: SearchParams }) {
+  await requireTasksEnabled();
   const params = routeSearchParams(await searchParams);
   const series = await getMeetingSeriesList();
   if (!series.length)
@@ -112,7 +112,6 @@ export default function AgendaPage({
 }: {
   searchParams: SearchParams;
 }) {
-  if (!tasksEnabled()) notFound();
   return (
     <>
       <PageHeading

@@ -5,7 +5,8 @@ import type { TaskPhaseScope } from "./task-phase";
 export type NightlyOptions = {
   /** `tasks` runs only task_keeper and task_links (Operations "Run now"). */
   scope?: TaskPhaseScope;
-  /** Whether the nightly scope includes the task phases (TASKS_ENABLED at start). */
+  /** Whether the nightly scope includes the task phases: the owner's task
+   * manager setting when the run was started, kept for the whole run. */
   tasks?: boolean;
 };
 

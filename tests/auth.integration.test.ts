@@ -23,6 +23,8 @@ import {
 import { AuthError, requireSessionPrincipal } from "../lib/auth-principal";
 import * as brain from "../lib/brain/service";
 import { getPool } from "../lib/db";
+import { ownerActor } from "../lib/tasks/actors";
+import { setTasksEnabled } from "../lib/tasks/feature";
 
 test(
   "real Postgres authentication, OAuth PKCE, remote MCP and credential boundaries",
@@ -124,6 +126,10 @@ test(
       await getPool().query("DELETE FROM brain_tasks WHERE owner_id = $1", [
         ownerId,
       ]);
+      await getPool().query(
+        "DELETE FROM brain_task_settings WHERE owner_id = $1",
+        [ownerId],
+      );
       await getPool().query('DELETE FROM "user" WHERE id = $1', [ownerId]);
       await getPool().query("DELETE FROM brain_agents WHERE owner_id = $1", [
         ownerId,
@@ -614,8 +620,9 @@ test(
     await t.test(
       "task tools expire only tasks:<owner>; writes expire workspace:<owner>",
       async () => {
-        const originalTasks = process.env.TASKS_ENABLED;
-        process.env.TASKS_ENABLED = "1";
+        // The owner turns the task manager on for this test only.
+        const owner = await ownerActor(ownerId);
+        await setTasksEnabled(owner, true);
         const { token } = await createAgentToken(ownerId, {
           name: "Task worker integration test",
           scopes: ["brain:read", "brain:write"],
@@ -698,8 +705,7 @@ test(
           assert.deepEqual(written.tags, [`workspace:${ownerId}`]);
         } finally {
           await client.close();
-          if (originalTasks === undefined) delete process.env.TASKS_ENABLED;
-          else process.env.TASKS_ENABLED = originalTasks;
+          await setTasksEnabled(owner, false);
         }
       },
     );

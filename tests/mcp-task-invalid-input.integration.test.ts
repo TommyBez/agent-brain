@@ -13,6 +13,8 @@ import {
 import type { Principal } from "../lib/auth-principal";
 import { getPool } from "../lib/db";
 import { createBrainHandler } from "../lib/mcp/server";
+import { ownerActor } from "../lib/tasks/actors";
+import { setTasksEnabled } from "../lib/tasks/feature";
 import { TASK_TOOL_DEFINITIONS } from "../lib/tasks/tool-definitions";
 import type { CacheInvalidation } from "../lib/workspace/cache";
 
@@ -33,62 +35,55 @@ async function connect(handler: McpHttpHandler) {
   return client;
 }
 
-async function withTasksEnabled<T>(run: () => Promise<T>) {
-  const previous = process.env.TASKS_ENABLED;
-  process.env.TASKS_ENABLED = "1";
-  try {
-    return await run();
-  } finally {
-    if (previous === undefined) delete process.env.TASKS_ENABLED;
-    else process.env.TASKS_ENABLED = previous;
-  }
-}
-
-test("task tools advertise the same tools/list entries as their zod schemas", () =>
-  withTasksEnabled(async () => {
-    // The reference registers the zod schemas directly, as before the
-    // pass-through: tools/list must not change for any task tool.
-    const reference = createMcpHandler(
-      () => {
-        const server = new McpServer({ name: "reference", version: "1.0.0" });
-        for (const tool of TASK_TOOL_DEFINITIONS)
-          server.registerTool(
-            tool.name,
-            {
-              description: tool.description,
-              inputSchema: tool.inputSchema,
-              annotations: tool.annotations,
-            },
-            () => ({ content: [] }),
-          );
-        return server;
-      },
-      { legacy: "stateless", keepAliveMs: 0, maxSubscriptions: 0 },
-    );
-    const expected = await connect(reference);
-    const actual = await connect(
-      createBrainHandler({ ownerId: "test-owner", kind: "token", scopes: [] }),
-    );
-    try {
-      const before = (await expected.listTools()).tools;
-      const after = (await actual.listTools()).tools;
-      assert.equal(before.length, TASK_TOOL_DEFINITIONS.length);
-      for (const tool of before) {
-        const served = after.find((entry) => entry.name === tool.name);
-        assert.ok(served, `${tool.name} is registered`);
-        assert.deepEqual(served.inputSchema, tool.inputSchema, tool.name);
-        assert.deepEqual(served.description, tool.description, tool.name);
-        assert.deepEqual(served.annotations, tool.annotations, tool.name);
-        assert.ok(
-          Object.keys(served.inputSchema.properties ?? {}).length > 0,
-          `${tool.name} advertises its fields`,
+test("task tools advertise the same tools/list entries as their zod schemas", async () => {
+  // The reference registers the zod schemas directly, as before the
+  // pass-through: tools/list must not change for any task tool.
+  const reference = createMcpHandler(
+    () => {
+      const server = new McpServer({ name: "reference", version: "1.0.0" });
+      for (const tool of TASK_TOOL_DEFINITIONS)
+        server.registerTool(
+          tool.name,
+          {
+            description: tool.description,
+            inputSchema: tool.inputSchema,
+            annotations: tool.annotations,
+          },
+          () => ({ content: [] }),
         );
-      }
-    } finally {
-      await expected.close();
-      await actual.close();
+      return server;
+    },
+    { legacy: "stateless", keepAliveMs: 0, maxSubscriptions: 0 },
+  );
+  const expected = await connect(reference);
+  // An owner with the task manager on, without a database.
+  const actual = await connect(
+    createBrainHandler(
+      { ownerId: "test-owner", kind: "token", scopes: [] },
+      undefined,
+      async () => true,
+    ),
+  );
+  try {
+    const before = (await expected.listTools()).tools;
+    const after = (await actual.listTools()).tools;
+    assert.equal(before.length, TASK_TOOL_DEFINITIONS.length);
+    for (const tool of before) {
+      const served = after.find((entry) => entry.name === tool.name);
+      assert.ok(served, `${tool.name} is registered`);
+      assert.deepEqual(served.inputSchema, tool.inputSchema, tool.name);
+      assert.deepEqual(served.description, tool.description, tool.name);
+      assert.deepEqual(served.annotations, tool.annotations, tool.name);
+      assert.ok(
+        Object.keys(served.inputSchema.properties ?? {}).length > 0,
+        `${tool.name} advertises its fields`,
+      );
     }
-  }));
+  } finally {
+    await expected.close();
+    await actual.close();
+  }
+});
 
 test(
   "schema-invalid task tool calls over MCP return INVALID_INPUT with a remedy",
@@ -101,17 +96,16 @@ test(
     const saved = {
       owner: process.env.BRAIN_OWNER_EMAIL,
       embeddings: process.env.BRAIN_QUERY_EMBEDDINGS,
-      tasks: process.env.TASKS_ENABLED,
     };
     process.env.BRAIN_OWNER_EMAIL = [saved.owner, email]
       .filter(Boolean)
       .join(",");
     process.env.BRAIN_QUERY_EMBEDDINGS = "false";
-    process.env.TASKS_ENABLED = "1";
     await pool.query(
       `INSERT INTO "user" (id,name,email,"emailVerified","createdAt","updatedAt") VALUES ($1,'Invalid Input Owner',$2,true,now(),now())`,
       [ownerId, email],
     );
+    await setTasksEnabled(await ownerActor(ownerId), true);
     const principal: Principal = {
       ownerId,
       scopes: ["brain:read", "brain:write"],
@@ -186,7 +180,6 @@ test(
       for (const [key, value] of [
         ["BRAIN_OWNER_EMAIL", saved.owner],
         ["BRAIN_QUERY_EMBEDDINGS", saved.embeddings],
-        ["TASKS_ENABLED", saved.tasks],
       ] as const)
         if (value === undefined) delete process.env[key];
         else process.env[key] = value;

@@ -10,8 +10,9 @@ import {
 
 // One shared poller of GET /api/tasks/changes for every mounted subscriber
 // (the navigation badge, open task views). It runs only while the tab is
-// visible, at the shortest interval any subscriber asked for, and stops for
-// good when the server says tasks are disabled.
+// visible, at the shortest interval any subscriber asked for, and stops when
+// the server says the owner's task manager is off. The switch can be turned
+// back on in the same tab, so a subscriber mounted later asks again.
 
 export const LIVE_REFRESH_MS = 10_000;
 export const BADGE_REFRESH_MS = 60_000;
@@ -155,7 +156,11 @@ export function useTaskSignals(intervalMs?: number): TaskSignals {
       watchingVisibility = true;
       document.addEventListener("visibilitychange", onVisibility);
     }
-    if (signals.latest === null) void poll({ full: true }).then(schedule);
+    if (signals.enabled === false) {
+      emit({ ...SERVER_SIGNALS });
+      void poll({ full: true }).then(schedule);
+    } else if (signals.latest === null)
+      void poll({ full: true }).then(schedule);
     else schedule();
     return () => {
       subscribers.delete(key);

@@ -786,8 +786,9 @@ test("task guidance stays conditional, keeps secrets out of tasks and agendas ou
   const tasks = await skill("brain-tasks");
   const lifecycle = await skill("brain-tasks", "references/lifecycle.md");
   const meetings = await skill("brain-tasks", "references/meetings.md");
-  // The plugin ships independently of TASKS_ENABLED: without the task tools,
-  // owner-requested work keeps its pre-task home in the project or note.
+  // The plugin ships independently of each owner's task manager setting:
+  // without the task tools, owner-requested work keeps its pre-task home in
+  // the project or note.
   assert.match(
     memory,
     /When the Brain task tools are available, work the owner asks to track belongs in a Brain task \(brain-tasks skill\), never in a page checklist; without them, keep it in the relevant project or note as before\./,

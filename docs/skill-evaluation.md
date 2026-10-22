@@ -347,7 +347,7 @@ pnpm eval:skill prepare \
 
 Il prompt, i tool e il dataset delle decisioni restano quelli di sempre; `--open-tasks` aggiunge solo l'archivio dei task alla prova, senza esporne i tool nel prompt.
 
-Il braccio candidato misura le istruzioni servite con `TASKS_ENABLED` acceso: l'estrattore legge solo il letterale `BRAIN_INSTRUCTIONS`. Con il flag spento il server serve `BRAIN_INSTRUCTIONS_PRE_TASKS`, identico alle istruzioni del commit di baseline, in istruzioni MCP, prompt e `brain://procedures`.
+Il braccio candidato misura le istruzioni servite a un proprietario con l'impostazione **Task manager** accesa: l'estrattore legge solo il letterale `BRAIN_INSTRUCTIONS`. L'impostazione è per proprietario, in **Agents & access**, spenta di default, e il server la legge a ogni richiesta MCP. A un proprietario con l'impostazione spenta il server serve `BRAIN_INSTRUCTIONS_PRE_TASKS`, identico alle istruzioni del commit di baseline, in istruzioni MCP, prompt e `brain://procedures`.
 
 ### Soglie di rilascio (§12, criterio 10)
 

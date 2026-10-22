@@ -1,7 +1,7 @@
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { requireTasksEnabled } from "@/app/(workspace)/tasks/enabled";
 import { AuthoredBy } from "@/components/tasks/status";
 import {
   readTaskDetail,
@@ -10,7 +10,6 @@ import {
 import { TaskForm } from "@/components/tasks/task-form";
 import { Button } from "@/components/ui/button";
 import { Loading } from "@/components/workspace/primitives";
-import { tasksEnabled } from "@/lib/tasks/types";
 import { getWorkspacePages } from "@/lib/workspace/data";
 import { taskHref } from "@/lib/workspace/task-urls";
 import { getTaskFormChoices } from "@/lib/workspace/tasks-data";
@@ -19,6 +18,7 @@ import { CONNECTION_PAGE_SIZE } from "@/lib/workspace/urls";
 export const metadata = { title: "Edit task · a native brain" };
 
 async function EditTask({ params }: { params: TaskParams }) {
+  await requireTasksEnabled();
   const [{ task }, choices, projects] = await Promise.all([
     readTaskDetail(params),
     getTaskFormChoices(),
@@ -84,7 +84,6 @@ async function BackLink({ params }: { params: TaskParams }) {
 }
 
 export default function EditTaskPage({ params }: { params: TaskParams }) {
-  if (!tasksEnabled()) notFound();
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <Suspense

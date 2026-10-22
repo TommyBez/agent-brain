@@ -64,7 +64,8 @@ test(
   "running Next streams authenticated routes and invalidates rendered data after API/MCP writes",
   {
     skip: process.env.RUN_NEXT_TESTS !== "1",
-    timeout: 180_000,
+    // The task manager subtest waits up to a minute for a cached setting.
+    timeout: 300_000,
   },
   async (t) => {
     assert.ok(
@@ -102,6 +103,8 @@ test(
     let ownerId = "";
     let tokenId = "";
     let token = "";
+    // The fixture owner's task manager setting before this run (absent = off).
+    let tasksBefore: boolean | undefined;
     const pageIds: string[] = [];
     const prefix = `NextAcceptance${randomUUID().replaceAll("-", "")}`;
     const bodyMarker = `${prefix}PrivateMarkdown`;
@@ -155,6 +158,11 @@ test(
             "DELETE FROM brain_pages WHERE owner_id=$1 AND id=ANY($2::uuid[])",
             [ownerId, pageIds],
           );
+          if (tasksBefore !== undefined)
+            await db.query(
+              "UPDATE brain_task_settings SET enabled=$2 WHERE owner_id=$1",
+              [ownerId, tasksBefore],
+            );
         }
         if (cookie) {
           const signedOut = await request(
@@ -604,6 +612,108 @@ test(
               `href="/pages/${page.id}/history/3"`,
             ),
           );
+        } finally {
+          await client.close();
+        }
+      },
+    );
+
+    await t.test(
+      "task surfaces follow the fixture owner's own task manager setting",
+      async () => {
+        assert.ok(token, "The MCP subtest issues the agent token used here");
+        const before = await db.query<{ enabled: boolean }>(
+          "SELECT enabled FROM brain_task_settings WHERE owner_id=$1",
+          [ownerId],
+        );
+        tasksBefore = before.rows[0]?.enabled ?? false;
+        // Written through the verified fixture connection, as the switch in
+        // Agents & access would; the server reads it per owner.
+        const setTasks = (enabled: boolean) =>
+          db.query(
+            `INSERT INTO brain_task_settings (owner_id, enabled) VALUES ($1, $2)
+             ON CONFLICT (owner_id) DO UPDATE SET enabled = EXCLUDED.enabled`,
+            [ownerId, enabled],
+          );
+        const taskTools = [
+          "list_tasks",
+          "read_task",
+          "create_task",
+          "update_task",
+          "claim_task",
+          "report_task",
+          "release_task",
+          "complete_task",
+        ];
+        const client = new Client(
+          { name: "next-http-acceptance", version: "1.0.0" },
+          { versionNegotiation: { mode: { pin: "2026-07-28" } } },
+        );
+        // The poll, the graph API and MCP read the setting on every request.
+        async function uncached(enabled: boolean) {
+          const changes = await request("/api/tasks/changes");
+          const body = (await changes.json()) as {
+            code?: string;
+            latest?: unknown;
+          };
+          if (enabled) {
+            assert.equal(changes.status, 200);
+            assert.equal(typeof body.latest, "string");
+          } else {
+            assert.equal(changes.status, 404);
+            assert.equal(body.code, "NOT_FOUND");
+          }
+          const graph = await request("/api/brain/graph?tasks=1&limit=1");
+          assert.equal(graph.status, 200);
+          assert.equal("taskOverlay" in (await graph.json()), enabled);
+          const tools = new Set(
+            (await client.listTools()).tools.map((tool) => tool.name),
+          );
+          for (const name of taskTools)
+            assert.equal(tools.has(name), enabled, `MCP tool ${name}`);
+          assert.ok(tools.has("append"), "Page tools stay available");
+        }
+        // Rendered surfaces read it under the tasks:<owner> cache tag for at
+        // most a minute (cacheLife expire 60). A database write skips the
+        // Server Action that expires that tag, so they are polled until then.
+        async function rendered(enabled: boolean) {
+          const deadline = Date.now() + 75_000;
+          for (;;) {
+            const shown = renderedHtml(await html("/activity")).includes(
+              'href="/tasks"',
+            );
+            if (shown === enabled) break;
+            assert.ok(
+              Date.now() < deadline,
+              `The sidebar Tasks entry must ${enabled ? "appear" : "disappear"} once the cached setting expires`,
+            );
+            await new Promise((resolve) => setTimeout(resolve, 2_000));
+          }
+          // An empty filtered list streams only while the setting is on;
+          // otherwise the not-found UI replaces the streamed content.
+          const tasks = await request(`/tasks?q=${prefix}`);
+          assert.ok([200, 404].includes(tasks.status));
+          assert.equal(
+            renderedText(await tasks.text()).includes("No tasks match"),
+            enabled,
+            `/tasks content with the task manager ${enabled ? "on" : "off"}`,
+          );
+        }
+        try {
+          await client.connect(
+            new StreamableHTTPClientTransport(new URL("/mcp", origin), {
+              requestInit: { headers: { authorization: `Bearer ${token}` } },
+            }),
+          );
+          await setTasks(false);
+          await uncached(false);
+          await rendered(false);
+          await setTasks(true);
+          await uncached(true);
+          await rendered(true);
+          // Turning it off hides tasks again at once where nothing is cached.
+          await setTasks(false);
+          await uncached(false);
         } finally {
           await client.close();
         }

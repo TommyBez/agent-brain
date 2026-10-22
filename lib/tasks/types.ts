@@ -365,10 +365,3 @@ export function effectiveTrustedCreator(
 ): boolean {
   return kind === "agent" && setting && credential === "token";
 }
-
-/** The release flag for task tools and UI. */
-export function tasksEnabled(
-  env: Record<string, string | undefined> = process.env,
-): boolean {
-  return env.TASKS_ENABLED === "true" || env.TASKS_ENABLED === "1";
-}

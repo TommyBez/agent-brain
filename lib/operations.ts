@@ -8,7 +8,7 @@ import type {
   WorkflowJobKind,
   WorkflowJobStatus,
 } from "@/lib/maintenance/jobs";
-import { tasksEnabled } from "@/lib/tasks/types";
+import { tasksEnabledFor } from "@/lib/tasks/feature";
 
 export type MaintenanceJob = {
   id: string;
@@ -342,7 +342,8 @@ async function closedTasksForExport(
 }
 
 // Repeatable-read preserves a consistent graph and page set while agents continue writing.
-// With TASKS_ENABLED, schemaVersion 2 adds the closed tasks in their own list.
+// When the owner has the task manager on, schemaVersion 2 adds the closed tasks
+// in their own list; the switch is read in the same snapshot.
 export async function exportBrain(ownerId: string) {
   assertOwner(ownerId);
   return transaction(async (client) => {
@@ -364,7 +365,7 @@ export async function exportBrain(ownerId: string) {
       [ownerId],
     );
     const exportedAt = new Date().toISOString();
-    if (!tasksEnabled())
+    if (!(await tasksEnabledFor(ownerId, client)))
       return { schemaVersion: 1 as const, exportedAt, pages, links };
     return {
       schemaVersion: 2 as const,

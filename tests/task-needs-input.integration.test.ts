@@ -12,6 +12,7 @@ import {
   reportTask,
 } from "../lib/tasks/claims";
 import { addTaskDependency } from "../lib/tasks/dependencies";
+import { setTasksEnabled } from "../lib/tasks/feature";
 import { answerTask, blockTask } from "../lib/tasks/owner";
 import { createTask, readTask } from "../lib/tasks/service";
 
@@ -42,13 +43,11 @@ test(
     const saved = {
       owner: process.env.BRAIN_OWNER_EMAIL,
       embeddings: process.env.BRAIN_QUERY_EMBEDDINGS,
-      tasks: process.env.TASKS_ENABLED,
     };
     process.env.BRAIN_OWNER_EMAIL = [saved.owner, email]
       .filter(Boolean)
       .join(",");
     process.env.BRAIN_QUERY_EMBEDDINGS = "false";
-    process.env.TASKS_ENABLED = "1";
     await pool.query(
       `INSERT INTO "user" (id,name,email,"emailVerified","createdAt","updatedAt") VALUES ($1,'Needs Input Owner',$2,true,now(),now())`,
       [ownerId, email],
@@ -61,6 +60,7 @@ test(
     };
     try {
       const owner = await ownerActor(ownerId);
+      await setTasksEnabled(owner, true);
       const claude = await resolveActor(ownerId, principal);
       const report = {
         summary: "Draft sent.",
@@ -249,7 +249,6 @@ test(
       for (const [key, value] of [
         ["BRAIN_OWNER_EMAIL", saved.owner],
         ["BRAIN_QUERY_EMBEDDINGS", saved.embeddings],
-        ["TASKS_ENABLED", saved.tasks],
       ] as const)
         if (value === undefined) delete process.env[key];
         else process.env[key] = value;

@@ -2,6 +2,7 @@ import "server-only";
 
 import { cacheLife, cacheTag } from "next/cache";
 import { cache } from "react";
+import { tasksEnabledFor } from "@/lib/tasks/feature";
 import { tasksCacheTag, workspaceCacheTag } from "./cache";
 import { getWorkspaceUser } from "./session";
 import {
@@ -122,6 +123,12 @@ async function settingsForOwner(ownerId: string) {
   return queryTaskSettings(ownerId);
 }
 
+async function tasksEnabledForOwner(ownerId: string) {
+  "use cache";
+  tasksOnly(ownerId);
+  return tasksEnabledFor(ownerId);
+}
+
 async function keeperExclusionsForOwner(ownerId: string) {
   "use cache";
   withPages(ownerId);
@@ -129,6 +136,12 @@ async function keeperExclusionsForOwner(ownerId: string) {
 }
 
 // Authorize outside every cache boundary; only owner-free getters are exported.
+
+/** The signed-in owner's task manager switch; every task view checks it. */
+export const getTasksEnabled = cache(async () => {
+  const user = await getWorkspaceUser();
+  return tasksEnabledForOwner(user.id);
+});
 
 export const getNeedsYou = cache(async () => {
   const user = await getWorkspaceUser();

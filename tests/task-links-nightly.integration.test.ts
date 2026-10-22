@@ -134,6 +134,11 @@ test(
       `INSERT INTO "user" (id,name,email,"emailVerified","createdAt","updatedAt") VALUES ($1,'Nightly Owner',$2,true,now(),now())`,
       [ownerId, email],
     );
+    // Nightly task phases run, and are budgeted, only with the task manager on.
+    await pool.query(
+      "INSERT INTO brain_task_settings (owner_id, enabled) VALUES ($1, true) ON CONFLICT (owner_id) DO UPDATE SET enabled = true",
+      [ownerId],
+    );
     const night = (runId: string): Promise<TaskLinksResult> =>
       runTaskLinksPhase({
         ownerId,
@@ -496,6 +501,7 @@ test(
       for (const table of [
         "brain_task_events",
         "brain_tasks",
+        "brain_task_settings",
         "brain_consolidation_records",
         "brain_consolidation_spend",
         "brain_activity",
@@ -579,6 +585,11 @@ async function nightOwner(
     `INSERT INTO "user" (id,name,email,"emailVerified","createdAt","updatedAt") VALUES ($1,'Links Owner',$2,true,now(),now())`,
     [ownerId, email],
   );
+  // Nightly task phases run, and are budgeted, only with the task manager on.
+  await pool.query(
+    "INSERT INTO brain_task_settings (owner_id, enabled) VALUES ($1, true) ON CONFLICT (owner_id) DO UPDATE SET enabled = true",
+    [ownerId],
+  );
   t.after(async () => {
     for (const [name, value] of Object.entries(env))
       if (value === undefined) delete process.env[name];
@@ -586,6 +597,7 @@ async function nightOwner(
     for (const table of [
       "brain_task_events",
       "brain_tasks",
+      "brain_task_settings",
       "brain_consolidation_records",
       "brain_consolidation_spend",
       "brain_activity",

@@ -1,14 +1,13 @@
 import { Plus } from "lucide-react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { requireTasksEnabled } from "@/app/(workspace)/tasks/enabled";
 import { BoardFilters } from "@/components/tasks/board-filters";
 import { TaskBoard } from "@/components/tasks/task-board";
 import { TasksNav } from "@/components/tasks/tasks-nav";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeading } from "@/components/workspace/primitives";
-import { tasksEnabled } from "@/lib/tasks/types";
 import { newTaskHref, parseTaskBoardFilters } from "@/lib/workspace/task-urls";
 import { getTaskBoard } from "@/lib/workspace/tasks-data";
 import {
@@ -21,6 +20,7 @@ export const metadata = { title: "Task board · a native brain" };
 type SearchParams = Promise<RouteSearchParams>;
 
 async function Board({ searchParams }: { searchParams: SearchParams }) {
+  await requireTasksEnabled();
   const filters = parseTaskBoardFilters(routeSearchParams(await searchParams));
   const { tasks, totals } = await getTaskBoard(filters);
   return <TaskBoard tasks={tasks} totals={totals} filters={filters} />;
@@ -44,7 +44,6 @@ export default function TaskBoardPage({
 }: {
   searchParams: SearchParams;
 }) {
-  if (!tasksEnabled()) notFound();
   return (
     <>
       <PageHeading

@@ -11,6 +11,7 @@ import * as brain from "../lib/brain/service";
 import { getPool, transaction } from "../lib/db";
 import { createBrainHandler } from "../lib/mcp/server";
 import { ownerActor, resolveActor, systemActor } from "../lib/tasks/actors";
+import { setTasksEnabled } from "../lib/tasks/feature";
 import { writeMachineLinks } from "../lib/tasks/links";
 import { latestRetrievalState } from "../lib/tasks/retrieval";
 import { createTask, readTask, updateTask } from "../lib/tasks/service";
@@ -73,13 +74,11 @@ test(
     const env = {
       owner: process.env.BRAIN_OWNER_EMAIL,
       embeddings: process.env.BRAIN_QUERY_EMBEDDINGS,
-      tasks: process.env.TASKS_ENABLED,
     };
     process.env.BRAIN_OWNER_EMAIL = [env.owner, email]
       .filter(Boolean)
       .join(",");
     process.env.BRAIN_QUERY_EMBEDDINGS = "false";
-    process.env.TASKS_ENABLED = "1";
     t.mock.method(
       createRequire(import.meta.url)("next/cache"),
       "revalidateTag",
@@ -145,6 +144,7 @@ test(
       });
       const before = await knowledgeState(ownerId);
       const owner = await ownerActor(ownerId);
+      await setTasksEnabled(owner, true);
       const conciliator = await systemActor(ownerId, "consolidator");
 
       let reportRef = "";
@@ -446,12 +446,26 @@ test(
               ),
             );
             assert.ok(!(bundle.markdown as string).includes("Passo 1"));
-            process.env.TASKS_ENABLED = "0";
-            assert.equal(
-              (await call("read", { ref: newsletter.id })).openTasks,
-              undefined,
-            );
-            process.env.TASKS_ENABLED = "1";
+            // The switch is read per request: the same client loses
+            // openTasks as soon as the owner turns the task manager off.
+            await setTasksEnabled(owner, false);
+            try {
+              assert.equal(
+                (await call("read", { ref: newsletter.id })).openTasks,
+                undefined,
+              );
+              assert.equal(
+                (
+                  await call("context", {
+                    query: "migrazione newsletter",
+                    refs: [newsletter.id],
+                  })
+                ).openTasks,
+                undefined,
+              );
+            } finally {
+              await setTasksEnabled(owner, true);
+            }
           } finally {
             await client.close();
           }
@@ -514,8 +528,6 @@ test(
       if (env.embeddings === undefined)
         delete process.env.BRAIN_QUERY_EMBEDDINGS;
       else process.env.BRAIN_QUERY_EMBEDDINGS = env.embeddings;
-      if (env.tasks === undefined) delete process.env.TASKS_ENABLED;
-      else process.env.TASKS_ENABLED = env.tasks;
       await cleanupOwner(ownerId);
       await pool.end();
     }

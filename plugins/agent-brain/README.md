@@ -63,7 +63,7 @@ For a self-hosted Brain, copy the package and replace the URL in both `mcp.json`
 
 Use natural-language requests such as “Recover the context and decisions for this project” or “Save the decisions from this conversation, preserving sources and rationale.” Claude Code also supports `/agent-brain:brain-memory`; Codex supports explicit skill invocation with `$brain-memory`. The skill assesses useful memories proactively and saves only when authorized.
 
-For tracked work, ask for example “Track the maintenance contract draft as a task” or “Work on T-12”. The task tools exist only when the server runs with `TASKS_ENABLED`; they use the same `brain:read` and `brain:write` scopes, so no new consent is needed. Claude Code supports `/agent-brain:brain-tasks`; Codex supports `$brain-tasks`.
+For tracked work, ask for example “Track the maintenance contract draft as a task” or “Work on T-12”. The task tools exist only for an owner who has turned on the task manager in that Brain's **Agents & access** screen (off by default); they use the same `brain:read` and `brain:write` scopes, so no new consent is needed. A change applies from the agent's next MCP request; a client that cached its tool list may need to reconnect to see it. Claude Code supports `/agent-brain:brain-tasks`; Codex supports `$brain-tasks`.
 
 ## Validate and distribute
 

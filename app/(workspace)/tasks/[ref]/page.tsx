@@ -1,7 +1,7 @@
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { Suspense } from "react";
+import { type ReactNode, Suspense } from "react";
+import { RequireTasks } from "@/app/(workspace)/tasks/enabled";
 import { TaskLiveRefresh } from "@/components/tasks/live-refresh";
 import {
   TaskDangerZone,
@@ -18,55 +18,71 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Loading } from "@/components/workspace/primitives";
-import { tasksEnabled } from "@/lib/tasks/types";
 
 export const metadata = { title: "Task · a native brain" };
 
+// Each section reads the task only once the owner's task manager is confirmed
+// on; while it is off they all end in the 404 instead.
+function TaskSection({
+  fallback,
+  children,
+}: {
+  fallback?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <Suspense fallback={fallback}>
+      <RequireTasks>{children}</RequireTasks>
+    </Suspense>
+  );
+}
+
 export default function TaskPage({ params }: { params: TaskParams }) {
-  if (!tasksEnabled()) notFound();
   return (
     <div className="mx-auto max-w-[1100px] space-y-8">
-      <TaskLiveRefresh />
+      <TaskSection>
+        <TaskLiveRefresh />
+      </TaskSection>
       <div className="flex flex-wrap items-center justify-between gap-4 text-[10px] text-muted-foreground">
         <Button variant="ghost" asChild>
           <Link href="/tasks">
             <ArrowLeft size={16} /> Tasks
           </Link>
         </Button>
-        <Suspense fallback={<span>TASK</span>}>
+        <TaskSection fallback={<span>TASK</span>}>
           <TaskRefLabel params={params} />
-        </Suspense>
+        </TaskSection>
       </div>
-      <Suspense
+      <TaskSection
         fallback={<Skeleton className="h-48" aria-label="Loading the task" />}
       >
         <TaskHeader params={params} />
-      </Suspense>
-      <Suspense>
+      </TaskSection>
+      <TaskSection>
         <TaskOwnerPanels params={params} />
-      </Suspense>
+      </TaskSection>
       <div className="grid grid-cols-1 items-start gap-12 xl:grid-cols-[minmax(0,1fr)_19rem]">
         <div className="min-w-0 space-y-12">
-          <Suspense fallback={<Loading label="Loading the description…" />}>
+          <TaskSection fallback={<Loading label="Loading the description…" />}>
             <TaskDescription params={params} />
-          </Suspense>
-          <Suspense fallback={<Skeleton className="h-32" />}>
+          </TaskSection>
+          <TaskSection fallback={<Skeleton className="h-32" />}>
             <TaskKnowledge params={params} />
-          </Suspense>
-          <Suspense>
+          </TaskSection>
+          <TaskSection>
             <TaskSuggestions params={params} />
-          </Suspense>
-          <Suspense fallback={<Skeleton className="h-40" />}>
+          </TaskSection>
+          <TaskSection fallback={<Skeleton className="h-40" />}>
             <TaskHistory params={params} />
-          </Suspense>
+          </TaskSection>
         </div>
-        <Suspense fallback={<Skeleton className="h-80" />}>
+        <TaskSection fallback={<Skeleton className="h-80" />}>
           <TaskProperties params={params} />
-        </Suspense>
+        </TaskSection>
       </div>
-      <Suspense>
+      <TaskSection>
         <TaskDangerZone params={params} />
-      </Suspense>
+      </TaskSection>
     </div>
   );
 }

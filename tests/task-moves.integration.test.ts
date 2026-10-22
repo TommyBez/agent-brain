@@ -14,6 +14,7 @@ import {
   systemActor,
 } from "../lib/tasks/actors";
 import { claimTask, reportTask } from "../lib/tasks/claims";
+import { setTasksEnabled } from "../lib/tasks/feature";
 import { answerTask, delegateTask, forceReleaseTask } from "../lib/tasks/owner";
 import { createTask } from "../lib/tasks/service";
 import {
@@ -50,13 +51,11 @@ test(
     const original = {
       owner: process.env.BRAIN_OWNER_EMAIL,
       embeddings: process.env.BRAIN_QUERY_EMBEDDINGS,
-      tasks: process.env.TASKS_ENABLED,
     };
     process.env.BRAIN_OWNER_EMAIL = [original.owner, email]
       .filter(Boolean)
       .join(",");
     process.env.BRAIN_QUERY_EMBEDDINGS = "false";
-    process.env.TASKS_ENABLED = "1";
     await pool.query(
       `INSERT INTO "user" (id,name,email,"emailVerified","createdAt","updatedAt") VALUES ($1,'Moves Owner',$2,true,now(),now())`,
       [ownerId, email],
@@ -68,6 +67,7 @@ test(
       clientId: `${name}-${suffix}`,
     });
     const owner = await ownerActor(ownerId);
+    await setTasksEnabled(owner, true);
     const claude = await resolveActor(ownerId, oauth("claude-code"));
     const codex = await resolveActor(ownerId, oauth("codex"));
     const keeper = await systemActor(ownerId, "task_keeper");
@@ -534,8 +534,6 @@ test(
       if (original.embeddings)
         process.env.BRAIN_QUERY_EMBEDDINGS = original.embeddings;
       else delete process.env.BRAIN_QUERY_EMBEDDINGS;
-      if (original.tasks) process.env.TASKS_ENABLED = original.tasks;
-      else delete process.env.TASKS_ENABLED;
       for (const table of [
         "brain_task_events",
         "brain_task_suggestions",

@@ -4,8 +4,8 @@ import { OperationsSummary } from "@/components/settings/operations-summary";
 import { KeeperExclusions } from "@/components/tasks/keeper-exclusions";
 import { Loading, PageHeading } from "@/components/workspace/primitives";
 import { operationsStatus } from "@/lib/operations";
-import { tasksEnabled } from "@/lib/tasks/types";
 import { getWorkspaceUser } from "@/lib/workspace/session";
+import { getTasksEnabled } from "@/lib/workspace/tasks-data";
 
 export const metadata = { title: "Operations · a native brain" };
 
@@ -20,18 +20,19 @@ export default function OperationsPage() {
       <Suspense fallback={<Loading />}>
         <LiveOperations />
       </Suspense>
-      {tasksEnabled() && (
-        <Suspense fallback={<Loading />}>
-          <KeeperExclusions />
-        </Suspense>
-      )}
+      <Suspense>
+        <TaskKeeperExclusions />
+      </Suspense>
     </>
   );
 }
 
 async function LiveOperations() {
   const user = await getWorkspaceUser();
-  const data = await operationsStatus(user.id);
+  const [data, tasks] = await Promise.all([
+    operationsStatus(user.id),
+    getTasksEnabled(),
+  ]);
   return (
     <>
       <OperationsControls
@@ -39,7 +40,17 @@ async function LiveOperations() {
           ["queued", "running"].includes(job.status),
         )}
       />
-      <OperationsSummary data={data} />
+      <OperationsSummary data={data} tasks={tasks} />
     </>
+  );
+}
+
+// Nothing at all, not even a placeholder, while the owner's task manager is off.
+async function TaskKeeperExclusions() {
+  if (!(await getTasksEnabled())) return null;
+  return (
+    <Suspense fallback={<Loading />}>
+      <KeeperExclusions />
+    </Suspense>
   );
 }

@@ -1,6 +1,5 @@
 import { ListTodo, Plus } from "lucide-react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { NeedsYou, NeedsYouSkeleton } from "@/components/tasks/needs-you";
 import { SavedViews } from "@/components/tasks/saved-views";
@@ -12,7 +11,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Pagination } from "@/components/workspace/pagination";
 import { Empty, PageHeading } from "@/components/workspace/primitives";
 import { BrainError } from "@/lib/brain/types";
-import { tasksEnabled } from "@/lib/tasks/types";
 import { getWorkspacePage } from "@/lib/workspace/data";
 import {
   isFilteredTaskList,
@@ -31,6 +29,7 @@ import {
   type RouteSearchParams,
   routeSearchParams,
 } from "@/lib/workspace/urls";
+import { requireTasksEnabled } from "./enabled";
 
 export const metadata = { title: "Tasks · a native brain" };
 
@@ -179,6 +178,7 @@ async function OpenSections() {
 }
 
 async function TasksContent({ searchParams }: { searchParams: SearchParams }) {
+  await requireTasksEnabled();
   const filters = parseTaskListFilters(routeSearchParams(await searchParams));
   if (filters.view === "needs-you")
     return (
@@ -226,7 +226,6 @@ export default function TasksPage({
 }: {
   searchParams: SearchParams;
 }) {
-  if (!tasksEnabled()) notFound();
   return (
     <>
       <PageHeading

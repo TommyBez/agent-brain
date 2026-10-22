@@ -3,13 +3,13 @@
 import { unstable_rethrow } from "next/navigation";
 import { BrainError } from "@/lib/brain/types";
 import { ownerActor } from "@/lib/tasks/actors";
+import { tasksEnabledFor } from "@/lib/tasks/feature";
 import { createMeetingSeries } from "@/lib/tasks/meetings";
 import {
   setRecurrencePaused,
   todayInTaskZone,
   WEEKDAYS,
 } from "@/lib/tasks/recurrences";
-import { tasksEnabled } from "@/lib/tasks/types";
 import { updateTasksCache } from "@/lib/workspace/cache";
 import { requireWorkspaceUser } from "@/lib/workspace/session";
 
@@ -50,7 +50,7 @@ async function asOwner(
   let id: string;
   try {
     const user = await requireWorkspaceUser();
-    if (!tasksEnabled())
+    if (!(await tasksEnabledFor(user.id)))
       return { ok: false, message: "Tasks are not enabled." };
     ownerId = user.id;
     id = await operation(await ownerActor(user.id));

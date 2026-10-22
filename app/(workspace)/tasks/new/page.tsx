@@ -1,12 +1,11 @@
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { requireTasksEnabled } from "@/app/(workspace)/tasks/enabled";
 import { TaskForm } from "@/components/tasks/task-form";
 import { Button } from "@/components/ui/button";
 import { Loading, PageHeading } from "@/components/workspace/primitives";
 import { BrainError } from "@/lib/brain/types";
-import { tasksEnabled } from "@/lib/tasks/types";
 import { getWorkspacePage, getWorkspacePages } from "@/lib/workspace/data";
 import { parseNewTaskParams } from "@/lib/workspace/task-urls";
 import { getTaskFormChoices } from "@/lib/workspace/tasks-data";
@@ -21,6 +20,7 @@ export const metadata = { title: "New task · a native brain" };
 type SearchParams = Promise<RouteSearchParams>;
 
 async function NewTaskForm({ searchParams }: { searchParams: SearchParams }) {
+  await requireTasksEnabled();
   const { projectId } = parseNewTaskParams(
     routeSearchParams(await searchParams),
   );
@@ -60,7 +60,6 @@ export default function NewTaskPage({
 }: {
   searchParams: SearchParams;
 }) {
-  if (!tasksEnabled()) notFound();
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <Button variant="ghost" asChild>

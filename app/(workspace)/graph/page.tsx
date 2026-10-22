@@ -13,9 +13,9 @@ import {
   withTaskOverlay,
 } from "@/lib/graph/task-overlay";
 import { getWorkspaceTaskOverlay } from "@/lib/graph/task-overlay-data";
-import { tasksEnabled } from "@/lib/tasks/types";
 import { getWorkspaceGraph, getWorkspaceStats } from "@/lib/workspace/data";
 import { paginationOffset } from "@/lib/workspace/pagination";
+import { getTasksEnabled } from "@/lib/workspace/tasks-data";
 import {
   GRAPH_PAGE_SIZE,
   graphHref,
@@ -67,15 +67,15 @@ async function Graph({
   const type = isPageType(params.type) ? params.type : "";
   const offset = paginationOffset(params.offset);
   const focus = typeof params.node === "string" ? params.node : undefined;
-  const tasksAvailable = tasksEnabled();
+  const [graph, stats, tasksAvailable] = await Promise.all([
+    getWorkspaceGraph(type, offset),
+    getWorkspaceStats(),
+    getTasksEnabled(),
+  ]);
   const showTasks = tasksAvailable && parseTaskOverlayParam(params.tasks);
   // Filters and pagination keep the overlay switch as they are.
   const href = (to: PageType | "", toOffset = 0, tasks = showTasks) =>
     withTaskOverlay(graphHref(to, toOffset), tasks);
-  const [graph, stats] = await Promise.all([
-    getWorkspaceGraph(type, offset),
-    getWorkspaceStats(),
-  ]);
   // A separate read for the pages already chosen: tasks never take a place in
   // the page window.
   const taskOverlay = showTasks

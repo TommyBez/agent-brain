@@ -2,7 +2,7 @@ import { failure, json, owner } from "@/app/api/shared";
 import { getGraph } from "@/lib/brain/service";
 import { parseTaskOverlayParam } from "@/lib/graph/task-overlay";
 import { loadTaskOverlay } from "@/lib/graph/task-overlay-query";
-import { tasksEnabled } from "@/lib/tasks/types";
+import { tasksEnabledFor } from "@/lib/tasks/feature";
 
 export async function GET(request: Request) {
   try {
@@ -14,10 +14,11 @@ export async function GET(request: Request) {
       type: params.get("type") || undefined,
     });
     // `?tasks=1` adds the open-task layer for the returned pages as a separate
-    // list; tasks never appear among the nodes or count toward `total`.
+    // list when the owner has the task manager on; tasks never appear among
+    // the nodes or count toward `total`. The switch is read only when asked.
     if (
-      !tasksEnabled() ||
-      !parseTaskOverlayParam(params.get("tasks") ?? undefined)
+      !parseTaskOverlayParam(params.get("tasks") ?? undefined) ||
+      !(await tasksEnabledFor(ownerId))
     )
       return json(graph);
     return json({

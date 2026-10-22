@@ -2,7 +2,7 @@ import type { PoolClient } from "pg";
 import { BrainError } from "../brain/types";
 import { assertOwner } from "../brain/utils";
 import { getPool, transaction } from "../db";
-import { TASK_JOB_KINDS, type TaskJobKind, tasksEnabled } from "../tasks/types";
+import { TASK_JOB_KINDS, type TaskJobKind } from "../tasks/types";
 
 export const WORKFLOW_JOB_KINDS = [
   "consolidation",
@@ -35,11 +35,13 @@ export function isTaskJobKind(kind: string): kind is TaskJobKind {
   return (TASK_JOB_KINDS as readonly string[]).includes(kind);
 }
 
-/** The task phases ship dark: without TASKS_ENABLED a night has three stages. */
+/** The stages of one owner's night. The task phases run only while the owner's
+ * task manager setting is on; with it off a night has three stages.
+ */
 export function enabledWorkflowJobKinds(
-  env: Record<string, string | undefined> = process.env,
+  tasks: boolean,
 ): readonly WorkflowJobKind[] {
-  return tasksEnabled(env)
+  return tasks
     ? WORKFLOW_JOB_KINDS
     : WORKFLOW_JOB_KINDS.filter((kind) => !isTaskJobKind(kind));
 }
@@ -47,7 +49,7 @@ export function enabledWorkflowJobKinds(
 /** Every given stage has finished today's pass (`partial` resumes tomorrow). */
 export function workflowJobsComplete(
   jobs: Pick<WorkflowJob, "kind" | "status">[],
-  kinds: readonly WorkflowJobKind[] = enabledWorkflowJobKinds(),
+  kinds: readonly WorkflowJobKind[],
 ) {
   return kinds.every((kind) =>
     jobs.some(
@@ -141,12 +143,14 @@ async function requeueStaleDownstreamJobs(
   );
 }
 
-/** Show all stages as queued before the asynchronously started workflow wakes. */
+/** Show all stages as queued before the asynchronously started workflow wakes.
+ * Without `kinds` the night has the stages of an owner whose task manager is off.
+ */
 export async function queueWorkflowJobs(
   ownerId: string,
   runDate: string,
   rerunFrom?: string,
-  kinds: readonly WorkflowJobKind[] = enabledWorkflowJobKinds(),
+  kinds: readonly WorkflowJobKind[] = enabledWorkflowJobKinds(false),
 ) {
   assertOwner(ownerId);
   validateRunDate(runDate);

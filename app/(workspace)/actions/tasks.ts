@@ -9,6 +9,7 @@ import {
   addTaskDependency,
   removeTaskDependency,
 } from "@/lib/tasks/dependencies";
+import { tasksEnabledFor } from "@/lib/tasks/feature";
 import { approveTask, delegateTask, purgeTask } from "@/lib/tasks/owner";
 import { addTaskParty, removeTaskParty } from "@/lib/tasks/parties";
 import { createTask } from "@/lib/tasks/service";
@@ -23,7 +24,7 @@ import {
   decideTaskLink,
   decideTaskSuggestion,
 } from "@/lib/tasks/suggestions";
-import { parseTaskRef, tasksEnabled } from "@/lib/tasks/types";
+import { parseTaskRef } from "@/lib/tasks/types";
 import { updateTasksCache } from "@/lib/workspace/cache";
 import { requireWorkspaceUser } from "@/lib/workspace/session";
 import {
@@ -103,7 +104,7 @@ async function asOwner<T>(
   let ownerId: string | null = null;
   try {
     const user = await requireWorkspaceUser();
-    if (!tasksEnabled())
+    if (!(await tasksEnabledFor(user.id)))
       return {
         ok: false,
         code: "TASKS_DISABLED",

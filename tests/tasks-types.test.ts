@@ -5,6 +5,7 @@ import { brainConsolidationSpend, brainJobs } from "../lib/db/schema/brain";
 import {
   brainAgents,
   brainTaskLinks,
+  brainTaskSettings,
   brainTaskSuggestions,
   brainTasks,
 } from "../lib/db/schema/tasks";
@@ -27,7 +28,6 @@ import {
   TASK_SUGGESTION_KINDS,
   TERMINAL_TASK_STATUSES,
   taskBatchId,
-  tasksEnabled,
 } from "../lib/tasks/types";
 
 const dialect = new PgDialect();
@@ -111,12 +111,13 @@ test("status groups partition the task statuses", () => {
   assert.ok(!(AGENT_TASK_ORIGINS as readonly string[]).includes("extracted"));
 });
 
-test("the TASKS_ENABLED flag is off unless explicitly enabled", () => {
-  assert.equal(tasksEnabled({}), false);
-  assert.equal(tasksEnabled({ TASKS_ENABLED: "false" }), false);
-  assert.equal(tasksEnabled({ TASKS_ENABLED: "yes" }), false);
-  assert.equal(tasksEnabled({ TASKS_ENABLED: "true" }), true);
-  assert.equal(tasksEnabled({ TASKS_ENABLED: "1" }), true);
+test("the task manager is a per-owner setting that starts off", () => {
+  const enabled = getTableConfig(brainTaskSettings).columns.find(
+    (column) => column.name === "enabled",
+  );
+  assert.ok(enabled);
+  assert.equal(enabled.notNull, true);
+  assert.equal(enabled.default, false);
 });
 
 test("database CHECKs are generated from the shared vocabulary", () => {

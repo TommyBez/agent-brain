@@ -53,14 +53,8 @@ export function useCommandMenu() {
   return context;
 }
 
-export function CommandMenuProvider({
-  children,
-  tasks = false,
-}: {
-  children: ReactNode;
-  // Server-side TASKS_ENABLED, so task destinations show on the first open.
-  tasks?: boolean;
-}) {
+/** Open state and the ⌘K shortcut, live from the static shell. */
+export function CommandMenuProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   useEffect(() => {
     function toggle(event: KeyboardEvent) {
@@ -73,20 +67,27 @@ export function CommandMenuProvider({
     return () => window.removeEventListener("keydown", toggle);
   }, []);
   const value = useMemo(() => ({ open, setOpen }), [open]);
+  return <CommandMenuContext value={value}>{children}</CommandMenuContext>;
+}
+
+/**
+ * The dialog itself. It streams in with the owner's task manager switch, so
+ * task destinations show on the first open when it is on and never when it is
+ * off; a ⌘K pressed before then opens it as soon as it arrives.
+ */
+export function CommandMenu({ tasks }: { tasks: boolean }) {
+  const { open, setOpen } = useCommandMenu();
   return (
-    <CommandMenuContext value={value}>
-      {children}
-      <CommandDialog
-        open={open}
-        onOpenChange={setOpen}
-        title="Search your workspace"
-        description="Find a page, or jump to a collection or setting."
-        className="sm:max-w-xl"
-      >
-        {/* Mounted only while open, so every visit starts from a clean query. */}
-        <CommandMenuContent tasks={tasks} onNavigate={() => setOpen(false)} />
-      </CommandDialog>
-    </CommandMenuContext>
+    <CommandDialog
+      open={open}
+      onOpenChange={setOpen}
+      title="Search your workspace"
+      description="Find a page, or jump to a collection or setting."
+      className="sm:max-w-xl"
+    >
+      {/* Mounted only while open, so every visit starts from a clean query. */}
+      <CommandMenuContent tasks={tasks} onNavigate={() => setOpen(false)} />
+    </CommandDialog>
   );
 }
 
@@ -185,7 +186,7 @@ const destinations: Destination[] = [
   },
 ];
 
-// Offered only once the server confirmed that tasks are enabled.
+// Offered only when the owner's task manager is on.
 const taskDestinations: Destination[] = [
   {
     href: "/tasks",

@@ -652,7 +652,7 @@ L'applicazione automatica dei link non è un criterio di rilascio: si accende do
 
 ## 13. Decisioni per il proprietario
 
-Le prime nove righe sono decisioni del proprietario del 21/10; le altre restano raccomandazioni aperte.
+Le prime dieci righe sono decisioni del proprietario, del 21/10 tranne quella del 22/10; le altre restano raccomandazioni aperte.
 
 | Domanda | Decisione o raccomandazione | Motivo |
 |---|---|---|
@@ -662,6 +662,7 @@ Le prime nove righe sono decisioni del proprietario del 21/10; le altre restano 
 | Rispecchiare i codici esterni (AÜ, FU)? | **Deciso (21/10).** No: i task sono nostri (`T-42`), i codici restano testo; una fonte può dare 0..n task, un task citare più fonti | Una tabella in meno, servizio più semplice; divergenze rilevate per significato (`divergent_state`) |
 | Come si divide il budget? | **Deciso (21/10).** Nel tetto comune (§8.4): 0,9 × N per le pagine, 0,1 × N condiviso da `task_keeper` e `task_links` | Costo atteso $0,01–0,03 a notte; un bootstrap grande può occupare più notti |
 | Rilascio a tappe o unico? | **Deciso (21/10).** All-in: un solo rilascio dietro `TASKS_ENABLED`, costruito in blocchi paralleli, senza stime di tempo (§12); fuori solo adattatore A2A, esecuzione automatica dei task, "incorporate" e brain separati per cliente, già possibili | Gli agenti costruiscono i blocchi in parallelo: il limite è la verifica, non la scrittura del codice |
+| Chi accende i task? | **Deciso (22/10/2026).** Non più la variabile d'ambiente `TASKS_ENABLED`, ma un'impostazione per proprietario, **Task manager** in **Agents & access**, spenta di default (`brain_task_settings.enabled`, migrazione `0010`). Spenta, quel proprietario ha tutto come prima con il flag spento: niente tool, risorsa `brain://procedures/tasks` né istruzioni dei task via MCP, niente `/tasks`, overlay sul grafo né sezioni task di progetti e persone, export senza task, fasi notturne dei task saltate e la sua quota del budget tutta alle pagine. Spegnerla nasconde i task e non cancella nulla. Nel resto del documento `TASKS_ENABLED` va letto come questa impostazione | Richiesta del proprietario del 22/10. Ogni account dell'allowlist sceglie per sé; chi non la accende resta com'era prima del rilascio |
 | Nuovi scope? | **Deciso (21/10).** Nessuno scope nuovo: tutti i tool dei task su `brain:read`/`brain:write`, uno per tool (§7.2) | Nessun client OAuth rifà il consenso; `agent_tokens_scopes_check`, `BRAIN_SCOPES` e il controllo per tool restano invariati |
 | Task nell'export Git e nel grafo? | **Deciso (21/10)**, con il rilascio unico: overlay dei task sul grafo e task chiusi nell'export (`schemaVersion` 2); i task aperti restano coperti dagli snapshot di Neon | I chiusi non cambiano ogni giorno, quindi niente diff rumorosi; l'overlay è un livello a parte e non consuma la finestra di 150 pagine del grafo |
 | Fin dove arriva l'esecuzione? | **Deciso (21/10).** Brain coordina e basta, nessuna integrazione con Agent Harbor né esecutori cloud (§10) | Gli agenti con cui lavora il proprietario prendono i task nelle proprie sessioni; Brain non lancia né guida esecutori |

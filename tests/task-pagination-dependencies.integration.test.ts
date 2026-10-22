@@ -7,6 +7,7 @@ import {
   addTaskDependency,
   removeTaskDependency,
 } from "../lib/tasks/dependencies";
+import { setTasksEnabled } from "../lib/tasks/feature";
 import { blockTask, purgeTask } from "../lib/tasks/owner";
 import {
   createTask,
@@ -26,19 +27,18 @@ test(
     const saved = {
       owner: process.env.BRAIN_OWNER_EMAIL,
       embeddings: process.env.BRAIN_QUERY_EMBEDDINGS,
-      tasks: process.env.TASKS_ENABLED,
     };
     process.env.BRAIN_OWNER_EMAIL = [saved.owner, email]
       .filter(Boolean)
       .join(",");
     process.env.BRAIN_QUERY_EMBEDDINGS = "false";
-    process.env.TASKS_ENABLED = "1";
     await pool.query(
       `INSERT INTO "user" (id,name,email,"emailVerified","createdAt","updatedAt") VALUES ($1,'Pagination Owner',$2,true,now(),now())`,
       [ownerId, email],
     );
     try {
       const owner = await ownerActor(ownerId);
+      await setTasksEnabled(owner, true);
       const rename = async (ref: string, title: string) => {
         const { task } = await readTask(owner, { ref });
         await updateTask(owner, {
@@ -192,7 +192,6 @@ test(
       for (const [key, value] of [
         ["BRAIN_OWNER_EMAIL", saved.owner],
         ["BRAIN_QUERY_EMBEDDINGS", saved.embeddings],
-        ["TASKS_ENABLED", saved.tasks],
       ] as const)
         if (value === undefined) delete process.env[key];
         else process.env[key] = value;

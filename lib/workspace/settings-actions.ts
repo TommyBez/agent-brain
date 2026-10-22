@@ -8,7 +8,8 @@ import {
   startNightlyMaintenance,
   startTaskMaintenance,
 } from "@/lib/maintenance/start";
-import type { AgentPatch } from "@/lib/tasks/actors";
+import { type AgentPatch, ownerActor } from "@/lib/tasks/actors";
+import { setTasksEnabled } from "@/lib/tasks/feature";
 import {
   setRegistryAgentDisabled,
   updateRegistryAgent,
@@ -81,6 +82,26 @@ export async function runTaskMaintenanceAction() {
           ? "Task maintenance is not enabled."
           : "Unable to start task maintenance. Check Operations and try again.",
     };
+  }
+}
+
+/**
+ * The owner's task manager switch (/agents). Every task surface reads it, so
+ * both caches are refreshed; turning it off hides tasks without deleting them.
+ */
+export async function setTasksEnabledAction(enabled: boolean) {
+  const user = await requireWorkspaceUser();
+  try {
+    const result = await setTasksEnabled(
+      await ownerActor(user.id),
+      enabled === true,
+    );
+    updateWorkspaceCache(user.id);
+    updateTasksCache(user.id);
+    revalidatePath("/", "layout");
+    return result;
+  } catch {
+    return { error: "Unable to change the task manager. Try again." };
   }
 }
 

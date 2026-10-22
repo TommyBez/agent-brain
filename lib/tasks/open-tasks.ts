@@ -7,10 +7,12 @@ import {
   openTasksField,
 } from "./open-tasks-shape";
 import { authored } from "./records";
-import { formatTaskRef, OPEN_TASK_STATUSES, tasksEnabled } from "./types";
+import { formatTaskRef, OPEN_TASK_STATUSES } from "./types";
 
 // `openTasks` on read and context results of project pages (§3 rule 1, §7.3):
 // a separate field marked as operational state, never part of the Markdown.
+// Callers pass the owner's task manager switch, already read for the request;
+// while it is off results are returned unchanged.
 
 /** Open tasks of the given projects in queue order, at most 10 overall. */
 export async function openTasksForProjects(
@@ -60,8 +62,9 @@ export {
 export async function withOpenTasks<T extends { id: string; type: string }>(
   ownerId: string,
   page: T,
+  withTasks: boolean,
 ): Promise<T & { openTasks?: OpenTasks }> {
-  if (!tasksEnabled() || page.type !== "project") return page;
+  if (!withTasks || page.type !== "project") return page;
   const { rows, more } = await openTasksForProjects(ownerId, [page.id]);
   if (!rows.length) return page;
   return {
@@ -76,8 +79,12 @@ export async function withOpenTasks<T extends { id: string; type: string }>(
 /** `context` gains `openTasks` for the project pages it cites, in citation order. */
 export async function contextWithOpenTasks<
   T extends { citations: { id: string }[] },
->(ownerId: string, bundle: T): Promise<T & { openTasks?: OpenTasks }> {
-  if (!tasksEnabled() || !bundle.citations.length) return bundle;
+>(
+  ownerId: string,
+  bundle: T,
+  withTasks: boolean,
+): Promise<T & { openTasks?: OpenTasks }> {
+  if (!withTasks || !bundle.citations.length) return bundle;
   const { rows: projects } = await getPool().query(
     `SELECT id FROM brain_pages WHERE owner_id = $1 AND id = ANY($2::uuid[]) AND type = 'project'`,
     [ownerId, bundle.citations.map((citation) => citation.id)],

@@ -25,28 +25,42 @@ test(
     await setup.query(
       `CREATE TABLE ${schema}.brain_consolidation_spend (LIKE public.brain_consolidation_spend INCLUDING ALL)`,
     );
-    await setup.query(`CREATE TABLE ${schema}."user" (email text PRIMARY KEY)`);
+    await setup.query(
+      `CREATE TABLE ${schema}."user" (id text PRIMARY KEY, email text NOT NULL)`,
+    );
+    await setup.query(
+      `CREATE TABLE ${schema}.brain_task_settings (LIKE public.brain_task_settings INCLUDING ALL)`,
+    );
     const isolated = new URL(database);
     isolated.searchParams.set("options", `-c search_path=${schema},public`);
     process.env.DATABASE_URL = isolated.toString();
     const owner = `spend-test-${randomUUID()}`;
     const other = `${owner}-other`;
     const email = `${owner}@example.invalid`;
+    const otherEmail = `${other}@example.invalid`;
     const saved = {
       key: process.env.AI_GATEWAY_API_KEY,
       owner: process.env.BRAIN_OWNER_EMAIL,
-      tasks: process.env.TASKS_ENABLED,
     };
     process.env.AI_GATEWAY_API_KEY = "test-only";
     process.env.BRAIN_OWNER_EMAIL = email;
-    process.env.TASKS_ENABLED = "true";
     const pool = getPool();
-    await pool.query(`INSERT INTO "user" (email) VALUES ($1)`, [email]);
+    await pool.query(`INSERT INTO "user" (id, email) VALUES ($1, $2)`, [
+      owner,
+      email,
+    ]);
+    // Each account's own task manager setting sizes the task share.
+    const setTasks = (id: string, enabled: boolean) =>
+      pool.query(
+        `INSERT INTO brain_task_settings (owner_id, enabled) VALUES ($1, $2)
+         ON CONFLICT (owner_id) DO UPDATE SET enabled = EXCLUDED.enabled`,
+        [id, enabled],
+      );
+    await setTasks(owner, true);
     t.after(async () => {
       for (const [name, value] of [
         ["AI_GATEWAY_API_KEY", saved.key],
         ["BRAIN_OWNER_EMAIL", saved.owner],
-        ["TASKS_ENABLED", saved.tasks],
       ] as const) {
         if (value === undefined) delete process.env[name];
         else process.env[name] = value;
@@ -123,28 +137,117 @@ test(
     );
 
     await t.test(
-      "the pooled cap still binds, and pages keep it all without the release",
+      "the pooled cap still binds when a task phase overshoots its share",
       async () => {
-        process.env.TASKS_ENABLED = "false";
-        await spent("pages", 950_000_000);
-        assert.ok(await startSpend(owner, "pages-run", JEV));
-        await spent("task_links", 50_000_000);
-        await assert.rejects(
-          startSpend(owner, "pages-run", JEV),
-          blocked("pages"),
-        );
-        await assert.rejects(
-          startSpend(owner, "links-run", JEV, "task_links"),
-          blocked("task_links"),
-        );
-        process.env.TASKS_ENABLED = "true";
-        await reset();
-        await spent("pages", 950_000_000);
+        // Completed calls may overshoot; pages stop at the pooled cap below 90%.
+        await spent("task_keeper", 150_000_000);
+        await spent("pages", 850_000_000);
         await assert.rejects(
           startSpend(owner, "pages-run", JEV),
           blocked("pages"),
         );
         await reset();
+      },
+    );
+
+    await t.test(
+      "with no task manager on pages keep the whole cap and task phases get none",
+      async () => {
+        for (const off of [
+          () => setTasks(owner, false),
+          // Without any setting row the task manager is off as well.
+          () => pool.query("DELETE FROM brain_task_settings"),
+        ]) {
+          await off();
+          await assert.rejects(
+            startSpend(owner, "keeper-run", JEV, "task_keeper"),
+            blocked("task_keeper"),
+          );
+          await spent("pages", 999_999_999);
+          assert.ok(await startSpend(owner, "pages-run", JEV));
+          await spent("pages", 1);
+          await assert.rejects(
+            startSpend(owner, "pages-run", JEV),
+            blocked("pages"),
+          );
+          await reset();
+        }
+        // Turned back on, pages are held to 90% again.
+        await setTasks(owner, true);
+        await spent("pages", 950_000_000);
+        await assert.rejects(
+          startSpend(owner, "pages-run", JEV),
+          blocked("pages"),
+        );
+        await reset();
+      },
+    );
+
+    await t.test(
+      "with some accounts on, only their tenths move to the task phases",
+      async () => {
+        // Two allowlisted accounts pool $2; only the owner's tasks are on, so
+        // the task phases get $0.10 and pages $1.90.
+        process.env.BRAIN_OWNER_EMAIL = `${email},${otherEmail}`;
+        await pool.query(`INSERT INTO "user" (id, email) VALUES ($1, $2)`, [
+          other,
+          otherEmail,
+        ]);
+        await setTasks(other, false);
+        try {
+          await spent("task_keeper", 99_999_999);
+          assert.ok(await startSpend(owner, "links-run", JEV, "task_links"));
+          await spent("task_links", 1);
+          await assert.rejects(
+            startSpend(owner, "keeper-run", JEV, "task_keeper"),
+            blocked("task_keeper"),
+          );
+          await reset();
+          await spent("pages", 1_899_999_999);
+          assert.ok(await startSpend(other, "pages-run", JEV));
+          await spent("pages", 1);
+          await assert.rejects(
+            startSpend(other, "pages-run", JEV),
+            blocked("pages"),
+          );
+          assert.ok(await startSpend(owner, "keeper-run", JEV, "task_keeper"));
+
+          // The other account turns its task manager on: $0.20 and $1.80.
+          await setTasks(other, true);
+          await reset();
+          await spent("task_keeper", 199_999_999);
+          assert.ok(await startSpend(owner, "links-run", JEV, "task_links"));
+          await spent("task_links", 1);
+          await assert.rejects(
+            startSpend(owner, "keeper-run", JEV, "task_keeper"),
+            blocked("task_keeper"),
+          );
+          await reset();
+          await spent("pages", 1_799_999_999);
+          assert.ok(await startSpend(other, "pages-run", JEV));
+          await spent("pages", 1);
+          await assert.rejects(
+            startSpend(other, "pages-run", JEV),
+            blocked("pages"),
+          );
+          await reset();
+
+          // A setting outside the allowlist counts for nothing.
+          process.env.BRAIN_OWNER_EMAIL = email;
+          await spent("task_keeper", 100_000_000);
+          await assert.rejects(
+            startSpend(owner, "keeper-run", JEV, "task_keeper"),
+            blocked("task_keeper"),
+          );
+        } finally {
+          process.env.BRAIN_OWNER_EMAIL = email;
+          await pool.query(`DELETE FROM "user" WHERE id = $1`, [other]);
+          await pool.query(
+            "DELETE FROM brain_task_settings WHERE owner_id = $1",
+            [other],
+          );
+          await reset();
+        }
       },
     );
 

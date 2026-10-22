@@ -1,12 +1,11 @@
 import { io } from "next/cache";
-import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { requireTasksEnabled } from "@/app/(workspace)/tasks/enabled";
 import { OWNER_TIME_ZONE } from "@/components/tasks/labels";
 import { TaskCalendar } from "@/components/tasks/task-calendar";
 import { TasksNav } from "@/components/tasks/tasks-nav";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeading } from "@/components/workspace/primitives";
-import { tasksEnabled } from "@/lib/tasks/types";
 import {
   calendarFetchWindow,
   parseTaskCalendar,
@@ -36,6 +35,7 @@ async function requestDay() {
 }
 
 async function Calendar({ searchParams }: { searchParams: SearchParams }) {
+  await requireTasksEnabled();
   const state = parseTaskCalendar(routeSearchParams(await searchParams));
   const anchor = state.date ?? (await requestDay());
   const range = calendarFetchWindow(state, anchor);
@@ -55,7 +55,6 @@ export default function TaskCalendarPage({
 }: {
   searchParams: SearchParams;
 }) {
-  if (!tasksEnabled()) notFound();
   return (
     <>
       <PageHeading

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import test from "node:test";
+import { HookNotFoundError } from "workflow/errors";
 import { BrainError } from "../lib/brain/types";
 import { getPool } from "../lib/db";
 import {
@@ -16,6 +17,12 @@ import {
   workflowExportAttemptKey,
   workflowJobsComplete,
 } from "../lib/maintenance/jobs";
+import {
+  type StartDeps,
+  startNightlyMaintenance,
+  startTaskMaintenance,
+} from "../lib/maintenance/start";
+import { tasksEnabledFor } from "../lib/tasks/feature";
 
 test("export receipt keys change only with the logical job attempt", () => {
   const jobId = randomUUID();
@@ -37,7 +44,7 @@ test("export receipt keys change only with the logical job attempt", () => {
     );
 });
 
-test("task phases are nightly kinds that ship behind TASKS_ENABLED", () => {
+test("task phases are nightly kinds only for an owner with the task manager on", () => {
   assert.deepEqual(WORKFLOW_JOB_KINDS, [
     "consolidation",
     "embeddings",
@@ -45,28 +52,19 @@ test("task phases are nightly kinds that ship behind TASKS_ENABLED", () => {
     "task_keeper",
     "task_links",
   ]);
-  assert.deepEqual(enabledWorkflowJobKinds({}), [
+  assert.deepEqual(enabledWorkflowJobKinds(false), [
     "consolidation",
     "embeddings",
     "export",
   ]);
-  assert.deepEqual(enabledWorkflowJobKinds({ TASKS_ENABLED: "false" }), [
-    "consolidation",
-    "embeddings",
-    "export",
-  ]);
-  for (const flag of ["true", "1"])
-    assert.deepEqual(
-      enabledWorkflowJobKinds({ TASKS_ENABLED: flag }),
-      WORKFLOW_JOB_KINDS,
-    );
+  assert.deepEqual(enabledWorkflowJobKinds(true), WORKFLOW_JOB_KINDS);
   assert.deepEqual(WORKFLOW_JOB_KINDS.filter(isTaskJobKind), [
     "task_keeper",
     "task_links",
   ]);
   const finished = (kinds: readonly WorkflowJobKind[]) =>
     kinds.map((kind) => ({ kind, status: "partial" as const }));
-  const pages = enabledWorkflowJobKinds({});
+  const pages = enabledWorkflowJobKinds(false);
   assert.equal(workflowJobsComplete(finished(pages), pages), true);
   assert.equal(
     workflowJobsComplete(finished(pages), WORKFLOW_JOB_KINDS),
@@ -602,7 +600,7 @@ test(
         "start queues all stages once without resetting completed work",
         async () => {
           const date = "2035-01-20";
-          const kinds = enabledWorkflowJobKinds({});
+          const kinds = enabledWorkflowJobKinds(false);
           await Promise.all([
             queueWorkflowJobs(owner, date, undefined, kinds),
             queueWorkflowJobs(owner, date, undefined, kinds),
@@ -626,6 +624,111 @@ test(
             after.find((entry) => entry.id === job.id)?.status,
             "succeeded",
           );
+          // Without explicit stages a night has those of an owner with tasks off.
+          await queueWorkflowJobs(owner, "2035-01-29");
+          assert.deepEqual(
+            (await dailyWorkflowStatus(owner, "2035-01-29")).map(
+              (entry) => entry.kind,
+            ),
+            ["consolidation", "embeddings", "export"],
+          );
+        },
+      );
+
+      await t.test(
+        "each owner's night and Run now follow that owner's own task manager setting",
+        async () => {
+          const date = "2035-03-01";
+          const pages = enabledWorkflowJobKinds(false);
+          const started: unknown[][] = [];
+          // The real ledger and setting; only the Workflow runtime is faked.
+          const deps: StartDeps = {
+            start: async (_workflow, args) => {
+              started.push(args);
+              return { runId: `wrun-${started.length}` };
+            },
+            getHookByToken: async (token) => {
+              throw new HookNotFoundError(token);
+            },
+            dailyWorkflowStatus,
+            queueWorkflowJobs,
+            requeueTaskWorkflowJobs,
+            tasksEnabled: (ownerId) => tasksEnabledFor(ownerId),
+            now: () => new Date(`${date}T20:00:00Z`),
+          };
+          const kinds = async (ownerId: string) =>
+            (await dailyWorkflowStatus(ownerId, date)).map((job) => job.kind);
+          const setTasks = (enabled: boolean) =>
+            getPool().query(
+              `INSERT INTO brain_task_settings (owner_id, enabled) VALUES ($1, $2)
+               ON CONFLICT (owner_id) DO UPDATE SET enabled = EXCLUDED.enabled`,
+              [owner, enabled],
+            );
+          const disabled = (error: unknown) =>
+            error instanceof BrainError &&
+            error.code === "TASKS_DISABLED" &&
+            error.status === 409;
+
+          // The owner turns the task manager on; the outsider never had a row.
+          await setTasks(true);
+          assert.equal(await tasksEnabledFor(owner), true);
+          assert.equal(await tasksEnabledFor(outsider), false);
+          await startNightlyMaintenance(owner, "scheduled", deps);
+          await startNightlyMaintenance(outsider, "scheduled", deps);
+          assert.deepEqual(await kinds(owner), [...WORKFLOW_JOB_KINDS].sort());
+          assert.deepEqual(await kinds(outsider), pages);
+          assert.deepEqual(started, [
+            [owner, date, undefined, { scope: "nightly", tasks: true }],
+            [outsider, date, undefined, { scope: "nightly", tasks: false }],
+          ]);
+
+          // Run now is refused for the outsider and touches nothing.
+          await assert.rejects(startTaskMaintenance(outsider, deps), disabled);
+          assert.deepEqual(await kinds(outsider), pages);
+          assert.equal(started.length, 2);
+
+          // Turning it off hides the task phases without deleting their rows:
+          // Run now is refused, and the night is complete with three stages.
+          await setTasks(false);
+          await assert.rejects(startTaskMaintenance(owner, deps), disabled);
+          for (const kind of pages) {
+            const job = await beginWorkflowJob(owner, kind, date, "night-run");
+            await finishWorkflowJob(
+              owner,
+              job.id,
+              "night-run",
+              "succeeded",
+              kind === "export"
+                ? { pushed: true, commit: "e".repeat(40) }
+                : { writes: 0 },
+            );
+          }
+          assert.deepEqual(
+            await startNightlyMaintenance(owner, "scheduled", deps),
+            { completed: true, runDate: date },
+          );
+          assert.deepEqual(await kinds(owner), [...WORKFLOW_JOB_KINDS].sort());
+          assert.equal(started.length, 2);
+
+          // Turned back on, the pending task phases make the night incomplete.
+          await setTasks(true);
+          const night = await startNightlyMaintenance(owner, "scheduled", deps);
+          assert.equal(night.completed, false);
+          assert.deepEqual(started.at(-1), [
+            owner,
+            date,
+            undefined,
+            { scope: "nightly", tasks: true },
+          ]);
+          const runNow = await startTaskMaintenance(owner, deps);
+          assert.equal(runNow.started, true);
+          assert.deepEqual(started.at(-1), [
+            owner,
+            date,
+            undefined,
+            { scope: "tasks", tasks: true },
+          ]);
+          assert.deepEqual(await kinds(outsider), pages);
         },
       );
       await t.test(
@@ -906,6 +1009,10 @@ test(
     } finally {
       await getPool().query(
         "DELETE FROM brain_jobs WHERE owner_id=ANY($1::text[])",
+        [[owner, outsider]],
+      );
+      await getPool().query(
+        "DELETE FROM brain_task_settings WHERE owner_id=ANY($1::text[])",
         [[owner, outsider]],
       );
       await getPool().end();
