@@ -142,29 +142,62 @@ export async function unblockDependents(
   task: Pick<LockedTask, "id" | "ref">,
   actorAgentId: string,
 ) {
-  // Lock the dependents first (in id order) and check the other blockers in a
-  // new statement: when two blockers finish together, the second transaction
-  // waits here for the first to commit and then sees its blocker as done.
-  const locked = await db.query(
+  const dependents = await lockDependencyBlockedDependents(
+    db,
+    ownerId,
+    task.id,
+  );
+  if (!dependents.length) return 0;
+  return releaseDependencyBlocks(db, ownerId, dependents, actorAgentId, {
+    cause: "dependencies_done",
+    completed: task.ref,
+  });
+}
+
+/**
+ * Locks the tasks blocked on dependencies that depend on `taskId`, in id
+ * order, before the caller checks their other blockers in a new statement:
+ * when two blockers finish together, the second transaction waits here for
+ * the first to commit and then sees its blocker as done.
+ */
+export async function lockDependencyBlockedDependents(
+  db: Database,
+  ownerId: string,
+  taskId: string,
+): Promise<string[]> {
+  const { rows } = await db.query(
     `SELECT t.id FROM brain_tasks t
      JOIN brain_task_dependencies d ON d.owner_id = t.owner_id AND d.task_id = t.id
      WHERE d.owner_id = $1 AND d.depends_on_task_id = $2
        AND t.status = 'blocked' AND t.blocked_reason = 'dependency' AND t.archived_at IS NULL
      ORDER BY t.id FOR UPDATE OF t`,
-    [ownerId, task.id],
+    [ownerId, taskId],
   );
-  if (!locked.rows.length) return 0;
+  return rows.map((row) => row.id);
+}
+
+/**
+ * Locked tasks blocked on dependencies with no unfinished dependency left go
+ * back to ready, or to triage if never approved.
+ */
+export async function releaseDependencyBlocks(
+  db: Database,
+  ownerId: string,
+  taskIds: string[],
+  actorAgentId: string,
+  payload: Record<string, unknown>,
+) {
   const { rows } = await db.query(
     `UPDATE brain_tasks u SET status = CASE WHEN u.approved_at IS NULL THEN 'triage' ELSE 'ready' END,
        blocked_reason = NULL, status_note = NULL, version = u.version + 1, updated_at = now()
-     WHERE u.owner_id = $1 AND u.id = ANY($2::uuid[])
+     WHERE u.owner_id = $1 AND u.id = ANY($2::uuid[]) AND u.archived_at IS NULL
        AND u.status = 'blocked' AND u.blocked_reason = 'dependency'
        AND NOT EXISTS (
          SELECT 1 FROM brain_task_dependencies d2
          JOIN brain_tasks b ON b.owner_id = d2.owner_id AND b.id = d2.depends_on_task_id
          WHERE d2.owner_id = $1 AND d2.task_id = u.id AND b.status <> 'done')
      RETURNING u.id, u.status`,
-    [ownerId, locked.rows.map((row) => row.id)],
+    [ownerId, taskIds],
   );
   for (const row of rows)
     await recordEvent(db, {
@@ -174,7 +207,7 @@ export async function unblockDependents(
       action: "status_changed",
       fromStatus: "blocked",
       toStatus: row.status,
-      payload: { cause: "dependencies_done", completed: task.ref },
+      payload,
     });
   return rows.length;
 }

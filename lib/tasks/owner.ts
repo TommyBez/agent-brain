@@ -7,6 +7,8 @@ import {
   assertOwnerActor,
   assertVersion,
   CLEARED_LEASE,
+  lockDependencyBlockedDependents,
+  releaseDependencyBlocks,
   releaseTarget,
   unblockDependents,
   updateTaskRow,
@@ -471,10 +473,25 @@ export async function purgeTask(actor: Actor, ref: string) {
   return transaction(async (db) => {
     const task = await lockTask(db, actor.ownerId, ref);
     await rememberRejectedExtraction(db, actor.ownerId, task);
+    // The delete cascades to its dependency edges; tasks it alone kept
+    // blocked go back to ready, as when a dependency is removed.
+    const dependents = await lockDependencyBlockedDependents(
+      db,
+      actor.ownerId,
+      task.id,
+    );
     await db.query("DELETE FROM brain_tasks WHERE owner_id = $1 AND id = $2", [
       actor.ownerId,
       task.id,
     ]);
+    if (dependents.length)
+      await releaseDependencyBlocks(
+        db,
+        actor.ownerId,
+        dependents,
+        actor.agentId,
+        { cause: "dependencies_removed", removed: task.ref },
+      );
     await recordEvent(db, {
       ownerId: actor.ownerId,
       taskId: null,

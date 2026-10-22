@@ -2,12 +2,12 @@ import { transaction } from "../db";
 import type { Actor } from "./actors";
 import { taskError } from "./errors";
 import { recordEvent } from "./events";
-import { assertOwnerActor } from "./mutations";
+import { assertOwnerActor, releaseDependencyBlocks } from "./mutations";
 import { lockTask } from "./records";
 
 // "A blocks B": B (task) depends on A (dependsOn). The queue never offers a
 // task with an unfinished dependency; tasks explicitly blocked on dependencies
-// return to ready when the last one is done.
+// return to ready when the last one is done or removed.
 
 /** Adds a dependency, refusing cycles under a per-owner advisory lock. */
 export async function addTaskDependency(
@@ -99,10 +99,19 @@ export async function removeTaskDependency(
           dependsOn: { removed: blocker.ref },
         },
       });
+    // Removing the last unfinished dependency releases a dependency block,
+    // as completing it would.
+    const unblocked = removed.rowCount
+      ? await releaseDependencyBlocks(db, ownerId, [task.id], actor.agentId, {
+          cause: "dependencies_removed",
+          removed: blocker.ref,
+        })
+      : 0;
     return {
       ref: task.ref,
       dependsOn: blocker.ref,
       removed: Boolean(removed.rowCount),
+      unblocked: unblocked > 0,
     };
   });
 }

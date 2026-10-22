@@ -1001,23 +1001,35 @@ export async function readTask(actor: Actor, input: unknown) {
   };
 }
 
-function encodeCursor(row: QueryResultRow): string {
+// The cursor carries the first page's event watermark: every page of one
+// scan filters changedSince and returns eventsCursor at the same point, so a
+// task that changes between pages behind the cursor is reported next scan.
+function encodeCursor(row: QueryResultRow, watermark: string): string {
   return Buffer.from(
-    JSON.stringify([row.priority, row.due_key, row.number]),
+    JSON.stringify([row.priority, row.due_key, row.number, watermark]),
   ).toString("base64url");
 }
 
-function decodeCursor(cursor: string): [number, string, number] {
+function decodeCursor(cursor: string): {
+  key: [number, string, number];
+  watermark: string;
+} {
   try {
     const value = JSON.parse(Buffer.from(cursor, "base64url").toString());
     if (
       Array.isArray(value) &&
+      value.length === 4 &&
       Number.isInteger(value[0]) &&
       typeof value[1] === "string" &&
       /^(\d{4}-\d{2}-\d{2}|infinity)$/.test(value[1]) &&
-      Number.isInteger(value[2])
+      Number.isInteger(value[2]) &&
+      typeof value[3] === "string" &&
+      /^\d{1,20}$/.test(value[3])
     )
-      return value as [number, string, number];
+      return {
+        key: [value[0], value[1], value[2]],
+        watermark: value[3],
+      };
   } catch {}
   throw taskError(
     "INVALID_INPUT",
@@ -1035,7 +1047,14 @@ export async function listTasks(actor: Actor, input: unknown) {
   const ownerId = actor.ownerId;
   const data = parseTaskInput(listTasksSchema, input);
   const db = getPool();
-  const watermark = await eventWatermark(db);
+  const cursor = data.cursor ? decodeCursor(data.cursor) : null;
+  const current = await eventWatermark(db);
+  // Never past the current watermark: a forged later value would release
+  // events of transactions that have not committed yet.
+  const watermark =
+    cursor && BigInt(cursor.watermark) < BigInt(current)
+      ? cursor.watermark
+      : current;
   const params: unknown[] = [ownerId];
   const add = (value: unknown) => {
     params.push(value);
@@ -1085,8 +1104,8 @@ export async function listTasks(actor: Actor, input: unknown) {
     );
     removed = purged.rows.map((row) => formatTaskRef(row.number));
   }
-  if (data.cursor) {
-    const [priority, dueKey, number] = decodeCursor(data.cursor);
+  if (cursor) {
+    const [priority, dueKey, number] = cursor.key;
     where.push(
       `(t.priority, COALESCE(t.due_on, (t.due_at AT TIME ZONE 'Europe/Rome')::date, 'infinity'::date), t.number) > (${add(priority)}::smallint, ${add(dueKey)}::date, ${add(number)}::int)`,
     );
@@ -1116,7 +1135,9 @@ export async function listTasks(actor: Actor, input: unknown) {
   return {
     tasks: withAnswers,
     nextCursor:
-      rows.length > data.limit ? encodeCursor(page[page.length - 1]) : null,
+      rows.length > data.limit
+        ? encodeCursor(page[page.length - 1], watermark)
+        : null,
     eventsCursor: formatEventCursor({ tx: watermark, id: "0" }),
     ...(data.changedSince ? { removed } : {}),
     pollAfterSeconds: POLL_AFTER_SECONDS,
