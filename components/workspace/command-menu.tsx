@@ -5,6 +5,10 @@ import {
   Activity,
   BookOpen,
   Bot,
+  CalendarDays,
+  Columns3,
+  Hash,
+  ListTodo,
   type LucideIcon,
   Network,
   Plus,
@@ -49,7 +53,14 @@ export function useCommandMenu() {
   return context;
 }
 
-export function CommandMenuProvider({ children }: { children: ReactNode }) {
+export function CommandMenuProvider({
+  children,
+  tasks = false,
+}: {
+  children: ReactNode;
+  // Server-side TASKS_ENABLED, so task destinations show on the first open.
+  tasks?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   useEffect(() => {
     function toggle(event: KeyboardEvent) {
@@ -73,7 +84,7 @@ export function CommandMenuProvider({ children }: { children: ReactNode }) {
         className="sm:max-w-xl"
       >
         {/* Mounted only while open, so every visit starts from a clean query. */}
-        <CommandMenuContent onNavigate={() => setOpen(false)} />
+        <CommandMenuContent tasks={tasks} onNavigate={() => setOpen(false)} />
       </CommandDialog>
     </CommandMenuContext>
   );
@@ -174,6 +185,53 @@ const destinations: Destination[] = [
   },
 ];
 
+// Offered only once the server confirmed that tasks are enabled.
+const taskDestinations: Destination[] = [
+  {
+    href: "/tasks",
+    label: "Tasks",
+    group: "Go to",
+    icon: icon(ListTodo),
+    keywords: ["work", "todo", "triage"],
+    suggested: true,
+  },
+  {
+    href: "/tasks?view=needs-you",
+    label: "Needs you",
+    group: "Go to",
+    icon: icon(ListTodo),
+    keywords: ["tasks", "approve", "review", "questions", "inbox"],
+    suggested: false,
+  },
+  {
+    href: "/tasks/board",
+    label: "Task board",
+    group: "Go to",
+    icon: icon(Columns3),
+    keywords: ["tasks", "kanban", "columns"],
+    suggested: false,
+  },
+  {
+    href: "/tasks/calendar",
+    label: "Task calendar",
+    group: "Go to",
+    icon: icon(CalendarDays),
+    keywords: ["tasks", "due", "deadlines"],
+    suggested: false,
+  },
+  {
+    href: "/tasks/new",
+    label: "New task",
+    group: "Create",
+    icon: icon(Plus),
+    keywords: ["create", "add", "track", "todo"],
+    suggested: true,
+  },
+];
+
+/** "T-42", "t42" or "42" jump straight to a task. */
+const TASK_JUMP = /^(?:t-?)?([1-9]\d{0,8})$/i;
+
 const destinationGroups = [
   "Go to",
   "Collections",
@@ -186,9 +244,12 @@ const typeLabels = new Map(entityTypes.map((item) => [item.id, item]));
 // word-start matches score close to 1.
 const MIN_SCORE = 0.2;
 
-function matchingDestinations(query: string) {
-  if (!query) return destinations.filter((item) => item.suggested);
-  return destinations
+function matchingDestinations(query: string, withTasks: boolean) {
+  const available = withTasks
+    ? [...destinations, ...taskDestinations]
+    : destinations;
+  if (!query) return available.filter((item) => item.suggested);
+  return available
     .map((item) => ({
       item,
       score: defaultFilter(item.label, query, item.keywords),
@@ -258,12 +319,19 @@ function groupByType(pages: PageSummary[]) {
   return [...groups.entries()];
 }
 
-function CommandMenuContent({ onNavigate }: { onNavigate: () => void }) {
+function CommandMenuContent({
+  tasks: withTasks,
+  onNavigate,
+}: {
+  tasks: boolean;
+  onNavigate: () => void;
+}) {
   const router = useRouter();
   const [input, setInput] = useState("");
   const query = input.trim().slice(0, 500);
   const { results, loading } = usePageResults(query);
-  const matches = matchingDestinations(query);
+  const matches = matchingDestinations(query, withTasks);
+  const taskNumber = withTasks ? TASK_JUMP.exec(query)?.[1] : undefined;
   const showsPages = Boolean(query || results?.pages.length);
 
   function go(href: string) {
@@ -314,6 +382,17 @@ function CommandMenuContent({ onNavigate }: { onNavigate: () => void }) {
         )}
       </output>
       <CommandList className="max-h-[min(26rem,60svh)]">
+        {taskNumber && (
+          <CommandGroup heading="Tasks">
+            <CommandItem
+              value={`task:${taskNumber}`}
+              onSelect={() => go(`/tasks/T-${taskNumber}`)}
+            >
+              <Hash strokeWidth={1.6} />
+              <span>Jump to T-{taskNumber}</span>
+            </CommandItem>
+          </CommandGroup>
+        )}
         {results && !results.query && results.pages.length > 0 && (
           <CommandGroup heading="Recent pages">
             {results.pages.map((page) =>

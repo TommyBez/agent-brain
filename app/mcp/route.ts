@@ -12,7 +12,7 @@ import {
   withAgentCors,
 } from "@/lib/mcp/cors";
 import { createBrainHandler, requiredMcpScope } from "@/lib/mcp/server";
-import { revalidateWorkspaceCache } from "@/lib/workspace/cache";
+import { revalidateAfterMutation } from "@/lib/workspace/cache";
 
 export const maxDuration = 60;
 
@@ -67,8 +67,8 @@ async function handlePost(request: Request) {
     }
     const scope = requiredMcpScope(parsedBody);
     if (scope) requireScope(principal, scope);
-    const handler = createBrainHandler(principal, () =>
-      revalidateWorkspaceCache(principal.ownerId),
+    const handler = createBrainHandler(principal, (kind) =>
+      revalidateAfterMutation(principal.ownerId, kind),
     );
     const response = await handler.fetch(request, { parsedBody });
     response.headers.set("Cache-Control", "no-store");

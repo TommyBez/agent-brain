@@ -29,7 +29,17 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { createTokenAction } from "@/lib/workspace/settings-actions";
 
-export function TokenCreator() {
+export interface TokenAgentChoice {
+  id: string;
+  label: string;
+}
+
+export function TokenCreator({
+  agents = [],
+}: {
+  /** Active agents a new token can belong to, so identity survives rotation. */
+  agents?: TokenAgentChoice[];
+}) {
   const fieldId = useId();
   const [creating, setCreating] = useState(false);
   const [rawToken, setRawToken] = useState("");
@@ -107,9 +117,30 @@ export function TokenCreator() {
           <CardContent>
             <form className="space-y-6" action={createToken}>
               <FieldGroup className="gap-4 sm:grid sm:grid-cols-2">
+                <Field className="sm:col-span-2">
+                  <FieldLabel htmlFor={`${fieldId}-agent`}>Agent</FieldLabel>
+                  <NativeSelect
+                    id={`${fieldId}-agent`}
+                    name="agentId"
+                    defaultValue=""
+                  >
+                    <NativeSelectOption value="">
+                      New agent, named after the token
+                    </NativeSelectOption>
+                    {agents.map((agent) => (
+                      <NativeSelectOption key={agent.id} value={agent.id}>
+                        {agent.label}
+                      </NativeSelectOption>
+                    ))}
+                  </NativeSelect>
+                  <FieldDescription className="text-xs">
+                    Choose an existing agent when you replace its token: its
+                    history, capabilities and task permissions carry over.
+                  </FieldDescription>
+                </Field>
                 <Field>
                   <FieldLabel htmlFor={`${fieldId}-name`}>
-                    Agent name
+                    Token name
                   </FieldLabel>
                   <Input
                     id={`${fieldId}-name`}

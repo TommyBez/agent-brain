@@ -1,0 +1,1130 @@
+{
+  "dataset": "task-extraction-2026-10-21",
+  "datasetFingerprint": "33d3da86a83280a3960bf6c270b6d508fc3678eceb64a1edef0cab527972c53c",
+  "jevModel": "typesafe-ai/jev-1.14.0",
+  "extractionModel": "deepseek/deepseek-v4.1-flash-1017",
+  "policyVersion": "task-keeper-v1:56f722f7d7b57666",
+  "thresholds": {
+    "screening": 0.8,
+    "localization": 0.7,
+    "explicitCommitment": 0.8,
+    "actorSupported": 0.8,
+    "dueSupported": 0.8,
+    "alreadyDone": 0.8,
+    "duplicate": 0.8,
+    "mayBeDone": 0.85,
+    "criterionEvidence": 0.85,
+    "divergentState": 0.8,
+    "duplicateTitleSimilarity": 0.55,
+    "duplicateVectorDistance": 0.15,
+    "extractionCandidateSimilarity": 0.3,
+    "extractionCandidateDistance": 0.35
+  },
+  "cases": 36,
+  "expectedItems": 20,
+  "runAt": "2026-10-21T17:46:02.348Z",
+  "metrics": {
+    "items": {
+      "truePositives": 11,
+      "falsePositives": 0,
+      "falseNegatives": 9,
+      "precision": 1,
+      "recall": 0.55,
+      "f1": 0.7096774193548387
+    },
+    "caseAccuracy": 0.75,
+    "inventedTasks": 0,
+    "inventedActors": 0,
+    "wrongDates": 0,
+    "fields": {
+      "actor": 1,
+      "dueKind": 0.8181818181818182,
+      "dueDate": 0.5454545454545454
+    },
+    "categories": {
+      "impegno_esplicito": {
+        "cases": 6,
+        "accuracy": 0.6666666666666666
+      },
+      "ipotesi": {
+        "cases": 3,
+        "accuracy": 1
+      },
+      "proposta": {
+        "cases": 4,
+        "accuracy": 1
+      },
+      "voce_gia_fatta": {
+        "cases": 4,
+        "accuracy": 1
+      },
+      "scadenza_relativa": {
+        "cases": 3,
+        "accuracy": 1
+      },
+      "scadenza_evento": {
+        "cases": 2,
+        "accuracy": 0.5
+      },
+      "assegnatario_gruppo": {
+        "cases": 3,
+        "accuracy": 0
+      },
+      "prossimi_passi_agente": {
+        "cases": 3,
+        "accuracy": 1
+      },
+      "decisione_senza_azione": {
+        "cases": 2,
+        "accuracy": 1
+      },
+      "domanda_aperta": {
+        "cases": 2,
+        "accuracy": 1
+      },
+      "misto": {
+        "cases": 4,
+        "accuracy": 0.25
+      }
+    }
+  },
+  "usage": {
+    "jevRequests": 66,
+    "jevInputTokens": 54482,
+    "editorRequests": 15,
+    "editorInputTokens": 10534,
+    "editorOutputTokens": 2367,
+    "unknownUsage": 0,
+    "estimatedNanoUsd": 5288544
+  },
+  "errors": [],
+  "scores": [
+    {
+      "id": "C01",
+      "category": "impegno_esplicito",
+      "expected": 1,
+      "predicted": 1,
+      "truePositives": 1,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "correct": true,
+      "actorCorrect": 1,
+      "dueKindCorrect": 1,
+      "dueDateCorrect": 1,
+      "dueDateExpected": 1,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": [
+        {
+          "expected": 0,
+          "predicted": 0
+        }
+      ]
+    },
+    {
+      "id": "C02",
+      "category": "impegno_esplicito",
+      "expected": 1,
+      "predicted": 0,
+      "truePositives": 0,
+      "falsePositives": 0,
+      "falseNegatives": 1,
+      "correct": false,
+      "actorCorrect": 0,
+      "dueKindCorrect": 0,
+      "dueDateCorrect": 0,
+      "dueDateExpected": 0,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": []
+    },
+    {
+      "id": "C03",
+      "category": "impegno_esplicito",
+      "expected": 1,
+      "predicted": 1,
+      "truePositives": 1,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "correct": true,
+      "actorCorrect": 1,
+      "dueKindCorrect": 1,
+      "dueDateCorrect": 1,
+      "dueDateExpected": 1,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": [
+        {
+          "expected": 0,
+          "predicted": 0
+        }
+      ]
+    },
+    {
+      "id": "C04",
+      "category": "ipotesi",
+      "expected": 0,
+      "predicted": 0,
+      "truePositives": 0,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "correct": true,
+      "actorCorrect": 0,
+      "dueKindCorrect": 0,
+      "dueDateCorrect": 0,
+      "dueDateExpected": 0,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": []
+    },
+    {
+      "id": "C05",
+      "category": "ipotesi",
+      "expected": 0,
+      "predicted": 0,
+      "truePositives": 0,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "correct": true,
+      "actorCorrect": 0,
+      "dueKindCorrect": 0,
+      "dueDateCorrect": 0,
+      "dueDateExpected": 0,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": []
+    },
+    {
+      "id": "C06",
+      "category": "ipotesi",
+      "expected": 0,
+      "predicted": 0,
+      "truePositives": 0,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "correct": true,
+      "actorCorrect": 0,
+      "dueKindCorrect": 0,
+      "dueDateCorrect": 0,
+      "dueDateExpected": 0,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": []
+    },
+    {
+      "id": "C07",
+      "category": "proposta",
+      "expected": 0,
+      "predicted": 0,
+      "truePositives": 0,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "correct": true,
+      "actorCorrect": 0,
+      "dueKindCorrect": 0,
+      "dueDateCorrect": 0,
+      "dueDateExpected": 0,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": []
+    },
+    {
+      "id": "C08",
+      "category": "proposta",
+      "expected": 0,
+      "predicted": 0,
+      "truePositives": 0,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "correct": true,
+      "actorCorrect": 0,
+      "dueKindCorrect": 0,
+      "dueDateCorrect": 0,
+      "dueDateExpected": 0,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": []
+    },
+    {
+      "id": "C09",
+      "category": "proposta",
+      "expected": 0,
+      "predicted": 0,
+      "truePositives": 0,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "correct": true,
+      "actorCorrect": 0,
+      "dueKindCorrect": 0,
+      "dueDateCorrect": 0,
+      "dueDateExpected": 0,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": []
+    },
+    {
+      "id": "C10",
+      "category": "voce_gia_fatta",
+      "expected": 0,
+      "predicted": 0,
+      "truePositives": 0,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "correct": true,
+      "actorCorrect": 0,
+      "dueKindCorrect": 0,
+      "dueDateCorrect": 0,
+      "dueDateExpected": 0,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": []
+    },
+    {
+      "id": "C11",
+      "category": "voce_gia_fatta",
+      "expected": 0,
+      "predicted": 0,
+      "truePositives": 0,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "correct": true,
+      "actorCorrect": 0,
+      "dueKindCorrect": 0,
+      "dueDateCorrect": 0,
+      "dueDateExpected": 0,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": []
+    },
+    {
+      "id": "C12",
+      "category": "voce_gia_fatta",
+      "expected": 0,
+      "predicted": 0,
+      "truePositives": 0,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "correct": true,
+      "actorCorrect": 0,
+      "dueKindCorrect": 0,
+      "dueDateCorrect": 0,
+      "dueDateExpected": 0,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": []
+    },
+    {
+      "id": "C13",
+      "category": "scadenza_relativa",
+      "expected": 1,
+      "predicted": 1,
+      "truePositives": 1,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "correct": true,
+      "actorCorrect": 1,
+      "dueKindCorrect": 0,
+      "dueDateCorrect": 0,
+      "dueDateExpected": 1,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": [
+        {
+          "expected": 0,
+          "predicted": 0
+        }
+      ]
+    },
+    {
+      "id": "C14",
+      "category": "scadenza_relativa",
+      "expected": 1,
+      "predicted": 1,
+      "truePositives": 1,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "correct": true,
+      "actorCorrect": 1,
+      "dueKindCorrect": 1,
+      "dueDateCorrect": 1,
+      "dueDateExpected": 1,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": [
+        {
+          "expected": 0,
+          "predicted": 0
+        }
+      ]
+    },
+    {
+      "id": "C15",
+      "category": "scadenza_relativa",
+      "expected": 1,
+      "predicted": 1,
+      "truePositives": 1,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "correct": true,
+      "actorCorrect": 1,
+      "dueKindCorrect": 1,
+      "dueDateCorrect": 0,
+      "dueDateExpected": 0,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": [
+        {
+          "expected": 0,
+          "predicted": 0
+        }
+      ]
+    },
+    {
+      "id": "C16",
+      "category": "scadenza_evento",
+      "expected": 1,
+      "predicted": 1,
+      "truePositives": 1,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "correct": true,
+      "actorCorrect": 1,
+      "dueKindCorrect": 1,
+      "dueDateCorrect": 0,
+      "dueDateExpected": 0,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": [
+        {
+          "expected": 0,
+          "predicted": 0
+        }
+      ]
+    },
+    {
+      "id": "C17",
+      "category": "scadenza_evento",
+      "expected": 1,
+      "predicted": 0,
+      "truePositives": 0,
+      "falsePositives": 0,
+      "falseNegatives": 1,
+      "correct": false,
+      "actorCorrect": 0,
+      "dueKindCorrect": 0,
+      "dueDateCorrect": 0,
+      "dueDateExpected": 0,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": []
+    },
+    {
+      "id": "C18",
+      "category": "assegnatario_gruppo",
+      "expected": 1,
+      "predicted": 0,
+      "truePositives": 0,
+      "falsePositives": 0,
+      "falseNegatives": 1,
+      "correct": false,
+      "actorCorrect": 0,
+      "dueKindCorrect": 0,
+      "dueDateCorrect": 0,
+      "dueDateExpected": 1,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": []
+    },
+    {
+      "id": "C19",
+      "category": "assegnatario_gruppo",
+      "expected": 1,
+      "predicted": 0,
+      "truePositives": 0,
+      "falsePositives": 0,
+      "falseNegatives": 1,
+      "correct": false,
+      "actorCorrect": 0,
+      "dueKindCorrect": 0,
+      "dueDateCorrect": 0,
+      "dueDateExpected": 0,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": []
+    },
+    {
+      "id": "C20",
+      "category": "assegnatario_gruppo",
+      "expected": 1,
+      "predicted": 0,
+      "truePositives": 0,
+      "falsePositives": 0,
+      "falseNegatives": 1,
+      "correct": false,
+      "actorCorrect": 0,
+      "dueKindCorrect": 0,
+      "dueDateCorrect": 0,
+      "dueDateExpected": 1,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": []
+    },
+    {
+      "id": "C21",
+      "category": "prossimi_passi_agente",
+      "expected": 0,
+      "predicted": 0,
+      "truePositives": 0,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "correct": true,
+      "actorCorrect": 0,
+      "dueKindCorrect": 0,
+      "dueDateCorrect": 0,
+      "dueDateExpected": 0,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": []
+    },
+    {
+      "id": "C22",
+      "category": "prossimi_passi_agente",
+      "expected": 0,
+      "predicted": 0,
+      "truePositives": 0,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "correct": true,
+      "actorCorrect": 0,
+      "dueKindCorrect": 0,
+      "dueDateCorrect": 0,
+      "dueDateExpected": 0,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": []
+    },
+    {
+      "id": "C23",
+      "category": "prossimi_passi_agente",
+      "expected": 0,
+      "predicted": 0,
+      "truePositives": 0,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "correct": true,
+      "actorCorrect": 0,
+      "dueKindCorrect": 0,
+      "dueDateCorrect": 0,
+      "dueDateExpected": 0,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": []
+    },
+    {
+      "id": "C24",
+      "category": "decisione_senza_azione",
+      "expected": 0,
+      "predicted": 0,
+      "truePositives": 0,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "correct": true,
+      "actorCorrect": 0,
+      "dueKindCorrect": 0,
+      "dueDateCorrect": 0,
+      "dueDateExpected": 0,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": []
+    },
+    {
+      "id": "C25",
+      "category": "decisione_senza_azione",
+      "expected": 0,
+      "predicted": 0,
+      "truePositives": 0,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "correct": true,
+      "actorCorrect": 0,
+      "dueKindCorrect": 0,
+      "dueDateCorrect": 0,
+      "dueDateExpected": 0,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": []
+    },
+    {
+      "id": "C26",
+      "category": "domanda_aperta",
+      "expected": 0,
+      "predicted": 0,
+      "truePositives": 0,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "correct": true,
+      "actorCorrect": 0,
+      "dueKindCorrect": 0,
+      "dueDateCorrect": 0,
+      "dueDateExpected": 0,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": []
+    },
+    {
+      "id": "C27",
+      "category": "domanda_aperta",
+      "expected": 0,
+      "predicted": 0,
+      "truePositives": 0,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "correct": true,
+      "actorCorrect": 0,
+      "dueKindCorrect": 0,
+      "dueDateCorrect": 0,
+      "dueDateExpected": 0,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": []
+    },
+    {
+      "id": "C28",
+      "category": "misto",
+      "expected": 3,
+      "predicted": 2,
+      "truePositives": 2,
+      "falsePositives": 0,
+      "falseNegatives": 1,
+      "correct": false,
+      "actorCorrect": 2,
+      "dueKindCorrect": 1,
+      "dueDateCorrect": 1,
+      "dueDateExpected": 1,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": [
+        {
+          "expected": 0,
+          "predicted": 0
+        },
+        {
+          "expected": 1,
+          "predicted": 1
+        }
+      ]
+    },
+    {
+      "id": "C29",
+      "category": "misto",
+      "expected": 1,
+      "predicted": 1,
+      "truePositives": 1,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "correct": true,
+      "actorCorrect": 1,
+      "dueKindCorrect": 1,
+      "dueDateCorrect": 1,
+      "dueDateExpected": 1,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": [
+        {
+          "expected": 0,
+          "predicted": 0
+        }
+      ]
+    },
+    {
+      "id": "C30",
+      "category": "misto",
+      "expected": 1,
+      "predicted": 0,
+      "truePositives": 0,
+      "falsePositives": 0,
+      "falseNegatives": 1,
+      "correct": false,
+      "actorCorrect": 0,
+      "dueKindCorrect": 0,
+      "dueDateCorrect": 0,
+      "dueDateExpected": 1,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": []
+    },
+    {
+      "id": "C31",
+      "category": "impegno_esplicito",
+      "expected": 1,
+      "predicted": 1,
+      "truePositives": 1,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "correct": true,
+      "actorCorrect": 1,
+      "dueKindCorrect": 1,
+      "dueDateCorrect": 1,
+      "dueDateExpected": 1,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": [
+        {
+          "expected": 0,
+          "predicted": 0
+        }
+      ]
+    },
+    {
+      "id": "C32",
+      "category": "impegno_esplicito",
+      "expected": 1,
+      "predicted": 1,
+      "truePositives": 1,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "correct": true,
+      "actorCorrect": 1,
+      "dueKindCorrect": 1,
+      "dueDateCorrect": 0,
+      "dueDateExpected": 0,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": [
+        {
+          "expected": 0,
+          "predicted": 0
+        }
+      ]
+    },
+    {
+      "id": "C33",
+      "category": "voce_gia_fatta",
+      "expected": 0,
+      "predicted": 0,
+      "truePositives": 0,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "correct": true,
+      "actorCorrect": 0,
+      "dueKindCorrect": 0,
+      "dueDateCorrect": 0,
+      "dueDateExpected": 0,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": []
+    },
+    {
+      "id": "C34",
+      "category": "proposta",
+      "expected": 0,
+      "predicted": 0,
+      "truePositives": 0,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "correct": true,
+      "actorCorrect": 0,
+      "dueKindCorrect": 0,
+      "dueDateCorrect": 0,
+      "dueDateExpected": 0,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": []
+    },
+    {
+      "id": "C35",
+      "category": "misto",
+      "expected": 1,
+      "predicted": 0,
+      "truePositives": 0,
+      "falsePositives": 0,
+      "falseNegatives": 1,
+      "correct": false,
+      "actorCorrect": 0,
+      "dueKindCorrect": 0,
+      "dueDateCorrect": 0,
+      "dueDateExpected": 1,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": []
+    },
+    {
+      "id": "C36",
+      "category": "impegno_esplicito",
+      "expected": 1,
+      "predicted": 0,
+      "truePositives": 0,
+      "falsePositives": 0,
+      "falseNegatives": 1,
+      "correct": false,
+      "actorCorrect": 0,
+      "dueKindCorrect": 0,
+      "dueDateCorrect": 0,
+      "dueDateExpected": 0,
+      "inventedActors": 0,
+      "wrongDates": 0,
+      "matches": []
+    }
+  ],
+  "predictions": [
+    {
+      "id": "C01",
+      "screen": "candidates",
+      "items": [
+        {
+          "title": "Inviare al cliente la bozza del contratto",
+          "excerpt": "- Marta Ferri invierà al cliente la bozza del contratto entro il 20/10/2026.",
+          "actorNames": [
+            "Marta Ferri"
+          ],
+          "dueKind": "date",
+          "dueDate": "2026-10-20",
+          "dueText": "entro il 20/10/2026",
+          "verification": "accepted"
+        }
+      ]
+    },
+    {
+      "id": "C02",
+      "screen": "candidates",
+      "items": [
+        {
+          "title": "Aggiornare il piano di test con i nuovi casi limite",
+          "excerpt": "Paolo si occupa di aggiornare il piano di test con i nuovi casi limite.",
+          "actorNames": [
+            "Paolo"
+          ],
+          "dueKind": "unset",
+          "dueDate": null,
+          "dueText": null,
+          "verification": "not_commitment"
+        }
+      ]
+    },
+    {
+      "id": "C03",
+      "screen": "candidates",
+      "items": [
+        {
+          "title": "Preparare la presentazione per il comitato",
+          "excerpt": "Tommaso: preparo io la presentazione per il comitato di giovedì 15/10/2026.",
+          "actorNames": [
+            "Tommaso"
+          ],
+          "dueKind": "date",
+          "dueDate": "2026-10-15",
+          "dueText": "giovedì 15/10/2026",
+          "verification": "accepted"
+        }
+      ]
+    },
+    {
+      "id": "C04",
+      "screen": "negative",
+      "items": []
+    },
+    {
+      "id": "C05",
+      "screen": "negative",
+      "items": []
+    },
+    {
+      "id": "C06",
+      "screen": "negative",
+      "items": []
+    },
+    {
+      "id": "C07",
+      "screen": "negative",
+      "items": []
+    },
+    {
+      "id": "C08",
+      "screen": "negative",
+      "items": []
+    },
+    {
+      "id": "C09",
+      "screen": "negative",
+      "items": []
+    },
+    {
+      "id": "C10",
+      "screen": "negative",
+      "items": []
+    },
+    {
+      "id": "C11",
+      "screen": "negative",
+      "items": []
+    },
+    {
+      "id": "C12",
+      "screen": "candidates",
+      "items": []
+    },
+    {
+      "id": "C13",
+      "screen": "candidates",
+      "items": [
+        {
+          "title": "Preparare la stima dei costi",
+          "excerpt": "Andrea preparerà la stima dei costi entro venerdì.",
+          "actorNames": [
+            "Andrea"
+          ],
+          "dueKind": "approximate",
+          "dueDate": null,
+          "dueText": "entro venerdì",
+          "verification": "accepted"
+        }
+      ]
+    },
+    {
+      "id": "C14",
+      "screen": "candidates",
+      "items": [
+        {
+          "title": "Inviare il riepilogo della riunione ai partecipanti",
+          "excerpt": "Elena manderà il riepilogo della riunione ai partecipanti entro domani.",
+          "actorNames": [
+            "Elena"
+          ],
+          "dueKind": "date",
+          "dueDate": "2026-10-16",
+          "dueText": "entro domani",
+          "verification": "accepted"
+        }
+      ]
+    },
+    {
+      "id": "C15",
+      "screen": "candidates",
+      "items": [
+        {
+          "title": "Sistemare la dashboard dei consumi",
+          "excerpt": "Roberto sistemerà la dashboard dei consumi entro fine mese.",
+          "actorNames": [
+            "Roberto"
+          ],
+          "dueKind": "approximate",
+          "dueDate": null,
+          "dueText": "entro fine mese",
+          "verification": "accepted"
+        }
+      ]
+    },
+    {
+      "id": "C16",
+      "screen": "candidates",
+      "items": [
+        {
+          "title": "Portare i numeri aggiornati degli arruolamenti alla prossima riunione",
+          "excerpt": "Chiara porterà i numeri aggiornati degli arruolamenti alla prossima riunione.",
+          "actorNames": [
+            "Chiara"
+          ],
+          "dueKind": "event",
+          "dueDate": null,
+          "dueText": "alla prossima riunione",
+          "verification": "accepted"
+        }
+      ]
+    },
+    {
+      "id": "C17",
+      "screen": "negative",
+      "items": []
+    },
+    {
+      "id": "C18",
+      "screen": "candidates",
+      "items": [
+        {
+          "title": "Rivedere la bozza del protocollo",
+          "excerpt": "Tutti: rivedere la bozza del protocollo prima di lunedì 26/10/2026.",
+          "actorNames": [
+            "Tutti"
+          ],
+          "dueKind": "unset",
+          "dueDate": null,
+          "dueText": null,
+          "verification": "not_commitment"
+        }
+      ]
+    },
+    {
+      "id": "C19",
+      "screen": "negative",
+      "items": []
+    },
+    {
+      "id": "C20",
+      "screen": "negative",
+      "items": []
+    },
+    {
+      "id": "C21",
+      "screen": "negative",
+      "items": []
+    },
+    {
+      "id": "C22",
+      "screen": "negative",
+      "items": []
+    },
+    {
+      "id": "C23",
+      "screen": "negative",
+      "items": []
+    },
+    {
+      "id": "C24",
+      "screen": "negative",
+      "items": []
+    },
+    {
+      "id": "C25",
+      "screen": "negative",
+      "items": []
+    },
+    {
+      "id": "C26",
+      "screen": "negative",
+      "items": []
+    },
+    {
+      "id": "C27",
+      "screen": "negative",
+      "items": []
+    },
+    {
+      "id": "C28",
+      "screen": "candidates",
+      "items": [
+        {
+          "title": "Preparare il report clinico",
+          "excerpt": "- Mario Rossi: preparare il report clinico entro il 30/10/2026.",
+          "actorNames": [
+            "Mario Rossi"
+          ],
+          "dueKind": "date",
+          "dueDate": "2026-10-30",
+          "dueText": "entro il 30/10/2026",
+          "verification": "accepted"
+        },
+        {
+          "title": "Contattare il fornitore dei kit e riferire alla prossima riunione",
+          "excerpt": "- Giulia Bianchi contatterà il fornitore dei kit e riferirà alla prossima riunione.",
+          "actorNames": [
+            "Giulia Bianchi"
+          ],
+          "dueKind": "unset",
+          "dueDate": null,
+          "dueText": null,
+          "verification": "accepted"
+        }
+      ]
+    },
+    {
+      "id": "C29",
+      "screen": "candidates",
+      "items": [
+        {
+          "title": "Consegnare le traduzioni del manuale",
+          "excerpt": "Sara ha confermato che entro il 05/11/2026 consegnerà le traduzioni del manuale. Paolo chiede se serve un revisore: per ora nessuno si è proposto.",
+          "actorNames": [
+            "Sara"
+          ],
+          "dueKind": "date",
+          "dueDate": "2026-11-05",
+          "dueText": "entro il 05/11/2026",
+          "verification": "accepted"
+        }
+      ]
+    },
+    {
+      "id": "C30",
+      "screen": "candidates",
+      "items": [
+        {
+          "title": "Confermare l'offerta al cliente",
+          "excerpt": "- AÜ.27 — Damato conferma l'offerta al cliente entro il 28/10/2026.",
+          "actorNames": [
+            "Damato"
+          ],
+          "dueKind": "unset",
+          "dueDate": null,
+          "dueText": null,
+          "verification": "not_commitment"
+        }
+      ]
+    },
+    {
+      "id": "C31",
+      "screen": "candidates",
+      "items": [
+        {
+          "title": "Chiudere la revisione del capitolo 3",
+          "excerpt": "Mi impegno a chiudere la revisione del capitolo 3 entro venerdì 23/10/2026. — Tommaso",
+          "actorNames": [
+            "Tommaso"
+          ],
+          "dueKind": "date",
+          "dueDate": "2026-10-23",
+          "dueText": "venerdì 23/10/2026",
+          "verification": "accepted"
+        }
+      ]
+    },
+    {
+      "id": "C32",
+      "screen": "candidates",
+      "items": [
+        {
+          "title": "Inviare il dataset anonimizzato",
+          "excerpt": "Durante la call Federica ha promesso di mandarci il dataset anonimizzato.",
+          "actorNames": [
+            "Federica"
+          ],
+          "dueKind": "unset",
+          "dueDate": null,
+          "dueText": null,
+          "verification": "accepted"
+        }
+      ]
+    },
+    {
+      "id": "C33",
+      "screen": "negative",
+      "items": []
+    },
+    {
+      "id": "C34",
+      "screen": "negative",
+      "items": []
+    },
+    {
+      "id": "C35",
+      "screen": "candidates",
+      "items": [
+        {
+          "title": "Preparare la demo per il cliente",
+          "excerpt": "Prossimo passo: Laura preparerà la demo per il cliente entro il 06/11/2026.",
+          "actorNames": [
+            "Laura"
+          ],
+          "dueKind": "unset",
+          "dueDate": null,
+          "dueText": null,
+          "verification": "not_commitment"
+        }
+      ]
+    },
+    {
+      "id": "C36",
+      "screen": "negative",
+      "items": []
+    }
+  ]
+}

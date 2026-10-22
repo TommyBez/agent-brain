@@ -61,9 +61,19 @@ export interface SearchRetrieval {
   embeddingSource: "server" | "client" | "unavailable";
 }
 
+/** Internal callers only; never part of the public search schema. */
+export interface SearchOptions {
+  /**
+   * False keeps nightly maintenance off the interactive query key: without
+   * a supplied vector the search is text and graph only.
+   */
+  serverEmbedding?: boolean;
+}
+
 export async function search(
   ownerId: string,
   input: unknown,
+  options: SearchOptions = {},
 ): Promise<{ results: SearchResult[]; retrieval: SearchRetrieval }> {
   assertOwner(ownerId);
   const data = schemas.searchSchema.parse(input);
@@ -73,7 +83,9 @@ export async function search(
         embedding: data.embedding,
         embeddingModel: data.embeddingModel ?? embeddingModel(),
       }
-    : await getQueryEmbedding(ownerId, data.query);
+    : options.serverEmbedding === false
+      ? null
+      : await getQueryEmbedding(ownerId, data.query);
   const retrieval: SearchRetrieval = {
     mode: queryEmbedding ? "hybrid" : "text-and-graph",
     embeddingModel: queryEmbedding?.embeddingModel ?? null,

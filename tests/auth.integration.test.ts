@@ -39,12 +39,17 @@ test(
     const nextCache = createRequire(import.meta.url)(
       "next/cache",
     ) as typeof import("next/cache");
+    const invalidatedTags: string[] = [];
     const invalidations = t.mock.method(
       nextCache,
       "revalidateTag",
       (...[tag, profile]: Parameters<typeof nextCache.revalidateTag>) => {
-        assert.equal(tag, `workspace:${ownerId}`);
+        assert.ok(
+          tag === `workspace:${ownerId}` || tag === `tasks:${ownerId}`,
+          tag,
+        );
         assert.deepEqual(profile, { expire: 0 });
+        invalidatedTags.push(tag);
       },
     );
     const email = `auth-test-${ownerId}@example.invalid`;
@@ -112,7 +117,17 @@ test(
       await getPool().query("DELETE FROM brain_pages WHERE owner_id = $1", [
         ownerId,
       ]);
+      await getPool().query(
+        "DELETE FROM brain_task_events WHERE owner_id = $1",
+        [ownerId],
+      );
+      await getPool().query("DELETE FROM brain_tasks WHERE owner_id = $1", [
+        ownerId,
+      ]);
       await getPool().query('DELETE FROM "user" WHERE id = $1', [ownerId]);
+      await getPool().query("DELETE FROM brain_agents WHERE owner_id = $1", [
+        ownerId,
+      ]);
       await getPool().query(
         'DELETE FROM "oauthResource" WHERE identifier = $1',
         [`${origin}/mcp`],
@@ -593,6 +608,99 @@ test(
         });
         assert.equal(result.isError, undefined);
         await client.close();
+      },
+    );
+
+    await t.test(
+      "task tools expire only tasks:<owner>; writes expire workspace:<owner>",
+      async () => {
+        const originalTasks = process.env.TASKS_ENABLED;
+        process.env.TASKS_ENABLED = "1";
+        const { token } = await createAgentToken(ownerId, {
+          name: "Task worker integration test",
+          scopes: ["brain:read", "brain:write"],
+          expiresInDays: 1,
+        });
+        const client = new Client(
+          { name: "task-cache-tags", version: "1.0.0" },
+          { versionNegotiation: { mode: { pin: "2026-07-28" } } },
+        );
+        try {
+          await client.connect(
+            new StreamableHTTPClientTransport(new URL(`${origin}/mcp`), {
+              requestInit: { headers: { authorization: `Bearer ${token}` } },
+            }),
+          );
+          const tagsOf = async (
+            name: string,
+            args: Record<string, unknown>,
+          ) => {
+            const before = invalidatedTags.length;
+            const response = await client.callTool({ name, arguments: args });
+            return {
+              response,
+              data: (response.structuredContent as { data?: never }).data as
+                | Record<string, never>
+                | undefined,
+              tags: invalidatedTags.slice(before),
+            };
+          };
+          const created = await tagsOf("create_task", {
+            title: "Cache tag task",
+            origin: "owner_request",
+            ownerQuote: "tienine traccia",
+            idempotencyKey: `cache-tags-${randomUUID()}`,
+          });
+          assert.equal(created.response.isError, undefined);
+          assert.deepEqual(created.tags, [`tasks:${ownerId}`]);
+          const ref = (created.data as unknown as { task: { ref: string } })
+            .task.ref;
+          const listed = await tagsOf("list_tasks", { mine: false });
+          assert.deepEqual(listed.tags, []);
+          const claimed = await tagsOf("claim_task", { ref });
+          assert.deepEqual(claimed.tags, [`tasks:${ownerId}`]);
+          const leaseId = (claimed.data as unknown as { leaseId: string })
+            .leaseId;
+          const reported = await tagsOf("report_task", {
+            ref,
+            leaseId,
+            note: "Renewing",
+          });
+          assert.deepEqual(reported.tags, [`tasks:${ownerId}`]);
+          const released = await tagsOf("release_task", {
+            ref,
+            leaseId,
+            reason: "handoff",
+            note: "Handing back",
+          });
+          assert.deepEqual(released.tags, [`tasks:${ownerId}`]);
+          // Headless tokens claim on request only when the owner enables it.
+          const onRequest = await tagsOf("claim_task", {
+            ref,
+            onOwnerRequest: { quote: "prendi il task" },
+          });
+          assert.equal(onRequest.response.isError, true);
+          assert.equal(
+            (
+              onRequest.response.structuredContent as {
+                error: { code: string };
+              }
+            ).error.code,
+            "CLAIM_ON_REQUEST_DISABLED",
+          );
+          assert.deepEqual(onRequest.tags, []);
+          const written = await tagsOf("write", {
+            title: `Task cache page ${randomUUID()}`,
+            type: "note",
+            markdown: "Knowledge write.",
+            expectedVersion: 0,
+          });
+          assert.deepEqual(written.tags, [`workspace:${ownerId}`]);
+        } finally {
+          await client.close();
+          if (originalTasks === undefined) delete process.env.TASKS_ENABLED;
+          else process.env.TASKS_ENABLED = originalTasks;
+        }
       },
     );
 

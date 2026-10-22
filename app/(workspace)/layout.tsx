@@ -12,6 +12,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { CommandMenuProvider } from "@/components/workspace/command-menu";
 import {
   SettingsNavigation,
+  type TaskNavigation,
   WorkspaceNavigation,
 } from "@/components/workspace/navigation";
 import {
@@ -20,11 +21,39 @@ import {
   WorkspaceHeader,
   WorkspaceSidebarProvider,
 } from "@/components/workspace/shell";
+import { tasksEnabled } from "@/lib/tasks/types";
 import { getWorkspaceStats } from "@/lib/workspace/data";
 import { getWorkspaceUser } from "@/lib/workspace/session";
+import { queryNeedsYouCount } from "@/lib/workspace/task-queries";
+import { savedViewHref } from "@/lib/workspace/task-urls";
+import { getTaskSettingsView } from "@/lib/workspace/tasks-data";
 
-async function NavigationCounts() {
-  return <WorkspaceNavigation stats={await getWorkspaceStats()} />;
+const TASKS_PENDING: TaskNavigation = { needsYou: null, views: [] };
+
+// The badge poll's own query, authorized here and read fresh: the layout
+// renders on a full load or refresh, and the poll keeps it current after.
+async function getTaskNavigation(): Promise<TaskNavigation> {
+  const user = await getWorkspaceUser();
+  const [needsYou, settings] = await Promise.all([
+    queryNeedsYouCount(user.id),
+    getTaskSettingsView(),
+  ]);
+  return {
+    needsYou,
+    views: settings.savedViews.map((view) => ({
+      id: view.id,
+      name: view.name,
+      href: savedViewHref(view.query),
+    })),
+  };
+}
+
+async function NavigationCounts({ tasks }: { tasks: boolean }) {
+  const [stats, taskNavigation] = await Promise.all([
+    getWorkspaceStats(),
+    tasks ? getTaskNavigation() : undefined,
+  ]);
+  return <WorkspaceNavigation stats={stats} tasks={taskNavigation} />;
 }
 
 async function OwnerProfile() {
@@ -33,10 +62,11 @@ async function OwnerProfile() {
 }
 
 export default function WorkspaceLayout({ children }: { children: ReactNode }) {
+  const tasks = tasksEnabled();
   return (
     <TooltipProvider>
       <WorkspaceSidebarProvider>
-        <CommandMenuProvider>
+        <CommandMenuProvider tasks={tasks}>
           <a
             href="#main-content"
             className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground"
@@ -48,8 +78,14 @@ export default function WorkspaceLayout({ children }: { children: ReactNode }) {
               <WorkspaceBrand />
             </SidebarHeader>
             <SidebarContent>
-              <Suspense fallback={<WorkspaceNavigation />}>
-                <NavigationCounts />
+              <Suspense
+                fallback={
+                  <WorkspaceNavigation
+                    tasks={tasks ? TASKS_PENDING : undefined}
+                  />
+                }
+              >
+                <NavigationCounts tasks={tasks} />
               </Suspense>
               <SettingsNavigation />
             </SidebarContent>

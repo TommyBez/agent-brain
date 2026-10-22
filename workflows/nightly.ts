@@ -1,5 +1,10 @@
 import { createHook, getWorkflowMetadata, sleep } from "workflow";
 import { EMBEDDING_LIMITS } from "@/lib/maintenance/embedding-batch";
+import type { WorkflowJobKind } from "@/lib/maintenance/jobs";
+import {
+  type NightlyOptions,
+  runNightlyStages,
+} from "@/lib/maintenance/nightly-stages";
 import {
   beginJob,
   completeJob,
@@ -11,6 +16,12 @@ import {
   storeEmbeddingBatch,
   takeExportSnapshot,
 } from "@/lib/maintenance/steps";
+import { runTaskKeeperPhase } from "@/lib/maintenance/task-keeper";
+import { runTaskLinksPhase } from "@/lib/maintenance/task-links";
+import type {
+  TaskPhaseContext,
+  TaskPhaseScope,
+} from "@/lib/maintenance/task-phase";
 import { consolidate } from "./consolidation";
 
 async function indexPages(ownerId: string) {
@@ -55,10 +66,11 @@ async function indexPages(ownerId: string) {
 
 async function runPhase(
   ownerId: string,
-  kind: "consolidation" | "embeddings" | "export",
+  kind: WorkflowJobKind,
   runDate: string,
   runId: string,
   rerunFrom?: string,
+  scope: TaskPhaseScope = "nightly",
 ) {
   const job = await beginJob(ownerId, kind, runDate, runId, rerunFrom);
   if (job.skip) return { id: job.id, status: job.status, skipped: true };
@@ -74,6 +86,27 @@ async function runPhase(
         job.id,
         runId,
         result.remaining ? "partial" : "succeeded",
+        result,
+      );
+    }
+    if (kind === "task_keeper" || kind === "task_links") {
+      const context: TaskPhaseContext = {
+        ownerId,
+        runId,
+        runDate,
+        jobId: job.id,
+        attempts: job.attempts,
+        scope,
+      };
+      const result =
+        kind === "task_keeper"
+          ? await runTaskKeeperPhase(context)
+          : await runTaskLinksPhase(context);
+      return await completeJob(
+        ownerId,
+        job.id,
+        runId,
+        result.status === "partial" ? "partial" : "succeeded",
         result,
       );
     }
@@ -109,14 +142,16 @@ export async function nightlyMaintenance(
   ownerId: string,
   runDate: string,
   rerunConsolidationFrom?: string,
+  options: NightlyOptions = {},
 ) {
   "use workflow";
+  const scope = options.scope ?? "nightly";
   // A durable owner lock serializes runs across dates as well as duplicate deliveries.
   // Waiting consumes no running function. Completed daily jobs are skipped below.
   while (true) {
     using lock = createHook({
       token: `brain-nightly:${ownerId}`,
-      metadata: { runDate },
+      metadata: { runDate, scope },
     });
     const conflict = await lock.getConflict();
     if (conflict) {
@@ -124,28 +159,20 @@ export async function nightlyMaintenance(
       continue;
     }
     const runId = getWorkflowMetadata().workflowRunId;
-    const consolidation = await runPhase(
-      ownerId,
-      "consolidation",
-      runDate,
-      runId,
-      rerunConsolidationFrom,
-    ).catch(() => ({
-      status: "failed",
-      error: "Consolidation bookkeeping failed.",
-    }));
     // A failed consolidation must never prevent deterministic indexing or export.
-    const settled = await Promise.allSettled([
-      runPhase(ownerId, "embeddings", runDate, runId),
-      runPhase(ownerId, "export", runDate, runId),
-    ]);
-    const [embeddings, exported] = settled.map((result) =>
-      result.status === "fulfilled"
-        ? result.value
-        : { status: "failed", error: "Maintenance bookkeeping failed." },
+    const { failed, jobs } = await runNightlyStages(
+      (kind) =>
+        runPhase(
+          ownerId,
+          kind,
+          runDate,
+          runId,
+          kind === "consolidation" ? rerunConsolidationFrom : undefined,
+          scope,
+        ),
+      { scope, tasks: options.tasks === true },
     );
-    const jobs = { consolidation, embeddings, export: exported };
-    if (Object.values(jobs).some((job) => job.status === "failed"))
+    if (failed)
       throw new Error(
         "Nightly maintenance finished with failed stages. See Operations for results and retry.",
       );

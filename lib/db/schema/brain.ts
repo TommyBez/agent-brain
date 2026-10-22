@@ -23,8 +23,10 @@ import {
   MAX_PAGE_CHARACTERS,
   PAGE_TYPES,
 } from "../../brain/types";
+import { SPEND_PURPOSES, TASK_JOB_KINDS } from "../../tasks/types";
 import { user } from "./auth";
 import { oneOf, subsetOf } from "./checks";
+import { brainAgents } from "./tasks";
 
 const tsvector = customType<{ data: string }>({
   dataType() {
@@ -168,6 +170,8 @@ export const brainRevisions = pgTable(
       .defaultNow()
       .notNull(),
     operationKey: text("operation_key"),
+    // Set by the server from the request credential or nightly process.
+    actorAgentId: uuid("actor_agent_id"),
   },
   (table) => [
     uniqueIndex("brain_revisions_operation_key_idx")
@@ -187,6 +191,11 @@ export const brainRevisions = pgTable(
       foreignColumns: [brainPages.ownerId, brainPages.id],
       name: "brain_revisions_owner_id_page_id_fkey",
     }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.ownerId, table.actorAgentId],
+      foreignColumns: [brainAgents.ownerId, brainAgents.id],
+      name: "brain_revisions_owner_id_actor_agent_id_fkey",
+    }),
     unique("brain_revisions_owner_id_page_id_version_key").on(
       table.ownerId,
       table.pageId,
@@ -212,6 +221,7 @@ export const brainActivity = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
       .defaultNow()
       .notNull(),
+    actorAgentId: uuid("actor_agent_id"),
   },
   (table) => [
     index("brain_activity_owner_created_idx").using(
@@ -224,6 +234,11 @@ export const brainActivity = pgTable(
       foreignColumns: [brainPages.ownerId, brainPages.id],
       name: "brain_activity_owner_id_page_id_fkey",
     }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.ownerId, table.actorAgentId],
+      foreignColumns: [brainAgents.ownerId, brainAgents.id],
+      name: "brain_activity_owner_id_actor_agent_id_fkey",
+    }),
     check(
       "brain_activity_action_check",
       oneOf(table.action, ["create", "write", "append", "embed"]),
@@ -252,6 +267,8 @@ export const agentTokens = pgTable(
       mode: "string",
     }),
     revokedAt: timestamp("revoked_at", { withTimezone: true, mode: "string" }),
+    // Bound at creation or on first use, so the agent outlives token rotation.
+    agentId: uuid("agent_id"),
   },
   (table) => [
     index("agent_tokens_owner_idx").using(
@@ -264,6 +281,11 @@ export const agentTokens = pgTable(
       foreignColumns: [user.id],
       name: "agent_tokens_owner_id_fkey",
     }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.ownerId, table.agentId],
+      foreignColumns: [brainAgents.ownerId, brainAgents.id],
+      name: "agent_tokens_owner_id_agent_id_fkey",
+    }),
     unique("agent_tokens_token_hash_key").on(table.tokenHash),
     check(
       "agent_tokens_name_check",
@@ -316,7 +338,12 @@ export const brainJobs = pgTable(
     ),
     check(
       "brain_jobs_kind_check",
-      oneOf(table.kind, ["consolidation", "embeddings", "export"]),
+      oneOf(table.kind, [
+        "consolidation",
+        "embeddings",
+        "export",
+        ...TASK_JOB_KINDS,
+      ]),
     ),
     check(
       "brain_jobs_status_check",
@@ -475,8 +502,20 @@ export const brainConsolidationSpend = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
       .defaultNow()
       .notNull(),
+    // Soft caps inside the pooled daily cap: pages vs the nightly task phases.
+    purpose: text().default("pages").notNull(),
   },
-  (table) => [index("brain_consolidation_spend_day_idx").on(table.day)],
+  (table) => [
+    index("brain_consolidation_spend_day_idx").on(table.day),
+    index("brain_consolidation_spend_day_purpose_idx").on(
+      table.day,
+      table.purpose,
+    ),
+    check(
+      "brain_consolidation_spend_purpose_check",
+      oneOf(table.purpose, SPEND_PURPOSES),
+    ),
+  ],
 );
 
 export const brainConsolidationQueue = pgTable("brain_consolidation_queue", {

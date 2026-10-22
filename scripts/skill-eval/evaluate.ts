@@ -1,6 +1,8 @@
+import { isAbsolute, relative } from "node:path";
 import { z } from "zod";
 import type { Page, Trace } from "./brain";
 import type { Scenario } from "./dataset";
+import type { TaskWorld } from "./task-brain";
 
 export type Bundle = {
   files: Record<string, string>;
@@ -19,6 +21,10 @@ export type Session = {
   maxCalls: number;
   mode: "loaded" | "discovery";
   model: string;
+  /** Task suites: initial and current task store, and the id seed. */
+  initialTasks?: TaskWorld;
+  tasks?: TaskWorld;
+  taskSeed?: string;
 };
 export const reviewSchema = z
   .object({
@@ -142,6 +148,25 @@ export function score(scenario: Scenario, session: Session, review?: Review) {
           (t.input as { path?: string }).path === "SKILL.md",
       ),
   };
+}
+
+/**
+ * Trials run concurrently in sibling folders. Without a named working folder,
+ * subjects put helper files (wrappers, batches, final answers) in the shared
+ * parent, where another subject can overwrite them between write and use and
+ * route calls into the wrong session.
+ */
+export function withWorkFolder(prompt: string, work: string) {
+  return (
+    `Working folder: ${work}\nRun every command from this folder (cd into it first) and keep every file you create in it: tool inputs, batches, the final answer and any helper script. Other trials run at the same time in sibling folders, so the tool command rejects files and working directories outside this session.\n\n` +
+    prompt
+  );
+}
+
+/** True when target is dir itself or inside it; both paths must be absolute and real. */
+export function insideFolder(dir: string, target: string) {
+  const rel = relative(dir, target);
+  return rel === "" || (!rel.startsWith("..") && !isAbsolute(rel));
 }
 
 /** Only task and skill material go to the subject; no case ID, arm label or expected answer. */

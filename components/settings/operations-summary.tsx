@@ -24,26 +24,111 @@ import {
   ItemTitle,
 } from "@/components/ui/item";
 import { formatDate } from "@/lib/formatters";
+import type { TaskPhaseHalt } from "@/lib/maintenance/task-phase";
 import type { MaintenanceJob, OperationsData } from "@/lib/operations";
+import { tasksEnabled } from "@/lib/tasks/types";
+import { TaskMaintenanceControl } from "./operations-controls";
+
+const JOB_LABELS: Record<MaintenanceJob["kind"], string> = {
+  consolidation: "Consolidation",
+  embeddings: "Embeddings",
+  export: "Export",
+  task_keeper: "Task keeper",
+  task_links: "Task links",
+};
+
+const TASK_COUNTERS = {
+  task_keeper: [
+    ["pagesConsidered", "pages considered"],
+    ["created", "tasks added to triage"],
+    ["newSources", "new sources suggested"],
+    ["suggestions", "suggestions opened"],
+    ["occurrences", "recurring tasks created"],
+    ["unitsReused", "analyses reused"],
+    ["requests", "model requests"],
+    ["remainingPages", "pages awaiting the next run"],
+    ["oversizedPages", "pages too long to analyze"],
+    ["cappedPages", "pages waiting for a free suggestion slot"],
+    ["cappedSuggestions", "suggestions waiting for a free slot"],
+  ],
+  task_links: [
+    ["tasksConsidered", "tasks considered"],
+    ["suggested", "links suggested"],
+    ["retracted", "links retracted"],
+    ["unitsReused", "analyses reused"],
+    ["requests", "Jev requests"],
+    ["remainingTasks", "tasks awaiting the next run"],
+  ],
+} as const;
+
+// Shown only when there is something to report.
+const HIDDEN_WHEN_ZERO = new Set<string>([
+  "remainingPages",
+  "remainingTasks",
+  "oversizedPages",
+  "cappedPages",
+  "cappedSuggestions",
+]);
+
+const HALT_NOTICES: Record<TaskPhaseHalt, string> = {
+  budget: "Daily task budget reached. Remaining work continues the next night.",
+  provider:
+    "A model provider stopped this pass. Remaining work continues the next night.",
+  embeddings:
+    "Task embeddings were unavailable. Remaining work continues the next night.",
+  limit: "Run limit reached. Remaining work continues the next night.",
+};
+
+const spend = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  maximumFractionDigits: 4,
+});
+
+function counted(value: unknown, label: string) {
+  return typeof value === "number" && Number.isFinite(value)
+    ? `${value.toLocaleString()} ${label}`
+    : null;
+}
 
 function OperationResult({ job }: { job: MaintenanceJob }) {
   const result = job.result;
   if (!result) return null;
-  const counts: string[] = [];
-  for (const [value, label] of [
-    [result.writes, "successful writes"],
-    [result.indexedPages, "pages indexed"],
-    [result.embeddedChunks, "chunks embedded"],
-    [result.remaining, "pages awaiting indexing"],
-    [result.pages, "pages exported"],
-    [result.links, "links exported"],
-    [result.inputTokens, "input tokens"],
-    [result.outputTokens, "output tokens"],
-  ] as const) {
-    if (typeof value === "number" && Number.isFinite(value)) {
-      counts.push(`${value.toLocaleString()} ${label}`);
-    }
-  }
+  const values: Record<string, unknown> = result;
+  const taskPhase =
+    job.kind === "task_keeper" || job.kind === "task_links" ? job.kind : null;
+  const counts = (
+    taskPhase
+      ? TASK_COUNTERS[taskPhase].map(([key, label]) =>
+          HIDDEN_WHEN_ZERO.has(key) && values[key] === 0
+            ? null
+            : counted(values[key], label),
+        )
+      : (
+          [
+            [result.writes, "successful writes"],
+            [result.indexedPages, "pages indexed"],
+            [result.embeddedChunks, "chunks embedded"],
+            [result.remaining, "pages awaiting indexing"],
+            [result.pages, "pages exported"],
+            [result.links, "links exported"],
+            [result.tasks, "closed tasks exported"],
+            [result.inputTokens, "input tokens"],
+            [result.outputTokens, "output tokens"],
+          ] as const
+        ).map(([value, label]) => counted(value, label))
+  ).filter((count): count is string => count !== null);
+  if (
+    taskPhase &&
+    typeof values.spendNano === "number" &&
+    Number.isFinite(values.spendNano) &&
+    values.spendNano > 0
+  )
+    counts.push(`${spend.format(values.spendNano / 1e9)} spent`);
+  const halt =
+    typeof values.halt === "string" && Object.hasOwn(HALT_NOTICES, values.halt)
+      ? HALT_NOTICES[values.halt as TaskPhaseHalt]
+      : null;
   const commitUrl =
     typeof result.repository === "string" &&
     /^[A-Za-z0-9-]+\/[A-Za-z0-9_.-]+$/.test(result.repository) &&
@@ -54,10 +139,14 @@ function OperationResult({ job }: { job: MaintenanceJob }) {
   return (
     <div className="mt-2 space-y-2 text-xs text-muted-foreground">
       {counts.length > 0 && <p>{counts.join(" · ")}</p>}
-      {(job.status === "partial" || result.budgetReached) && (
-        <p>Run limit reached. Remaining work continues the next night.</p>
+      {halt ? (
+        <p>{halt}</p>
+      ) : (
+        (job.status === "partial" || result.budgetReached) && (
+          <p>Run limit reached. Remaining work continues the next night.</p>
+        )
       )}
-      {result.skipped === true && (
+      {job.kind === "export" && result.skipped === true && (
         <p>Export skipped. This account has no Git repository configured.</p>
       )}
       {commitUrl && (
@@ -89,6 +178,7 @@ function OperationResult({ job }: { job: MaintenanceJob }) {
 }
 
 export function OperationsSummary({ data }: { data: OperationsData }) {
+  const tasks = tasksEnabled();
   return (
     <>
       <section>
@@ -100,6 +190,7 @@ export function OperationsSummary({ data }: { data: OperationsData }) {
             run is already active, it continues without starting another.
           </p>
         </div>
+        {tasks && <TaskMaintenanceControl />}
         {data.jobs.length ? (
           <ItemGroup className="border-t">
             {data.jobs.map((job, index) => (
@@ -107,9 +198,7 @@ export function OperationsSummary({ data }: { data: OperationsData }) {
                 {index > 0 && <ItemSeparator />}
                 <Item role="listitem" className="items-start px-0">
                   <ItemContent className="min-w-0">
-                    <ItemTitle className="capitalize">
-                      {job.kind.replaceAll("_", " ")}
-                    </ItemTitle>
+                    <ItemTitle>{JOB_LABELS[job.kind] ?? job.kind}</ItemTitle>
                     <ItemDescription>
                       {formatDate(job.runDate)}
                       {job.finishedAt &&

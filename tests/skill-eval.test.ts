@@ -103,3 +103,26 @@ test("stale writes and missing links are atomic; missed and unauthorized decisio
     false,
   );
 });
+
+test("tool schemas and existing fixtures stay frozen, so prepared manifests remain valid", async () => {
+  const { createHash } = await import("node:crypto");
+  const { toolDefinitions } = await import("../scripts/skill-eval/brain");
+  const { activationScenarios } = await import(
+    "../scripts/skill-eval/activation-dataset"
+  );
+  const hash = (value: unknown) =>
+    createHash("sha256").update(JSON.stringify(value)).digest("hex");
+  // Task tools live in taskToolDefinitions; adding them here would invalidate every toolsHash.
+  assert.equal(
+    hash(toolDefinitions),
+    "0357dfd855e9fdc7a53e0f119a63025b842d8ab440686fc3cd7db157f512bfdf",
+  );
+  assert.equal(
+    hash(scenarios),
+    "3a13c7825fe0013b280ad072f1abd7e3bd67678699a65f9ca47376fadbf27af0",
+  );
+  assert.equal(
+    hash(activationScenarios),
+    "a4021f3be723ec57c5e32c7375b2b5781d36a6ccbb179ebdd72e6c6f7c7d1845",
+  );
+});

@@ -32,7 +32,10 @@ test(
     const pool = getPool();
     const previousKey = process.env.AI_GATEWAY_API_KEY;
     const previousOwner = process.env.BRAIN_OWNER_EMAIL;
+    const previousTasks = process.env.TASKS_ENABLED;
     process.env.AI_GATEWAY_API_KEY = "test-only";
+    // The pooled cap without the task release; spend-purpose covers soft caps.
+    delete process.env.TASKS_ENABLED;
     process.env.BRAIN_OWNER_EMAIL = email;
     await pool.query(`INSERT INTO "user" (email) VALUES ($1)`, [email]);
     t.after(async () => {
@@ -44,6 +47,8 @@ test(
       else process.env.AI_GATEWAY_API_KEY = previousKey;
       if (previousOwner === undefined) delete process.env.BRAIN_OWNER_EMAIL;
       else process.env.BRAIN_OWNER_EMAIL = previousOwner;
+      if (previousTasks === undefined) delete process.env.TASKS_ENABLED;
+      else process.env.TASKS_ENABLED = previousTasks;
       await pool.end();
       await setup.query(`DROP SCHEMA ${schema} CASCADE`);
       await setup.end();

@@ -6,9 +6,15 @@ import { getPool } from "../lib/db";
 import {
   beginWorkflowJob,
   dailyWorkflowStatus,
+  enabledWorkflowJobKinds,
   finishWorkflowJob,
+  isTaskJobKind,
   queueWorkflowJobs,
+  requeueTaskWorkflowJobs,
+  WORKFLOW_JOB_KINDS,
+  type WorkflowJobKind,
   workflowExportAttemptKey,
+  workflowJobsComplete,
 } from "../lib/maintenance/jobs";
 
 test("export receipt keys change only with the logical job attempt", () => {
@@ -29,6 +35,58 @@ test("export receipt keys change only with the logical job attempt", () => {
       (error) =>
         error instanceof BrainError && error.code === "INVALID_JOB_ATTEMPT",
     );
+});
+
+test("task phases are nightly kinds that ship behind TASKS_ENABLED", () => {
+  assert.deepEqual(WORKFLOW_JOB_KINDS, [
+    "consolidation",
+    "embeddings",
+    "export",
+    "task_keeper",
+    "task_links",
+  ]);
+  assert.deepEqual(enabledWorkflowJobKinds({}), [
+    "consolidation",
+    "embeddings",
+    "export",
+  ]);
+  assert.deepEqual(enabledWorkflowJobKinds({ TASKS_ENABLED: "false" }), [
+    "consolidation",
+    "embeddings",
+    "export",
+  ]);
+  for (const flag of ["true", "1"])
+    assert.deepEqual(
+      enabledWorkflowJobKinds({ TASKS_ENABLED: flag }),
+      WORKFLOW_JOB_KINDS,
+    );
+  assert.deepEqual(WORKFLOW_JOB_KINDS.filter(isTaskJobKind), [
+    "task_keeper",
+    "task_links",
+  ]);
+  const finished = (kinds: readonly WorkflowJobKind[]) =>
+    kinds.map((kind) => ({ kind, status: "partial" as const }));
+  const pages = enabledWorkflowJobKinds({});
+  assert.equal(workflowJobsComplete(finished(pages), pages), true);
+  assert.equal(
+    workflowJobsComplete(finished(pages), WORKFLOW_JOB_KINDS),
+    false,
+  );
+  assert.equal(
+    workflowJobsComplete(
+      [
+        ...finished(pages),
+        { kind: "task_keeper", status: "succeeded" },
+        { kind: "task_links", status: "failed" },
+      ],
+      WORKFLOW_JOB_KINDS,
+    ),
+    false,
+  );
+  assert.equal(
+    workflowJobsComplete(finished(WORKFLOW_JOB_KINDS), WORKFLOW_JOB_KINDS),
+    true,
+  );
 });
 
 test(
@@ -378,12 +436,176 @@ test(
       }
 
       await t.test(
+        "a consolidation retry that changes pages also requeues the task phases",
+        async () => {
+          const date = "2035-01-23";
+          const original = await initialFailedPass(date);
+          const phases = [];
+          for (const kind of ["task_keeper", "task_links"] as const) {
+            const job = await beginWorkflowJob(
+              owner,
+              kind,
+              date,
+              "initial-run",
+            );
+            await finishWorkflowJob(
+              owner,
+              job.id,
+              "initial-run",
+              kind === "task_keeper" ? "succeeded" : "partial",
+              { requests: 1, spendNano: 42_000, halt: null },
+            );
+            phases.push(job);
+          }
+          const retried = await beginWorkflowJob(
+            owner,
+            "consolidation",
+            date,
+            "corrected-run",
+          );
+          await finishWorkflowJob(
+            owner,
+            retried.id,
+            "corrected-run",
+            "succeeded",
+            { writes: 1 },
+          );
+          const jobs = await dailyWorkflowStatus(owner, date);
+          for (const previous of [
+            original.embeddings,
+            original.exported,
+            ...phases,
+          ]) {
+            const queued = jobs.find((job) => job.id === previous.id);
+            assert.equal(queued?.status, "queued");
+            assert.equal(queued.workflowRunId, null);
+            assert.equal(queued.result, null);
+          }
+          for (const kind of ["task_keeper", "task_links"] as const) {
+            const refreshed = await beginWorkflowJob(
+              owner,
+              kind,
+              date,
+              "corrected-run",
+            );
+            assert.equal(refreshed.skip, false);
+            assert.equal(refreshed.attempts, 2);
+          }
+        },
+      );
+
+      await t.test(
+        "Run now requeues only today's task phases and never a running pass",
+        async () => {
+          const date = "2035-01-27";
+          await queueWorkflowJobs(owner, date, undefined, WORKFLOW_JOB_KINDS);
+          const queued = await dailyWorkflowStatus(owner, date);
+          assert.deepEqual(
+            queued.map((job) => job.kind),
+            [...WORKFLOW_JOB_KINDS].sort(),
+          );
+          const completed = new Map<string, string>();
+          for (const kind of WORKFLOW_JOB_KINDS) {
+            const job = await beginWorkflowJob(owner, kind, date, "night-run");
+            await finishWorkflowJob(
+              owner,
+              job.id,
+              "night-run",
+              kind === "task_links" ? "failed" : "succeeded",
+              kind === "export"
+                ? { pushed: true, commit: "c".repeat(40) }
+                : kind === "consolidation"
+                  ? { writes: 0 }
+                  : { requests: 0 },
+              kind === "task_links" ? "Phase failed." : undefined,
+            );
+            completed.set(kind, job.id);
+          }
+          const requeued = await requeueTaskWorkflowJobs(owner, date);
+          assert.deepEqual(
+            requeued.map((job) => [job.kind, job.status, job.attempts]),
+            [
+              ["task_keeper", "queued", 1],
+              ["task_links", "queued", 1],
+            ],
+          );
+          assert.ok(
+            requeued.every(
+              (job) =>
+                job.id === completed.get(job.kind) &&
+                job.workflowRunId === null &&
+                job.result === null &&
+                job.error === null,
+            ),
+          );
+          const after = await dailyWorkflowStatus(owner, date);
+          for (const job of after.filter((entry) => !isTaskJobKind(entry.kind)))
+            assert.equal(job.status, "succeeded");
+          const keeper = await beginWorkflowJob(
+            owner,
+            "task_keeper",
+            date,
+            "run-now",
+          );
+          assert.equal(keeper.skip, false);
+          assert.equal(keeper.attempts, 2);
+          const again = await requeueTaskWorkflowJobs(owner, date);
+          assert.deepEqual(
+            again.map((job) => [job.kind, job.status, job.workflowRunId]),
+            [
+              ["task_keeper", "running", "run-now"],
+              ["task_links", "queued", null],
+            ],
+          );
+          assert.equal(
+            (await beginWorkflowJob(owner, "consolidation", date, "run-now"))
+              .skip,
+            true,
+          );
+          const fresh = await requeueTaskWorkflowJobs(owner, "2035-01-28");
+          assert.deepEqual(
+            fresh.map((job) => [job.kind, job.status, job.attempts]),
+            [
+              ["task_keeper", "queued", 0],
+              ["task_links", "queued", 0],
+            ],
+          );
+          assert.equal(
+            (await dailyWorkflowStatus(owner, "2035-01-28")).length,
+            2,
+          );
+          await assert.rejects(
+            requeueTaskWorkflowJobs(owner, "2035-02-30"),
+            (error) =>
+              error instanceof BrainError && error.code === "INVALID_RUN_DATE",
+          );
+        },
+      );
+
+      await t.test("queueing validates explicit stage lists", async () => {
+        await assert.rejects(
+          queueWorkflowJobs(owner, "2035-02-03", undefined, []),
+          (error) =>
+            error instanceof BrainError && error.code === "INVALID_JOB_KIND",
+        );
+        await assert.rejects(
+          queueWorkflowJobs(owner, "2035-02-03", undefined, [
+            "harvest" as WorkflowJobKind,
+          ]),
+          (error) =>
+            error instanceof BrainError && error.code === "INVALID_JOB_KIND",
+        );
+        assert.deepEqual(await dailyWorkflowStatus(owner, "2035-02-03"), []);
+      });
+
+      await t.test(
         "start queues all stages once without resetting completed work",
         async () => {
           const date = "2035-01-20";
+          const kinds = enabledWorkflowJobKinds({});
           await Promise.all([
-            queueWorkflowJobs(owner, date),
-            queueWorkflowJobs(owner, date),
+            queueWorkflowJobs(owner, date, undefined, kinds),
+            queueWorkflowJobs(owner, date, undefined, kinds),
           ]);
           const queued = await dailyWorkflowStatus(owner, date);
           assert.equal(queued.length, 3);
@@ -397,7 +619,7 @@ test(
           await finishWorkflowJob(owner, job.id, "queue-run", "succeeded", {
             writes: 0,
           });
-          await queueWorkflowJobs(owner, date);
+          await queueWorkflowJobs(owner, date, undefined, kinds);
           const after = await dailyWorkflowStatus(owner, date);
           assert.equal(after.length, 3);
           assert.equal(
@@ -585,7 +807,7 @@ test(
           const skippedExport = await beginWorkflowJob(
             owner,
             "export",
-            "2035-01-17",
+            "2035-01-19",
             "run-export-skipped",
           );
           await assert.rejects(

@@ -1,8 +1,10 @@
 import { Suspense } from "react";
 import { OperationsControls } from "@/components/settings/operations-controls";
 import { OperationsSummary } from "@/components/settings/operations-summary";
+import { KeeperExclusions } from "@/components/tasks/keeper-exclusions";
 import { Loading, PageHeading } from "@/components/workspace/primitives";
 import { operationsStatus } from "@/lib/operations";
+import { tasksEnabled } from "@/lib/tasks/types";
 import { getWorkspaceUser } from "@/lib/workspace/session";
 
 export const metadata = { title: "Operations · a native brain" };
@@ -18,6 +20,11 @@ export default function OperationsPage() {
       <Suspense fallback={<Loading />}>
         <LiveOperations />
       </Suspense>
+      {tasksEnabled() && (
+        <Suspense fallback={<Loading />}>
+          <KeeperExclusions />
+        </Suspense>
+      )}
     </>
   );
 }

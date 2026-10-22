@@ -830,3 +830,174 @@ test("fixed snapshot metadata generates stable commits and environment defaults 
     }
   }
 });
+
+const closedTask = (number: number, title: string) => ({
+  id: `task-${number}`,
+  number,
+  ref: `T-${number}`,
+  title,
+  description: `Description of ${title}`,
+  status: "done",
+  acceptanceCriteria: ["Report sent"],
+  completion: { summary: "Sent", completedBy: "Codex" },
+  links: [{ page: "project/brain", role: "produced", origin: "agent" }],
+  history: { events: 3, byAction: { created: 1, completed: 1, claimed: 1 } },
+});
+const snapshotV2 = (tasks = [closedTask(1, "Send report")]) => ({
+  ...snapshot(),
+  schemaVersion: 2,
+  tasks,
+});
+
+test("schemaVersion 2 writes closed tasks as separate files with a v2 receipt", async () => {
+  const github = new GitHub({
+    "README.md": "Keep repository source\n",
+    "export/.agent-brain-export": marker,
+    "export/tasks/T-9.md": "A task purged since the last export\n",
+  });
+  const result = await exportBrainToGitHub({
+    ...options(github),
+    snapshot: snapshotV2([
+      closedTask(12, "Decide monitoring"),
+      closedTask(3, "Send report"),
+    ]),
+  });
+  assert.equal(result.tasks, 2);
+  assert.equal(result.pages, 1);
+  const task = required(github.file("export/tasks/T-3.md"));
+  assert.match(task, /^---\n/);
+  assert.match(task, /\ntitle: "Send report"\n/);
+  assert.match(task, /\nstatus: "done"\n/);
+  assert.match(task, /\nlinks: \[\{"origin":"agent","page":"project\/brain"/);
+  assert.match(task, /\n---\n\nDescription of Send report\n$/);
+  assert.ok(github.file("export/tasks/T-12.md"));
+  assert.equal(
+    github.file("export/tasks/T-9.md"),
+    undefined,
+    "Tasks absent from the snapshot leave the export",
+  );
+  const page = required(github.file("export/pages/project/brain.md"));
+  assert.doesNotMatch(page, /Send report|Decide monitoring/);
+  assert.deepEqual(
+    JSON.parse(required(github.file("export/receipts/job-one.json"))),
+    {
+      schemaVersion: 2,
+      jobId: "job-one",
+      runDate: "2026-09-14",
+      exportedAt: snapshot().exportedAt,
+      pages: 1,
+      links: 1,
+      tasks: 2,
+    },
+  );
+  const manifest = JSON.parse(required(github.file("export/manifest.json")));
+  assert.equal(manifest.schemaVersion, 2);
+  assert.equal(manifest.tasks, 2);
+  const writes = github.calls.filter((call) => call.method !== "GET").length;
+  assert.deepEqual(
+    await exportBrainToGitHub({
+      ...options(github),
+      snapshot: snapshotV2([]),
+    }),
+    result,
+    "Replay returns the original v2 counts",
+  );
+  assert.equal(
+    github.calls.filter((call) => call.method !== "GET").length,
+    writes,
+  );
+});
+
+test("a purged task leaves the next export and an empty task list removes the directory", async () => {
+  const github = new GitHub();
+  await exportBrainToGitHub({
+    ...options(github),
+    snapshot: snapshotV2([
+      closedTask(1, "Send report"),
+      closedTask(2, "Confidential"),
+    ]),
+  });
+  assert.ok(github.file("export/tasks/T-2.md"));
+  const second = options(github, "job-two");
+  second.runDate = "2026-09-15";
+  await exportBrainToGitHub({
+    ...second,
+    snapshot: snapshotV2([closedTask(1, "Send report")]),
+  });
+  assert.ok(github.file("export/tasks/T-1.md"));
+  assert.equal(github.file("export/tasks/T-2.md"), undefined);
+  const third = options(github, "job-three");
+  third.runDate = "2026-09-16";
+  const result = await exportBrainToGitHub({
+    ...third,
+    snapshot: snapshotV2([]),
+  });
+  assert.equal(result.tasks, 0);
+  assert.equal(github.file("export/tasks/T-1.md"), undefined);
+  assert.ok(github.file("export/pages/project/brain.md"));
+});
+
+test("a v1 snapshot keeps the task directory and receipt format unchanged", async () => {
+  const github = new GitHub();
+  await exportBrainToGitHub({
+    ...options(github),
+    snapshot: snapshotV2([closedTask(1, "Send report")]),
+  });
+  const next = options(github, "job-two");
+  next.runDate = "2026-09-15";
+  const result = await exportBrainToGitHub(next);
+  assert.equal("tasks" in result, false);
+  assert.ok(github.file("export/tasks/T-1.md"));
+  assert.deepEqual(
+    Object.keys(
+      JSON.parse(required(github.file("export/receipts/job-two.json"))),
+    ).sort(),
+    ["exportedAt", "jobId", "links", "pages", "runDate", "schemaVersion"],
+  );
+});
+
+test("invalid v2 snapshots and receipts fail closed", async () => {
+  for (const snapshot of [
+    { ...snapshotV2(), tasks: undefined },
+    { ...snapshotV2(), schemaVersion: 3 },
+    snapshotV2([closedTask(0, "Bad number")]),
+    snapshotV2([closedTask(4, "Twin"), closedTask(4, "Twin")]),
+  ]) {
+    const github = new GitHub();
+    await assert.rejects(
+      exportBrainToGitHub({ ...options(github), snapshot }),
+      GitHubExportError,
+    );
+    assert.equal(
+      github.calls.some((call) => call.method !== "GET"),
+      false,
+    );
+  }
+  const altered = new GitHub();
+  await exportBrainToGitHub({ ...options(altered), snapshot: snapshotV2() });
+  const receipt = JSON.parse(
+    required(altered.file("export/receipts/job-one.json")),
+  );
+  const head = required(altered.commits.get(altered.head));
+  // Rewrite the receipt inside the original commit: a v2 receipt without a
+  // task count is rejected on replay.
+  const exportTree = required(
+    altered.trees.get(head.tree.sha)?.find((entry) => entry.path === "export"),
+  );
+  const receiptsTree = required(
+    altered.trees
+      .get(exportTree.sha)
+      ?.find((entry) => entry.path === "receipts"),
+  );
+  const entry = required(
+    altered.trees
+      .get(receiptsTree.sha)
+      ?.find((item) => item.path === "job-one.json"),
+  );
+  const { tasks: _tasks, ...withoutTasks } = receipt;
+  altered.blobs.set(entry.sha, JSON.stringify(withoutTasks));
+  await assert.rejects(
+    exportBrainToGitHub({ ...options(altered), snapshot: snapshotV2() }),
+    /does not match this job/,
+  );
+});

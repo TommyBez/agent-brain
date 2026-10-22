@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { isDeepStrictEqual } from "node:util";
 import type { PoolClient } from "pg";
 import { transaction } from "../db";
+import { systemActor } from "../tasks/actors";
 import { hydrateRows, loadPages, type PageRow, recordRevision } from "./pages";
 import { BrainError, type BrainPage } from "./types";
 import { assertOwner } from "./utils";
@@ -49,6 +50,8 @@ export async function writeConsolidationPages(
   | { status: "conflict"; pageIds: string[] }
 > {
   assertOwner(ownerId);
+  // Resolved before any page lock; nightly revisions are signed by the consolidator.
+  const consolidator = await systemActor(ownerId, "consolidator", db);
   const expected = new Map(
     readSet.map(({ pageId, version }) => [pageId, version]),
   );
@@ -134,7 +137,7 @@ export async function writeConsolidationPages(
       "write",
       "Verified knowledge consolidation",
       "nightly-consolidation",
-      revisionKey,
+      { operationKey: revisionKey, actorAgentId: consolidator.agentId },
     );
     pages.push(saved);
   }

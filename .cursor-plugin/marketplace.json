@@ -7,7 +7,7 @@
     {
       "name": "agent-brain",
       "source": "./plugins/agent-brain",
-      "description": "Retrieve and preserve private knowledge with a native brain through MCP."
+      "description": "Retrieve and preserve private knowledge and coordinate tracked tasks with a native brain through MCP."
     }
   ]
 }

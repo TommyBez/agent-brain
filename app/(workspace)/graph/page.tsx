@@ -1,3 +1,4 @@
+import { ListTodo } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 import { KnowledgeGraph } from "@/components/graph/knowledge-graph";
@@ -7,6 +8,12 @@ import { Loading, PageHeading } from "@/components/workspace/primitives";
 import { RefreshButton } from "@/components/workspace/refresh-button";
 import { entityTypes } from "@/lib/brain/labels";
 import { isPageType, type PageType } from "@/lib/brain/types";
+import {
+  parseTaskOverlayParam,
+  withTaskOverlay,
+} from "@/lib/graph/task-overlay";
+import { getWorkspaceTaskOverlay } from "@/lib/graph/task-overlay-data";
+import { tasksEnabled } from "@/lib/tasks/types";
 import { getWorkspaceGraph, getWorkspaceStats } from "@/lib/workspace/data";
 import { paginationOffset } from "@/lib/workspace/pagination";
 import {
@@ -60,10 +67,20 @@ async function Graph({
   const type = isPageType(params.type) ? params.type : "";
   const offset = paginationOffset(params.offset);
   const focus = typeof params.node === "string" ? params.node : undefined;
+  const tasksAvailable = tasksEnabled();
+  const showTasks = tasksAvailable && parseTaskOverlayParam(params.tasks);
+  // Filters and pagination keep the overlay switch as they are.
+  const href = (to: PageType | "", toOffset = 0, tasks = showTasks) =>
+    withTaskOverlay(graphHref(to, toOffset), tasks);
   const [graph, stats] = await Promise.all([
     getWorkspaceGraph(type, offset),
     getWorkspaceStats(),
   ]);
+  // A separate read for the pages already chosen: tasks never take a place in
+  // the page window.
+  const taskOverlay = showTasks
+    ? await getWorkspaceTaskOverlay(graph.nodes.map((node) => node.id))
+    : null;
   const end = offset + graph.nodes.length;
   return (
     <>
@@ -72,7 +89,7 @@ async function Graph({
         className="mb-3 flex flex-wrap items-center gap-1.5"
       >
         <FilterChip
-          href="/graph"
+          href={href("")}
           active={!type}
           label="All types"
           count={stats.pages}
@@ -80,13 +97,34 @@ async function Graph({
         {entityTypes.map((item) => (
           <FilterChip
             key={item.id}
-            href={graphHref(item.id)}
+            href={href(item.id)}
             active={type === item.id}
             label={item.label}
             count={stats.byType[item.id] ?? 0}
             type={item.id}
           />
         ))}
+        {tasksAvailable && (
+          <Button
+            variant={showTasks ? "secondary" : "outline"}
+            size="sm"
+            className="ml-auto"
+            asChild
+          >
+            <Link
+              href={href(type, offset, !showTasks)}
+              aria-label={showTasks ? "Hide open tasks" : "Show open tasks"}
+            >
+              <ListTodo aria-hidden="true" />
+              Open tasks
+              {taskOverlay && (
+                <span className="text-xs text-muted-foreground">
+                  {taskOverlay.total}
+                </span>
+              )}
+            </Link>
+          </Button>
+        )}
       </nav>
       <p className="mb-4 text-sm text-muted-foreground">
         {graph.nodes.length ? (
@@ -99,6 +137,8 @@ async function Graph({
             {graph.links.length === 1 ? "link" : "links"} between them.
             {graph.total > graph.nodes.length &&
               " Links to pages outside this set appear on each page."}
+            {taskOverlay &&
+              " Open tasks appear as squares beside their pages and do not count as pages."}
           </>
         ) : (
           "No pages to show yet."
@@ -108,12 +148,13 @@ async function Graph({
         key={`${type}-${offset}`}
         graph={graph}
         initialSelected={focus}
+        taskOverlay={taskOverlay}
       />
       <Pagination
         offset={offset}
         hasMore={offset + GRAPH_PAGE_SIZE < graph.total}
         pageSize={GRAPH_PAGE_SIZE}
-        href={(offset) => graphHref(type, offset)}
+        href={(offset) => href(type, offset)}
         label="Graph pagination"
         previousLabel="Newer pages"
         nextLabel="Older pages"

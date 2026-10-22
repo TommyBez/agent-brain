@@ -3,8 +3,18 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemTitle,
+} from "@/components/ui/item";
 import { Spinner } from "@/components/ui/spinner";
-import { runMaintenanceAction } from "@/lib/workspace/settings-actions";
+import {
+  runMaintenanceAction,
+  runTaskMaintenanceAction,
+} from "@/lib/workspace/settings-actions";
 
 export function OperationsControls({ active }: { active: boolean }) {
   const router = useRouter();
@@ -76,5 +86,64 @@ export function OperationsControls({ active }: { active: boolean }) {
         </p>
       )}
     </div>
+  );
+}
+
+/** "Run now" for the task keeper and task links only (session Server Action). */
+export function TaskMaintenanceControl() {
+  const [pending, startTransition] = useTransition();
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+
+  function run() {
+    setError("");
+    setNotice("");
+    startTransition(async () => {
+      try {
+        const result = await runTaskMaintenanceAction();
+        if (result.error) setError(result.error);
+        else
+          setNotice(
+            result.started
+              ? "Task maintenance is running on Vercel. Results appear below."
+              : "Task maintenance is already running. Results appear below.",
+          );
+      } catch {
+        setError("Unable to start task maintenance. Try again.");
+      }
+    });
+  }
+
+  return (
+    <Item variant="outline" className="mb-5">
+      <ItemContent className="min-w-0">
+        <ItemTitle>Task keeper and task links</ItemTitle>
+        <ItemDescription>
+          Extract tasks from pages changed today and refresh their links now.
+          Consolidation, embeddings and export are not repeated.
+        </ItemDescription>
+      </ItemContent>
+      <ItemActions>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={pending}
+          onClick={run}
+        >
+          {pending && <Spinner aria-hidden="true" />}
+          Run now
+        </Button>
+      </ItemActions>
+      {notice && (
+        <output className="block basis-full text-sm text-primary">
+          {notice}
+        </output>
+      )}
+      {error && (
+        <p className="basis-full text-sm text-destructive" role="alert">
+          {error}
+        </p>
+      )}
+    </Item>
   );
 }

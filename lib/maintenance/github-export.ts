@@ -16,16 +16,28 @@ type ExportPage = {
   [key: string]: unknown;
 };
 type ExportLink = { sourceId: string; [key: string]: unknown };
+type ExportTask = {
+  number: number;
+  description?: string;
+  [key: string]: unknown;
+};
 
+/**
+ * schemaVersion 1 has pages and links. Version 2 adds the closed tasks, which
+ * are written to their own directory and never mixed into page files.
+ */
 export type BrainExportSnapshot = {
   schemaVersion: number;
   exportedAt: string;
   pages: ExportPage[];
   links: ExportLink[];
+  tasks?: ExportTask[];
 };
 export type GitHubExportResult = {
   pages: number;
   links: number;
+  /** Closed tasks; present when the export used schemaVersion 2. */
+  tasks?: number;
   commit: string;
   pushed: true;
   repository: string;
@@ -42,12 +54,14 @@ export type GitHubExportOptions = {
 };
 
 type Receipt = {
-  schemaVersion: 1;
+  schemaVersion: 1 | 2;
   jobId: string;
   runDate: string;
   exportedAt: string;
   pages: number;
   links: number;
+  /** Version 2 receipts only. */
+  tasks?: number;
 };
 const marker = "Agent Brain nightly export directory\n";
 const identity = {
@@ -58,6 +72,24 @@ const identity = {
 function compare(left: string, right: string) {
   return left < right ? -1 : left > right ? 1 : 0;
 }
+const isCount = (value: unknown) =>
+  Number.isSafeInteger(value) && (value as number) >= 0;
+
+/** One Markdown file per closed task, named by its number (T-42.md). */
+function taskFile(task: ExportTask) {
+  if (!Number.isSafeInteger(task.number) || task.number < 1)
+    throw new GitHubExportError("Invalid task in the export snapshot.");
+  const { description, ...fields } = task;
+  const body = typeof description === "string" ? description : "";
+  return {
+    path: `T-${task.number}.md`,
+    content: `---\n${Object.keys(fields)
+      .sort()
+      .map((key) => `${key}: ${json(fields[key])}`)
+      .join("\n")}\n---\n${body ? `\n${body}\n` : ""}`,
+  };
+}
+
 /**
  * Export a fixed database snapshot without a checkout. GitHub writes immutable
  * blobs/trees/commits, then publishes one commit with a non-force ref update.
@@ -88,6 +120,12 @@ export async function exportBrainToGitHub(
     throw new GitHubExportError(
       "Export requires a stable job ID, run date, and snapshot timestamp.",
     );
+  const withTasks = snapshot.schemaVersion === 2;
+  if (
+    (snapshot.schemaVersion !== 1 && !withTasks) ||
+    (withTasks && !Array.isArray(snapshot.tasks))
+  )
+    throw new GitHubExportError("Unsupported export snapshot version.");
 
   const {
     api,
@@ -155,13 +193,12 @@ export async function exportBrainToGitHub(
       );
     }
     if (
-      receipt.schemaVersion !== 1 ||
+      (receipt.schemaVersion !== 1 && receipt.schemaVersion !== 2) ||
       receipt.jobId !== jobId ||
       receipt.runDate !== runDate ||
-      !Number.isSafeInteger(receipt.pages) ||
-      receipt.pages < 0 ||
-      !Number.isSafeInteger(receipt.links) ||
-      receipt.links < 0
+      !isCount(receipt.pages) ||
+      !isCount(receipt.links) ||
+      (receipt.schemaVersion === 2 && !isCount(receipt.tasks))
     )
       throw new GitHubExportError(
         "The previous export job receipt does not match this job.",
@@ -169,19 +206,35 @@ export async function exportBrainToGitHub(
     return {
       pages: receipt.pages,
       links: receipt.links,
+      ...(receipt.schemaVersion === 2 ? { tasks: receipt.tasks } : {}),
       commit: objectSha(commit.sha),
       pushed: true,
       repository,
     };
   }
 
-  const receipt: Receipt = {
-    schemaVersion: 1,
-    jobId,
-    runDate,
-    exportedAt: snapshot.exportedAt,
-    pages: snapshot.pages.length,
-    links: snapshot.links.length,
+  const receipt: Receipt = withTasks
+    ? {
+        schemaVersion: 2,
+        jobId,
+        runDate,
+        exportedAt: snapshot.exportedAt,
+        pages: snapshot.pages.length,
+        links: snapshot.links.length,
+        tasks: snapshot.tasks?.length ?? 0,
+      }
+    : {
+        schemaVersion: 1,
+        jobId,
+        runDate,
+        exportedAt: snapshot.exportedAt,
+        pages: snapshot.pages.length,
+        links: snapshot.links.length,
+      };
+  const result = {
+    pages: receipt.pages,
+    links: receipt.links,
+    ...(withTasks ? { tasks: receipt.tasks } : {}),
   };
   const pageFiles = new Map<string, string>();
   const orderedLinks = [...snapshot.links].sort((left, right) =>
@@ -209,6 +262,35 @@ export async function exportBrainToGitHub(
         .join("\n")}\n---\n\n${markdown}\n`,
     );
   }
+  // Version 1 snapshots know nothing about tasks and leave that directory alone.
+  const taskFiles = new Map<string, string>();
+  for (const task of [...(snapshot.tasks ?? [])].sort(
+    (left, right) => left.number - right.number,
+  )) {
+    const file = taskFile(task);
+    if (taskFiles.has(file.path))
+      throw new GitHubExportError("Duplicate task in the export snapshot.");
+    taskFiles.set(file.path, file.content);
+  }
+  // Inline complete files in bounded tree requests. Start a fresh tree so
+  // removed pages and purged tasks disappear, then use each preceding batch as
+  // the next base.
+  const freshTree = async (contents: Map<string, string>) => {
+    const files = [...contents.entries()];
+    let built: string | undefined;
+    for (let offset = 0; offset < files.length; offset += 24) {
+      built = await createTree(
+        files.slice(offset, offset + 24).map(([path, content]) => ({
+          path,
+          content,
+          type: "blob",
+          mode: "100644",
+        })),
+        built,
+      );
+    }
+    return built;
+  };
   const blobEntry = (path: string, sha: string | null) => ({
     path,
     type: "blob",
@@ -239,21 +321,10 @@ export async function exportBrainToGitHub(
         "An export receipt exists without matching commit history.",
       );
 
-    // Inline complete pages in bounded tree requests. Start a fresh tree so
-    // removed pages disappear, then use each preceding batch as the next base.
-    const files = [...pageFiles.entries()];
-    let pageTree: string | undefined;
-    for (let offset = 0; offset < files.length; offset += 24) {
-      pageTree = await createTree(
-        files.slice(offset, offset + 24).map(([path, content]) => ({
-          path,
-          content,
-          type: "blob",
-          mode: "100644",
-        })),
-        pageTree,
-      );
-    }
+    const pageTree = await freshTree(pageFiles);
+    const taskTree = withTasks ? await freshTree(taskFiles) : undefined;
+    const previousTasks =
+      withTasks && exported ? await subtree(exported, "tasks") : undefined;
     const entries = [
       blobEntry(".agent-brain-export", await createBlob(marker)),
       blobEntry("graph.json", await createBlob(`${json(orderedLinks, 2)}\n`)),
@@ -282,6 +353,15 @@ export async function exportBrainToGitHub(
       });
     else if (previousPages)
       entries.push({ path: "pages", type: "tree", mode: "040000", sha: null });
+    if (taskTree)
+      entries.push({
+        path: "tasks",
+        type: "tree",
+        mode: "040000",
+        sha: taskTree,
+      });
+    else if (previousTasks)
+      entries.push({ path: "tasks", type: "tree", mode: "040000", sha: null });
     const exportTree = await createTree(entries, exported?.sha);
     const rootTree = await createTree(
       [{ path: "export", type: "tree", mode: "040000", sha: exportTree }],
@@ -314,13 +394,7 @@ export async function exportBrainToGitHub(
     // retrying, including when another unrelated commit has advanced the branch.
     const currentHead = await head();
     if (currentHead === commit)
-      return {
-        pages: receipt.pages,
-        links: receipt.links,
-        commit,
-        pushed: true,
-        repository,
-      };
+      return { ...result, commit, pushed: true, repository };
     const published = await replay(currentHead);
     if (published) return published;
     if (

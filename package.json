@@ -19,6 +19,7 @@
     "vercel-build": "pnpm db:migrate && next build"
   },
   "dependencies": {
+    "@atlaskit/pragmatic-drag-and-drop": "4.0.0",
     "@base-ui/react": "^1.8.0",
     "@better-auth/cimd": "^1.7.4",
     "@better-auth/mcp": "^1.7.4",

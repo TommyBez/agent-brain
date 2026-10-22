@@ -2,11 +2,13 @@ import type { PoolClient } from "pg";
 import { BrainError } from "../brain/types";
 import { assertOwner } from "../brain/utils";
 import { getPool, transaction } from "../db";
+import { TASK_JOB_KINDS, type TaskJobKind, tasksEnabled } from "../tasks/types";
 
 export const WORKFLOW_JOB_KINDS = [
   "consolidation",
   "embeddings",
   "export",
+  ...TASK_JOB_KINDS,
 ] as const;
 export type WorkflowJobKind = (typeof WORKFLOW_JOB_KINDS)[number];
 export type WorkflowJobCompletion = "succeeded" | "partial" | "failed";
@@ -25,6 +27,36 @@ export interface WorkflowJob {
 
 const JOB_COLUMNS = `id, kind, run_date::text AS "runDate", status,
   workflow_run_id AS "workflowRunId", attempts, result, error`;
+
+/** Stages that consume pages written by consolidation. */
+const DOWNSTREAM_JOB_KINDS = ["embeddings", "export", ...TASK_JOB_KINDS];
+
+export function isTaskJobKind(kind: string): kind is TaskJobKind {
+  return (TASK_JOB_KINDS as readonly string[]).includes(kind);
+}
+
+/** The task phases ship dark: without TASKS_ENABLED a night has three stages. */
+export function enabledWorkflowJobKinds(
+  env: Record<string, string | undefined> = process.env,
+): readonly WorkflowJobKind[] {
+  return tasksEnabled(env)
+    ? WORKFLOW_JOB_KINDS
+    : WORKFLOW_JOB_KINDS.filter((kind) => !isTaskJobKind(kind));
+}
+
+/** Every given stage has finished today's pass (`partial` resumes tomorrow). */
+export function workflowJobsComplete(
+  jobs: Pick<WorkflowJob, "kind" | "status">[],
+  kinds: readonly WorkflowJobKind[] = enabledWorkflowJobKinds(),
+) {
+  return kinds.every((kind) =>
+    jobs.some(
+      (job) =>
+        job.kind === kind &&
+        (job.status === "succeeded" || job.status === "partial"),
+    ),
+  );
+}
 
 function exportWasSkipped(result: Record<string, unknown> | undefined) {
   return result?.skipped === true && Object.keys(result).length === 1;
@@ -48,6 +80,14 @@ function validateRunDate(runDate: string) {
     throw new BrainError(
       "INVALID_RUN_DATE",
       "A valid YYYY-MM-DD run date is required.",
+    );
+}
+
+function validateKinds(kinds: readonly WorkflowJobKind[]) {
+  if (!kinds.length || kinds.some((kind) => !WORKFLOW_JOB_KINDS.includes(kind)))
+    throw new BrainError(
+      "INVALID_JOB_KIND",
+      "Unknown nightly Workflow job kind.",
     );
 }
 
@@ -93,11 +133,11 @@ async function requeueStaleDownstreamJobs(
              THEN (consolidation.result->>'writes')::numeric > 0 ELSE false END))
        AND downstream.owner_id=consolidation.owner_id
        AND downstream.run_date=consolidation.run_date
-       AND downstream.kind IN ('embeddings','export')
+       AND downstream.kind=ANY($3::text[])
        AND downstream.status IN ('succeeded','partial')
        AND downstream.workflow_run_id IS DISTINCT FROM consolidation.workflow_run_id
        AND downstream.finished_at < consolidation.finished_at`,
-    [ownerId, runDate],
+    [ownerId, runDate, DOWNSTREAM_JOB_KINDS],
   );
 }
 
@@ -106,15 +146,17 @@ export async function queueWorkflowJobs(
   ownerId: string,
   runDate: string,
   rerunFrom?: string,
+  kinds: readonly WorkflowJobKind[] = enabledWorkflowJobKinds(),
 ) {
   assertOwner(ownerId);
   validateRunDate(runDate);
+  validateKinds(kinds);
   await transaction(async (db) => {
     await db.query(
       `INSERT INTO brain_jobs (owner_id,kind,run_date)
        SELECT $1,kind,$2::date FROM unnest($3::text[]) AS kind
        ON CONFLICT (owner_id,kind,run_date) DO NOTHING`,
-      [ownerId, runDate, WORKFLOW_JOB_KINDS],
+      [ownerId, runDate, kinds],
     );
     if (rerunFrom !== undefined)
       await db.query(
@@ -123,6 +165,39 @@ export async function queueWorkflowJobs(
            AND workflow_run_id=$3 AND status IN ('succeeded','partial')`,
         [ownerId, runDate, rerunFrom],
       );
+  });
+}
+
+/** Operations "Run now": queue today's task phases again, creating missing
+ * rows, without touching the other stages or a pass that is still running.
+ */
+export async function requeueTaskWorkflowJobs(
+  ownerId: string,
+  runDate: string,
+): Promise<WorkflowJob[]> {
+  assertOwner(ownerId);
+  validateRunDate(runDate);
+  return transaction(async (db) => {
+    await db.query(
+      `INSERT INTO brain_jobs (owner_id,kind,run_date)
+       SELECT $1,kind,$2::date FROM unnest($3::text[]) AS kind
+       ON CONFLICT (owner_id,kind,run_date) DO NOTHING`,
+      [ownerId, runDate, TASK_JOB_KINDS],
+    );
+    await db.query(
+      `UPDATE brain_jobs SET status='queued',workflow_run_id=NULL,started_at=NULL,
+         finished_at=NULL,result=NULL,error=NULL
+       WHERE owner_id=$1 AND run_date=$2::date AND kind=ANY($3::text[])
+         AND status IN ('succeeded','partial','failed')`,
+      [ownerId, runDate, TASK_JOB_KINDS],
+    );
+    const { rows } = await db.query<WorkflowJob>(
+      `SELECT ${JOB_COLUMNS} FROM brain_jobs
+       WHERE owner_id=$1 AND run_date=$2::date AND kind=ANY($3::text[])
+       ORDER BY kind`,
+      [ownerId, runDate, TASK_JOB_KINDS],
+    );
+    return rows;
   });
 }
 
