@@ -1,0 +1,1 @@
+ALTER TABLE "brain_task_settings" ADD COLUMN "enabled" boolean DEFAULT false NOT NULL;

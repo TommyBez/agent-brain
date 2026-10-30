@@ -1,0 +1,513 @@
+{
+  "id": "task-extraction-2026-10-21",
+  "language": "it",
+  "synthetic": true,
+  "labels": "Etichette note per costruzione, nessuna validazione umana. expected: elenco degli impegni attesi; passage è un frammento esatto del passaggio citato, actor l'assegnatario atteso (null se non indicato), dueKind il tipo di scadenza (o i tipi accettati), dueDate la data attesa.",
+  "categories": {
+    "impegno_esplicito": "Un impegno o un'assegnazione esplicita, con chi lo svolge: atteso un task con quell'assegnatario.",
+    "ipotesi": "Un'azione possibile ma condizionata o incerta: nessun task.",
+    "proposta": "Una proposta o un'opzione non adottata (\"potremmo valutare…\", opzione scartata): nessun task.",
+    "voce_gia_fatta": "Un'azione che la fonte riporta come già fatta o chiusa: nessun task.",
+    "scadenza_relativa": "Una scadenza relativa (\"entro venerdì\", \"entro domani\") da calcolare dalla data scritta nella pagina, o approssimativa se non calcolabile.",
+    "scadenza_evento": "Una scadenza legata a un evento (\"alla prossima riunione\", \"entro lo steering\"): due_kind event.",
+    "assegnatario_gruppo": "Un assegnatario collettivo (\"Tutti\", \"il team JSB\", \"Ufficio legale\"): gruppo, mai una pagina inventata.",
+    "prossimi_passi_agente": "Prossimi passi o raccomandazioni scritti da un assistente o da un agente, non adottati: nessun task.",
+    "decisione_senza_azione": "Una decisione adottata senza un'azione assegnata: nessun task (l'adozione non è implementazione).",
+    "domanda_aperta": "Una domanda aperta o un lavoro senza responsabile: nessun task.",
+    "misto": "Pagine con impegni e voci da scartare insieme (fatte, proposte, domande, codici esterni come AÜ.27)."
+  },
+  "cases": [
+    {
+      "id": "C01",
+      "category": "impegno_esplicito",
+      "page": {
+        "title": "Verbale 14/10/2026 — Progetto Atlante",
+        "type": "note",
+        "markdown": "# Verbale 14/10/2026\n\nPresenti: Marta Ferri, Paolo Neri, Tommaso.\n\n## Azioni\n\n- Marta Ferri invierà al cliente la bozza del contratto entro il 20/10/2026.\n"
+      },
+      "expected": [
+        {
+          "passage": "invierà al cliente la bozza del contratto",
+          "actor": "Marta Ferri",
+          "dueKind": "date",
+          "dueDate": "2026-10-20"
+        }
+      ]
+    },
+    {
+      "id": "C02",
+      "category": "impegno_esplicito",
+      "page": {
+        "title": "Call settimanale QA 13/10/2026",
+        "type": "note",
+        "markdown": "# Call settimanale QA\n\nSi discute della copertura dei test di regressione.\n\nPaolo si occupa di aggiornare il piano di test con i nuovi casi limite.\n"
+      },
+      "expected": [
+        {
+          "passage": "Paolo si occupa di aggiornare il piano di test",
+          "actor": "Paolo",
+          "dueKind": "unset"
+        }
+      ]
+    },
+    {
+      "id": "C03",
+      "category": "impegno_esplicito",
+      "page": {
+        "title": "Note del 13/10/2026",
+        "type": "note",
+        "markdown": "# Note del 13/10/2026\n\nTommaso: preparo io la presentazione per il comitato di giovedì 15/10/2026.\n\nIl comitato vuole vedere i numeri del terzo trimestre.\n"
+      },
+      "expected": [
+        {
+          "passage": "preparo io la presentazione",
+          "actor": "Tommaso",
+          "dueKind": "date",
+          "dueDate": "2026-10-15"
+        }
+      ]
+    },
+    {
+      "id": "C04",
+      "category": "ipotesi",
+      "page": {
+        "title": "Riunione budget 2027",
+        "type": "note",
+        "markdown": "# Riunione budget 2027\n\nSe il budget venisse approvato, Marco potrebbe avviare la migrazione a novembre.\n\nIl CFO risponderà nelle prossime settimane.\n"
+      },
+      "expected": []
+    },
+    {
+      "id": "C05",
+      "category": "ipotesi",
+      "page": {
+        "title": "Appunti incidente 09/10/2026",
+        "type": "note",
+        "markdown": "# Appunti incidente\n\nL'errore si ripresenta di notte. Forse conviene che qualcuno verifichi i log di produzione, ma non è stato deciso nulla.\n"
+      },
+      "expected": []
+    },
+    {
+      "id": "C06",
+      "category": "ipotesi",
+      "page": {
+        "title": "Roadmap dati",
+        "type": "note",
+        "markdown": "# Roadmap dati\n\nIpotesi di lavoro: il team dati potrebbe riscrivere la pipeline entro fine anno. Da valutare quando avremo le stime.\n"
+      },
+      "expected": []
+    },
+    {
+      "id": "C07",
+      "category": "proposta",
+      "page": {
+        "title": "Verbale acquisti 16/10/2026",
+        "type": "note",
+        "markdown": "# Verbale acquisti\n\n- Potremmo valutare un nuovo fornitore per i kit diagnostici.\n- I prezzi attuali restano validi fino a marzo.\n"
+      },
+      "expected": []
+    },
+    {
+      "id": "C08",
+      "category": "proposta",
+      "page": {
+        "title": "Retro di team 12/10/2026",
+        "type": "note",
+        "markdown": "# Retro di team\n\nProposta di Giulia, non discussa per mancanza di tempo: introdurre una retrospettiva mensile con il cliente.\n"
+      },
+      "expected": []
+    },
+    {
+      "id": "C09",
+      "category": "proposta",
+      "page": {
+        "title": "Call Farmalab 08/10/2026",
+        "type": "note",
+        "markdown": "# Call Farmalab\n\nSi potrebbe chiedere a Farmalab un'estensione dei termini di consegna. Nessuna decisione presa: se ne riparla.\n"
+      },
+      "expected": []
+    },
+    {
+      "id": "C10",
+      "category": "voce_gia_fatta",
+      "page": {
+        "title": "Checklist rilascio 2.4",
+        "type": "note",
+        "markdown": "# Checklist rilascio 2.4\n\n- [x] Luca ha inviato il preventivo al cliente (fatto).\n- [x] Sara ha aggiornato le note di rilascio.\n"
+      },
+      "expected": []
+    },
+    {
+      "id": "C11",
+      "category": "voce_gia_fatta",
+      "page": {
+        "title": "Aggiornamento report di settembre",
+        "type": "note",
+        "markdown": "# Aggiornamento\n\nIl report di settembre è stato consegnato da Sara il 10/10/2026 e il cliente lo ha approvato.\n"
+      },
+      "expected": []
+    },
+    {
+      "id": "C12",
+      "category": "voce_gia_fatta",
+      "page": {
+        "title": "Verbale 02/10/2026 — azioni chiuse",
+        "type": "note",
+        "markdown": "# Verbale 02/10/2026\n\n## Azioni\n\n- Sara invierà il report trimestrale (completato il 12/10/2026).\n- Paolo contatterà il revisore (fatto, ha risposto il 05/10).\n"
+      },
+      "expected": []
+    },
+    {
+      "id": "C13",
+      "category": "scadenza_relativa",
+      "page": {
+        "title": "Verbale di lunedì 19/10/2026",
+        "type": "note",
+        "markdown": "# Verbale di lunedì 19/10/2026\n\nPresenti: Andrea Galli, Chiara Riva.\n\nAndrea preparerà la stima dei costi entro venerdì.\n"
+      },
+      "expected": [
+        {
+          "passage": "Andrea preparerà la stima dei costi",
+          "actor": "Andrea",
+          "dueKind": "date",
+          "dueDate": "2026-10-23"
+        }
+      ]
+    },
+    {
+      "id": "C14",
+      "category": "scadenza_relativa",
+      "page": {
+        "title": "Riunione del 15/10/2026",
+        "type": "note",
+        "markdown": "# Riunione del 15/10/2026\n\nElena manderà il riepilogo della riunione ai partecipanti entro domani.\n"
+      },
+      "expected": [
+        {
+          "passage": "Elena manderà il riepilogo",
+          "actor": "Elena",
+          "dueKind": "date",
+          "dueDate": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "id": "C15",
+      "category": "scadenza_relativa",
+      "page": {
+        "title": "Appunti call fornitori",
+        "type": "note",
+        "markdown": "# Appunti call fornitori\n\nRoberto sistemerà la dashboard dei consumi entro fine mese.\n"
+      },
+      "expected": [
+        {
+          "passage": "Roberto sistemerà la dashboard",
+          "actor": "Roberto",
+          "dueKind": "approximate"
+        }
+      ]
+    },
+    {
+      "id": "C16",
+      "category": "scadenza_evento",
+      "page": {
+        "title": "Verbale 07/10/2026 — Report studi clinici",
+        "type": "note",
+        "markdown": "# Verbale 07/10/2026\n\nChiara porterà i numeri aggiornati degli arruolamenti alla prossima riunione.\n"
+      },
+      "expected": [
+        {
+          "passage": "Chiara porterà i numeri aggiornati",
+          "actor": "Chiara",
+          "dueKind": "event"
+        }
+      ]
+    },
+    {
+      "id": "C17",
+      "category": "scadenza_evento",
+      "page": {
+        "title": "Kick-off progetto Orione",
+        "type": "note",
+        "markdown": "# Kick-off progetto Orione\n\nEntro lo steering di novembre, Davide definisce il piano di rilascio con le date dei pilota.\n"
+      },
+      "expected": [
+        {
+          "passage": "Davide definisce il piano di rilascio",
+          "actor": "Davide",
+          "dueKind": "event"
+        }
+      ]
+    },
+    {
+      "id": "C18",
+      "category": "assegnatario_gruppo",
+      "page": {
+        "title": "Verbale 20/10/2026 — protocollo",
+        "type": "note",
+        "markdown": "# Verbale 20/10/2026\n\nTutti: rivedere la bozza del protocollo prima di lunedì 26/10/2026.\n"
+      },
+      "expected": [
+        {
+          "passage": "rivedere la bozza del protocollo",
+          "actor": "Tutti",
+          "dueKind": "date",
+          "dueDate": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "id": "C19",
+      "category": "assegnatario_gruppo",
+      "page": {
+        "title": "Call JSB 14/10/2026",
+        "type": "note",
+        "markdown": "# Call JSB\n\nIl team JSB si occupa della validazione dei dati del trial e riferisce a Tommaso.\n"
+      },
+      "expected": [
+        {
+          "passage": "si occupa della validazione dei dati del trial",
+          "actor": "team JSB",
+          "dueKind": "unset"
+        }
+      ]
+    },
+    {
+      "id": "C20",
+      "category": "assegnatario_gruppo",
+      "page": {
+        "title": "Revisione contratto Atlante",
+        "type": "note",
+        "markdown": "# Revisione contratto\n\nUfficio legale: verificare le clausole di riservatezza entro il 30/10/2026.\n"
+      },
+      "expected": [
+        {
+          "passage": "verificare le clausole di riservatezza",
+          "actor": "Ufficio legale",
+          "dueKind": "date",
+          "dueDate": "2026-10-30"
+        }
+      ]
+    },
+    {
+      "id": "C21",
+      "category": "prossimi_passi_agente",
+      "page": {
+        "title": "Ricerca endpoint secondari",
+        "type": "note",
+        "markdown": "# Ricerca endpoint secondari\n\nSintesi della letteratura su tre studi comparabili.\n\n## Prossimi passi suggeriti da Claude\n\n- Approfondire la letteratura sugli endpoint secondari.\n- Valutare un confronto con i competitor.\n"
+      },
+      "expected": []
+    },
+    {
+      "id": "C22",
+      "category": "prossimi_passi_agente",
+      "page": {
+        "title": "Analisi budget Q4",
+        "type": "note",
+        "markdown": "# Analisi budget Q4\n\nLe spese sono in linea con il piano.\n\n_Nota generata dall'assistente:_ potresti chiedere a Marta di aggiornare il budget del Q1.\n"
+      },
+      "expected": []
+    },
+    {
+      "id": "C23",
+      "category": "prossimi_passi_agente",
+      "page": {
+        "title": "Scouting fornitori — report dell'agente",
+        "type": "note",
+        "markdown": "# Scouting fornitori\n\nRaccomandazioni dell'agente di ricerca:\n\n1. Contattare tre fornitori alternativi.\n2. Preparare una matrice di confronto dei costi.\n"
+      },
+      "expected": []
+    },
+    {
+      "id": "C24",
+      "category": "decisione_senza_azione",
+      "page": {
+        "title": "Scelta del database",
+        "type": "decision",
+        "markdown": "# Scelta del database\n\nDecisione del 09/10/2026: adottiamo PostgreSQL come database principale per il nuovo servizio.\n"
+      },
+      "expected": []
+    },
+    {
+      "id": "C25",
+      "category": "decisione_senza_azione",
+      "page": {
+        "title": "Formato dei report",
+        "type": "decision",
+        "markdown": "# Formato dei report\n\nSi è deciso di mantenere il formato PDF per tutti i report destinati ai clienti.\n"
+      },
+      "expected": []
+    },
+    {
+      "id": "C26",
+      "category": "domanda_aperta",
+      "page": {
+        "title": "Piano di formazione",
+        "type": "note",
+        "markdown": "# Piano di formazione\n\nDomanda aperta: chi si occuperà della formazione degli utenti dopo il rilascio?\n"
+      },
+      "expected": []
+    },
+    {
+      "id": "C27",
+      "category": "domanda_aperta",
+      "page": {
+        "title": "Report in inglese?",
+        "type": "note",
+        "markdown": "# Report in inglese\n\nNon è chiaro se Farmalab voglia il report anche in inglese. Nessuno se ne è preso carico.\n"
+      },
+      "expected": []
+    },
+    {
+      "id": "C28",
+      "category": "misto",
+      "page": {
+        "title": "Verbale 21/10/2026 — Report studi clinici",
+        "type": "note",
+        "markdown": "# Verbale 21/10/2026\n\nPresenti: Mario Rossi, Giulia Bianchi, Luca Conti.\n\n## Azioni\n\n- Mario Rossi: preparare il report clinico entro il 30/10/2026.\n- Giulia Bianchi contatterà il fornitore dei kit e riferirà alla prossima riunione.\n- Tutti: rivedere la bozza del protocollo.\n- Luca: inviare il preventivo — fatto.\n\n## Idee\n\n- Potremmo valutare un secondo laboratorio.\n"
+      },
+      "expected": [
+        {
+          "passage": "preparare il report clinico",
+          "actor": "Mario Rossi",
+          "dueKind": "date",
+          "dueDate": "2026-10-30"
+        },
+        {
+          "passage": "contatterà il fornitore dei kit",
+          "actor": "Giulia Bianchi",
+          "dueKind": "event"
+        },
+        {
+          "passage": "rivedere la bozza del protocollo",
+          "actor": "Tutti",
+          "dueKind": "unset"
+        }
+      ]
+    },
+    {
+      "id": "C29",
+      "category": "misto",
+      "page": {
+        "title": "Riepilogo email traduzioni",
+        "type": "note",
+        "markdown": "# Riepilogo email traduzioni\n\nSara ha confermato che entro il 05/11/2026 consegnerà le traduzioni del manuale. Paolo chiede se serve un revisore: per ora nessuno si è proposto.\n"
+      },
+      "expected": [
+        {
+          "passage": "consegnerà le traduzioni del manuale",
+          "actor": "Sara",
+          "dueKind": "date",
+          "dueDate": "2026-11-05"
+        }
+      ]
+    },
+    {
+      "id": "C30",
+      "category": "misto",
+      "page": {
+        "title": "Follow-up offerta (codici AÜ)",
+        "type": "note",
+        "markdown": "# Follow-up offerta\n\n- AÜ.27 — Damato conferma l'offerta al cliente entro il 28/10/2026.\n- AÜ.28 — (chiuso) aggiornare il listino.\n"
+      },
+      "expected": [
+        {
+          "passage": "Damato conferma l'offerta",
+          "actor": "Damato",
+          "dueKind": "date",
+          "dueDate": "2026-10-28"
+        }
+      ]
+    },
+    {
+      "id": "C31",
+      "category": "impegno_esplicito",
+      "page": {
+        "title": "Revisione tesi capitolo 3",
+        "type": "note",
+        "markdown": "# Revisione capitolo 3\n\nMi impegno a chiudere la revisione del capitolo 3 entro venerdì 23/10/2026. — Tommaso\n"
+      },
+      "expected": [
+        {
+          "passage": "chiudere la revisione del capitolo 3",
+          "actor": "Tommaso",
+          "dueKind": "date",
+          "dueDate": "2026-10-23"
+        }
+      ]
+    },
+    {
+      "id": "C32",
+      "category": "impegno_esplicito",
+      "page": {
+        "title": "Call dati anonimizzati",
+        "type": "note",
+        "markdown": "# Call dati\n\nDurante la call Federica ha promesso di mandarci il dataset anonimizzato.\n"
+      },
+      "expected": [
+        {
+          "passage": "Federica ha promesso di mandarci il dataset",
+          "actor": "Federica",
+          "dueKind": "unset"
+        }
+      ]
+    },
+    {
+      "id": "C33",
+      "category": "voce_gia_fatta",
+      "page": {
+        "title": "Piano di test — storico",
+        "type": "note",
+        "markdown": "# Piano di test\n\n- ~~Paolo: aggiornare il piano di test~~ (completato).\n"
+      },
+      "expected": []
+    },
+    {
+      "id": "C34",
+      "category": "proposta",
+      "page": {
+        "title": "Opzioni migrazione server",
+        "type": "note",
+        "markdown": "# Opzioni migrazione\n\n- Opzione A (scelta): restare sul cloud attuale.\n- Opzione B (scartata): Marco avrebbe migrato i server a dicembre.\n"
+      },
+      "expected": []
+    },
+    {
+      "id": "C35",
+      "category": "misto",
+      "page": {
+        "title": "Stato del progetto Demo cliente",
+        "type": "project",
+        "markdown": "# Stato del progetto\n\nAvanzamento al 70%.\n\nProssimo passo: Laura preparerà la demo per il cliente entro il 06/11/2026.\n\nRischi: possibili ritardi nella consegna dell'hardware.\n"
+      },
+      "expected": [
+        {
+          "passage": "Laura preparerà la demo",
+          "actor": "Laura",
+          "dueKind": "date",
+          "dueDate": "2026-11-06"
+        }
+      ]
+    },
+    {
+      "id": "C36",
+      "category": "impegno_esplicito",
+      "page": {
+        "title": "Note di deploy",
+        "type": "note",
+        "markdown": "# Note di deploy\n\nDavide fa il deploy della correzione appena possibile.\n"
+      },
+      "expected": [
+        {
+          "passage": "Davide fa il deploy della correzione",
+          "actor": "Davide",
+          "dueKind": [
+            "approximate",
+            "unset"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { writeSchema } from "../../lib/brain/schemas";
 import type { LinkType } from "../../lib/brain/types";
 import type { Page } from "./brain";
+import type { TaskCase } from "./task-score";
 
 export type Scenario = {
   id: string;
@@ -10,9 +11,20 @@ export type Scenario = {
   initial: Page[];
   activation?: {
     shouldActivate: boolean;
-    category: "explicit" | "retrieval" | "memory" | "negative";
+    category:
+      | "explicit"
+      | "retrieval"
+      | "memory"
+      | "negative"
+      | "reference"
+      | "tracking"
+      | "handoff";
     rationale: string;
+    /** Two-skill suite: whether brain-memory should also load (unset: either). */
+    memory?: boolean;
   };
+  /** Task suites: the task store of the trial and what the scorer checks. */
+  tasks?: TaskCase;
   expected: {
     newDecisions: number;
     updatedIds: string[];
@@ -307,8 +319,14 @@ export function validateDataset(cases: Scenario[]) {
     "Duplicate case IDs",
   );
   for (const c of cases) {
-    assert.match(c.id, /^[DNA]\d{2}$/);
-    if (c.id.startsWith("A")) {
+    // D/N decisions, A activation, S two-skill activation, T/L/I task suites.
+    assert.match(c.id, /^[DNASTLI]\d{2}$/);
+    assert.equal(
+      Boolean(c.tasks),
+      /^[STLI]/.test(c.id),
+      "Task world missing or unexpected",
+    );
+    if (/^[AS]/.test(c.id)) {
       assert(c.activation, "Activation expectation missing");
       assert.equal(typeof c.activation.shouldActivate, "boolean");
       assert(c.activation.rationale.trim());

@@ -1,0 +1,72 @@
+[
+  {
+    "id": "TP01",
+    "category": "explicit",
+    "expected": true,
+    "request": "Crea un task in Agent Brain per preparare il preventivo dell'estensione di Portale Iris. Per ora mostrami soltanto come lo imposteresti, senza modificare file o servizi.",
+    "rationale": "Explicit request to create a Brain task, with the product named."
+  },
+  {
+    "id": "TP02",
+    "category": "implicit",
+    "expected": true,
+    "request": "Lavora su T-12. Per ora dimmi soltanto come procederesti, senza modificare file o servizi.",
+    "rationale": "A Brain task reference to work on, without naming the skill or the product."
+  },
+  {
+    "id": "TP03",
+    "category": "implicit",
+    "expected": true,
+    "request": "Tienine traccia: entro venerdì 16 ottobre devo mandare a Studio Selva il preventivo per Portale Iris. Per ora dimmi soltanto come lo registreresti, senza modificare file o servizi.",
+    "rationale": "The owner asks to track work; the description covers tracking."
+  },
+  {
+    "id": "TP04",
+    "category": "implicit",
+    "expected": true,
+    "request": "Ti ho assegnato T-31: prima di iniziare dimmi da dove partiresti. Lavora soltanto qui in chat, senza modificare file o servizi.",
+    "rationale": "A task id assigned to the agent."
+  },
+  {
+    "id": "TP05",
+    "category": "implicit",
+    "expected": true,
+    "request": "Codex ha lasciato a metà T-21 e ora tocca a te: dimmi come lo riprenderesti, senza modificare file o servizi.",
+    "rationale": "A handoff of a Brain task between agents."
+  },
+  {
+    "id": "TN01",
+    "category": "negative",
+    "expected": false,
+    "request": "Aggiungi un commento TODO a questa funzione per ricordare di gestire l'errore e restituisci soltanto il codice qui in chat: function save(x) { db.put(x) }",
+    "rationale": "A TODO in code is not a Brain task."
+  },
+  {
+    "id": "TN02",
+    "category": "negative",
+    "expected": false,
+    "request": "Non usare Brain né altre memorie o strumenti. Rispondi solo con i dati qui sotto: Portale Iris ha due attività aperte e ne chiudiamo una. Quante restano?",
+    "rationale": "The A19 pattern: open activities mentioned in a self-contained arithmetic task, with tools forbidden."
+  },
+  {
+    "id": "TN03",
+    "category": "negative",
+    "expected": false,
+    "request": "Per Portale Iris potremmo valutare un CDN più avanti, è solo un'idea. Che pro e contro vedi? Lavora soltanto qui in chat, senza modificare file o servizi.",
+    "rationale": "An unadopted proposal is not work to track."
+  },
+  {
+    "id": "TN04",
+    "category": "negative",
+    "expected": false,
+    "request": "Per Portale Iris abbiamo deciso di passare a PostgreSQL; poi bisognerà migrare i dati. Spiegami in breve come impostare la migrazione. Lavora soltanto qui in chat, senza modificare file o servizi.",
+    "rationale": "A decision with an untracked follow-up concerns memory, not tasks."
+  },
+  {
+    "id": "TN05",
+    "category": "negative",
+    "expected": false,
+    "request": "Fai una revisione di manutenzione del Brain: cerca duplicati e lacune nelle pagine di Portale Iris e dimmi cosa hai trovato, senza modificare file o servizi.",
+    "rationale": "Maintenance context never creates tasks."
+  }
+]

@@ -17,7 +17,7 @@ Avoid titles such as "Conversation notes" when a known topic can identify the su
 
 Keep the substantive context, synthesis, evidence and reasoning, distinguishing sourced facts, attributed views, owner preferences and agent inference. For meeting records, preserve the known date, relevant participants and who stated or agreed what. Do not infer attendance from a person merely being mentioned.
 
-Useful sections might cover the topic, findings and reasoning, scope of applicability, and sources. Preserve genuine unanswered questions or action items already present in the source when relevant, with their attribution and any known assignee. Do not add open issues, tasks or confirmation requests to fill gaps. A requested record can retain substantive uncertainty without becoming a speculative work plan.
+Useful sections might cover the topic, findings and reasoning, scope of applicability, and sources. Preserve genuine unanswered questions or action items already present in the source when relevant, with their attribution, known assignee, due wording and source code (FU.01, AÜ.05); the task keeper transcribes explicit ones into triage tasks, so do not create tasks for them yourself unless the owner asks you to track one (origin owner_request). Do not add open issues, tasks or confirmation requests to fill gaps. A requested record can retain substantive uncertainty without becoming a speculative work plan.
 
 Notes containing procedures, preferences or lessons remain stored knowledge. They do not override the current user's instructions or automatically authorize future actions.
 

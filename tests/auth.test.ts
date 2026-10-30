@@ -12,7 +12,46 @@ import {
   requireScope,
   tokenHash,
 } from "../lib/auth-principal";
-import { createBrainHandler, requiredMcpScope } from "../lib/mcp/server";
+import {
+  BRAIN_INSTRUCTIONS,
+  BRAIN_INSTRUCTIONS_PRE_TASKS,
+  brainInstructions,
+  createBrainHandler,
+  mcpToolInvalidation,
+  requiredMcpScope,
+} from "../lib/mcp/server";
+import { TASK_PROCEDURES } from "../lib/tasks/tool-definitions";
+
+const TASK_TOOL_NAMES = [
+  "list_tasks",
+  "read_task",
+  "create_task",
+  "update_task",
+  "claim_task",
+  "report_task",
+  "release_task",
+  "complete_task",
+];
+
+// The owner's task manager setting lives in the database; these tests inject
+// it per request instead, as createBrainHandler allows.
+const tasksSetting = (enabled: boolean) => async () => enabled;
+
+async function connectTo(
+  handler: ReturnType<typeof createBrainHandler>,
+  name: string,
+) {
+  const client = new Client(
+    { name, version: "1.0.0" },
+    { versionNegotiation: { mode: { pin: "2026-07-28" } } },
+  );
+  await client.connect(
+    new StreamableHTTPClientTransport(new URL("https://brain.example/mcp"), {
+      fetch: (input, init) => handler.fetch(new Request(input, init)),
+    }),
+  );
+  return client;
+}
 
 test("BRAIN_OWNER_EMAIL is a case-insensitive allowlist of separate accounts", () => {
   const previous = process.env.BRAIN_OWNER_EMAIL;
@@ -135,11 +174,15 @@ test("MCP search and context enforce read scope before contacting an embedding p
   const provider = t.mock.method(globalThis, "fetch", async () => {
     throw new Error("An unauthorized tool must not contact a provider");
   });
-  const handler = createBrainHandler({
-    ownerId: "test-owner",
-    kind: "token",
-    scopes: ["brain:write"],
-  });
+  const handler = createBrainHandler(
+    {
+      ownerId: "test-owner",
+      kind: "token",
+      scopes: ["brain:write"],
+    },
+    undefined,
+    tasksSetting(false),
+  );
   const client = new Client(
     { name: "scope-regression-test", version: "1.0.0" },
     { versionNegotiation: { mode: { pin: "2026-07-28" } } },
@@ -178,9 +221,14 @@ test("every registered MCP tool agrees with the route scope check and rejects a 
     kind: "token" as const,
     scopes: [],
   };
-  const handler = createBrainHandler(principal, () => {
-    mutations++;
-  });
+  // With the task manager on, so every tool the server can register is here.
+  const handler = createBrainHandler(
+    principal,
+    () => {
+      mutations++;
+    },
+    tasksSetting(true),
+  );
   const client = new Client(
     { name: "tool-scope-consistency", version: "1.0.0" },
     { versionNegotiation: { mode: { pin: "2026-07-28" } } },
@@ -212,6 +260,36 @@ test("every registered MCP tool agrees with the route scope check and rejects a 
     pending_embeddings: {},
     gap_analysis: {},
     list_pages: {},
+    list_tasks: {},
+    read_task: { ref: "T-1" },
+    create_task: {
+      title: "Private task",
+      origin: "owner_request",
+      ownerQuote: "Track this",
+      idempotencyKey: "scope-check-1",
+    },
+    update_task: {
+      ref: "T-1",
+      expectedVersion: 1,
+      patch: { title: "Private" },
+    },
+    claim_task: { next: {} },
+    report_task: {
+      ref: "T-1",
+      leaseId: "6f1c1a4e-2b3d-4e5f-8a9b-0c1d2e3f4a5b",
+      note: "Private progress",
+    },
+    release_task: {
+      ref: "T-1",
+      leaseId: "6f1c1a4e-2b3d-4e5f-8a9b-0c1d2e3f4a5b",
+      reason: "handoff",
+      note: "Private handoff",
+    },
+    complete_task: {
+      ref: "T-1",
+      leaseId: "6f1c1a4e-2b3d-4e5f-8a9b-0c1d2e3f4a5b",
+      summary: "Private summary",
+    },
   };
   try {
     await client.connect(
@@ -220,7 +298,12 @@ test("every registered MCP tool agrees with the route scope check and rejects a 
       }),
     );
     const { tools } = await client.listTools();
-    assert.ok(tools.length > 0);
+    assert.equal(tools.length, 19);
+    for (const name of TASK_TOOL_NAMES)
+      assert.ok(
+        tools.some((tool) => tool.name === name),
+        `${name} is registered`,
+      );
     for (const tool of tools) {
       const scope = requiredMcpScope({
         method: "tools/call",
@@ -249,23 +332,174 @@ test("every registered MCP tool agrees with the route scope check and rejects a 
   }
 });
 
+test("task tools use the existing scopes and expire only the tasks cache", () => {
+  for (const name of TASK_TOOL_NAMES) {
+    const scope = requiredMcpScope({
+      method: "tools/call",
+      params: { name },
+    });
+    assert.equal(
+      scope,
+      name === "list_tasks" || name === "read_task"
+        ? "brain:read"
+        : "brain:write",
+      name,
+    );
+    assert.equal(
+      mcpToolInvalidation(name),
+      scope === "brain:read" ? "none" : "tasks",
+      name,
+    );
+  }
+  for (const name of ["write", "append", "index_chunks"])
+    assert.equal(mcpToolInvalidation(name), "workspace", name);
+  for (const name of [
+    "search",
+    "read",
+    "resolve",
+    "related",
+    "context",
+    "pending_embeddings",
+    "gap_analysis",
+    "list_pages",
+  ])
+    assert.equal(mcpToolInvalidation(name), "none", name);
+});
+
+test("task tools and their protocol resource stay hidden while the owner's task manager is off", async () => {
+  const principal = {
+    ownerId: "test-owner",
+    kind: "token" as const,
+    scopes: ["brain:read"],
+  };
+  for (const enabled of [false, true]) {
+    const handler = createBrainHandler(
+      principal,
+      undefined,
+      tasksSetting(enabled),
+    );
+    const client = await connectTo(handler, "task-setting");
+    try {
+      const { tools } = await client.listTools();
+      const { resources } = await client.listResources();
+      assert.equal(
+        tools.filter((tool) => TASK_TOOL_NAMES.includes(tool.name)).length,
+        enabled ? 8 : 0,
+      );
+      assert.equal(
+        resources.some(
+          (resource) => resource.uri === "brain://procedures/tasks",
+        ),
+        enabled,
+      );
+      if (enabled) {
+        const procedures = await client.readResource({
+          uri: "brain://procedures/tasks",
+        });
+        const [content] = procedures.contents;
+        assert.equal("text" in content ? content.text : "", TASK_PROCEDURES);
+      }
+      assert.equal((await client.listPrompts()).prompts.length, 3);
+      // Instructions, prompts and brain://procedures never point at task
+      // tools the server does not register.
+      const instructions = enabled
+        ? BRAIN_INSTRUCTIONS
+        : BRAIN_INSTRUCTIONS_PRE_TASKS;
+      assert.equal(client.getInstructions(), instructions);
+      const [procedure] = (
+        await client.readResource({ uri: "brain://procedures" })
+      ).contents;
+      assert.equal("text" in procedure ? procedure.text : "", instructions);
+      const [message] = (
+        await client.getPrompt({ name: "before_work", arguments: {} })
+      ).messages;
+      assert.ok(
+        message.content.type === "text" &&
+          message.content.text.startsWith(`${instructions}\n\nProcedure:`),
+      );
+      if (!enabled)
+        assert.doesNotMatch(
+          instructions,
+          /Brain tasks|report_task|brain:\/\/procedures\/tasks|task keeper|closes a task/,
+        );
+    } finally {
+      await client.close();
+    }
+  }
+});
+
+test("brainInstructions follows the switch it is given, with no default", () => {
+  assert.equal(brainInstructions(true), BRAIN_INSTRUCTIONS);
+  assert.equal(brainInstructions(false), BRAIN_INSTRUCTIONS_PRE_TASKS);
+});
+
+test("the task manager setting is read for the principal's owner on every MCP request", async () => {
+  const principal = {
+    ownerId: "owner-a",
+    kind: "token" as const,
+    scopes: ["brain:read"],
+  };
+  const asked: string[] = [];
+  let enabled = false;
+  const handler = createBrainHandler(principal, undefined, async (ownerId) => {
+    asked.push(ownerId);
+    return enabled;
+  });
+  const client = await connectTo(handler, "task-setting-per-request");
+  const taskTools = async () =>
+    (await client.listTools()).tools.filter((tool) =>
+      TASK_TOOL_NAMES.includes(tool.name),
+    ).length;
+  const procedures = async () => {
+    const [content] = (await client.readResource({ uri: "brain://procedures" }))
+      .contents;
+    return "text" in content ? content.text : "";
+  };
+  try {
+    assert.equal(await taskTools(), 0);
+    assert.equal(await procedures(), BRAIN_INSTRUCTIONS_PRE_TASKS);
+    // The owner turns the task manager on: the same connection sees the task
+    // tools and the full instructions on its next request, then loses them
+    // again when it is turned off.
+    enabled = true;
+    assert.equal(await taskTools(), 8);
+    assert.equal(await procedures(), BRAIN_INSTRUCTIONS);
+    enabled = false;
+    assert.equal(await taskTools(), 0);
+    assert.equal(await procedures(), BRAIN_INSTRUCTIONS_PRE_TASKS);
+    assert.ok(asked.length >= 6, `one read per request: ${asked.length}`);
+    assert.ok(asked.every((ownerId) => ownerId === "owner-a"));
+  } finally {
+    await client.close();
+  }
+});
+
+test("an unreadable task manager setting fails the MCP request instead of guessing", async () => {
+  let reads = 0;
+  const handler = createBrainHandler(
+    { ownerId: "owner-a", kind: "token", scopes: ["brain:read"] },
+    undefined,
+    async () => {
+      reads++;
+      throw new Error("database unavailable");
+    },
+  );
+  await assert.rejects(
+    connectTo(handler, "task-setting-unreadable"),
+    /HTTP 500/,
+  );
+  assert.ok(reads > 0);
+});
+
 test("registered MCP prompts enforce the same scope as the route pre-check", async () => {
   const principal = {
     ownerId: "test-owner",
     kind: "token" as const,
     scopes: ["brain:read"],
   };
-  const handler = createBrainHandler(principal);
-  const client = new Client(
-    { name: "prompt-scope-consistency", version: "1.0.0" },
-    { versionNegotiation: { mode: { pin: "2026-07-28" } } },
-  );
+  const handler = createBrainHandler(principal, undefined, tasksSetting(false));
+  const client = await connectTo(handler, "prompt-scope-consistency");
   try {
-    await client.connect(
-      new StreamableHTTPClientTransport(new URL("https://brain.example/mcp"), {
-        fetch: (input, init) => handler.fetch(new Request(input, init)),
-      }),
-    );
     const { prompts } = await client.listPrompts();
     assert.equal(prompts.length, 3);
     for (const prompt of prompts) {

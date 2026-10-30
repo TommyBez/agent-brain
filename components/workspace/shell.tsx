@@ -122,8 +122,25 @@ function crumbsFor(pathname: string): Crumb[] {
       { label: `Version ${version}` },
     ];
   }
+  const tasks = { label: "Tasks", href: "/tasks" };
+  const task = /^\/tasks\/([^/]+)(?:\/(edit))?$/.exec(pathname);
+  if (task) {
+    const [, segment, view] = task;
+    const views: Record<string, string> = {
+      new: "New task",
+      board: "Board",
+      calendar: "Calendar",
+      agenda: "Agenda",
+    };
+    if (!view && views[segment]) return [tasks, { label: views[segment] }];
+    const ref = /^t-\d+$/i.test(segment) ? segment.toUpperCase() : "Task";
+    return view
+      ? [tasks, { label: ref, href: `/tasks/${segment}` }, { label: "Edit" }]
+      : [tasks, { label: ref }];
+  }
   const sections: Record<string, Crumb[]> = {
     "/": [{ label: "Library" }],
+    "/tasks": [{ label: "Tasks" }],
     "/graph": [{ label: "Knowledge graph" }],
     "/activity": [{ label: "Activity" }],
     "/agents": [{ label: "Settings" }, { label: "Agents & access" }],

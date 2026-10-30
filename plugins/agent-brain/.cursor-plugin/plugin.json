@@ -1,7 +1,7 @@
 {
   "name": "agent-brain",
-  "version": "0.1.5",
-  "description": "Retrieve and preserve private knowledge with a native brain through MCP.",
+  "version": "0.2.0",
+  "description": "Retrieve and preserve private knowledge and coordinate tracked tasks with a native brain through MCP.",
   "author": {
     "name": "Tommaso"
   },

@@ -1,41 +1,137 @@
 import { getHookByToken, start } from "workflow/api";
 import { HookNotFoundError } from "workflow/errors";
+import { BrainError } from "@/lib/brain/types";
 import { assertOwner } from "@/lib/brain/utils";
+import { tasksEnabledFor } from "@/lib/tasks/feature";
 import { nightlyMaintenance } from "@/workflows/nightly";
-import { dailyWorkflowStatus, queueWorkflowJobs } from "./jobs";
+import {
+  dailyWorkflowStatus,
+  enabledWorkflowJobKinds,
+  isTaskJobKind,
+  queueWorkflowJobs,
+  requeueTaskWorkflowJobs,
+  workflowJobsComplete,
+} from "./jobs";
+import type { TaskPhaseScope } from "./task-phase";
 
+/** The Workflow runtime, job ledger and task manager setting, injectable for tests. */
+export interface StartDeps {
+  start: (
+    workflow: typeof nightlyMaintenance,
+    args: Parameters<typeof nightlyMaintenance>,
+  ) => Promise<{ runId: string }>;
+  getHookByToken: (
+    token: string,
+  ) => Promise<{ runId: string; metadata?: unknown }>;
+  dailyWorkflowStatus: typeof dailyWorkflowStatus;
+  queueWorkflowJobs: typeof queueWorkflowJobs;
+  requeueTaskWorkflowJobs: typeof requeueTaskWorkflowJobs;
+  /** The owner's task manager setting, read when a run is started. */
+  tasksEnabled: (ownerId: string) => Promise<boolean>;
+  now?: () => Date;
+}
+
+const runtime: StartDeps = {
+  start: (workflow, args) => start(workflow, args),
+  getHookByToken,
+  dailyWorkflowStatus,
+  queueWorkflowJobs,
+  requeueTaskWorkflowJobs,
+  tasksEnabled: (ownerId) => tasksEnabledFor(ownerId),
+};
+
+/** The run holding the owner's lock, if any. Older runs carry no scope. */
+async function activeRun(ownerId: string, deps: StartDeps) {
+  try {
+    const active = await deps.getHookByToken(`brain-nightly:${ownerId}`);
+    const metadata = active.metadata as
+      | { runDate?: string; scope?: TaskPhaseScope }
+      | undefined;
+    return {
+      runId: active.runId,
+      runDate: metadata?.runDate,
+      scope: metadata?.scope ?? "nightly",
+    };
+  } catch (error) {
+    if (!HookNotFoundError.is(error)) throw error;
+    return null;
+  }
+}
+
+function today(deps: StartDeps) {
+  return (deps.now?.() ?? new Date()).toISOString().slice(0, 10);
+}
+
+/** Starts one owner's night. The owner's task manager setting decides here
+ * whether it includes the task phases; the run keeps that decision even if
+ * the setting changes before it ends.
+ */
 export async function startNightlyMaintenance(
   ownerId: string,
   trigger: "manual" | "scheduled",
+  deps: StartDeps = runtime,
 ) {
   assertOwner(ownerId);
-  const runDate = new Date().toISOString().slice(0, 10);
-  const jobs = await dailyWorkflowStatus(ownerId, runDate);
-  if (
-    trigger === "scheduled" &&
-    jobs.length === 3 &&
-    jobs.every((job) => ["succeeded", "partial"].includes(job.status))
-  )
+  const runDate = today(deps);
+  const tasks = await deps.tasksEnabled(ownerId);
+  const kinds = enabledWorkflowJobKinds(tasks);
+  const jobs = await deps.dailyWorkflowStatus(ownerId, runDate);
+  if (trigger === "scheduled" && workflowJobsComplete(jobs, kinds))
     return { completed: true, runDate };
-  try {
-    const active = await getHookByToken(`brain-nightly:${ownerId}`);
-    if (
-      (active.metadata as { runDate?: string } | undefined)?.runDate === runDate
-    )
-      return { runId: active.runId, runDate, completed: false };
-  } catch (error) {
-    if (!HookNotFoundError.is(error)) throw error;
-  }
+  const active = await activeRun(ownerId, deps);
+  // A task-only "Run now" does not stand in for the night; queue behind it.
+  if (active?.runDate === runDate && active.scope === "nightly")
+    return { runId: active.runId, runDate, completed: false };
   const rerunConsolidationFrom =
     trigger === "manual"
       ? (jobs.find((job) => job.kind === "consolidation")?.workflowRunId ??
         undefined)
       : undefined;
-  await queueWorkflowJobs(ownerId, runDate, rerunConsolidationFrom);
-  const run = await start(nightlyMaintenance, [
+  await deps.queueWorkflowJobs(ownerId, runDate, rerunConsolidationFrom, kinds);
+  const run = await deps.start(nightlyMaintenance, [
     ownerId,
     runDate,
     rerunConsolidationFrom,
+    { scope: "nightly", tasks },
   ]);
   return { runId: run.runId, runDate, completed: false };
+}
+
+/** Operations "Run now" for the task keeper and task links: requeues only
+ * today's two task phases and starts a run that executes only them. A run
+ * already holding today's lock with a pending task phase is reused. Refused
+ * while the owner's task manager is off.
+ */
+export async function startTaskMaintenance(
+  ownerId: string,
+  deps: StartDeps = runtime,
+) {
+  assertOwner(ownerId);
+  if (!(await deps.tasksEnabled(ownerId)))
+    throw new BrainError(
+      "TASKS_DISABLED",
+      "Task maintenance is not enabled.",
+      409,
+    );
+  const runDate = today(deps);
+  const active = await activeRun(ownerId, deps);
+  if (active?.runDate === runDate) {
+    const jobs = await deps.dailyWorkflowStatus(ownerId, runDate);
+    if (
+      jobs.some(
+        (job) =>
+          isTaskJobKind(job.kind) &&
+          (job.status === "queued" || job.status === "running"),
+      )
+    )
+      return { runId: active.runId, runDate, completed: false, started: false };
+  }
+  await deps.requeueTaskWorkflowJobs(ownerId, runDate);
+  const run = await deps.start(nightlyMaintenance, [
+    ownerId,
+    runDate,
+    undefined,
+    { scope: "tasks", tasks: true },
+  ]);
+  return { runId: run.runId, runDate, completed: false, started: true };
 }

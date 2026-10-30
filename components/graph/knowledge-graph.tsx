@@ -32,6 +32,12 @@ import type {
 import { deriveGraphView } from "@/lib/graph/derive-view";
 import { MAX_SPACING, MIN_SPACING } from "@/lib/graph/layout";
 import { buildGraphModel } from "@/lib/graph/model";
+import {
+  deriveTaskOverlay,
+  overlayEmphasis,
+  type TaskOverlay,
+  taskHref,
+} from "@/lib/graph/task-overlay";
 import { pageHref } from "@/lib/workspace/urls";
 import { Empty } from "../workspace/primitives";
 import { GraphCanvas, type GraphCanvasHandle } from "./graph-canvas";
@@ -49,9 +55,12 @@ function toggled<T>(set: ReadonlySet<T>, value: T): ReadonlySet<T> {
 export function KnowledgeGraph({
   graph,
   initialSelected,
+  taskOverlay = null,
 }: {
   graph: { nodes: PageSummary[]; links: BrainLink[] };
   initialSelected?: string;
+  /** Open tasks around the loaded pages; null while the overlay is off. */
+  taskOverlay?: TaskOverlay | null;
 }) {
   const router = useRouter();
   const canvas = useRef<GraphCanvasHandle>(null);
@@ -70,6 +79,8 @@ export function KnowledgeGraph({
   );
   const [showUnlinked, setShowUnlinked] = useState(true);
   const [spacing, setSpacing] = useState(MIN_SPACING);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [hoveredTaskId, setHoveredTaskId] = useState<string | null>(null);
 
   const model = useMemo(() => buildGraphModel(graph), [graph]);
   const {
@@ -97,6 +108,36 @@ export function KnowledgeGraph({
       ),
     [model, hiddenTypes, hiddenLinkTypes, showUnlinked, query, trail, hovered],
   );
+  // The task layer reads the page view; nothing in it feeds back into the
+  // page model, layout or counts.
+  const overlayView = useMemo(
+    () => (taskOverlay ? deriveTaskOverlay(taskOverlay, visible) : null),
+    [taskOverlay, visible],
+  );
+  const selectedTask =
+    overlayView?.nodes.find((task) => task.id === selectedTaskId) ?? null;
+  const hoveredTask =
+    overlayView?.nodes.find((task) => task.id === hoveredTaskId) ?? null;
+  const taskLayer = useMemo(() => {
+    if (!overlayView) return null;
+    const focusTasks = [selectedTask?.id, hoveredTask?.id].filter(
+      (id): id is string => typeof id === "string",
+    );
+    const focusPages = [selected?.id, hoveredId].filter(
+      (id): id is string => typeof id === "string",
+    );
+    return {
+      ...overlayView,
+      focus: overlayEmphasis(overlayView.edges, focusTasks, focusPages),
+      selected: selectedTask?.id ?? null,
+      hovered: hoveredTask?.id ?? null,
+    };
+  }, [overlayView, selectedTask, hoveredTask, selected, hoveredId]);
+  // A focused task lights its own pages instead of a page neighbourhood.
+  const taskFocused = Boolean(selectedTask || hoveredTask);
+  const pageEmphasized =
+    taskFocused && taskLayer?.focus ? taskLayer.focus.pages : emphasized;
+  const pageEmphasizedEdges = taskFocused ? new Set<string>() : emphasizedEdges;
 
   if (!graph.nodes.length) {
     return (
@@ -109,6 +150,7 @@ export function KnowledgeGraph({
   }
 
   const select = (id: string | null, center = false) => {
+    setSelectedTaskId(null);
     if (!id) {
       setTrail([]);
       return;
@@ -130,16 +172,23 @@ export function KnowledgeGraph({
           layoutLinks={model.edges}
           edges={edges}
           visible={visible}
-          selected={selected?.id ?? null}
+          selected={selectedTask ? null : (selected?.id ?? null)}
           hovered={hoveredId}
-          emphasized={emphasized}
-          emphasizedEdges={emphasizedEdges}
+          emphasized={pageEmphasized}
+          emphasizedEdges={pageEmphasizedEdges}
           matched={matched}
           seed={seed}
           spacing={spacing}
           onSelect={(id) => select(id)}
           onHover={setHovered}
           onOpen={(id) => router.push(pageHref(id))}
+          taskLayer={taskLayer}
+          onSelectTask={setSelectedTaskId}
+          onHoverTask={setHoveredTaskId}
+          onOpenTask={(id) => {
+            const task = overlayView?.nodes.find((entry) => entry.id === id);
+            if (task) router.push(taskHref(task.ref));
+          }}
         />
         <div className="pointer-events-none absolute inset-x-3 top-3 flex items-start justify-between gap-2">
           <div className="pointer-events-auto w-full max-w-64">
@@ -276,9 +325,11 @@ export function KnowledgeGraph({
           </p>
         </div>
         <output aria-live="polite" className="sr-only">
-          {selected
-            ? `${selected.title} selected, ${selected.degree} ${selected.degree === 1 ? "connection" : "connections"}.`
-            : ""}
+          {selectedTask
+            ? `Task ${selectedTask.ref} selected, ${selectedTask.anchors.length} ${selectedTask.anchors.length === 1 ? "page" : "pages"} in view.`
+            : selected
+              ? `${selected.title} selected, ${selected.degree} ${selected.degree === 1 ? "connection" : "connections"}.`
+              : ""}
         </output>
       </div>
       <aside
@@ -292,7 +343,7 @@ export function KnowledgeGraph({
           canGoBack={trail.length > 1}
           onSelect={(id) => select(id, true)}
           onBack={() => setTrail((current) => current.slice(0, -1))}
-          onClear={() => setTrail([])}
+          onClear={() => select(null)}
           typeCounts={typeCounts}
           hiddenTypes={hiddenTypes}
           onToggleType={(type) =>
@@ -309,6 +360,14 @@ export function KnowledgeGraph({
           onToggleUnlinked={() => setShowUnlinked((current) => !current)}
           visibleCount={visible.size}
           visibleLinkCount={edges.length}
+          taskLayer={taskLayer}
+          taskTotals={
+            taskOverlay
+              ? { loaded: taskOverlay.tasks.length, total: taskOverlay.total }
+              : undefined
+          }
+          selectedTask={selectedTask}
+          onSelectTask={setSelectedTaskId}
         />
       </aside>
     </div>

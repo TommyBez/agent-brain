@@ -18,6 +18,8 @@ export type Principal = {
   scopes: string[];
   kind: "session" | "token" | "oauth";
   tokenId?: string;
+  /** OAuth only: the access token's client_id (azp as fallback). */
+  clientId?: string;
 };
 
 export class AuthError extends Error {
@@ -61,20 +63,39 @@ export function newAgentToken() {
   return `brain_${randomBytes(32).toString("base64url")}`;
 }
 
+function agentDisabled() {
+  return new AuthError(
+    "agent_disabled",
+    "The owner has disabled this agent in Agent Brain.",
+    403,
+  );
+}
+
 export async function principalFromAgentToken(
   token: string,
 ): Promise<Principal> {
   if (!/^brain_[A-Za-z0-9_-]{43}$/.test(token))
     throw new AuthError("invalid_token", "Invalid agent token.");
+  // One round trip: validity, owner allowlist and a disabled agent, with
+  // last_used_at written at most every 5 minutes.
   const { rows } = await getPool().query<{
     id: string;
     owner_id: string;
     scopes: string[];
+    disabled: boolean;
   }>(
-    `UPDATE agent_tokens AS t SET last_used_at = now()
-     FROM "user" AS u WHERE t.token_hash = $1 AND t.revoked_at IS NULL AND t.expires_at > now()
-       AND u.id = t.owner_id AND lower(u.email) = ANY($2::text[])
-     RETURNING t.id, t.owner_id, t.scopes`,
+    `WITH t AS (
+       SELECT t.id, t.owner_id, t.scopes, a.disabled_at IS NOT NULL AS disabled
+       FROM agent_tokens AS t JOIN "user" AS u ON u.id = t.owner_id
+       LEFT JOIN brain_agents AS a ON a.owner_id = t.owner_id AND a.id = t.agent_id
+       WHERE t.token_hash = $1 AND t.revoked_at IS NULL AND t.expires_at > now()
+         AND lower(u.email) = ANY($2::text[])
+     ), touched AS (
+       UPDATE agent_tokens SET last_used_at = now()
+       WHERE id = (SELECT id FROM t WHERE NOT disabled)
+         AND (last_used_at IS NULL OR last_used_at < now() - interval '5 minutes')
+     )
+     SELECT id, owner_id, scopes, disabled FROM t`,
     [tokenHash(token), allowedEmails()],
   );
   if (!rows[0])
@@ -82,12 +103,40 @@ export async function principalFromAgentToken(
       "invalid_token",
       "The agent token is invalid, expired, or revoked.",
     );
+  if (rows[0].disabled) throw agentDisabled();
   return {
     ownerId: rows[0].owner_id,
     scopes: rows[0].scopes,
     kind: "token",
     tokenId: rows[0].id,
   };
+}
+
+/** OAuth subject must be an allowlisted owner; a disabled client agent is refused. */
+export async function assertOAuthPrincipal(
+  subject: string,
+  clientId: string | undefined,
+) {
+  const { rows } = await getPool().query<{ disabled: boolean }>(
+    `SELECT EXISTS (
+       SELECT 1 FROM brain_agent_clients AS c
+       JOIN brain_agents AS a ON a.owner_id = c.owner_id AND a.id = c.agent_id
+       WHERE c.owner_id = u.id AND c.client_id = $3 AND a.disabled_at IS NOT NULL
+     ) AS disabled
+     FROM "user" AS u WHERE u.id = $1 AND lower(u.email) = ANY($2::text[])`,
+    [subject, allowedEmails(), clientId ?? null],
+  );
+  if (!rows.length)
+    throw new AuthError(
+      "forbidden",
+      "This identity does not own this brain.",
+      403,
+    );
+  if (rows[0].disabled) throw agentDisabled();
+}
+
+function claimString(value: unknown) {
+  return typeof value === "string" && value ? value : undefined;
 }
 
 export async function getPrincipal(request: Request): Promise<Principal> {
@@ -112,21 +161,15 @@ export async function getPrincipal(request: Request): Promise<Principal> {
             "A user-bound access token is required.",
             403,
           );
-        const { rows } = await getPool().query(
-          `SELECT id FROM "user" WHERE id = $1 AND lower(email) = ANY($2::text[])`,
-          [claims.sub, allowedEmails()],
-        );
-        if (!rows.length)
-          throw new AuthError(
-            "forbidden",
-            "This identity does not own this brain.",
-            403,
-          );
+        const clientId =
+          claimString(claims.client_id) ?? claimString(claims.azp);
+        await assertOAuthPrincipal(claims.sub, clientId);
         principal = {
           ownerId: claims.sub,
           scopes:
             typeof claims.scope === "string" ? claims.scope.split(/\s+/) : [],
           kind: "oauth",
+          ...(clientId ? { clientId } : {}),
         };
         return new Response(null, { status: 204 });
       },

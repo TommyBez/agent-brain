@@ -13,6 +13,7 @@ export type AgentToken = {
   expiresAt: Date | null;
   lastUsedAt: Date | null;
   revokedAt: Date | null;
+  agentId: string | null;
 };
 
 const createSchema = z
@@ -24,9 +25,11 @@ const createSchema = z
       .max(3)
       .transform((scopes) => [...new Set(scopes)]),
     expiresInDays: z.number().int().min(1).max(365).default(90),
+    // Without an agent, one is registered under the token name on first use.
+    agentId: z.uuid().optional(),
   })
   .strict();
-const fields = `id, name, prefix, scopes, created_at AS "createdAt", expires_at AS "expiresAt", last_used_at AS "lastUsedAt", revoked_at AS "revokedAt"`;
+const fields = `id, name, prefix, scopes, created_at AS "createdAt", expires_at AS "expiresAt", last_used_at AS "lastUsedAt", revoked_at AS "revokedAt", agent_id AS "agentId"`;
 
 // Credential metadata stays uncached. Callers must authenticate the owner first.
 export async function listAgentTokens(ownerId: string): Promise<AgentToken[]> {
@@ -44,7 +47,7 @@ export async function createAgentToken(ownerId: string, value: unknown) {
   if (!parsed.success)
     throw new AuthError(
       "invalid_input",
-      "Provide a name, valid scopes, and expiry of 1–365 days.",
+      "Provide a name, valid scopes, expiry of 1–365 days and an optional agent.",
       400,
     );
   const input = parsed.data;
@@ -63,8 +66,14 @@ export async function createAgentToken(ownerId: string, value: unknown) {
         "Revoke an existing token before creating another.",
         409,
       );
+    // Only an active, ordinary agent of this owner can receive a token.
     const { rows } = await client.query<AgentToken>(
-      `INSERT INTO agent_tokens (owner_id,name,prefix,token_hash,scopes,expires_at) VALUES ($1,$2,$3,$4,$5,now() + $6 * interval '1 day') RETURNING ${fields}`,
+      `INSERT INTO agent_tokens (owner_id,name,prefix,token_hash,scopes,expires_at,agent_id)
+       SELECT $1,$2,$3,$4,$5,now() + $6 * interval '1 day',$7::uuid
+       WHERE $7::uuid IS NULL OR EXISTS (
+         SELECT 1 FROM brain_agents WHERE owner_id = $1 AND id = $7::uuid AND kind = 'agent' AND disabled_at IS NULL
+       )
+       RETURNING ${fields}`,
       [
         ownerId,
         input.name,
@@ -72,8 +81,15 @@ export async function createAgentToken(ownerId: string, value: unknown) {
         tokenHash(token),
         input.scopes,
         input.expiresInDays,
+        input.agentId ?? null,
       ],
     );
+    if (!rows[0])
+      throw new AuthError(
+        "invalid_input",
+        "Choose an active agent from the registry.",
+        400,
+      );
     return rows[0];
   });
   return { token, record };

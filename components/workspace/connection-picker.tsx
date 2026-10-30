@@ -17,6 +17,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Spinner } from "@/components/ui/spinner";
+import type { PageType } from "@/lib/brain/types";
 import { request } from "@/lib/request";
 import { CONNECTION_PAGE_SIZE } from "@/lib/workspace/urls";
 
@@ -28,6 +29,7 @@ type Search = { query: string; offset: number; attempt: number };
 function useConnectionChoices(
   input: string,
   initialChoices: ConnectionChoices,
+  type?: PageType,
 ) {
   const [search, setSearch] = useState<Search>({
     query: "",
@@ -63,6 +65,7 @@ function useConnectionChoices(
       sort: "title",
       limit: String(CONNECTION_PAGE_SIZE),
       offset: String(search.offset),
+      ...(type ? { type } : {}),
     });
     request<ConnectionChoices>(`/api/brain/pages?${params}`, {
       signal: controller.signal,
@@ -80,7 +83,7 @@ function useConnectionChoices(
         if (!controller.signal.aborted) setStatus("error");
       });
     return () => controller.abort();
-  }, [search, initialChoices]);
+  }, [search, initialChoices, type]);
 
   return {
     result,
@@ -99,18 +102,23 @@ export function ConnectionPicker({
   excludeId,
   value,
   onChange,
+  type,
 }: {
   id?: string;
+  /** With a type, the initial choices must be of that type too. */
   initialChoices: ConnectionChoices;
   excludeId?: string;
   value: ConnectionChoice | null;
   onChange: (choice: ConnectionChoice | null) => void;
+  /** Only pages of this type, e.g. the project of a task. */
+  type?: PageType;
 }) {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const { result, loading, failed, retry, more } = useConnectionChoices(
     input,
     initialChoices,
+    type,
   );
   const choices = result.pages.filter((page) => page.id !== excludeId);
 
@@ -126,7 +134,7 @@ export function ConnectionPicker({
           className="w-full justify-between font-normal"
         >
           <span className={`truncate ${value ? "" : "text-muted-foreground"}`}>
-            {value?.title ?? "Choose a page…"}
+            {value?.title ?? `Choose a ${type ?? "page"}…`}
           </span>
           <ChevronsUpDown className="text-muted-foreground" />
         </Button>
@@ -139,7 +147,7 @@ export function ConnectionPicker({
           <CommandInput
             value={input}
             onValueChange={setInput}
-            placeholder="Search all pages…"
+            placeholder={type ? `Search ${type} pages…` : "Search all pages…"}
             maxLength={1000}
           />
           <CommandList>

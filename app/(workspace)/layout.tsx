@@ -9,9 +9,13 @@ import {
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { CommandMenuProvider } from "@/components/workspace/command-menu";
+import {
+  CommandMenu,
+  CommandMenuProvider,
+} from "@/components/workspace/command-menu";
 import {
   SettingsNavigation,
+  type TaskNavigation,
   WorkspaceNavigation,
 } from "@/components/workspace/navigation";
 import {
@@ -22,9 +26,45 @@ import {
 } from "@/components/workspace/shell";
 import { getWorkspaceStats } from "@/lib/workspace/data";
 import { getWorkspaceUser } from "@/lib/workspace/session";
+import { queryNeedsYouCount } from "@/lib/workspace/task-queries";
+import { savedViewHref } from "@/lib/workspace/task-urls";
+import {
+  getTaskSettingsView,
+  getTasksEnabled,
+} from "@/lib/workspace/tasks-data";
 
+// The badge poll's own query, authorized here and read fresh: the layout
+// renders on a full load or refresh, and the poll keeps it current after.
+// Absent while the owner's task manager is off.
+async function getTaskNavigation(): Promise<TaskNavigation | undefined> {
+  if (!(await getTasksEnabled())) return undefined;
+  const user = await getWorkspaceUser();
+  const [needsYou, settings] = await Promise.all([
+    queryNeedsYouCount(user.id),
+    getTaskSettingsView(),
+  ]);
+  return {
+    needsYou,
+    views: settings.savedViews.map((view) => ({
+      id: view.id,
+      name: view.name,
+      href: savedViewHref(view.query),
+    })),
+  };
+}
+
+// The owner's task manager switch needs the session, so the Tasks entry
+// streams in with the counts: the static fallback never shows it.
 async function NavigationCounts() {
-  return <WorkspaceNavigation stats={await getWorkspaceStats()} />;
+  const [stats, taskNavigation] = await Promise.all([
+    getWorkspaceStats(),
+    getTaskNavigation(),
+  ]);
+  return <WorkspaceNavigation stats={stats} tasks={taskNavigation} />;
+}
+
+async function WorkspaceCommandMenu() {
+  return <CommandMenu tasks={await getTasksEnabled()} />;
 }
 
 async function OwnerProfile() {
@@ -79,6 +119,9 @@ export default function WorkspaceLayout({ children }: { children: ReactNode }) {
               {children}
             </div>
           </SidebarInset>
+          <Suspense>
+            <WorkspaceCommandMenu />
+          </Suspense>
         </CommandMenuProvider>
       </WorkspaceSidebarProvider>
     </TooltipProvider>

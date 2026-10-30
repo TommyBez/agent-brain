@@ -1,0 +1,537 @@
+{
+  "dataset": "task-relevance-2026-10-21",
+  "datasetFingerprint": "5df7b0c63044f0437a1e1807d4b33eaaa262ad04d7415614111ffa3f19a5a57a",
+  "model": "typesafe-ai/jev-1.14.0",
+  "policyVersion": "task-linker-v1:task-linker-baseline-2026-10-21:f57dc57d558916203d3ebf0fb0b30a8c9ecc8ac6a3b294a48e069eeaf85f88b4",
+  "promptProfile": "task-linker-baseline-2026-10-21",
+  "thresholds": {
+    "relevant": 0.8,
+    "governs": 0.8,
+    "stakeholder": 0.8
+  },
+  "scenarios": 11,
+  "cases": 44,
+  "runAt": "2026-10-21T17:44:20.184Z",
+  "metrics": {
+    "cases": 44,
+    "accuracy": 0.8863636363636364,
+    "linkDetection": {
+      "truePositives": 23,
+      "falsePositives": 0,
+      "falseNegatives": 2,
+      "precision": 1,
+      "recall": 0.92,
+      "f1": 0.9583333333333334
+    },
+    "roles": {
+      "decision": {
+        "truePositives": 9,
+        "falsePositives": 0,
+        "falseNegatives": 1,
+        "precision": 1,
+        "recall": 0.9,
+        "f1": 0.9473684210526316
+      },
+      "stakeholder": {
+        "truePositives": 5,
+        "falsePositives": 0,
+        "falseNegatives": 4,
+        "precision": 1,
+        "recall": 0.5555555555555556,
+        "f1": 0.7142857142857143
+      },
+      "context": {
+        "truePositives": 6,
+        "falsePositives": 3,
+        "falseNegatives": 0,
+        "precision": 0.6666666666666666,
+        "recall": 1,
+        "f1": 0.8
+      }
+    },
+    "categories": {
+      "decisione_pertinente": {
+        "cases": 10,
+        "accuracy": 0.9
+      },
+      "stakeholder": {
+        "cases": 9,
+        "accuracy": 0.5555555555555556
+      },
+      "contesto_pertinente": {
+        "cases": 6,
+        "accuracy": 1
+      },
+      "stesso_tema_non_pertinente": {
+        "cases": 7,
+        "accuracy": 1
+      },
+      "decisione_superata": {
+        "cases": 6,
+        "accuracy": 1
+      },
+      "menzione_incidentale": {
+        "cases": 6,
+        "accuracy": 1
+      }
+    },
+    "confusion": {
+      "decision": {
+        "decision": 9,
+        "stakeholder": 0,
+        "context": 1,
+        "none": 0
+      },
+      "stakeholder": {
+        "decision": 0,
+        "stakeholder": 5,
+        "context": 2,
+        "none": 2
+      },
+      "context": {
+        "decision": 0,
+        "stakeholder": 0,
+        "context": 6,
+        "none": 0
+      },
+      "none": {
+        "decision": 0,
+        "stakeholder": 0,
+        "context": 0,
+        "none": 19
+      }
+    }
+  },
+  "usage": {
+    "requests": 11,
+    "inputTokens": 20212,
+    "unknownUsage": 0,
+    "estimatedNanoUsd": 848904
+  },
+  "errors": [],
+  "predictions": [
+    {
+      "id": "S01-P1",
+      "category": "decisione_pertinente",
+      "expected": "decision",
+      "predicted": "decision",
+      "judgment": {
+        "relevant": 0.98,
+        "governs": 0.97
+      }
+    },
+    {
+      "id": "S01-P2",
+      "category": "decisione_superata",
+      "expected": "none",
+      "predicted": "none",
+      "judgment": {
+        "relevant": 0.04,
+        "governs": 0.03
+      }
+    },
+    {
+      "id": "S01-P3",
+      "category": "stakeholder",
+      "expected": "stakeholder",
+      "predicted": "none",
+      "judgment": {
+        "relevant": 0.74,
+        "stakeholder": 0.93
+      }
+    },
+    {
+      "id": "S01-P4",
+      "category": "stesso_tema_non_pertinente",
+      "expected": "none",
+      "predicted": "none",
+      "judgment": {
+        "relevant": 0.02
+      }
+    },
+    {
+      "id": "S02-P1",
+      "category": "decisione_pertinente",
+      "expected": "decision",
+      "predicted": "decision",
+      "judgment": {
+        "relevant": 0.96,
+        "governs": 0.96
+      }
+    },
+    {
+      "id": "S02-P2",
+      "category": "stakeholder",
+      "expected": "stakeholder",
+      "predicted": "stakeholder",
+      "judgment": {
+        "relevant": 0.95,
+        "stakeholder": 0.88
+      }
+    },
+    {
+      "id": "S02-P3",
+      "category": "stesso_tema_non_pertinente",
+      "expected": "none",
+      "predicted": "none",
+      "judgment": {
+        "relevant": 0.02
+      }
+    },
+    {
+      "id": "S02-P4",
+      "category": "menzione_incidentale",
+      "expected": "none",
+      "predicted": "none",
+      "judgment": {
+        "relevant": 0.23
+      }
+    },
+    {
+      "id": "S03-P1",
+      "category": "stakeholder",
+      "expected": "stakeholder",
+      "predicted": "context",
+      "judgment": {
+        "relevant": 0.9,
+        "stakeholder": 0.65
+      }
+    },
+    {
+      "id": "S03-P2",
+      "category": "decisione_pertinente",
+      "expected": "decision",
+      "predicted": "decision",
+      "judgment": {
+        "relevant": 0.91,
+        "governs": 0.88
+      }
+    },
+    {
+      "id": "S03-P3",
+      "category": "stakeholder",
+      "expected": "stakeholder",
+      "predicted": "stakeholder",
+      "judgment": {
+        "relevant": 0.9,
+        "stakeholder": 0.97
+      }
+    },
+    {
+      "id": "S03-P4",
+      "category": "stesso_tema_non_pertinente",
+      "expected": "none",
+      "predicted": "none",
+      "judgment": {
+        "relevant": 0.02
+      }
+    },
+    {
+      "id": "S04-P1",
+      "category": "decisione_pertinente",
+      "expected": "decision",
+      "predicted": "decision",
+      "judgment": {
+        "relevant": 0.93,
+        "governs": 0.91
+      }
+    },
+    {
+      "id": "S04-P2",
+      "category": "decisione_superata",
+      "expected": "none",
+      "predicted": "none",
+      "judgment": {
+        "relevant": 0.04,
+        "governs": 0.04
+      }
+    },
+    {
+      "id": "S04-P3",
+      "category": "contesto_pertinente",
+      "expected": "context",
+      "predicted": "context",
+      "judgment": {
+        "relevant": 0.98
+      }
+    },
+    {
+      "id": "S04-P4",
+      "category": "menzione_incidentale",
+      "expected": "none",
+      "predicted": "none",
+      "judgment": {
+        "relevant": 0.06
+      }
+    },
+    {
+      "id": "S05-P1",
+      "category": "decisione_pertinente",
+      "expected": "decision",
+      "predicted": "decision",
+      "judgment": {
+        "relevant": 0.89,
+        "governs": 0.84
+      }
+    },
+    {
+      "id": "S05-P2",
+      "category": "stakeholder",
+      "expected": "stakeholder",
+      "predicted": "stakeholder",
+      "judgment": {
+        "relevant": 0.89,
+        "stakeholder": 0.91
+      }
+    },
+    {
+      "id": "S05-P3",
+      "category": "stesso_tema_non_pertinente",
+      "expected": "none",
+      "predicted": "none",
+      "judgment": {
+        "relevant": 0.03
+      }
+    },
+    {
+      "id": "S05-P4",
+      "category": "contesto_pertinente",
+      "expected": "context",
+      "predicted": "context",
+      "judgment": {
+        "relevant": 0.92
+      }
+    },
+    {
+      "id": "S06-P1",
+      "category": "stakeholder",
+      "expected": "stakeholder",
+      "predicted": "stakeholder",
+      "judgment": {
+        "relevant": 0.9,
+        "stakeholder": 0.92
+      }
+    },
+    {
+      "id": "S06-P2",
+      "category": "decisione_pertinente",
+      "expected": "decision",
+      "predicted": "context",
+      "judgment": {
+        "relevant": 0.92,
+        "governs": 0.79
+      }
+    },
+    {
+      "id": "S06-P3",
+      "category": "decisione_superata",
+      "expected": "none",
+      "predicted": "none",
+      "judgment": {
+        "relevant": 0.06,
+        "governs": 0.05
+      }
+    },
+    {
+      "id": "S06-P4",
+      "category": "menzione_incidentale",
+      "expected": "none",
+      "predicted": "none",
+      "judgment": {
+        "relevant": 0.03
+      }
+    },
+    {
+      "id": "S07-P1",
+      "category": "stakeholder",
+      "expected": "stakeholder",
+      "predicted": "stakeholder",
+      "judgment": {
+        "relevant": 0.86,
+        "stakeholder": 0.94
+      }
+    },
+    {
+      "id": "S07-P2",
+      "category": "contesto_pertinente",
+      "expected": "context",
+      "predicted": "context",
+      "judgment": {
+        "relevant": 0.89
+      }
+    },
+    {
+      "id": "S07-P3",
+      "category": "stesso_tema_non_pertinente",
+      "expected": "none",
+      "predicted": "none",
+      "judgment": {
+        "relevant": 0.02
+      }
+    },
+    {
+      "id": "S07-P4",
+      "category": "menzione_incidentale",
+      "expected": "none",
+      "predicted": "none",
+      "judgment": {
+        "relevant": 0.03,
+        "stakeholder": 0.06
+      }
+    },
+    {
+      "id": "S08-P1",
+      "category": "decisione_pertinente",
+      "expected": "decision",
+      "predicted": "decision",
+      "judgment": {
+        "relevant": 0.94,
+        "governs": 0.92
+      }
+    },
+    {
+      "id": "S08-P2",
+      "category": "decisione_superata",
+      "expected": "none",
+      "predicted": "none",
+      "judgment": {
+        "relevant": 0.04,
+        "governs": 0.03
+      }
+    },
+    {
+      "id": "S08-P3",
+      "category": "contesto_pertinente",
+      "expected": "context",
+      "predicted": "context",
+      "judgment": {
+        "relevant": 0.84
+      }
+    },
+    {
+      "id": "S08-P4",
+      "category": "stesso_tema_non_pertinente",
+      "expected": "none",
+      "predicted": "none",
+      "judgment": {
+        "relevant": 0.03
+      }
+    },
+    {
+      "id": "S09-P1",
+      "category": "stakeholder",
+      "expected": "stakeholder",
+      "predicted": "none",
+      "judgment": {
+        "relevant": 0.79,
+        "stakeholder": 0.95
+      }
+    },
+    {
+      "id": "S09-P2",
+      "category": "contesto_pertinente",
+      "expected": "context",
+      "predicted": "context",
+      "judgment": {
+        "relevant": 0.9
+      }
+    },
+    {
+      "id": "S09-P3",
+      "category": "decisione_pertinente",
+      "expected": "decision",
+      "predicted": "decision",
+      "judgment": {
+        "relevant": 0.95,
+        "governs": 0.92
+      }
+    },
+    {
+      "id": "S09-P4",
+      "category": "menzione_incidentale",
+      "expected": "none",
+      "predicted": "none",
+      "judgment": {
+        "relevant": 0.02,
+        "stakeholder": 0.03
+      }
+    },
+    {
+      "id": "S10-P1",
+      "category": "decisione_pertinente",
+      "expected": "decision",
+      "predicted": "decision",
+      "judgment": {
+        "relevant": 0.96,
+        "governs": 0.86
+      }
+    },
+    {
+      "id": "S10-P2",
+      "category": "decisione_superata",
+      "expected": "none",
+      "predicted": "none",
+      "judgment": {
+        "relevant": 0.38,
+        "governs": 0.09
+      }
+    },
+    {
+      "id": "S10-P3",
+      "category": "stakeholder",
+      "expected": "stakeholder",
+      "predicted": "context",
+      "judgment": {
+        "relevant": 0.83,
+        "stakeholder": 0.68
+      }
+    },
+    {
+      "id": "S10-P4",
+      "category": "stesso_tema_non_pertinente",
+      "expected": "none",
+      "predicted": "none",
+      "judgment": {
+        "relevant": 0.02
+      }
+    },
+    {
+      "id": "S11-P1",
+      "category": "decisione_pertinente",
+      "expected": "decision",
+      "predicted": "decision",
+      "judgment": {
+        "relevant": 0.98,
+        "governs": 0.97
+      }
+    },
+    {
+      "id": "S11-P2",
+      "category": "decisione_superata",
+      "expected": "none",
+      "predicted": "none",
+      "judgment": {
+        "relevant": 0.04,
+        "governs": 0.03
+      }
+    },
+    {
+      "id": "S11-P3",
+      "category": "contesto_pertinente",
+      "expected": "context",
+      "predicted": "context",
+      "judgment": {
+        "relevant": 0.97
+      }
+    },
+    {
+      "id": "S11-P4",
+      "category": "menzione_incidentale",
+      "expected": "none",
+      "predicted": "none",
+      "judgment": {
+        "relevant": 0.3
+      }
+    }
+  ]
+}

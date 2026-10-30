@@ -40,6 +40,28 @@ products.
   an explicit dark theme; the current interface consistently uses its light
   theme, including when the operating system prefers dark.
 
+## Tasks
+
+- The research excluded Kanban boards ([design-research.md](./design-research.md),
+  “Soluzioni escluse”) because pages are linked entities, not items moving
+  through states. Tasks are such a stateful process, so the exclusion is lifted
+  for them only: `/tasks/board` groups tasks by status, and every drag has a
+  keyboard alternative in the card's “Move to…” menu. Knowledge pages keep the
+  document grid.
+- `/tasks` puts what needs the owner first (triage by source, questions,
+  reviews, human steps, claims taken on request, suggestions), then the open
+  work as tables. Filters, sort and pagination live in the URL; saved views are
+  named URL filters listed under Tasks in the sidebar.
+- Task text written by agents is labelled “Written by …”, rendered as Markdown
+  without raw HTML or images, and never styled as instructions.
+- Status tokens (`--status-*`) tint the existing secondary Badge, the way entity
+  types do; priority tokens (`--priority-*`) color text with an icon, so color
+  is never the only signal. Contrast, computed by hand with the WCAG formula:
+  status text on its tint 4.99:1 (canceled) to 6.03:1 (done), and at least
+  5.40:1 on the page background; priority text at least 4.61:1 (low, on
+  `--accent`) and 4.75:1 or more on every other surface. The theme minimum of
+  4.61:1 holds.
+
 ## Verification
 
 Authenticated local browser checks covered search, query-preserving collection

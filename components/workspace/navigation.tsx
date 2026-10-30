@@ -4,6 +4,7 @@ import {
   Activity,
   BookOpen,
   Bot,
+  ListTodo,
   Network,
   Plus,
   Settings2,
@@ -20,12 +21,26 @@ import {
   SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import {
+  BADGE_REFRESH_MS,
+  type SavedViewLink,
+  useTaskSignals,
+} from "@/hooks/use-live-refresh";
 import { entityTypes } from "@/lib/brain/labels";
 import type { BrainStats as Stats } from "@/lib/brain/types";
 import { collectionHref } from "@/lib/workspace/urls";
 import { EntityIcon } from "./primitives";
+
+/** What the server knows about tasks for the sidebar; absent when disabled. */
+export type TaskNavigation = {
+  needsYou: number | null;
+  views: SavedViewLink[];
+};
 
 type NavigationEntry = {
   href: string;
@@ -76,16 +91,69 @@ function NavigationItem({ entry }: { entry: NavigationEntry }) {
   );
 }
 
+function ActiveTasksButton({ entry }: { entry: NavigationEntry }) {
+  const pathname = usePathname();
+  return (
+    <NavigationButton
+      entry={entry}
+      active={pathname === "/tasks" || pathname.startsWith("/tasks/")}
+    />
+  );
+}
+
+// Rendered by the server whenever tasks are enabled. The badge counts what
+// waits for the owner and saved views follow as links: the server's values
+// until the shared poll answers, which then keeps them current.
+function TasksNavigationItem({ initial }: { initial: TaskNavigation }) {
+  const signals = useTaskSignals(BADGE_REFRESH_MS);
+  if (signals.enabled === false) return null;
+  const entry: NavigationEntry = {
+    href: "/tasks",
+    label: "Tasks",
+    icon: <ListTodo strokeWidth={1.6} />,
+  };
+  const count = signals.needsYou ?? initial.needsYou ?? 0;
+  const views = signals.latest === null ? initial.views : signals.views;
+  return (
+    <SidebarMenuItem>
+      <Suspense fallback={<NavigationButton entry={entry} active={false} />}>
+        <ActiveTasksButton entry={entry} />
+      </Suspense>
+      {count > 0 && (
+        <SidebarMenuBadge>
+          {count}
+          <span className="sr-only"> need you</span>
+        </SidebarMenuBadge>
+      )}
+      {views.length > 0 && (
+        <SidebarMenuSub aria-label="Saved task views">
+          {views.map((view) => (
+            <SidebarMenuSubItem key={view.id}>
+              <SidebarMenuSubButton asChild>
+                <SidebarLink href={view.href}>
+                  <span>{view.name}</span>
+                </SidebarLink>
+              </SidebarMenuSubButton>
+            </SidebarMenuSubItem>
+          ))}
+        </SidebarMenuSub>
+      )}
+    </SidebarMenuItem>
+  );
+}
+
 function NavigationGroup({
   label,
   entries,
   action,
   className,
+  children,
 }: {
   label: string;
   entries: NavigationEntry[];
   action?: ReactNode;
   className?: string;
+  children?: ReactNode;
 }) {
   return (
     <SidebarGroup className={className}>
@@ -96,13 +164,20 @@ function NavigationGroup({
           {entries.map((entry) => (
             <NavigationItem key={entry.href} entry={entry} />
           ))}
+          {children}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
   );
 }
 
-export function WorkspaceNavigation({ stats }: { stats?: Stats }) {
+export function WorkspaceNavigation({
+  stats,
+  tasks,
+}: {
+  stats?: Stats;
+  tasks?: TaskNavigation;
+}) {
   return (
     <>
       <NavigationGroup
@@ -133,7 +208,9 @@ export function WorkspaceNavigation({ stats }: { stats?: Stats }) {
             icon: <Activity strokeWidth={1.6} />,
           },
         ]}
-      />
+      >
+        {tasks && <TasksNavigationItem initial={tasks} />}
+      </NavigationGroup>
       <NavigationGroup
         label="Collections"
         entries={entityTypes.map((item) => ({

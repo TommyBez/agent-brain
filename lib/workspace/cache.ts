@@ -13,3 +13,27 @@ export function updateWorkspaceCache(ownerId: string) {
 export function revalidateWorkspaceCache(ownerId: string) {
   revalidateTag(workspaceCacheTag(ownerId), { expire: 0 });
 }
+
+/** Task state has its own tag: claims and renewals never expire knowledge views. */
+export function tasksCacheTag(ownerId: string) {
+  return `tasks:${ownerId}`;
+}
+
+export function updateTasksCache(ownerId: string) {
+  updateTag(tasksCacheTag(ownerId));
+}
+
+export function revalidateTasksCache(ownerId: string) {
+  revalidateTag(tasksCacheTag(ownerId), { expire: 0 });
+}
+
+export type CacheInvalidation = "workspace" | "tasks" | "both";
+
+/** The MCP route's onMutation: expire only what the tool changed. */
+export function revalidateAfterMutation(
+  ownerId: string,
+  kind: CacheInvalidation,
+) {
+  if (kind !== "tasks") revalidateWorkspaceCache(ownerId);
+  if (kind !== "workspace") revalidateTasksCache(ownerId);
+}
