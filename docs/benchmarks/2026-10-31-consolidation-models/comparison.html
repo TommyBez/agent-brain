@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Benchmark consolidamento</title>
+<style>
+:root { font-family: var(--font-sans); color: var(--foreground); }
+body { margin: 0; }
+main { display: grid; gap: 24px; }
+h2 { font-size: 16px; font-weight: 500; margin: 0 0 12px; }
+.row { display: grid; grid-template-columns: 78px 1fr 92px; align-items: center; gap: 12px; margin: 10px 0; }
+.track { background: var(--muted); height: 18px; }
+.bar { height: 18px; }
+.jev { background: var(--chart-1); }
+.decider { background: var(--chart-2); }
+.value { text-align: right; font-variant-numeric: tabular-nums; }
+.note { color: var(--muted-foreground); font-size: 12px; margin: 8px 0 0; }
+@media (max-width: 400px) { .row { grid-template-columns: 64px 1fr 78px; gap: 8px; font-size: 13px; } }
+</style>
+</head>
+<body>
+<main aria-label="Confronto Jev 1.14 e Perplexity Decider 1.2, 31 ottobre 2026">
+<section aria-label="Risposte valide sui sedici casi reali">
+<h2>Richieste reali elaborate · su 16</h2>
+<div class="row"><span>Jev</span><div class="track"><div class="bar jev" style="width:75%"></div></div><span class="value">12 / 16</span></div>
+<div class="row"><span>Decider</span><div class="track"><div class="bar decider" style="width:100%"></div></div><span class="value">16 / 16</span></div>
+<p class="note">Quattro limiti di token per Jev. Richieste identiche, senza recupero o divisione automatica.</p>
+</section>
+<section aria-label="Costo degli stessi dodici casi reali riusciti">
+<h2>Costo · stessi 12 casi riusciti</h2>
+<div class="row"><span>Jev</span><div class="track"><div class="bar jev" style="width:100%"></div></div><span class="value">$0,008233</span></div>
+<div class="row"><span>Decider</span><div class="track"><div class="bar decider" style="width:41.5373%"></div></div><span class="value">$0,003420</span></div>
+<p class="note">Costi riportati dal Gateway. Esclusi i quattro errori Jev dal costo ignoto.</p>
+</section>
+<section aria-label="Latenza mediana sugli stessi dodici casi riusciti">
+<h2>Latenza mediana · stessi 12 casi riusciti</h2>
+<div class="row"><span>Jev</span><div class="track"><div class="bar jev" style="width:48.6903%"></div></div><span class="value">275 ms</span></div>
+<div class="row"><span>Decider</span><div class="track"><div class="bar decider" style="width:100%"></div></div><span class="value">564 ms</span></div>
+<p class="note">Una esecuzione per caso e modello. Capacità e velocità non misurano la qualità delle decisioni.</p>
+</section>
+</main>
+</body>
+</html>

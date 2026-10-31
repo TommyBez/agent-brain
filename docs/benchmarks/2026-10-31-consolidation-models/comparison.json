@@ -1,0 +1,123 @@
+{
+  "syntheticDatasetHash": "3eecc92e5d4719f83ab522029c99b0fa312fd22b06a60c1b70da3017a85c0f3a",
+  "realDatasetHash": "0e2caa773b52d9ce5d83362335b8c976292c2bb8a89d06e6af8a5ddd4a292bf6",
+  "syntheticRequests": 96,
+  "realRequests": 32,
+  "totalKnownCostUsd": 0.016008614,
+  "totalRetainedReservationUsd": 1.0288450820000001,
+  "models": [
+    {
+      "model": "typesafe-ai/jev-1.14.0",
+      "realRequests": 16,
+      "realSchemaValid": 12,
+      "realUnknownCostRequests": 4,
+      "realKnownCostUsd": 0.008233217999999999,
+      "matchedRealRequests": 12,
+      "matchedRealCostUsd": 0.008233217999999999,
+      "matchedRealMedianMs": 274.5939585000001,
+      "syntheticBooleanExposures": 40,
+      "syntheticBooleanBrier": 0.004094999999999999,
+      "blindObjective": {
+        "labels": [
+          {
+            "id": "real-verification-1",
+            "value": false,
+            "confidence": "high",
+            "hardScoreEligible": true,
+            "probability": 0.3,
+            "acceptsObjective": false,
+            "correct": true
+          },
+          {
+            "id": "real-verification-2",
+            "value": false,
+            "confidence": "medium",
+            "hardScoreEligible": false,
+            "probability": 0.34,
+            "acceptsObjective": false,
+            "correct": null
+          },
+          {
+            "id": "real-verification-3",
+            "value": true,
+            "confidence": "high",
+            "hardScoreEligible": true,
+            "probability": 0.39,
+            "acceptsObjective": false,
+            "correct": false
+          },
+          {
+            "id": "real-verification-4",
+            "value": null,
+            "confidence": "uncertain",
+            "hardScoreEligible": false,
+            "probability": 0.46,
+            "acceptsObjective": false,
+            "correct": null
+          }
+        ],
+        "scoreable": 2,
+        "correct": 1,
+        "falseAccepts": 0,
+        "missedAccepts": 1
+      }
+    },
+    {
+      "model": "perplexity/pplx-decider-v1.2",
+      "realRequests": 16,
+      "realSchemaValid": 16,
+      "realUnknownCostRequests": 0,
+      "realKnownCostUsd": 0.00681532,
+      "matchedRealRequests": 12,
+      "matchedRealCostUsd": 0.00341986,
+      "matchedRealMedianMs": 563.9598754999997,
+      "syntheticBooleanExposures": 40,
+      "syntheticBooleanBrier": 0.000159131224771937,
+      "blindObjective": {
+        "labels": [
+          {
+            "id": "real-verification-1",
+            "value": false,
+            "confidence": "high",
+            "hardScoreEligible": true,
+            "probability": 0.9402724489202952,
+            "acceptsObjective": true,
+            "correct": false
+          },
+          {
+            "id": "real-verification-2",
+            "value": false,
+            "confidence": "medium",
+            "hardScoreEligible": false,
+            "probability": 0.9032082830611633,
+            "acceptsObjective": true,
+            "correct": null
+          },
+          {
+            "id": "real-verification-3",
+            "value": true,
+            "confidence": "high",
+            "hardScoreEligible": true,
+            "probability": 0.7540108066522666,
+            "acceptsObjective": false,
+            "correct": false
+          },
+          {
+            "id": "real-verification-4",
+            "value": null,
+            "confidence": "uncertain",
+            "hardScoreEligible": false,
+            "probability": 0.8352465326287709,
+            "acceptsObjective": true,
+            "correct": null
+          }
+        ],
+        "scoreable": 2,
+        "correct": 0,
+        "falseAccepts": 1,
+        "missedAccepts": 1
+      }
+    }
+  ],
+  "interpretation": "Two hard-score-eligible real labels do not rank models. Objective acceptance alone does not authorize applying changes. No model switch is justified by this benchmark alone."
+}

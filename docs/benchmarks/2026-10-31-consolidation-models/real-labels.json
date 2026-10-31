@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-31T11:41:19.469668+00:00",
+  "reviewer": "independent-agent-blind-review",
+  "inputSha256": "1f42061919f964efe709f7c9e4427218199312e7ad2dd86562810a5208664c4c",
+  "blindedToPredictions": true,
+  "method": "Read supplied original pages, operations, ordered result units and objective questions only; decode aliases and originalTextIndex losslessly. No model predictions, external source contents, live pages or provider calls were inspected.",
+  "scopeLimits": [
+    "Only four selected proposed centralize operations, not a representative sample of all runs or operation kinds.",
+    "Each request asks only objective. A successful objective judgement alone cannot authorize applying an operation or prove unasked integrity gates.",
+    "Integrity assessments concern changed claims and their supplied page context/source inventories, not independent verification of underlying real-world facts.",
+    "Single independent reviewer; medium-confidence and unknown labels require adjudication before being treated as hard benchmark gold.",
+    "Rendered link behavior and live destination existence were not tested."
+  ],
+  "cases": [
+    {
+      "id": "real-verification-1",
+      "value": false,
+      "confidence": "high",
+      "hardScoreEligible": true
+    },
+    {
+      "id": "real-verification-2",
+      "value": false,
+      "confidence": "medium",
+      "hardScoreEligible": false
+    },
+    {
+      "id": "real-verification-3",
+      "value": true,
+      "confidence": "high",
+      "hardScoreEligible": true
+    },
+    {
+      "id": "real-verification-4",
+      "value": null,
+      "confidence": "uncertain",
+      "hardScoreEligible": false
+    }
+  ]
+}

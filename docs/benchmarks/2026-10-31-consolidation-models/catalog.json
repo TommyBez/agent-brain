@@ -1,0 +1,76 @@
+[
+  {
+    "id": "typesafe-ai/jev-1.14.0",
+    "object": "model",
+    "created": 1755815280,
+    "released": 1792022400,
+    "owned_by": "typesafe-ai",
+    "name": "Jev 1.14.0",
+    "description": "Jev 1.14.0 is TypeSafe AI’s System One evaluation model for fast, structured decisions in software. It evaluates shared state against typed questions and returns choices, scores, and boolean probabilities, supporting classification, routing, rubric-based assessment, and automated verification. Multiple questions can be evaluated in parallel within a single request.",
+    "context_window": 32000,
+    "max_tokens": 0,
+    "type": "evaluation",
+    "zdr": "all",
+    "no_training": "all",
+    "tags": [
+      "vision"
+    ],
+    "regions": [
+      "us"
+    ],
+    "supported_specifications": [
+      "v4"
+    ],
+    "modalities": {
+      "input": [
+        "text",
+        "image"
+      ],
+      "output": [
+        "text"
+      ]
+    },
+    "pricing": {
+      "input": "0.000000042",
+      "output": "0",
+      "regional": {
+        "us": {
+          "input": "0.000000042"
+        }
+      }
+    }
+  },
+  {
+    "id": "perplexity/pplx-decider-v1.2",
+    "object": "model",
+    "created": 1755815280,
+    "released": 1792108800,
+    "owned_by": "perplexity",
+    "name": "Decider V1.2 27B",
+    "description": "Perplexity Decider V1.2 is a 27B multimodal decision model for classification, routing, and scoring. It evaluates text, structured JSON, and images against yes/no questions, custom choices, and ordered rubrics, returning typed answers with probabilities. It supports multiple questions over shared content and a 256K context window.",
+    "context_window": 262144,
+    "max_tokens": 0,
+    "type": "evaluation",
+    "zdr": "none",
+    "no_training": "all",
+    "tags": [
+      "vision"
+    ],
+    "supported_specifications": [
+      "v4"
+    ],
+    "modalities": {
+      "input": [
+        "text",
+        "image"
+      ],
+      "output": [
+        "text"
+      ]
+    },
+    "pricing": {
+      "input": "0.00000002",
+      "output": "0"
+    }
+  }
+]
