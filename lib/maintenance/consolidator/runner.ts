@@ -30,7 +30,8 @@ export type RunSummary = {
     | "provider"
     | "incomplete"
     | "limit"
-    | "changed";
+    | "changed"
+    | "capacity";
 };
 /** One immutable snapshot. Finish each intervention before spending on overlapping tasks. */
 export async function runConsolidation(
@@ -58,6 +59,7 @@ export async function runConsolidation(
   const scan = await steps.scan(snapshot.id, options.taskBudget);
   summary.totalTasks = scan.total;
   summary.reusedTasks = scan.reused;
+  summary.capacityLimited = scan.capacityLimited ?? 0;
   const cached = new Map(scan.cached.map((result) => [result.taskId, result]));
   const changed = new Set<string>();
   const completed: { id: string; reads: string[] }[] = [];
@@ -112,8 +114,10 @@ export async function runConsolidation(
         : "limit";
   if (summary.remainingTasks || summary.errors || summary.capacityLimited)
     summary.status = "partial";
+  if (summary.stoppedBy === "stable" && summary.capacityLimited)
+    summary.stoppedBy = "capacity";
   await steps.queue(completedIds);
-  summary.report = `Consolidation: ${summary.writes} page writes, ${summary.evaluatedTasks} analysed tasks, ${summary.reusedTasks} reused, ${summary.remainingTasks} queued. ${summary.unresolved} unresolved findings, ${summary.errors} errors. Stopped: ${summary.stoppedBy}.`;
+  summary.report = `Consolidation: ${summary.writes} page writes, ${summary.evaluatedTasks} analysed tasks, ${summary.reusedTasks} reused, ${summary.remainingTasks} queued. ${summary.unresolved} unresolved findings, ${summary.errors} errors, ${summary.capacityLimited} capacity-limited. Stopped: ${summary.stoppedBy}.`;
   return summary;
 }
 
@@ -163,7 +167,9 @@ async function processTask(
     diagnostic: ReturnType<typeof failureDiagnostic>,
     failureStage: string,
   ) => {
-    outcome.gatewayFailure = diagnostic.category === "gateway";
+    outcome.gatewayFailure =
+      diagnostic.category === "gateway" &&
+      diagnostic.code !== "max_tokens_exceeded";
     await steps.record(recordKeys.taskError(task.id), {
       taskId: task.id,
       pageIds: task.pageIds,
@@ -184,6 +190,7 @@ async function processTask(
     outcome.unresolved = result.findings.filter(
       (finding) => finding.status === "uncertain",
     ).length;
+    if (result.capacity) return { ...outcome, capacity: 1, complete: true };
     if (result.status === "incomplete") return { ...outcome, errors: 1 };
     if (outcome.reads.some((id) => changed.has(id))) return outcome;
     if (!result.findings.some((finding) => finding.status === "supported"))

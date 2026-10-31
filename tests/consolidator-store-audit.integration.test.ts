@@ -77,6 +77,21 @@ test(
             return { snapshot, plan, draft };
           };
           const large = await prepare(POLICY.evaluationCharacters + 10_000);
+          const invalid = await prepare(100);
+          invalid.draft.patches[0].unitId = "outside-plan";
+          const rejected = await reviewConsolidation(
+            owner,
+            runId,
+            invalid.snapshot.id,
+            invalid.plan,
+            invalid.draft,
+          );
+          assert.ok(!("halt" in rejected));
+          assert.equal(rejected.changeSet, null);
+          assert.equal(rejected.verification.status, "rejected");
+          assert.deepEqual(rejected.verification.defects, [
+            "Invalid consolidation draft: patch outside planned units",
+          ]);
           const editor = await draftConsolidation(
             owner,
             runId,

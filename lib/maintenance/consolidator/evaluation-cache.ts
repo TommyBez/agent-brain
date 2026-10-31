@@ -38,7 +38,11 @@ export async function evaluatePersisted(
     const previous = await findConsolidationRecord<Evaluation>(ownerId, key);
     if (previous) return previous;
     stage = "evaluation_provider";
-    const evaluation = await evaluateJev(request, gateway);
+    // Persist each successful split before evaluating the next one. A later
+    // failure must not discard completed work or expose a partial aggregate.
+    const evaluation = await evaluateJev(request, gateway, (part) =>
+      evaluatePersisted(ownerId, runId, part, gateway, options),
+    );
     stage = "evaluation_save";
     try {
       await saveConsolidationRecord(ownerId, runId, key, evaluation);

@@ -44,6 +44,19 @@ test("negative screening sends full pages in one request with exactly four indep
   assert.deepEqual(result.findings, []);
 });
 
+test("provider token capacity preserves dependencies as a reusable block, never a negative finding", async () => {
+  const { snapshot, task } = pair();
+  const result = await analyzeTask(snapshot, task, async () => {
+    throw new Error(
+      "Consolidation failure [gateway:max_tokens_exceeded:fatal]",
+    );
+  });
+  assert.equal(result.status, "incomplete");
+  assert.equal(result.capacity?.reason, "max_tokens_exceeded");
+  assert.equal(canReuseAnalysis(snapshot, result), true);
+  assert.deepEqual(result.findings, []);
+});
+
 test("independent partner selections share page state and batch without losing anchors", async () => {
   const snapshot = buildSnapshot([
     page(

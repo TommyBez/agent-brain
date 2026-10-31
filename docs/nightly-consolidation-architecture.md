@@ -21,6 +21,8 @@ invalida il risultato che ne aveva registrato l'assenza.
 
 I risultati completi vengono riutilizzati, compresi quelli senza interventi.
 Le valutazioni Jev sono inoltre memorizzate per modello e richiesta esatta.
+Anche le sottorichieste riuscite durante una divisione per capacità vengono
+salvate: un errore nella parte successiva non impone di pagarle di nuovo.
 La versione della policy fa parte dell'identità delle attività: cambiamenti
 semantici alle domande o alle regole richiedono di aggiornarla.
 
@@ -79,6 +81,9 @@ semantici alle domande o alle regole richiedono di aggiornarla.
    scrittura. Le verifiche piccole restano in una sola chiamata.
    È ammessa una sola riparazione della proposta rifiutata; un esito incerto non
    avvia una riparazione automatica.
+   Una patch non valida restituisce il motivo deterministico esatto alla
+   riparazione. `REPAIR_POLICY_VERSION` invalida una volta i vecchi rifiuti quando
+   cambia questa strategia, senza invalidare le analisi o i giudizi incerti.
    I collegamenti già autorizzati non richiedono una seconda valutazione Jev:
    superano i controlli deterministici di materializzazione e applicazione.
    Per il testo le soglie restano 0,80 per obiettivo e condotta, 0,65 per integrità.
@@ -104,26 +109,44 @@ non schedulata. Non riscrive la coda dopo ogni intervento. `CONSOLIDATION_TASK_B
 (default 2000). Un contenuto oltre il limite della richiesta resta incompleto:
 non viene troncato silenziosamente.
 
-Il budget giornaliero di riferimento è **1 USD**, condiviso fra proprietari,
-esecuzioni, tentativi e modelli, con giorno UTC. Prima di ogni chiamata fisica si
+Il budget giornaliero di riferimento è **1 USD per account autorizzato presente**,
+riunito in un plafond condiviso fra proprietari, esecuzioni, tentativi e modelli,
+con giorno UTC. Ogni account con task manager abilitato destina 0,10 USD ai task;
+il resto resta alle pagine. Prima di ogni chiamata fisica si
 controlla soltanto la spesa effettiva già registrata in `brain_consolidation_spend`:
 se è sotto la soglia la chiamata parte, senza prenotazioni o stime preventive.
-La chiamata può portare il totale oltre 1 USD; alla risposta si registra il costo
+La chiamata può portare il totale oltre il plafond; alla risposta si registra il costo
 restituito dal Gateway o, se assente, quello calcolato dall'utilizzo e dalle tariffe
 configurate. I costi ignoti restano `NULL` e non vengono conteggiati come spesa nota
 né bloccano credito; il registro conserva ogni tentativo fisico, inclusi i retry.
 Le risposte in cache non consumano budget. La richiesta DeepSeek non impone un cap di output e usa il routing del Gateway.
 
-Quando la spesa registrata raggiunge o supera 1 USD, non partono nuove chiamate AI
-del consolidatore.
+Quando la spesa registrata raggiunge il plafond globale o quello delle pagine,
+non partono nuove chiamate AI del consolidatore.
 Le modifiche già verificate possono essere applicate; il lavoro AI restante rimane
 in coda. Embeddings ed export proseguono come stadi separati del workflow.
 Il credito del provider esaurito interrompe subito il giro;
 tre attività consecutive fallite sul Gateway, dopo i retry di ciascuno step,
-interrompono l'avvio di altre attività. Spendere pochi centesimi nel normale funzionamento resta
+interrompono l'avvio di altre attività. Gli errori deterministici
+`max_tokens_exceeded` non contribuiscono a questo arresto globale.
+Spendere pochi centesimi nel normale funzionamento resta
 l'obiettivo; il dollaro è la soglia di avvio delle chiamate, non una quota da consumare.
 
 ## Errori e ripresa
+
+La verifica riprova i limiti di token con una rappresentazione reversibile:
+testi ripetuti e identificatori condividono riferimenti, senza eliminare fonti,
+passaggi o domande. Se il contesto rimane troppo grande, la proposta non viene
+applicata. Un blocco di capacità non è un giudizio negativo sul contenuto.
+
+I blocchi di analisi e verifica vengono conservati con l'impronta delle fonti e
+`CAPACITY_POLICY_VERSION`. Con le stesse prove e la stessa policy non si ripete
+ogni notte la richiesta non elaborabile; il blocco resta visibile in
+`capacityLimited`, anche se riutilizzato dalla cache. Una modifica delle prove
+lo invalida. Quando cambiano modello, limiti o codifica del contesto bisogna
+aggiornare questa versione per riesaminare i blocchi. Se non resta altro lavoro,
+il riepilogo è `partial` con `stoppedBy: capacity`, senza promettere che basti
+attendere la notte successiva.
 
 Un errore tecnico isolato lascia l'attività in coda e permette di proseguire con
 le altre. Il riepilogo resta `partial`, con il numero di errori e il lavoro residuo.

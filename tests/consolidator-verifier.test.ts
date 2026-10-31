@@ -12,7 +12,9 @@ import type {
   EvaluationRequest,
   OperationPlan,
 } from "../lib/maintenance/consolidator/types";
+import { POLICY } from "../lib/maintenance/consolidator/types";
 import { verifyChangeSet } from "../lib/maintenance/consolidator/verifier";
+import { GatewayRequestError } from "../lib/maintenance/gateway";
 
 function fixture() {
   const page: BrainPage = {
@@ -891,4 +893,123 @@ test("moving identical text to another page or changing surrounding headings nev
     snapshot.units.length,
   );
   assert.ok(questions.has("keeper"));
+});
+
+test("token overflow retries losslessly and never accepts evidence that still exceeds capacity", async () => {
+  const { snapshot, changeSet } = fixture();
+  let original: EvaluationRequest | undefined;
+  const overflow = () =>
+    new GatewayRequestError("too large", {
+      reason: "max_tokens_exceeded",
+      retryable: false,
+    });
+  const result = await verifyChangeSet(snapshot, changeSet, async (request) => {
+    if (!original) {
+      original = request;
+      throw overflow();
+    }
+    const before = original.state as { resultUnits: { text: string }[] };
+    const encoded = request.state as { identifiers: Record<string, string> };
+    const decode = (value: unknown): unknown => {
+      if (typeof value === "string") return encoded.identifiers[value] ?? value;
+      if (Array.isArray(value)) return value.map(decode);
+      if (value && typeof value === "object")
+        return Object.fromEntries(
+          Object.entries(value).map(([key, entry]) => [key, decode(entry)]),
+        );
+      return value;
+    };
+    const after = decode(request.state) as {
+      originalUnits: { text: string }[];
+      resultUnits: { text?: string; originalTextIndex?: number }[];
+    };
+    assert.deepEqual(
+      after.resultUnits.map(({ originalTextIndex, ...unit }) => ({
+        ...unit,
+        text:
+          originalTextIndex === undefined
+            ? unit.text
+            : after.originalUnits[originalTextIndex].text,
+      })),
+      before.resultUnits,
+    );
+    assert.deepEqual(
+      Object.keys(request.questions),
+      Object.keys(original.questions),
+    );
+    assert.ok(
+      JSON.stringify(request.state).length <
+        JSON.stringify(original.state).length,
+    );
+    return evaluator()(request);
+  });
+  assert.equal(result.status, "accepted");
+  const blocked = await verifyChangeSet(snapshot, changeSet, async () => {
+    throw overflow();
+  });
+  assert.equal(blocked.status, "uncertain");
+  assert.equal(blocked.incomplete, true);
+  assert.equal(blocked.providerCapacity, "max_tokens_exceeded");
+});
+
+test("lossless fallback rebatches expanded questions within the request limit", async () => {
+  const base = fixture();
+  const pageId = "11111111-1111-4111-8111-111111111111";
+  const snapshot = buildSnapshot([
+    {
+      ...base.snapshot.pages[0],
+      id: pageId,
+      markdown: Array.from(
+        { length: 10 },
+        (_, i) => `Original item ${i}.`,
+      ).join("\n\n"),
+    },
+  ]);
+  const plan: OperationPlan = {
+    ...base.plan,
+    targetPageIds: [pageId],
+    targetUnitIds: snapshot.units.map((unit) => unit.id),
+    evidenceUnitIds: snapshot.units.map((unit) => unit.id),
+    readSet: [{ pageId, version: 2 }],
+  };
+  const changeSet = materializeDraft(snapshot, plan, {
+    noChange: false,
+    links: [],
+    patches: snapshot.units.map((unit) => ({
+      pageId,
+      unitId: unit.id,
+      before: unit.text,
+      after: unit.text.replace("Original", "Revised"),
+    })),
+  });
+  const expected = new Set<string>();
+  await verifyChangeSet(
+    snapshot,
+    changeSet,
+    evaluator((id) => {
+      expected.add(id);
+      return 1;
+    }),
+  );
+  let overflowed = false;
+  const seen: string[] = [];
+  const result = await verifyChangeSet(snapshot, changeSet, async (request) => {
+    assert.ok(JSON.stringify(request).length <= POLICY.evaluationCharacters);
+    assert.ok(
+      Object.keys(request.questions).length <= POLICY.questionsPerRequest,
+    );
+    if (!overflowed) {
+      overflowed = true;
+      assert.deepEqual(Object.keys(request.questions), ["objective"]);
+      throw new GatewayRequestError("too large", {
+        reason: "max_tokens_exceeded",
+        retryable: false,
+      });
+    }
+    seen.push(...Object.keys(request.questions));
+    return evaluator()(request);
+  });
+  assert.equal(result.status, "accepted");
+  assert.equal(seen.length, expected.size);
+  assert.deepEqual(new Set(seen), expected);
 });

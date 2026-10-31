@@ -1,4 +1,6 @@
+import { CAPACITY_POLICY_VERSION } from "./capacity";
 import { recordKeys } from "./keys";
+import { REPAIR_POLICY_VERSION } from "./plan-validation";
 import { selectIndependentPlans } from "./planner";
 import { pageEvidenceFingerprint } from "./snapshot";
 import type {
@@ -10,10 +12,14 @@ import type {
 
 export function canReuseAnalysis(
   snapshot: Snapshot,
-  result: Pick<AnalysisResult, "status" | "dependencies"> | undefined,
+  result:
+    | Pick<AnalysisResult, "status" | "dependencies" | "capacity">
+    | undefined,
 ): boolean {
   return (
-    result?.status === "complete" &&
+    (result?.status === "complete" ||
+      (result?.capacity?.version === CAPACITY_POLICY_VERSION &&
+        Boolean(result.dependencies?.length))) &&
     (result.dependencies ?? []).every((ref) => {
       const page = snapshot.pages.find(
         (page) => page.id === ref.pageId || page.slug === ref.pageId,
@@ -29,6 +35,10 @@ export function canReuseDecision(
 ): boolean {
   return Boolean(
     decision &&
+      (decision.status !== "rejected" ||
+        decision.repairVersion === REPAIR_POLICY_VERSION) &&
+      (decision.reason !== "capacity" ||
+        decision.capacityVersion === CAPACITY_POLICY_VERSION) &&
       ["rejected", "uncertain", "no_change"].includes(decision.status) &&
       decision.evidenceFingerprints?.every((ref) => {
         const page = snapshot.pages.find((page) => page.id === ref.pageId);
