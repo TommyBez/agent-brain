@@ -1,5 +1,8 @@
 import type { CapacityLimit, Verification } from "./types";
 
+/** Bump when the evaluator, input limits or lossless encoding changes. */
+export const CAPACITY_POLICY_VERSION = "jev-1.14-lossless-v2";
+
 /** A deterministic input-size limit, not a retryable provider failure. */
 export class CapacityError extends Error {
   readonly capacity: CapacityLimit;

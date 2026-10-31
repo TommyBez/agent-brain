@@ -78,6 +78,20 @@ const HALT_NOTICES: Record<TaskPhaseHalt, string> = {
   limit: "Run limit reached. Remaining work continues the next night.",
 };
 
+const CONSOLIDATION_NOTICES: Record<string, string> = {
+  budget:
+    "Daily consolidation budget reached. Pending work continues in a later run.",
+  provider:
+    "Repeated provider failures stopped this run. Pending work has been retained.",
+  incomplete:
+    "Some tasks could not finish because of technical errors. Pending work has been retained.",
+  limit: "Run limit reached. Pending work continues in a later run.",
+  changed:
+    "Pages changed during this run. A later pass will use their updated contents.",
+  capacity:
+    "Some tasks exceed the model's input capacity. They will be retried when their evidence or capacity policy changes.",
+};
+
 const spend = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
@@ -106,6 +120,12 @@ function OperationResult({ job }: { job: MaintenanceJob }) {
       : (
           [
             [result.writes, "successful writes"],
+            [values.evaluatedTasks, "tasks analyzed"],
+            [values.reusedTasks, "analyses reused"],
+            [values.remainingTasks, "tasks queued"],
+            [values.capacityLimited, "capacity limits"],
+            [values.unresolved, "uncertain findings"],
+            [values.errors, "technical errors"],
             [result.indexedPages, "pages indexed"],
             [result.embeddedChunks, "chunks embedded"],
             [result.remaining, "pages awaiting indexing"],
@@ -125,9 +145,14 @@ function OperationResult({ job }: { job: MaintenanceJob }) {
   )
     counts.push(`${spend.format(values.spendNano / 1e9)} spent`);
   const halt =
-    typeof values.halt === "string" && Object.hasOwn(HALT_NOTICES, values.halt)
-      ? HALT_NOTICES[values.halt as TaskPhaseHalt]
-      : null;
+    job.kind === "consolidation" &&
+    typeof values.stoppedBy === "string" &&
+    Object.hasOwn(CONSOLIDATION_NOTICES, values.stoppedBy)
+      ? CONSOLIDATION_NOTICES[values.stoppedBy]
+      : typeof values.halt === "string" &&
+          Object.hasOwn(HALT_NOTICES, values.halt)
+        ? HALT_NOTICES[values.halt as TaskPhaseHalt]
+        : null;
   const commitUrl =
     typeof result.repository === "string" &&
     /^[A-Za-z0-9-]+\/[A-Za-z0-9_.-]+$/.test(result.repository) &&
@@ -145,6 +170,12 @@ function OperationResult({ job }: { job: MaintenanceJob }) {
           <p>Run limit reached. Remaining work continues the next night.</p>
         )
       )}
+      {job.kind === "consolidation" &&
+        typeof values.capacityLimited === "number" &&
+        values.capacityLimited > 0 &&
+        values.stoppedBy !== "capacity" && (
+          <p>{CONSOLIDATION_NOTICES.capacity}</p>
+        )}
       {job.kind === "export" && result.skipped === true && (
         <p>Export skipped. This account has no Git repository configured.</p>
       )}

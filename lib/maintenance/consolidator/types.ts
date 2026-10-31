@@ -86,6 +86,10 @@ export type AnalysisResult = {
   findings: Finding[];
   judgments: Judgment[];
   status: "complete" | "incomplete";
+  capacity?: {
+    version: string;
+    reason: "max_tokens_exceeded" | "evaluation_input_exceeds_policy";
+  };
   errors?: { questionIds: string[]; reason: string }[];
 };
 export type VersionRef = { pageId: string; version: number };
@@ -144,6 +148,7 @@ export type Verification = {
   judgments: Judgment[];
   incomplete?: boolean;
   capacity?: CapacityLimit;
+  providerCapacity?: "max_tokens_exceeded";
 };
 export type ApplyResult =
   | { status: "applied" | "replayed"; pages: BrainPage[] }
@@ -158,6 +163,8 @@ export type DecisionRecord = {
     | "conflict"
     | "error";
   reason?: string;
+  capacityVersion?: string;
+  repairVersion?: string;
   changeSet?: ChangeSet;
   verification?: Verification;
   evidenceFingerprints?: { pageId: string; fingerprint: string }[];
@@ -180,6 +187,7 @@ export type PlannedTask = {
   capacityLimited?: number;
 };
 export type Scan = {
+  capacityLimited?: number;
   tasks: AnalysisTask[];
   cached: AnalysisResult[];
   plans?: Record<string, PlannedTask>;

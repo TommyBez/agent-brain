@@ -1,4 +1,6 @@
+import { CAPACITY_POLICY_VERSION } from "./capacity";
 import { failureDiagnostic } from "./diagnostics";
+import { REPAIR_POLICY_VERSION } from "./plan-validation";
 import type {
   DecisionRecord,
   OperationPlan,
@@ -44,6 +46,7 @@ export async function attempt(
           operationId: plan.id,
           status: "uncertain",
           reason: "capacity",
+          capacityVersion: CAPACITY_POLICY_VERSION,
         },
       };
     if (draft.noChange)
@@ -55,7 +58,10 @@ export async function attempt(
     const reviewed = await steps.review(snapshotId, plan, draft);
     if ("halt" in reviewed) return { ...outcome, halt: reviewed.halt };
     const verification = reviewed.verification;
-    if (verification.incomplete)
+    const limited = Boolean(
+      verification.capacity || verification.providerCapacity,
+    );
+    if (verification.incomplete && !limited)
       return { ...outcome, errors: 1, deferred: true };
     if (verification.status === "accepted" && reviewed.changeSet) {
       stage = "apply";
@@ -84,12 +90,17 @@ export async function attempt(
       return { ...outcome, repair: verification.defects };
     return {
       ...outcome,
-      capacity: verification.capacity ? 1 : 0,
+      capacity: limited ? 1 : 0,
       decision: {
         operationId: plan.id,
         status: verification.status === "rejected" ? "rejected" : "uncertain",
+        ...(verification.status === "rejected"
+          ? { repairVersion: REPAIR_POLICY_VERSION }
+          : {}),
         verification,
-        ...(verification.capacity ? { reason: "capacity" } : {}),
+        ...(limited
+          ? { reason: "capacity", capacityVersion: CAPACITY_POLICY_VERSION }
+          : {}),
       },
     };
   } catch (error) {

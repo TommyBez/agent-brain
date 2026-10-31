@@ -1,7 +1,9 @@
 import { type BrainPage, isLinkType } from "../../brain/types";
 import { fingerprint } from "../../canonical-json";
 import { batchQuestions } from "./batching";
+import { CAPACITY_POLICY_VERSION } from "./capacity";
 import { analystGates, SCREENING_THRESHOLD } from "./decision-policy";
+import { failureDiagnostic } from "./diagnostics";
 import {
   analyzeConflict,
   analyzeDuplicate,
@@ -72,6 +74,10 @@ export async function analyzeTask(
     const { batches, oversized } = batchQuestions(json, questions);
     if (oversized.length) {
       result.status = "incomplete";
+      result.capacity = {
+        version: CAPACITY_POLICY_VERSION,
+        reason: "evaluation_input_exceeds_policy",
+      };
       result.errors = [
         { questionIds: oversized, reason: "evaluation_input_exceeds_policy" },
       ];
@@ -149,7 +155,13 @@ export async function analyzeTask(
       });
     }
   } catch (error) {
-    if (!(error instanceof IncompleteAnalysis)) throw error;
+    if (failureDiagnostic(error).code === "max_tokens_exceeded") {
+      result.status = "incomplete";
+      result.capacity = {
+        version: CAPACITY_POLICY_VERSION,
+        reason: "max_tokens_exceeded",
+      };
+    } else if (!(error instanceof IncompleteAnalysis)) throw error;
   }
   result.findings = [
     ...new Map(

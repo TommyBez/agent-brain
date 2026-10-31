@@ -1,7 +1,18 @@
 import { LINK_TYPES } from "../../brain/types";
 import type { OperationPlan, Snapshot } from "./types";
+
+/** Retry old rejected drafts once when repair feedback changes, without re-analysis. */
+export const REPAIR_POLICY_VERSION = "precise-draft-defects-v1";
+
+export class InvalidDraftError extends Error {
+  constructor(reason: string) {
+    super(`Invalid consolidation draft: ${reason}`);
+    this.name = "InvalidDraftError";
+  }
+}
+
 export function invalid(reason: string): never {
-  throw new Error(`Invalid consolidation draft: ${reason}`);
+  throw new InvalidDraftError(reason);
 }
 
 export function validatePlan(snapshot: Snapshot, plan: OperationPlan) {

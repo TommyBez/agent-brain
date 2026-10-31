@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import * as brain from "../lib/brain/service";
+import { CAPACITY_POLICY_VERSION } from "../lib/maintenance/consolidator/capacity";
 import { planOperations } from "../lib/maintenance/consolidator/planner";
 import {
   buildSnapshot,
@@ -170,6 +171,11 @@ test(
           const snapshot = buildSnapshot([target, unrelated]);
           const runId = "capacity-decision-cache";
           const result = residueAnalysis(snapshot, target.id);
+          const task = createAnalysisTasks(snapshot).find(
+            (task) => task.kind === "document" && task.pageIds[0] === target.id,
+          );
+          assert.ok(task);
+          result.taskId = task.id;
           const [plan] = planOperations(snapshot, [result]);
           await saveConsolidationRecord(
             owner,
@@ -181,6 +187,7 @@ test(
             operationId: plan.id,
             status: "uncertain",
             reason: "capacity",
+            capacityVersion: CAPACITY_POLICY_VERSION,
             evidenceFingerprints: snapshot.pages
               .filter((page) =>
                 plan.readSet.some((ref) => ref.pageId === page.id),
@@ -194,6 +201,20 @@ test(
             await planConsolidation(owner, runId, snapshot.id, [result]),
             { selected: [], deferred: 0, capacityLimited: 1 },
           );
+          await saveConsolidationRecord(
+            owner,
+            runId,
+            `analysis:${result.taskId}`,
+            result,
+          );
+          const scan = await prepareConsolidationScan(
+            owner,
+            runId,
+            snapshot.id,
+            100,
+          );
+          assert.equal(scan.capacityLimited, 1);
+          assert.ok(!scan.tasks.some((task) => task.id === result.taskId));
           const changed = await brain.append(owner, {
             ref: unrelated.id,
             expectedVersion: unrelated.version,

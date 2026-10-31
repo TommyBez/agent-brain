@@ -14,6 +14,7 @@ import {
 import { draftChanges, materializeDraft } from "./editor";
 import { evaluatePersisted } from "./evaluation-cache";
 import { type RecordKey, recordKeys, recordKind } from "./keys";
+import { InvalidDraftError } from "./plan-validation";
 import { planOperations } from "./planner";
 import { canReuseAnalysis, unreusedPlans } from "./reuse";
 import { buildSnapshot, createAnalysisTasks } from "./snapshot";
@@ -151,10 +152,15 @@ export async function prepareConsolidationScan(
     ["judgments"],
   );
   let reused = 0;
+  let capacityLimited = 0;
   for (const task of tasks) {
     const result = records.get(recordKeys.analysis(task.id));
     if (result && canReuseAnalysis(snapshot, result)) {
       reused++;
+      if (result.capacity) {
+        capacityLimited++;
+        continue;
+      }
       if (!result.findings.some((finding) => finding.status === "supported"))
         continue;
       cached.push({ ...result, judgments: [] });
@@ -182,6 +188,8 @@ export async function prepareConsolidationScan(
       .filter(([, verdict]) => !verdict.selected.length && !verdict.deferred)
       .map(([id]) => id),
   );
+  for (const id of completed)
+    capacityLimited += verdicts.get(id)?.capacityLimited ?? 0;
   const outstanding = pending.filter((task) => !completed.has(task.id));
   const prior = await readConsolidationQueue(ownerId);
   const byId = new Map(outstanding.map((task) => [task.id, task]));
@@ -202,6 +210,7 @@ export async function prepareConsolidationScan(
     ),
     cached: cached.filter((result) => selectedIds.has(result.taskId)),
     reused,
+    capacityLimited,
     total: tasks.length,
     remaining: outstanding.length - selected.length,
   };
@@ -232,7 +241,7 @@ export async function analyzeConsolidationTask(
       task,
       evaluatePages(ownerId, runId),
     );
-    if (result.status === "complete")
+    if (result.status === "complete" || result.capacity)
       await saveConsolidationRecord(
         ownerId,
         runId,
@@ -333,13 +342,12 @@ export async function reviewConsolidation(
         changeSet: null,
         verification: capacityVerification(error.capacity),
       };
+    if (!(error instanceof InvalidDraftError)) return failProvider(error);
     return {
       changeSet: null,
       verification: {
         status: "rejected",
-        defects: [
-          "Invalid or out-of-scope patch; use exact target unit text and preserve original metadata and sources.",
-        ],
+        defects: [error.message],
         judgments: [],
       } satisfies Verification,
     };

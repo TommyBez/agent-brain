@@ -7,6 +7,7 @@ import {
 } from "../gateway";
 import {
   type Answer,
+  type Evaluate,
   type Evaluation,
   type EvaluationRequest,
   type Json,
@@ -169,6 +170,7 @@ export function validateEvaluation(
 export async function evaluateJev(
   request: EvaluationRequest,
   send: GatewayCall = gatewayRequest,
+  evaluatePart: Evaluate = (part) => evaluateJev(part, send),
 ): Promise<Evaluation> {
   const questionCount = Object.keys(request.questions).length;
   if (
@@ -203,10 +205,10 @@ export async function evaluateJev(
       entries.slice(midpoint),
     ])
       batches.push(
-        await evaluateJev(
-          { state: request.state, questions: Object.fromEntries(questions) },
-          send,
-        ),
+        await evaluatePart({
+          state: request.state,
+          questions: Object.fromEntries(questions),
+        }),
       );
     const usage = (field: "inputTokens" | "outputTokens") =>
       batches.some((batch) => batch[field] === null)

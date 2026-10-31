@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { failureMessage } from "../lib/maintenance/consolidator/diagnostics";
+import { REPAIR_POLICY_VERSION } from "../lib/maintenance/consolidator/plan-validation";
 import { runConsolidation } from "../lib/maintenance/consolidator/runner";
 import {
   buildSnapshot,
@@ -98,6 +99,80 @@ function fake(overrides: Partial<RunnerSteps> = {}) {
 }
 const options = { taskBudget: 2000, repairs: 1 };
 
+test("capacity failures never stop unrelated work as a provider outage", async () => {
+  let calls = 0;
+  const run = fake({
+    scan: async () => ({
+      tasks,
+      cached: [],
+      reused: 0,
+      total: tasks.length,
+      remaining: 0,
+    }),
+    analyze: async (_snapshot, task) => {
+      if (++calls <= 3)
+        throw new Error(
+          failureMessage({
+            category: "gateway",
+            code: "max_tokens_exceeded",
+            retryable: false,
+          }),
+        );
+      return analysis(task.id, false);
+    },
+  });
+  const result = await runConsolidation(run.steps, options);
+  assert.equal(calls, tasks.length);
+  assert.notEqual(result.stoppedBy, "provider");
+});
+
+test("verification capacity is recorded separately from invalid responses", async () => {
+  const run = fake({
+    review: async () => ({
+      changeSet: null,
+      verification: {
+        status: "uncertain",
+        incomplete: true,
+        judgments: [],
+        defects: ["Too large"],
+        capacity: {
+          stage: "verification",
+          requiredCharacters: 100001,
+          limitCharacters: 100000,
+        },
+      },
+    }),
+  });
+  const result = await runConsolidation(run.steps, options);
+  assert.equal(result.errors, 0);
+  assert.equal(result.capacityLimited, 1);
+  assert.equal(result.writes, 0);
+  assert.equal(result.remainingTasks, 0);
+  assert.equal(result.stoppedBy, "capacity");
+  assert.ok(
+    run.records.some((r) => (r as { reason?: string }).reason === "capacity"),
+  );
+});
+
+test("cached capacity remains visible without retrying blocked work", async () => {
+  const run = fake({
+    scan: async () => ({
+      tasks: [],
+      cached: [],
+      reused: 3,
+      total: 3,
+      remaining: 0,
+      capacityLimited: 2,
+    }),
+  });
+  const result = await runConsolidation(run.steps, options);
+  assert.equal(result.status, "partial");
+  assert.equal(result.stoppedBy, "capacity");
+  assert.equal(result.capacityLimited, 2);
+  assert.equal(result.errors, 0);
+  assert.deepEqual(run.events, ["snapshot"]);
+});
+
 test("accepted writes happen automatically, with no global rescan in the same night", async () => {
   const run = fake();
   const result = await runConsolidation(run.steps, options);
@@ -177,6 +252,35 @@ test("one bounded repair is followed by a fresh verification", async () => {
   const result = await runConsolidation(run.steps, options);
   assert.deepEqual(attempts, [0, 1]);
   assert.equal(result.writes, 1);
+});
+
+test("a terminal rejection records the repair policy after one bounded retry", async () => {
+  const feedback: (string[] | undefined)[] = [];
+  const run = fake({
+    draft: async (_snapshot, _plan, _attempt, defects) => {
+      feedback.push(defects);
+      return draft;
+    },
+    review: async () => ({
+      changeSet: null,
+      verification: {
+        status: "rejected",
+        defects: ["Invalid consolidation draft: patch outside planned units"],
+        judgments: [],
+      },
+    }),
+  });
+  const result = await runConsolidation(run.steps, options);
+  assert.equal(result.writes, 0);
+  assert.equal(result.rejected, 1);
+  assert.deepEqual(feedback, [
+    undefined,
+    ["Invalid consolidation draft: patch outside planned units"],
+  ]);
+  assert.equal(
+    (run.records[0] as { repairVersion: string }).repairVersion,
+    REPAIR_POLICY_VERSION,
+  );
 });
 
 test("uncertain verification is recorded without global evidence expansion or human work", async () => {
