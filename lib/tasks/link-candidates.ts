@@ -55,7 +55,7 @@ export async function findTaskLinkCandidates(
   limit = 10,
   send: GatewayCall = gatewayRequest,
   options: SuggestionOptions = {},
-): Promise<TaskLinkSuggestionResult> {
+): Promise<Extract<TaskLinkSuggestionResult, { kind: "pages" }>> {
   const rules = (await reads.decisions(draft)).slice(
     0,
     TASK_LINK_CANDIDATE_POLICY.maxDecisionCandidates,
@@ -111,15 +111,21 @@ export async function findTaskLinkCandidates(
     send,
     {
       ...options,
-      onFallback: (value) =>
+      onFallback: (value) => {
+        const pages = value as Awaited<
+          ReturnType<typeof evaluateLinkCandidates>
+        >;
         options.onFallback?.({
-          ...(value as TaskLinkSuggestion),
-          candidates: (value as TaskLinkSuggestion).candidates.slice(0, limit),
-        }),
+          ...pages,
+          kind: "pages",
+          candidates: pages.candidates.slice(0, limit),
+        } satisfies TaskLinkSuggestionResult);
+      },
     },
   );
   return {
     ...evaluated,
+    kind: "pages",
     candidates: evaluated.candidates.slice(0, Math.min(10, Math.max(1, limit))),
   };
 }
@@ -128,16 +134,21 @@ export async function suggestTaskLinks(
   input: unknown,
   send: GatewayCall = gatewayRequest,
 ): Promise<TaskLinkSuggestionResult> {
+  const data = parseTaskInput(suggestTaskLinksSchema, input);
   return withinSuggestionDeadline<TaskLinkSuggestionResult>(
-    { candidates: [], status: "deterministic", fallbackReason: "deadline" },
+    // A pending ref has an unknown phase. Conservatively keep the project chooser
+    // until the row establishes a selected project; never claim no matching pages.
+    deadlineSuggestion(Boolean(data.projectRef)),
     async (signal, fallback) => {
-      const data = parseTaskInput(suggestTaskLinksSchema, input);
       const db: Database = getPool();
       let draft: CandidateDraft;
       let authorAgentId = actor.agentId ?? null;
       let includeOwnerRecent = actor.agentId === undefined;
       if (data.ref) {
         const task = await loadTaskRow(db, actor.ownerId, data.ref);
+        fallback(
+          deadlineSuggestion(Boolean(data.projectRef || task.project_page_id)),
+        );
         authorAgentId = task.created_by_agent_id ?? null;
         includeOwnerRecent = false;
         draft = {
@@ -217,6 +228,7 @@ export async function suggestTaskLinks(
             ...options,
             onFallback: (value) =>
               fallback({
+                kind: "project",
                 candidates: [],
                 status: "deterministic",
                 fallbackReason: "deadline",
@@ -225,6 +237,7 @@ export async function suggestTaskLinks(
           },
         );
         return {
+          kind: "project",
           candidates: [],
           status: projectProposal.status,
           ...(projectProposal.fallbackReason
@@ -238,16 +251,51 @@ export async function suggestTaskLinks(
   );
 }
 
-export interface TaskLinkSuggestion {
-  /** Additive field: legacy client snapshots may omit it; current endpoint never does. */
+interface SuggestionStatus {
+  /** Cached client metadata may omit status; server responses always include it. */
   status?: "evaluated" | "deterministic";
   fallbackReason?: FallbackReason;
-  unevaluatedPageRefs?: string[];
-  candidates: PageCandidate[];
-  projectProposal?: ProjectProposal;
 }
 
-/** Server responses always carry the new status while old client snapshots remain valid. */
+export type TaskLinkSuggestion = SuggestionStatus &
+  (
+    | {
+        kind: "project";
+        candidates: [];
+        projectProposal: ProjectProposal;
+        unevaluatedPageRefs?: never;
+      }
+    | {
+        kind: "pages";
+        candidates: PageCandidate[];
+        projectProposal?: never;
+        unevaluatedPageRefs?: string[];
+      }
+  );
+
+/** Both phases always carry status on the wire. */
 export type TaskLinkSuggestionResult = TaskLinkSuggestion & {
   status: "evaluated" | "deterministic";
 };
+
+function deadlineSuggestion(hasProject: boolean): TaskLinkSuggestionResult {
+  return hasProject
+    ? {
+        kind: "pages",
+        candidates: [],
+        status: "deterministic",
+        fallbackReason: "deadline",
+      }
+    : {
+        kind: "project",
+        candidates: [],
+        status: "deterministic",
+        fallbackReason: "deadline",
+        projectProposal: {
+          candidates: [],
+          preselectedProjectRef: null,
+          status: "deterministic",
+          fallbackReason: "deadline",
+        },
+      };
+}

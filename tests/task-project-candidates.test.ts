@@ -317,6 +317,7 @@ for (const entry of ["MCP", "UI"] as const) {
             send,
           )) as Promise<TaskLinkSuggestion>;
     const initial = await call({ ref: "T-1" });
+    assert.equal(initial.kind, "project");
     assert.deepEqual(initial.candidates, []);
     assert.equal(initial.projectProposal?.candidates.length, 2);
     assert.equal(initial.projectProposal?.preselectedProjectRef, null);
@@ -328,6 +329,7 @@ for (const entry of ["MCP", "UI"] as const) {
     );
     const firstInput = suggestionRequest("T-1", undefined, options[0].id);
     const first = await call(firstInput);
+    assert.equal(first.kind, "pages");
     assert.equal(first.projectProposal, undefined);
     assert.deepEqual(
       first.candidates.map((c) => c.pageRef),
@@ -339,6 +341,7 @@ for (const entry of ["MCP", "UI"] as const) {
       suggestionRequestKey(nextInput),
     );
     const next = await call(nextInput);
+    assert.equal(next.kind, "pages");
     assert.deepEqual(
       next.candidates.map((c) => c.pageRef),
       [decisions[1].id],

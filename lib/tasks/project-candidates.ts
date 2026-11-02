@@ -49,18 +49,7 @@ export function preselectedProject(
     : null;
 }
 
-export async function proposeTaskProject(
-  draft: CandidateDraft,
-  pageRefs: string[],
-  reads: ProjectReads,
-  send: GatewayCall = gatewayRequest,
-  options: SuggestionOptions = {},
-): Promise<ProjectProposal> {
-  const sources = await Promise.all([
-    reads.fullText(lexicalQuery(`${draft.title} ${draft.description}`)),
-    reads.linkedPages(pageRefs),
-    reads.recentAuthor(),
-  ]);
+function deterministicProjectPool(sources: CandidatePage[][]) {
   const reasons = [
     "Active project matching the task text",
     "Active project linked to a candidate page",
@@ -91,13 +80,36 @@ export async function proposeTaskProject(
       });
     });
   }
+  return { pages, candidates: fallback };
+}
+
+export async function proposeTaskProject(
+  draft: CandidateDraft,
+  pageRefs: string[],
+  reads: ProjectReads,
+  send: GatewayCall = gatewayRequest,
+  options: SuggestionOptions = {},
+): Promise<ProjectProposal> {
+  const sources: CandidatePage[][] = [[], [], []];
   const deterministic = (fallbackReason?: FallbackReason): ProjectProposal => ({
-    candidates: fallback,
+    candidates: deterministicProjectPool(sources).candidates,
     preselectedProjectRef: null,
     status: "deterministic",
     ...(fallbackReason ? { fallbackReason } : {}),
   });
+  // Publish before any source read, then upgrade as each deterministic source arrives.
   options.onFallback?.(deterministic("deadline"));
+  await Promise.all(
+    [
+      () => reads.fullText(lexicalQuery(`${draft.title} ${draft.description}`)),
+      () => reads.linkedPages(pageRefs),
+      () => reads.recentAuthor(),
+    ].map(async (read, index) => {
+      sources[index] = await read();
+      options.onFallback?.(deterministic("deadline"));
+    }),
+  );
+  const { pages, candidates: fallback } = deterministicProjectPool(sources);
   if (options.skipReason || options.signal?.aborted)
     return deterministic(options.skipReason ?? "deadline");
   if (!fallback.length)

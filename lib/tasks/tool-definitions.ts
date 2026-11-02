@@ -62,7 +62,7 @@ export const TASK_TOOL_DEFINITIONS: TaskToolDefinition[] = [
     name: "suggest_task_links",
     scope: "brain:read",
     description: describe(
-      "Suggest pages for an existing task or a draft; returns candidates only; apply the ones the owner/agent confirms with update_task (patch.contextPageRefs.add) or create_task (contextPageRefs). Without a project, returns an additive projectProposal and no page candidates: confirm a project and call again with projectRef (also supported alongside ref). A preselection is never applied automatically. Evaluates bounded project/page candidate pools with JEV; status is evaluated or deterministic, with fallbackReason when skipped for budget, deadline, context or gateway failure. No DB writes or events. On gateway failure returns deterministic candidates.",
+      "Suggest pages for an existing task or a draft; returns candidates only; apply the ones the owner/agent confirms with update_task (patch.contextPageRefs.add) or create_task (contextPageRefs). The additive kind discriminant is project (required projectProposal, candidates: []) or pages (page candidates, no projectProposal). Without a project, confirm a project and call again with projectRef (also supported alongside ref). A preselection is never applied automatically. Evaluates bounded project/page candidate pools with JEV; status is evaluated or deterministic, with fallbackReason when skipped for budget, deadline, context or gateway failure. No DB writes or events. On gateway failure returns deterministic candidates in the same phase. A deadline before a ref task loads conservatively returns kind project with an empty proposal; retry instead of interpreting it as no matching pages.",
     ),
     inputSchema: suggestTaskLinksSchema,
     annotations: read,
@@ -152,7 +152,7 @@ ${CREATION_ALLOWLIST}
 - Create tasks for meeting action items or source commitments only when the owner asks you to track one.
 - Never invent due dates or people. Leave due.kind unset unless a source states it, and cite it in due.sourceExcerpt; "next meeting" is an event due date with its wording in due.text.
 - Agent-created tasks start in triage (or ready only for you, if the owner set your policy to direct). You may work your own; other agents need the owner's approval.
-- Page links are explicit. Request suggest_task_links for candidates only; apply confirmed choices with create_task.contextPageRefs or update_task.patch.contextPageRefs.add.
+- Page links are explicit. Request suggest_task_links for candidates only; kind project requires confirming a project and calling again with projectRef; kind pages contains page candidates; apply confirmed choices with create_task.contextPageRefs or update_task.patch.contextPageRefs.add.
 - create_task is idempotent: after an unknown outcome retry with the same idempotencyKey and payload (replayed:true), or read_task before retrying.
 
 ## Claiming

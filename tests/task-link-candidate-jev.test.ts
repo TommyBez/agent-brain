@@ -268,6 +268,7 @@ for (const entry of ["MCP tool", "UI action"] as const) {
       assert.doesNotMatch(action, /ownerActor|updateTasksCache/);
     }
     assert.equal(calls, 1);
+    assert.equal((result as { kind: string }).kind, "pages");
     assert.equal(
       (result as { candidates: PageCandidate[] }).candidates.length,
       2,

@@ -107,21 +107,36 @@ test("pages from a previous project are flagged after the project changes", () =
 });
 
 test("the live region summarizes results, proposals and the optional status", () => {
-  assert.equal(suggestionSummary({ candidates: [] }), "No matching pages.");
   assert.equal(
-    suggestionSummary({ candidates: [page("a"), page("d", "decision")] }),
+    suggestionSummary({ kind: "pages", candidates: [] }),
+    "No matching pages.",
+  );
+  assert.equal(
+    suggestionSummary({
+      kind: "pages",
+      candidates: [page("a"), page("d", "decision")],
+    }),
     "2 pages suggested, 1 decision.",
   );
   assert.equal(
-    suggestionSummary({ candidates: [page("a")], status: "deterministic" }),
+    suggestionSummary({
+      kind: "pages",
+      candidates: [page("a")],
+      status: "deterministic",
+    }),
     "1 page suggested. Ranked without evaluation because it was unavailable.",
   );
   assert.equal(
-    suggestionSummary({ candidates: [page("a")], status: "evaluated" }),
+    suggestionSummary({
+      kind: "pages",
+      candidates: [page("a")],
+      status: "evaluated",
+    }),
     "1 page suggested.",
   );
   assert.match(
     suggestionSummary({
+      kind: "project",
       candidates: [],
       projectProposal: {
         candidates: [
