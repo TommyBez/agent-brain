@@ -78,21 +78,65 @@ export function confirmedLinks(pages: readonly ConfirmedPage[]) {
 const plural = (count: number, one: string, many: string) =>
   `${count} ${count === 1 ? one : many}`;
 
-/** What the live region announces once suggestions arrive. */
-export function suggestionSummary(
-  result: TaskLinkSuggestion & { status?: unknown },
-): string {
-  const proposal = result.projectProposal;
-  if (proposal)
-    return proposal.candidates.length
-      ? `${plural(proposal.candidates.length, "project", "projects")} proposed. Choose a project to see page suggestions.`
-      : "No matching projects. Set a project on the task to see page suggestions.";
+type ProjectPhase = Extract<TaskLinkSuggestion, { kind: "project" }>;
+type PagesPhase = Extract<TaskLinkSuggestion, { kind: "pages" }>;
+
+/** Compile-time exhaustiveness for `switch (result.kind)`. */
+export function unreachableKind(result: never): never {
+  throw new Error(
+    `Unknown suggestion kind: ${JSON.stringify((result as { kind?: unknown })?.kind)}`,
+  );
+}
+
+/** The 8 s budget fired before project reads or evaluation finished. */
+export function projectTimedOut(result: ProjectPhase): boolean {
+  return (
+    result.fallbackReason === "deadline" ||
+    result.projectProposal.fallbackReason === "deadline"
+  );
+}
+
+/** Message for the project chooser when it has no candidates to show. */
+export function emptyProjectMessage(result: ProjectPhase): string {
+  return projectTimedOut(result)
+    ? "Project evaluation timed out before it finished. Suggest again, or set a project on the task to see page suggestions."
+    : "No matching projects. Set a project on the task to see page suggestions.";
+}
+
+/** Shared wording for lists ranked without JEV, for both phases. */
+const UNEVALUATED = " Ranked without evaluation because it was unavailable.";
+
+function projectSummary(result: ProjectPhase): string {
+  const { candidates, status } = result.projectProposal;
+  if (!candidates.length) return emptyProjectMessage(result);
+  return `${plural(candidates.length, "project", "projects")} proposed.${status === "deterministic" ? UNEVALUATED : ""} Choose a project to see page suggestions.`;
+}
+
+function pagesSummary(result: PagesPhase): string {
   const pages = result.candidates;
   if (!pages.length) return "No matching pages.";
   const decisions = pages.filter((page) => page.role === "decision").length;
-  const fallback =
-    result.status === "deterministic"
-      ? " Ranked without evaluation because it was unavailable."
-      : "";
-  return `${plural(pages.length, "page", "pages")} suggested${decisions ? `, ${plural(decisions, "decision", "decisions")}` : ""}.${fallback}`;
+  return `${plural(pages.length, "page", "pages")} suggested${decisions ? `, ${plural(decisions, "decision", "decisions")}` : ""}.${result.status === "deterministic" ? UNEVALUATED : ""}`;
+}
+
+/** What the live region announces once suggestions arrive. */
+export function suggestionSummary(result: TaskLinkSuggestion): string {
+  switch (result.kind) {
+    case "project":
+      return projectSummary(result);
+    case "pages":
+      return pagesSummary(result);
+    default:
+      return unreachableKind(result);
+  }
+}
+
+/**
+ * Muted note for candidates JEV did not judge. Evaluated results list only
+ * judged pages; a deterministic list already says it was not evaluated.
+ */
+export function unevaluatedPagesNote(result: PagesPhase): string | null {
+  const count = result.unevaluatedPageRefs?.length ?? 0;
+  if (!count || result.status === "deterministic") return null;
+  return `${plural(count, "other page", "other pages")} could not be evaluated and ${count === 1 ? "is" : "are"} not listed.`;
 }

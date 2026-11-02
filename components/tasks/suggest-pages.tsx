@@ -4,11 +4,6 @@ import { useEffect, useId, useState } from "react";
 import { suggestTaskLinksAction } from "@/app/(workspace)/actions/task-link-candidates";
 import { addLinkAction } from "@/app/(workspace)/actions/tasks";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  NativeSelect,
-  NativeSelectOption,
-} from "@/components/ui/native-select";
 import { checkedCandidates } from "@/lib/tasks/candidate-selection";
 import type {
   PageCandidate,
@@ -25,6 +20,7 @@ import {
   type SuggestionDraft,
   suggestionSummary,
 } from "./page-suggestions";
+import { SuggestionResult } from "./suggestion-result";
 
 type Status = { text: string; error?: boolean };
 
@@ -111,6 +107,7 @@ export function SuggestPages({
           projectRef={chosenProject ?? null}
           onConfirm={onConfirm}
           onUseProject={useProject}
+          onRetry={canSuggest ? suggest : undefined}
           onStatus={setStatus}
           onClose={(message) => {
             setRun(0);
@@ -128,6 +125,7 @@ function SuggestionPanel({
   projectRef,
   onConfirm,
   onUseProject,
+  onRetry,
   onStatus,
   onClose,
 }: {
@@ -136,6 +134,7 @@ function SuggestionPanel({
   projectRef: string | null;
   onConfirm?: (candidates: PageCandidate[], projectRef: string | null) => void;
   onUseProject: (project: ProjectCandidate) => void;
+  onRetry?: () => void;
   onStatus: (status: Status | null) => void;
   onClose: (message?: string) => void;
 }) {
@@ -151,7 +150,8 @@ function SuggestionPanel({
       .then((next) => {
         if (!active) return;
         setResult(next);
-        setProjectChoice(next.projectProposal?.preselectedProjectRef ?? "");
+        if (next.kind === "project")
+          setProjectChoice(next.projectProposal.preselectedProjectRef ?? "");
         onStatus({ text: suggestionSummary(next) });
       })
       .catch(() => {
@@ -169,7 +169,8 @@ function SuggestionPanel({
     };
   }, [requestKey, onStatus]);
   async function confirmPages() {
-    const checked = checkedCandidates(result?.candidates ?? [], selected);
+    if (result?.kind !== "pages") return;
+    const checked = checkedCandidates(result.candidates, selected);
     const count = `${checked.length} ${checked.length === 1 ? "page" : "pages"}`;
     if (onConfirm) {
       onConfirm(checked, projectRef);
@@ -199,109 +200,30 @@ function SuggestionPanel({
       setPending(false);
     }
   }
-  const proposal = result?.projectProposal;
   return (
     <div className="space-y-3 rounded-lg border p-4">
-      {proposal && (
-        <fieldset className="space-y-3">
-          <legend className="text-sm font-medium">
-            Choose a project before suggesting pages
-          </legend>
-          <p className="text-xs text-muted-foreground">
-            This is a proposal. Confirm a project to evaluate its decisions and
-            context pages.{" "}
-            {proposal.status === "deterministic"
-              ? "Showing deterministic candidates because JEV was unavailable or no candidates were found."
-              : "A preselection still needs your confirmation."}
-          </p>
-          <label htmlFor={`${checkboxId}-project`} className="block text-sm">
-            Project proposal
-          </label>
-          <NativeSelect
-            id={`${checkboxId}-project`}
-            value={projectChoice}
-            onChange={(event) => setProjectChoice(event.target.value)}
-          >
-            <NativeSelectOption value="">Choose a project…</NativeSelectOption>
-            {proposal.candidates.map((project) => (
-              <NativeSelectOption
-                key={project.projectRef}
-                value={project.projectRef}
-              >
-                {project.title} · {project.slug}
-                {project.score === null ? "" : ` · ${project.score.toFixed(2)}`}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
-          <ul className="max-h-56 space-y-2 overflow-y-auto text-xs text-muted-foreground">
-            {proposal.candidates.map((project) => (
-              <li key={project.projectRef}>
-                {project.title} · {project.slug} · {project.reason}
-                {project.score === null ? "" : ` · ${project.score.toFixed(2)}`}
-              </li>
-            ))}
-          </ul>
-          <Button
-            type="button"
-            disabled={pending || !projectChoice}
-            onClick={() => {
-              const project = proposal.candidates.find(
-                (project) => project.projectRef === projectChoice,
-              );
-              if (project) onUseProject(project);
-            }}
-          >
-            Confirm project for suggestions
-          </Button>
-        </fieldset>
-      )}
-      {result && !proposal && (
-        <>
-          <fieldset className="space-y-3" disabled={pending}>
-            <legend className="text-sm font-medium">Suggested pages</legend>
-            {result.candidates.length === 0 && (
-              <p className="text-sm text-muted-foreground">
-                No matching pages.
-              </p>
-            )}
-            {result.candidates.map((candidate) => (
-              <label
-                htmlFor={`${checkboxId}-${candidate.pageRef}`}
-                key={candidate.pageRef}
-                className="flex items-start gap-3 text-sm"
-              >
-                <Checkbox
-                  id={`${checkboxId}-${candidate.pageRef}`}
-                  checked={selected.includes(candidate.pageRef)}
-                  disabled={pending}
-                  onCheckedChange={(checked) =>
-                    setSelected((current) =>
-                      checked
-                        ? [...current, candidate.pageRef]
-                        : current.filter((ref) => ref !== candidate.pageRef),
-                    )
-                  }
-                />
-                <span>
-                  <span className="font-medium">{candidate.title}</span>
-                  <span className="block text-muted-foreground">
-                    {candidate.slug} · {candidate.role}
-                  </span>
-                  <span className="block">{candidate.reason}</span>
-                </span>
-              </label>
-            ))}
-          </fieldset>
-          {result.candidates.length > 0 && (
-            <Button
-              type="button"
-              disabled={pending || !selected.length}
-              onClick={confirmPages}
-            >
-              {onConfirm ? "Add selected pages" : "Link selected pages"}
-            </Button>
-          )}
-        </>
+      {result && (
+        <SuggestionResult
+          result={result}
+          idPrefix={checkboxId}
+          pending={pending}
+          projectChoice={projectChoice}
+          onProjectChoice={setProjectChoice}
+          onUseProject={onUseProject}
+          onRetry={onRetry}
+          selected={selected}
+          onSelect={(pageRef, checked) =>
+            setSelected((current) =>
+              checked
+                ? [...current, pageRef]
+                : current.filter((ref) => ref !== pageRef),
+            )
+          }
+          onConfirmPages={confirmPages}
+          confirmLabel={
+            onConfirm ? "Add selected pages" : "Link selected pages"
+          }
+        />
       )}
       <Button
         type="button"
