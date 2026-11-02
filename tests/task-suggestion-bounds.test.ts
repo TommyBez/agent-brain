@@ -23,6 +23,7 @@ import {
   suggestTaskLinks,
 } from "../lib/tasks/link-candidates";
 import { readProjectDecisionPageIds } from "../lib/tasks/links";
+import { addTaskParty } from "../lib/tasks/parties";
 import {
   suggestionBudgetAvailable,
   withinSuggestionDeadline,
@@ -326,10 +327,38 @@ test("agent guidance documents manual tasks requested suggestions and no automat
     );
   }
   assert.match(readFileSync(files[0], "utf8"), /projectProposal/);
+  const meetings = readFileSync(files[1], "utf8");
+  assert.doesNotMatch(meetings, /missing links|task[_ -]?keeper|extract/i);
+  assert.match(
+    meetings,
+    /Saving a source never creates tasks or task\/page links/,
+  );
+  assert.match(
+    meetings,
+    /Nightly task hygiene only proposes changes for owner review/,
+  );
   assert.match(
     readFileSync("lib/tasks/tool-definitions.ts", "utf8"),
     /Create tasks for meeting action items or source commitments only when the owner asks you to track one\./,
   );
+});
+
+test("participant permission errors ask for owner authorization without obsolete task routines", async (t) => {
+  const db = installServiceDb(t, serviceActor("agent"));
+  await assert.rejects(addTaskParty(db.actor, "T-1", {}), (error: unknown) => {
+    assert.ok(error instanceof Error);
+    assert.equal((error as Error & { code: string }).code, "NOT_ALLOWED");
+    assert.match(error.message, /owner authorization/);
+    assert.doesNotMatch(
+      error.message,
+      /missing links|task[_ -]?keeper|extract|transcrib/i,
+    );
+    return true;
+  });
+  assert.deepEqual(db.queries, []);
+  assert.deepEqual(db.taskWrites, []);
+  assert.deepEqual(db.linkWrites, []);
+  assert.deepEqual(db.events, []);
 });
 
 test("a single-unit provider capacity rejection leaves only that unit unevaluated", async () => {

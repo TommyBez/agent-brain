@@ -85,7 +85,7 @@ function assertPartyWriter(actor: Actor) {
     return;
   throw taskError(
     "NOT_ALLOWED",
-    "Only the owner (or the task keeper for its transcriptions) sets task parties.",
+    "Setting task participants requires owner authorization.",
     "Ask the owner to change participants in the app.",
   );
 }

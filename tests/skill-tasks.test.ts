@@ -121,6 +121,19 @@ test("task suites are frozen, distinct and complete", async () => {
   );
 });
 
+test("meeting-save evaluation guidance requires an explicit owner request for tasks", () => {
+  const guidance = scenario("T05").expected.content.join(" ");
+  assert.doesNotMatch(
+    guidance,
+    /missing links|task[_ -]?keeper|extract|trascriv|gestore dei task/i,
+  );
+  assert.match(
+    guidance,
+    /crea task solo su esplicita richiesta del proprietario/,
+  );
+  assert.deepEqual(scenario("T05").tasks?.expect.creates, [0, 0]);
+});
+
 test("task tools come from the server definitions and stay separate", () => {
   assert.deepEqual(
     taskToolDefinitions.map((t) => t.function.name),

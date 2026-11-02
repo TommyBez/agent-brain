@@ -6,7 +6,7 @@ Most work enters Agent Brain through sources: meeting minutes, call summaries, e
 
 When asked to save a meeting, record it with the brain-memory skill: a note for the meeting when it matters on its own, and updates to the projects, people and decisions it changes. Keep its action items in the note as written, with who committed to what, the due wording and any code such as `FU.01` or `AÜ.05`. Do not convert them into a checklist, add items nobody stated, or copy task status into the page.
 
-Create tasks from source action items only when the owner explicitly asks you to track one. Saving a source never creates tasks or links. There is no extraction routine or task-specific manual maintenance control. Keep the source's commitments as attributed knowledge; do not invent follow-up work.
+Create tasks from source action items only when the owner explicitly asks you to track one. Saving a source never creates tasks or task/page links. Nightly task hygiene only proposes changes for owner review; it creates no tasks or task/page links. Keep the source's commitments as attributed knowledge; do not invent follow-up work.
 
 ## When the owner asks you to track an item
 

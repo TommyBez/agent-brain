@@ -20,7 +20,10 @@ import {
   mcpToolInvalidation,
   requiredMcpScope,
 } from "../lib/mcp/server";
-import { TASK_PROCEDURES } from "../lib/tasks/tool-definitions";
+import {
+  TASK_PROCEDURES,
+  TASK_TOOL_DEFINITIONS,
+} from "../lib/tasks/tool-definitions";
 
 const TASK_TOOL_NAMES = [
   "list_tasks",
@@ -432,6 +435,38 @@ test("task tools and their protocol resource stay hidden while the owner's task 
 test("brainInstructions follows the switch it is given, with no default", () => {
   assert.equal(brainInstructions(true), BRAIN_INSTRUCTIONS);
   assert.equal(brainInstructions(false), BRAIN_INSTRUCTIONS_PRE_TASKS);
+});
+
+test("agent instructions distinguish typed page links from explicit task links in both task modes", () => {
+  for (const instructions of [
+    BRAIN_INSTRUCTIONS,
+    BRAIN_INSTRUCTIONS_PRE_TASKS,
+  ]) {
+    assert.doesNotMatch(
+      instructions,
+      /missing links|task[_ -]?keeper|extract/i,
+    );
+    assert.match(instructions, /can add verified typed links between pages/);
+    assert.match(instructions, /read-only suggest_task_links tool/);
+    assert.match(instructions, /candidates only/);
+    assert.match(
+      instructions,
+      /(?:No nightly process creates|Scheduled maintenance creates no) tasks or task\/page links/,
+    );
+  }
+  assert.match(
+    BRAIN_INSTRUCTIONS,
+    /apply only confirmed pages through create_task\.contextPageRefs or update_task\.patch\.contextPageRefs\.add/,
+  );
+  assert.match(
+    BRAIN_INSTRUCTIONS_PRE_TASKS,
+    /unavailable while task management is disabled/,
+  );
+  for (const description of [
+    TASK_PROCEDURES,
+    ...TASK_TOOL_DEFINITIONS.map((tool) => tool.description),
+  ])
+    assert.doesNotMatch(description, /missing links|task[_ -]?keeper|extract/i);
 });
 
 test("the task manager setting is read for the principal's owner on every MCP request", async () => {
