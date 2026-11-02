@@ -153,6 +153,47 @@ test('unknown phase: deadline while a ref task loads conservatively returns kind
   projectDeadline(result, []);
 });
 
+test('project phase: a ref task loaded without a project stays kind "project" when a later read exceeds the deadline', async (t) => {
+  let budgetRead = false;
+  const db = fakeReads(t, (sql) => {
+    if (!sql.includes("FROM brain_consolidation_spend")) return false;
+    budgetRead = true;
+    return true;
+  });
+  const result = await expire(t, () =>
+    suggestTaskLinks(db.actor, { ref: "T-1" }, async () =>
+      assert.fail("No evaluation before budget read finishes"),
+    ),
+  );
+  assert.equal(budgetRead, true, "the task row loaded before the stalled read");
+  projectDeadline(result, []);
+});
+
+test('pages phase: ref plus projectRef returns kind "pages" deterministic when the deadline fires before the task row loads', async (t) => {
+  let taskRead = false;
+  const db = fakeReads(t, (sql) => {
+    assert.ok(
+      sql.startsWith("SELECT t.id"),
+      "no reads after the pending task row",
+    );
+    taskRead = true;
+    return true;
+  });
+  const result = await expire(t, () =>
+    suggestTaskLinks(
+      db.actor,
+      { ref: "T-1", projectRef: projects[0].id },
+      async () => assert.fail("No evaluation before task loads"),
+    ),
+  );
+  assert.equal(taskRead, true);
+  assert.equal(result.kind, "pages");
+  assert.deepEqual(result.candidates, []);
+  assert.equal(result.status, "deterministic");
+  assert.equal(result.fallbackReason, "deadline");
+  assert.equal(result.projectProposal, undefined);
+});
+
 test('pages phase: a loaded ref with a project registers kind "pages" before the next read', async (t) => {
   const db = fakeReads(
     t,
