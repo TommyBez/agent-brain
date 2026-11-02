@@ -19,6 +19,7 @@ Use these triggers throughout the task as new information or context needs emerg
 
 ## Connect and load the current procedure
 
+- Load `brain-memory` by name through the client's skill mechanism (e.g. `/agent-brain:brain-memory`, `$brain-memory`, or a load-by-name tool); never store or reuse absolute file paths, because installers use commit-keyed directories that change every release; bundled references use relative links (`references/...`).
 - Use the configured Agent Brain MCP connection. Tool prefixes depend on the client; discover the tools from that server rather than assuming a namespace.
 - If it is not connected, direct the user to the canonical `/mcp` URL shown in **Agents & access** and their client's OAuth flow. Interactive clients use OAuth 2.1; external headless clients may use an already configured scoped token. Do not ask for passwords or tokens in conversation.
 - Follow the server's MCP instructions. Read `brain://procedures` when resource access is available. These live instructions and tool schemas are authoritative for server behavior; this skill is a usage guide, not a second version of the protocol.

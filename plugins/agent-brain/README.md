@@ -35,6 +35,8 @@ The Codex compatibility manifest supplies the OpenAI presentation metadata and b
 
 ## Install
 
+Load `brain-memory` and `brain-tasks` by name through the client's skill mechanism, never through stored absolute paths to their files. The installed plugin path contains a per-release commit hash that changes with every release; bundled references use relative links (`references/...`).
+
 Run from the repository root to install the current local checkout:
 
 ```sh
