@@ -94,6 +94,8 @@ const criteriaSchema = z
   .array(taskLine(TASK_LIMITS.acceptanceCriterion))
   .max(TASK_LIMITS.acceptanceCriteria);
 const contextPageRefsSchema = z.array(pageRefSchema).max(10);
+/** Separate owner UI argument; never part of MCP task inputs. */
+export const ownerDecisionPageRefsSchema = z.array(pageRefSchema).max(10);
 const idempotencyKeySchema = z
   .string()
   .trim()
@@ -231,23 +233,30 @@ export const updateTaskSchema = z
   })
   .strict();
 
+const ownerPatchSchema = z
+  .object({
+    ...patchContent,
+    parentRef: taskRefSchema.nullable().optional(),
+    expectedOutput: z.enum(TASK_EXPECTED_OUTPUTS).optional(),
+    reviewPolicy: z.enum(TASK_REVIEW_POLICIES).optional(),
+    requiresHuman: z.boolean().optional(),
+    requiredCapability: capabilitySchema.nullable().optional(),
+  })
+  .strict();
+
 export const ownerUpdateTaskSchema = z
   .object({
     ref: taskRefSchema,
     expectedVersion: z.number().int().positive(),
-    patch: z
-      .object({
-        ...patchContent,
-        parentRef: taskRefSchema.nullable().optional(),
-        expectedOutput: z.enum(TASK_EXPECTED_OUTPUTS).optional(),
-        reviewPolicy: z.enum(TASK_REVIEW_POLICIES).optional(),
-        requiresHuman: z.boolean().optional(),
-        requiredCapability: capabilitySchema.nullable().optional(),
-      })
-      .strict()
-      .refine(nonEmptyPatch, { message: "Change at least one field" }),
+    patch: ownerPatchSchema.refine(nonEmptyPatch, {
+      message: "Change at least one field",
+    }),
   })
   .strict();
+/** Empty patch is valid only when service's separate owner decisions argument is nonempty. */
+export const ownerDecisionUpdateTaskSchema = ownerUpdateTaskSchema.extend({
+  patch: ownerPatchSchema,
+});
 
 export const listTasksSchema = z
   .object({

@@ -129,49 +129,19 @@ const ref = (value: unknown) => {
   return value;
 };
 
-// contextPageRefs only creates context links. Confirmed decision suggestions
-// keep their role through the owner's explicit link path (as on the task
-// page), right after the create or save they belong to.
-const DECISION_PAGE_LIMIT = 10;
-function decisionPageRefs(value: unknown): string[] {
-  if (value === undefined) return [];
-  if (
-    !Array.isArray(value) ||
-    value.length > DECISION_PAGE_LIMIT ||
-    value.some((item) => typeof item !== "string")
-  )
-    throw new BrainError(
-      "INVALID_INPUT",
-      `Link at most ${DECISION_PAGE_LIMIT} decision pages at once.`,
-      400,
-    );
-  return [...new Set(value as string[])];
-}
-
-async function linkDecisions(actor: Actor, taskRef: string, refs: string[]) {
-  for (const pageRef of refs)
-    await addTaskLink(actor, taskRef, { pageRef, role: "decision" });
-}
-
-/**
- * Creates the task, then links confirmed decision pages. A retry after a
- * failed link replays the create (same idempotencyKey) and links again.
- */
+/** Owner decision links commit atomically with the new task. */
 export async function createTaskAction(
   input: unknown,
   decisions?: unknown,
 ): Promise<TaskActionError> {
-  const result = await asOwner(async (actor) => {
-    const refs = decisionPageRefs(decisions);
-    const taskRef = (await createTask(actor, input)).task.ref;
-    await linkDecisions(actor, taskRef, refs);
-    return taskRef;
-  });
+  const result = await asOwner(
+    async (actor) => (await createTask(actor, input, decisions)).task.ref,
+  );
   if (!result.ok) return result;
   redirect(taskHref(result.value));
 }
 
-/** Saves the changed fields, then the delegate (a separate owner power), then decision pages. */
+/** Task edits and decisions share a transaction; delegation retains its existing owner path. */
 export async function updateTaskAction(
   taskRef: string,
   expectedVersion: number,
@@ -179,18 +149,16 @@ export async function updateTaskAction(
   delegate?: { agentId: string | null },
   decisions?: unknown,
 ): Promise<TaskActionError> {
-  const result = await asOwner(async (actor) => {
-    const refs = decisionPageRefs(decisions);
-    const saved = await saveTaskEdits(
+  const result = await asOwner((actor) =>
+    saveTaskEdits(
       actor,
       ref(taskRef),
       expectedVersion,
       patch,
       delegate,
-    );
-    await linkDecisions(actor, saved, refs);
-    return saved;
-  });
+      decisions,
+    ),
+  );
   if (!result.ok) return result;
   redirect(taskHref(result.value));
 }

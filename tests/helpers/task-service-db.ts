@@ -49,6 +49,12 @@ export function serviceActor(kind: "owner" | "agent" | "system"): Actor {
  * still fail the test, rather than silently making the fake look read-only.
  */
 export class TaskServiceDb {
+  readonly transactions: string[] = [];
+  private snapshot: {
+    tasks: [string, Row][];
+    links: [string, LinkRow][];
+    events: Row[];
+  } | null = null;
   readonly tasks = new Map<string, Row>();
   readonly links = new Map<string, LinkRow>();
   readonly taskWrites: { operation: "insert" | "update"; row: Row }[] = [];
@@ -60,10 +66,13 @@ export class TaskServiceDb {
     id,
     slug: `note/service-page-${index + 1}`,
     title: `Service page ${index + 1}`,
+    owner_id: "",
     type: "note",
     version: 1,
   }));
-  constructor(readonly actor: Actor) {}
+  constructor(readonly actor: Actor) {
+    for (const page of this.pages) page.owner_id = actor.ownerId;
+  }
 
   async connect() {
     return this;
@@ -74,11 +83,29 @@ export class TaskServiceDb {
     const statement = sql.replace(/\s+/g, " ").trim();
     this.queries.push(statement);
     const result = (rows: Row[] = []) => ({ rows, rowCount: rows.length });
-    if (
-      ["BEGIN", "COMMIT", "ROLLBACK"].includes(statement) ||
-      statement.startsWith("SELECT pg_advisory_xact_lock(")
-    )
+    if (["BEGIN", "COMMIT", "ROLLBACK"].includes(statement)) {
+      this.transactions.push(statement);
+      if (statement === "BEGIN") {
+        assert.equal(this.snapshot, null, "no nested transactions");
+        this.snapshot = structuredClone({
+          tasks: [...this.tasks],
+          links: [...this.links],
+          events: this.events,
+        });
+      } else {
+        assert.ok(this.snapshot, "transaction must be open");
+        if (statement === "ROLLBACK") {
+          this.tasks.clear();
+          for (const [id, row] of this.snapshot.tasks) this.tasks.set(id, row);
+          this.links.clear();
+          for (const [id, row] of this.snapshot.links) this.links.set(id, row);
+          this.events.splice(0, this.events.length, ...this.snapshot.events);
+        }
+        this.snapshot = null;
+      }
       return result();
+    }
+    if (statement.startsWith("SELECT pg_advisory_xact_lock(")) return result();
     if (statement.startsWith("SELECT count(*) FILTER (WHERE created_at"))
       return result([
         { today: this.tasks.size, triage: this.tasks.size, retry: 0 },
@@ -91,7 +118,9 @@ export class TaskServiceDb {
       const refs = params[1] as string[];
       return result(
         this.pages.filter(
-          (page) => refs.includes(page.id) || refs.includes(page.slug),
+          (page) =>
+            page.owner_id === params[0] &&
+            (refs.includes(page.id) || refs.includes(page.slug)),
         ),
       );
     }

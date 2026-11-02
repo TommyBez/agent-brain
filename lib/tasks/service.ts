@@ -16,8 +16,9 @@ import {
   recentEvents,
   recordEvent,
 } from "./events";
-import { contextLinks } from "./explicit-links";
+import { contextLinks, ownerDecisionLinks } from "./explicit-links";
 import {
+  assertOwnerActor,
   assertVersion,
   CLEARED_LEASE,
   isOwnerActor,
@@ -61,6 +62,8 @@ import {
   createTaskSchema,
   listTasksSchema,
   ownerCreateTaskSchema,
+  ownerDecisionPageRefsSchema,
+  ownerDecisionUpdateTaskSchema,
   ownerUpdateTaskSchema,
   readTaskSchema,
   type TaskDueInput,
@@ -235,7 +238,11 @@ function creationNextActions(
  * Creates a task. Agents create only in the allowed cases (origin), land in
  * triage unless their policy says otherwise, and never approve for others.
  */
-export async function createTask(actor: Actor, input: unknown) {
+export async function createTask(
+  actor: Actor,
+  input: unknown,
+  decisions?: unknown,
+) {
   assertOwner(actor.ownerId);
   const ownerId = actor.ownerId;
   const kind = actor.agent.kind;
@@ -249,6 +256,15 @@ export async function createTask(actor: Actor, input: unknown) {
     kind === "owner"
       ? parseTaskInput(ownerCreateTaskSchema, input)
       : parseTaskInput(createTaskSchema, input);
+  if (decisions !== undefined) assertOwnerActor(actor);
+  const decisionRefs = [
+    ...new Set(
+      parseTaskInput(
+        ownerDecisionPageRefsSchema,
+        decisions === undefined ? [] : decisions,
+      ),
+    ),
+  ].sort();
   const expectedOutput: TaskExpectedOutput = data.expectedOutput ?? "none";
   const ownerFields =
     kind === "owner"
@@ -268,7 +284,11 @@ export async function createTask(actor: Actor, input: unknown) {
   const idempotencyKey =
     "idempotencyKey" in data ? (data.idempotencyKey ?? null) : null;
   const idempotencyFingerprint = idempotencyKey
-    ? fingerprint({ ...data, idempotencyKey: undefined })
+    ? fingerprint({
+        ...data,
+        idempotencyKey: undefined,
+        ...(decisionRefs.length ? { ownerDecisionPageRefs: decisionRefs } : {}),
+      })
     : null;
 
   const outcome = await transaction(async (db) => {
@@ -293,6 +313,7 @@ export async function createTask(actor: Actor, input: unknown) {
         return { taskId: existing.rows[0].id as string, replayed: true };
       }
     }
+    const decisionPages = await resolvePages(db, ownerId, decisionRefs, true);
     let status: "triage" | "ready" = "triage";
     let approvedBy: string | null = null;
     if (kind === "owner") {
@@ -373,7 +394,7 @@ export async function createTask(actor: Actor, input: unknown) {
         (ref) => !contextPages.some((page) => page.ref === ref),
       ),
     );
-    // The keeper writes only its source link; context comes from the conciliator.
+    // Every link here comes from an explicit owner/agent input.
     const links: LinkWrite[] = [
       ...contextLinks(contextPages, origin),
       ...contextLinks(
@@ -385,6 +406,26 @@ export async function createTask(actor: Actor, input: unknown) {
       ),
     ];
     await upsertTaskLinks(db, ownerId, taskId, actor.agentId, links);
+    if (decisionPages.length) {
+      await upsertTaskLinks(
+        db,
+        ownerId,
+        taskId,
+        actor.agentId,
+        ownerDecisionLinks(decisionPages),
+        true,
+      );
+      await recordEvent(db, {
+        ownerId,
+        taskId,
+        actorAgentId: actor.agentId,
+        action: "links_changed",
+        payload: {
+          added: decisionPages.map((page) => page.id),
+          role: "decision",
+        },
+      });
+    }
     await recordEvent(db, {
       ownerId,
       taskId,
@@ -466,7 +507,11 @@ async function assertParentAcyclic(
  * Edits a task. The owner edits anything; a creator edits its own task until
  * the owner approves it; the holder may only add or remove context pages.
  */
-export async function updateTask(actor: Actor, input: unknown) {
+export async function updateTask(
+  actor: Actor,
+  input: unknown,
+  decisions?: unknown,
+) {
   assertOwner(actor.ownerId);
   const ownerId = actor.ownerId;
   const owner = isOwnerActor(actor);
@@ -476,8 +521,22 @@ export async function updateTask(actor: Actor, input: unknown) {
       "Nightly processes never edit tasks.",
       "Propose changes as suggestions for the owner.",
     );
+  if (decisions !== undefined) assertOwnerActor(actor);
+  const decisionRefs = [
+    ...new Set(
+      parseTaskInput(
+        ownerDecisionPageRefsSchema,
+        decisions === undefined ? [] : decisions,
+      ),
+    ),
+  ].sort();
   const data = owner
-    ? parseTaskInput(ownerUpdateTaskSchema, input)
+    ? parseTaskInput(
+        decisionRefs.length
+          ? ownerDecisionUpdateTaskSchema
+          : ownerUpdateTaskSchema,
+        input,
+      )
     : parseTaskInput(updateTaskSchema, input);
   const patch = data.patch as ReturnType<
     typeof ownerUpdateTaskSchema.parse
@@ -485,6 +544,13 @@ export async function updateTask(actor: Actor, input: unknown) {
   const result = await transaction(async (db) => {
     const task = await lockTask(db, ownerId, data.ref);
     assertVersion(task, data.expectedVersion);
+    if (decisionRefs.length && task.archived_at)
+      throw taskError(
+        "NOT_ALLOWED",
+        "Cannot add decisions to an archived task.",
+        "Unarchive the task before editing its links.",
+      );
+    const decisionPages = await resolvePages(db, ownerId, decisionRefs, true);
     const touched = CONTENT_FIELDS.filter((key) => patch[key] !== undefined);
     const isCreator = task.created_by_agent_id === actor.agentId;
     const isHolder =
@@ -635,6 +701,17 @@ export async function updateTask(actor: Actor, input: unknown) {
       await upsertTaskLinks(db, ownerId, task.id, actor.agentId, added, owner);
       linkChanges.added = added.map((link) => link.pageId);
     }
+    if (decisionPages.length) {
+      await upsertTaskLinks(
+        db,
+        ownerId,
+        task.id,
+        actor.agentId,
+        ownerDecisionLinks(decisionPages),
+        true,
+      );
+      linkChanges.decisionsAdded = decisionPages.map((page) => page.id);
+    }
     const remove = patch.contextPageRefs?.remove ?? [];
     if (remove.length) {
       const pages = await resolvePages(db, ownerId, remove);
@@ -661,7 +738,10 @@ export async function updateTask(actor: Actor, input: unknown) {
       changedFields: [
         ...changed,
         ...(canceling ? ["status"] : []),
-        ...(Object.keys(linkChanges).length ? ["contextPageRefs"] : []),
+        ...(linkChanges.added || linkChanges.removed
+          ? ["contextPageRefs"]
+          : []),
+        ...(decisionPages.length ? ["decisionPageRefs"] : []),
       ],
       contentChanged: changed.some((field) =>
         ["title", "description", "acceptanceCriteria", "project"].includes(

@@ -16,3 +16,16 @@ export function contextLinks(
     },
   }));
 }
+
+/** Explicit owner-confirmed decisions, with the same provenance as addTaskLink. */
+export function ownerDecisionLinks(
+  pages: { id: string; version: number }[],
+): LinkWrite[] {
+  return pages.map((page) => ({
+    pageId: page.id,
+    role: "decision",
+    origin: "owner",
+    status: "active",
+    evidence: { basis: "reference", pageVersion: page.version },
+  }));
+}
