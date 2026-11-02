@@ -7,6 +7,11 @@ import { parseTaskInput } from "./errors";
 import { evaluateLinkCandidates } from "./evaluate-link-candidates";
 import { desiredRuleLinks } from "./links";
 import { resolveProject } from "./page-links";
+import {
+  type ProjectProposal,
+  projectCandidateReads,
+  proposeTaskProject,
+} from "./project-candidates";
 import { loadTaskRow } from "./records";
 import { lexicalQuery, planRetrieval } from "./retrieval";
 import { suggestTaskLinksSchema } from "./schemas";
@@ -89,15 +94,19 @@ export async function findTaskLinkCandidates(
   return { candidates: evaluated.slice(0, Math.min(10, Math.max(1, limit))) };
 }
 export async function suggestTaskLinks(
-  actor: Pick<Actor, "ownerId">,
+  actor: Pick<Actor, "ownerId"> & { agentId?: string | null },
   input: unknown,
   send: GatewayCall = gatewayRequest,
-) {
+): Promise<TaskLinkSuggestion> {
   const data = parseTaskInput(suggestTaskLinksSchema, input);
   const db: Database = getPool();
   let draft: CandidateDraft;
+  let authorAgentId = actor.agentId ?? null;
+  let includeOwnerRecent = actor.agentId === undefined;
   if (data.ref) {
     const task = await loadTaskRow(db, actor.ownerId, data.ref);
+    authorAgentId = task.created_by_agent_id ?? null;
+    includeOwnerRecent = false;
     draft = {
       title: task.title,
       description: task.description,
@@ -113,29 +122,51 @@ export async function suggestTaskLinks(
       projectPageId: project?.id ?? null,
     };
   }
-  return findTaskLinkCandidates(
-    draft,
-    {
-      decisions: (task) => desiredRuleLinks(db, actor.ownerId, task),
-      search: async (query) =>
-        (
-          await search(
-            actor.ownerId,
-            { query, limit: 10, expandGraph: false },
-            { serverEmbedding: false },
-          )
-        ).results,
-      pages: async (refs) =>
-        refs.length
-          ? (
-              await db.query<CandidatePage>(
-                "SELECT id, slug, title, markdown FROM brain_pages WHERE owner_id = $1 AND id::text = ANY($2::text[])",
-                [actor.ownerId, refs],
-              )
-            ).rows
-          : [],
-    },
-    data.limit,
-    send,
-  );
+  if (data.ref && data.projectRef)
+    draft.projectPageId = (
+      await resolveProject(db, actor.ownerId, data.projectRef)
+    ).id;
+  const reads: CandidateReads = {
+    decisions: (task) => desiredRuleLinks(db, actor.ownerId, task),
+    search: async (query) =>
+      (
+        await search(
+          actor.ownerId,
+          { query, limit: 10, expandGraph: false },
+          { serverEmbedding: false },
+        )
+      ).results,
+    pages: async (refs) =>
+      refs.length
+        ? (
+            await db.query<CandidatePage>(
+              "SELECT id, slug, title, markdown FROM brain_pages WHERE owner_id = $1 AND id::text = ANY($2::text[])",
+              [actor.ownerId, refs],
+            )
+          ).rows
+        : [],
+  };
+  if (!draft.projectPageId) {
+    const hits = await reads.search(
+      lexicalQuery(`${draft.title} ${draft.description}`),
+    );
+    const projectProposal = await proposeTaskProject(
+      draft,
+      hits.map((page) => page.id),
+      projectCandidateReads(
+        db,
+        actor.ownerId,
+        authorAgentId,
+        includeOwnerRecent,
+      ),
+      send,
+    );
+    return { candidates: [], projectProposal };
+  }
+  return findTaskLinkCandidates(draft, reads, data.limit, send);
+}
+
+export interface TaskLinkSuggestion {
+  candidates: PageCandidate[];
+  projectProposal?: ProjectProposal;
 }

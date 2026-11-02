@@ -46,8 +46,12 @@ export function createTaskTools(
     invalidates: definition.annotations.readOnlyHint ? "none" : "tasks",
     handler: async (ownerId, input, principal) => {
       if (definition.name === "suggest_task_links") {
-        await assertTaskReader(ownerId, principal);
-        return suggestTaskLinks({ ownerId }, input, send);
+        const agentId = await assertTaskReader(ownerId, principal);
+        return suggestTaskLinks(
+          principal.kind === "session" ? { ownerId } : { ownerId, agentId },
+          input,
+          send,
+        );
       }
       return OPERATIONS[definition.name](
         await resolveActor(ownerId, principal),

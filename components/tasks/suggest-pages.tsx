@@ -1,60 +1,132 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { suggestTaskLinksAction } from "@/app/(workspace)/actions/task-link-candidates";
 import { addLinkAction } from "@/app/(workspace)/actions/tasks";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from "@/components/ui/native-select";
 import { checkedCandidates } from "@/lib/tasks/candidate-selection";
-import type { PageCandidate } from "@/lib/tasks/link-candidates";
+import type {
+  PageCandidate,
+  TaskLinkSuggestion,
+} from "@/lib/tasks/link-candidates";
+import type { ProjectCandidate } from "@/lib/tasks/project-candidates";
+import {
+  suggestionRequest,
+  suggestionRequestKey,
+} from "@/lib/tasks/suggestion-request";
+
+type Draft = { title: string; description: string; projectRef?: string };
 
 export function SuggestPages({
   taskRef,
   draft,
+  projectRef,
   onConfirm,
+  onProjectConfirm,
 }: {
   taskRef?: string;
-  draft?: { title: string; description: string; projectRef?: string };
+  draft?: Draft;
+  projectRef?: string;
   onConfirm?: (candidates: PageCandidate[]) => void;
+  onProjectConfirm?: (project: { id: string; title: string }) => void;
+}) {
+  const [run, setRun] = useState(0);
+  const [local, setLocal] = useState<{ base?: string; ref: string } | null>(
+    null,
+  );
+  const externalProject = draft?.projectRef ?? projectRef;
+  const chosenProject =
+    local?.base === externalProject ? local?.ref : externalProject;
+  const key = suggestionRequestKey(
+    suggestionRequest(taskRef, draft, chosenProject),
+  );
+  function useProject(project: ProjectCandidate) {
+    if (onProjectConfirm)
+      onProjectConfirm({ id: project.projectRef, title: project.title });
+    else setLocal({ base: externalProject, ref: project.projectRef });
+  }
+  return (
+    <div className="space-y-3">
+      <Button
+        type="button"
+        variant="outline"
+        disabled={!taskRef && !draft?.title.trim()}
+        onClick={() => setRun((current) => current + 1)}
+      >
+        Suggest pages
+      </Button>
+      {run > 0 && (
+        <SuggestionPanel
+          key={`${run}:${key}`}
+          requestKey={key}
+          taskRef={taskRef}
+          onConfirm={onConfirm}
+          onUseProject={useProject}
+          onClose={() => setRun(0)}
+        />
+      )}
+    </div>
+  );
+}
+
+function SuggestionPanel({
+  requestKey,
+  taskRef,
+  onConfirm,
+  onUseProject,
+  onClose,
+}: {
+  requestKey: string;
+  taskRef?: string;
+  onConfirm?: (candidates: PageCandidate[]) => void;
+  onUseProject: (project: ProjectCandidate) => void;
+  onClose: () => void;
 }) {
   const checkboxId = useId();
-  const [candidates, setCandidates] = useState<PageCandidate[] | null>(null);
+  const [result, setResult] = useState<TaskLinkSuggestion | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
-  const [pending, setPending] = useState(false);
+  const [projectChoice, setProjectChoice] = useState("");
+  const [pending, setPending] = useState(true);
   const [error, setError] = useState("");
-  async function suggest() {
+  useEffect(() => {
+    let active = true;
+    suggestTaskLinksAction(JSON.parse(requestKey))
+      .then((next) => {
+        if (!active) return;
+        setResult(next);
+        setProjectChoice(next.projectProposal?.preselectedProjectRef ?? "");
+      })
+      .catch(() => {
+        if (active) setError("Unable to suggest pages. Try again.");
+      })
+      .finally(() => {
+        if (active) setPending(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [requestKey]);
+  async function confirmPages() {
     setPending(true);
     setError("");
-    setSelected([]);
-    setCandidates(null);
     try {
-      const result = await suggestTaskLinksAction(
-        taskRef ? { ref: taskRef } : draft,
-      );
-      setCandidates(result.candidates);
-    } catch {
-      setError("Unable to suggest pages. Try again.");
-    } finally {
-      setPending(false);
-    }
-  }
-  async function confirm() {
-    setPending(true);
-    setError("");
-    try {
-      const checked = checkedCandidates(candidates ?? [], selected);
+      const checked = checkedCandidates(result?.candidates ?? [], selected);
       if (onConfirm) onConfirm(checked);
       else if (taskRef)
         for (const candidate of checked) {
-          const result = await addLinkAction(
+          const applied = await addLinkAction(
             taskRef,
             candidate.pageRef,
             candidate.role,
           );
-          if (!result.ok) throw new Error(result.message);
+          if (!applied.ok) throw new Error(applied.message);
         }
-      setCandidates(null);
-      setSelected([]);
+      onClose();
     } catch (problem) {
       setError(
         problem instanceof Error ? problem.message : "Unable to link pages.",
@@ -63,22 +135,73 @@ export function SuggestPages({
       setPending(false);
     }
   }
+  const proposal = result?.projectProposal;
   return (
-    <div className="space-y-3">
-      <Button
-        type="button"
-        variant="outline"
-        disabled={pending || (!taskRef && !draft?.title.trim())}
-        onClick={suggest}
-      >
-        Suggest pages
-      </Button>
-      {candidates && (
-        <div className="space-y-3 rounded-lg border p-4">
-          {candidates.length === 0 && (
+    <div className="space-y-3 rounded-lg border p-4">
+      {pending && (
+        <output className="block text-sm text-muted-foreground">
+          Evaluating suggestions…
+        </output>
+      )}
+      {proposal && (
+        <div className="space-y-3">
+          <p className="text-sm font-medium">
+            Choose a project before suggesting pages
+          </p>
+          <p className="text-xs text-muted-foreground">
+            This is a proposal. Confirm a project to evaluate its decisions and
+            context pages.{" "}
+            {proposal.status === "deterministic"
+              ? "Showing deterministic candidates because JEV was unavailable or no candidates were found."
+              : "A preselection still needs your confirmation."}
+          </p>
+          <label htmlFor={`${checkboxId}-project`} className="block text-sm">
+            Project proposal
+          </label>
+          <NativeSelect
+            id={`${checkboxId}-project`}
+            value={projectChoice}
+            onChange={(event) => setProjectChoice(event.target.value)}
+          >
+            <NativeSelectOption value="">Choose a project…</NativeSelectOption>
+            {proposal.candidates.map((project) => (
+              <NativeSelectOption
+                key={project.projectRef}
+                value={project.projectRef}
+              >
+                {project.title} · {project.slug}
+                {project.score === null ? "" : ` · ${project.score.toFixed(2)}`}
+              </NativeSelectOption>
+            ))}
+          </NativeSelect>
+          <ul className="max-h-56 space-y-2 overflow-y-auto text-xs text-muted-foreground">
+            {proposal.candidates.map((project) => (
+              <li key={project.projectRef}>
+                {project.title} · {project.slug} · {project.reason}
+                {project.score === null ? "" : ` · ${project.score.toFixed(2)}`}
+              </li>
+            ))}
+          </ul>
+          <Button
+            type="button"
+            disabled={pending || !projectChoice}
+            onClick={() => {
+              const project = proposal.candidates.find(
+                (project) => project.projectRef === projectChoice,
+              );
+              if (project) onUseProject(project);
+            }}
+          >
+            Confirm project for suggestions
+          </Button>
+        </div>
+      )}
+      {result && !proposal && (
+        <>
+          {result.candidates.length === 0 && (
             <p className="text-sm text-muted-foreground">No matching pages.</p>
           )}
-          {candidates.map((candidate) => (
+          {result.candidates.map((candidate) => (
             <label
               htmlFor={`${checkboxId}-${candidate.pageRef}`}
               key={candidate.pageRef}
@@ -105,24 +228,19 @@ export function SuggestPages({
               </span>
             </label>
           ))}
-          <div className="flex gap-2">
-            <Button type="button" disabled={pending} onClick={confirm}>
-              Confirm selected
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              disabled={pending}
-              onClick={() => {
-                setCandidates(null);
-                setSelected([]);
-              }}
-            >
-              Cancel
-            </Button>
-          </div>
-        </div>
+          <Button type="button" disabled={pending} onClick={confirmPages}>
+            Confirm selected pages
+          </Button>
+        </>
       )}
+      <Button
+        type="button"
+        variant="ghost"
+        disabled={pending && !!result}
+        onClick={onClose}
+      >
+        Cancel
+      </Button>
       {error && (
         <p role="alert" className="text-sm text-destructive">
           {error}

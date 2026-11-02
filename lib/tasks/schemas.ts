@@ -562,12 +562,10 @@ export const suggestTaskLinksSchema = z
   .refine(
     (data) =>
       data.ref
-        ? data.title === undefined &&
-          data.description === undefined &&
-          data.projectRef === undefined
+        ? data.title === undefined && data.description === undefined
         : data.title !== undefined,
     {
       message:
-        "Provide ref only, or title with optional description and projectRef.",
+        "Provide ref (optionally projectRef for this suggestion), or title with optional description and projectRef.",
     },
   );

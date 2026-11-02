@@ -62,7 +62,7 @@ export const TASK_TOOL_DEFINITIONS: TaskToolDefinition[] = [
     name: "suggest_task_links",
     scope: "brain:read",
     description: describe(
-      "Suggest pages for an existing task or a draft; returns candidates only; apply the ones the owner/agent confirms with update_task (patch.contextPageRefs.add) or create_task (contextPageRefs). Evaluates page relevance with JEV; no DB writes or events. On gateway failure returns deterministic candidates.",
+      "Suggest pages for an existing task or a draft; returns candidates only; apply the ones the owner/agent confirms with update_task (patch.contextPageRefs.add) or create_task (contextPageRefs). Without a project, returns an additive projectProposal and no page candidates: confirm a project and call again with projectRef (also supported alongside ref). A preselection is never applied automatically. Evaluates project and page relevance with JEV; no DB writes or events. On gateway failure returns deterministic candidates.",
     ),
     inputSchema: suggestTaskLinksSchema,
     annotations: read,

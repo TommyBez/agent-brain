@@ -322,7 +322,7 @@ export async function assertTaskReader(ownerId: string, principal: Principal) {
       "This identity does not own this brain.",
       403,
     );
-  if (principal.kind === "session") return;
+  if (principal.kind === "session") return null;
   const key =
     principal.kind === "token" ? principal.tokenId : principal.clientId;
   if (
@@ -335,7 +335,7 @@ export async function assertTaskReader(ownerId: string, principal: Principal) {
       403,
     );
   const { rows } = await getPool().query(
-    `SELECT disabled_at FROM brain_agents WHERE owner_id = $1 AND ${SELECTORS[principal.kind]}`,
+    `SELECT disabled_at, id FROM brain_agents WHERE owner_id = $1 AND ${SELECTORS[principal.kind]}`,
     [ownerId, key],
   );
   if (rows[0]?.disabled_at)
@@ -344,6 +344,7 @@ export async function assertTaskReader(ownerId: string, principal: Principal) {
       "The owner has disabled this agent in Agent Brain.",
       403,
     );
+  return (rows[0]?.id as string | undefined) ?? null;
 }
 
 // Owner registry (/agents). Callers must authenticate the owner first.

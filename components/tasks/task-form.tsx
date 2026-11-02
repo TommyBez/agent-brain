@@ -333,6 +333,7 @@ export function TaskForm({
         />
       </div>
       <SuggestPages
+        onProjectConfirm={setProject}
         taskRef={task?.ref}
         draft={{
           title,

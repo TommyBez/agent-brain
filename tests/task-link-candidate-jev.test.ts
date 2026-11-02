@@ -334,7 +334,7 @@ test("read-only MCP authorization retains owner, credential and disabled-agent c
     { code: "invalid_client" },
   );
   t.mock.method(db, "query", async (sql: string) => {
-    assert.match(sql, /^SELECT disabled_at FROM brain_agents/);
+    assert.match(sql, /^SELECT disabled_at, id FROM brain_agents/);
     return { rows: [{ disabled_at: "2026-11-02" }], rowCount: 1 };
   });
   for (const kind of ["token", "oauth"] as const)

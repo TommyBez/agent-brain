@@ -335,7 +335,7 @@ export async function TaskKnowledge({ params }: { params: TaskParams }) {
         <h2 id="knowledge-title" className="font-medium">
           Linked knowledge
         </h2>
-        <SuggestPages taskRef={task.ref} />
+        <SuggestPages taskRef={task.ref} projectRef={task.project?.id} />
         <LinkForm
           taskRef={task.ref}
           pages={{
