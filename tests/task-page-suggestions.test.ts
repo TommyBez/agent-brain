@@ -332,3 +332,44 @@ test("the pages phase renders candidates and its empty state", () => {
   );
   assert.match(listed, /Add selected pages/);
 });
+
+const pagesDeadline: TaskLinkSuggestion = {
+  kind: "pages",
+  candidates: [],
+  status: "deterministic",
+  fallbackReason: "deadline",
+};
+
+test("an empty pages phase after the deadline says evaluation timed out", () => {
+  const summary = suggestionSummary(pagesDeadline);
+  assert.equal(
+    summary,
+    "Page evaluation timed out before it finished. Suggest again.",
+  );
+  assert.doesNotMatch(summary, /No matching pages/);
+  // Only a genuinely empty, non-deadline result has no matching pages.
+  assert.equal(
+    suggestionSummary({
+      kind: "pages",
+      candidates: [],
+      status: "deterministic",
+      fallbackReason: "gateway",
+    }),
+    "No matching pages.",
+  );
+});
+
+test("an empty pages phase after the deadline renders timeout wording with a retry", () => {
+  const html = renderResult(pagesDeadline, () => {});
+  assert.match(html, /data-phase="pages"/);
+  assert.match(html, /Page evaluation timed out before it finished/);
+  assert.match(html, />Suggest again</);
+  assert.doesNotMatch(html, /No matching pages/);
+  assert.doesNotMatch(html, /Choose a project/);
+  // Without a usable draft there is no retry button, only the wording.
+  assert.doesNotMatch(renderResult(pagesDeadline), />Suggest again</);
+  assert.doesNotMatch(
+    renderResult({ kind: "pages", candidates: [] }, () => {}),
+    />Suggest again</,
+  );
+});

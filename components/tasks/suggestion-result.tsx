@@ -9,6 +9,7 @@ import {
 import type { TaskLinkSuggestion } from "@/lib/tasks/link-candidates";
 import type { ProjectCandidate } from "@/lib/tasks/project-candidates";
 import {
+  emptyPagesMessage,
   emptyProjectMessage,
   projectTimedOut,
   unevaluatedPagesNote,
@@ -143,6 +144,7 @@ function PageChoices({
   onSelect,
   onConfirmPages,
   confirmLabel,
+  onRetry,
 }: SuggestionResultProps & { result: PagesPhase }) {
   const note = unevaluatedPagesNote(result);
   return (
@@ -150,7 +152,21 @@ function PageChoices({
       <fieldset className="space-y-3" disabled={pending} data-phase="pages">
         <legend className="text-sm font-medium">Suggested pages</legend>
         {result.candidates.length === 0 && (
-          <p className="text-sm text-muted-foreground">No matching pages.</p>
+          <>
+            <p className="text-sm text-muted-foreground">
+              {emptyPagesMessage(result)}
+            </p>
+            {result.fallbackReason === "deadline" && onRetry && (
+              <Button
+                type="button"
+                variant="outline"
+                disabled={pending}
+                onClick={onRetry}
+              >
+                Suggest again
+              </Button>
+            )}
+          </>
         )}
         {result.candidates.map((candidate) => (
           <label

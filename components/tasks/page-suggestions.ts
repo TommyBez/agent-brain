@@ -112,9 +112,16 @@ function projectSummary(result: ProjectPhase): string {
   return `${plural(candidates.length, "project", "projects")} proposed.${status === "deterministic" ? UNEVALUATED : ""} Choose a project to see page suggestions.`;
 }
 
+/** A timeout does not establish that nothing matches. */
+export function emptyPagesMessage(result: PagesPhase): string {
+  return result.fallbackReason === "deadline"
+    ? "Page evaluation timed out before it finished. Suggest again."
+    : "No matching pages.";
+}
+
 function pagesSummary(result: PagesPhase): string {
   const pages = result.candidates;
-  if (!pages.length) return "No matching pages.";
+  if (!pages.length) return emptyPagesMessage(result);
   const decisions = pages.filter((page) => page.role === "decision").length;
   return `${plural(pages.length, "page", "pages")} suggested${decisions ? `, ${plural(decisions, "decision", "decisions")}` : ""}.${result.status === "deterministic" ? UNEVALUATED : ""}`;
 }
