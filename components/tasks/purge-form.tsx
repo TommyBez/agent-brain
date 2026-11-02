@@ -49,9 +49,9 @@ export function PurgeForm({ taskRef }: { taskRef: string }) {
         </Button>
       </div>
       <p id={`${id}-help`} className="text-xs text-muted-foreground">
-        Only a text-free record with the number remains. A purged extraction
-        never returns from the task keeper. Closed tasks already exported stay
-        in the Git history.
+        Only a text-free record with the number remains. A purged extraction is
+        permanently removed. Closed tasks already exported stay in the Git
+        history.
       </p>
       <ActionError error={error} />
     </form>

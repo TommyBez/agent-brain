@@ -261,6 +261,7 @@ test("every registered MCP tool agrees with the route scope check and rejects a 
     gap_analysis: {},
     list_pages: {},
     list_tasks: {},
+    suggest_task_links: { title: "Draft" },
     read_task: { ref: "T-1" },
     create_task: {
       title: "Private task",
@@ -298,7 +299,7 @@ test("every registered MCP tool agrees with the route scope check and rejects a 
       }),
     );
     const { tools } = await client.listTools();
-    assert.equal(tools.length, 19);
+    assert.equal(tools.length, 20);
     for (const name of TASK_TOOL_NAMES)
       assert.ok(
         tools.some((tool) => tool.name === name),

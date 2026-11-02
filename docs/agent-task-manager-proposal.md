@@ -386,6 +386,8 @@ Due processi notturni con compiti separati: il **conciliatore** collega la conos
 
 ### 8.1 Prima velocità: deterministica, senza AI
 
+> Superseded by Tommy’s 2026-11-02 decision: tasks require explicit UI/MCP creation; page candidates are requested and confirmed explicitly. Recurrences are removed. Nightly retains hygiene only. See README.md.
+
 **Alla creazione e alla modifica**, nella transazione del servizio:
 
 | Fonte | Link | Stato |
@@ -409,6 +411,8 @@ Costo AI zero, salvo embedding trascurabili. Il requisito 3 è coperto per tutti
 
 ### 8.2 Ordine notturno e collegamenti tecnici
 
+> Superseded by Tommy’s 2026-11-02 decision: tasks require explicit UI/MCP creation; page candidates are requested and confirmed explicitly. Recurrences are removed. Nightly retains hygiene only. See README.md.
+
 ```
 consolidation → Promise.allSettled([ embeddings.then(task_keeper).then(task_links), export ])
 ```
@@ -420,6 +424,8 @@ Modifiche, per entrambe le fasi notturne `task_keeper` e `task_links`: `WORKFLOW
 Un errore negli embedding dei task, un budget esaurito o un errore Jev o DeepSeek chiudono la fase notturna `partial`, non `failed`: `nightly.ts:148` considera fallita la notte se una sola fase è `failed`.
 
 ### 8.3 Seconda velocità: suggerimenti verificati con Jev
+
+> Superseded by Tommy’s 2026-11-02 decision: tasks require explicit UI/MCP creation; page candidates are requested and confirmed explicitly. Recurrences are removed. Nightly retains hygiene only. See README.md.
 
 Modulo `lib/maintenance/task-links/{policy,candidates,questions,run,apply}.ts`. Condivide con il gestore dei task (§8.5) due interventi piccoli su file puliti:
 - `evaluatePersisted` passa da `consolidator/steps.ts` al nuovo `consolidator/evaluation-cache.ts`, con il `GatewayCall` come parametro: oggi la riga 226 fissa `budgetedGateway(ownerId, runId)` e la spesa non andrebbe alle fasi notturne dei task. `steps.ts` la chiama con lo stesso gateway, senza cambi di comportamento; i moduli dei task importano solo `evaluation-cache.ts`, non il grafo di `steps.ts` (con `reuse.ts` e `verifier.ts`, non committati). La cache `evaluation:` resta condivisa.
@@ -451,6 +457,8 @@ Modulo `lib/maintenance/task-links/{policy,candidates,questions,run,apply}.ts`. 
 
 ### 8.4 Costi e budget
 
+> Superseded by Tommy’s 2026-11-02 decision: tasks require explicit UI/MCP creation; page candidates are requested and confirmed explicitly. Recurrences are removed. Nightly retains hygiene only. See README.md.
+
 | Voce | Stima |
 |---|---|
 | Una richiesta per task | Circa 7.000 token in ingresso (12 × ~500 + ~1.000) × 42 nano-USD (`budget.ts`) ≈ $0,0003 |
@@ -463,6 +471,8 @@ Modulo `lib/maintenance/task-links/{policy,candidates,questions,run,apply}.ts`. 
 **Ripartizione del budget (decisa il 21/10).** `startSpend` applica un solo tetto giornaliero condiviso da tutti i proprietari, $1 × account nell'allowlist, senza riserve e sforabile dalle chiamate in volo (`budget.ts:61-63`). Con `brain_consolidation_spend.purpose` (`0008`) nascono due tetti morbidi al suo interno (N = numero di account): le pagine non avviano chiamate se `sum(purpose='pages')` ≥ 0,9 × N; `task_keeper` e `task_links` condividono una quota e si fermano se `sum(purpose IN ('task_keeper','task_links'))` ≥ 0,1 × N. Le pagine perdono al massimo il 10%, solo nelle notti in cui spenderebbero tutto; la coda riprende la notte dopo, e una prima esecuzione grande del gestore può occupare più notti. Un test verifica che le somme delle pagine escludano le fasi notturne dei task.
 
 ### 8.5 Il gestore dei task
+
+> Superseded by Tommy’s 2026-11-02 decision: tasks require explicit UI/MCP creation; page candidates are requested and confirmed explicitly. Recurrences are removed. Nightly retains hygiene only. See README.md.
 
 Processo di sistema nuovo, distinto dal conciliatore: agente `system_key='task_keeper'` (UI "Task keeper"). Compiti: (1) acquisizione dalle fonti, (2) deduplicazione, (3) suggerimenti di igiene, (4) istanze delle ricorrenze. Gli agenti di ingestione scrivono solo pagine; il gestore le legge chiunque le abbia scritte.
 
@@ -611,6 +621,8 @@ Le suite e i benchmark del rilascio; le soglie stanno nei criteri di rilascio (�
 
 ## 12. Piano di costruzione
 
+> Superseded by Tommy’s 2026-11-02 decision: tasks require explicit UI/MCP creation; page candidates are requested and confirmed explicitly. Recurrences are removed. Nightly retains hygiene only. See README.md.
+
 Un solo rilascio, dietro `TASKS_ENABLED`. Il lavoro è diviso in blocchi che gli agenti possono costruire in parallelo appena esistono le loro dipendenze. Il collo di bottiglia è la verifica (valutazioni, benchmark, revisioni del proprietario, prove con client reali), non la scrittura del codice: per questo il piano non ha stime di tempo.
 
 | Blocco | Contenuto | Dipende da | Si verifica con |
@@ -652,6 +664,8 @@ L'applicazione automatica dei link non è un criterio di rilascio: si accende do
 
 ## 13. Decisioni per il proprietario
 
+> Superseded by Tommy’s 2026-11-02 decision: tasks require explicit UI/MCP creation; page candidates are requested and confirmed explicitly. Recurrences are removed. Nightly retains hygiene only. See README.md.
+
 Le prime dieci righe sono decisioni del proprietario, del 21/10 tranne quella del 22/10; le altre restano raccomandazioni aperte.
 
 | Domanda | Decisione o raccomandazione | Motivo |
@@ -675,6 +689,8 @@ Le prime dieci righe sono decisioni del proprietario, del 21/10 tranne quella de
 ---
 
 ## 14. Rischi e mitigazioni
+
+> Superseded by Tommy’s 2026-11-02 decision: tasks require explicit UI/MCP creation; page candidates are requested and confirmed explicitly. Recurrences are removed. Nightly retains hygiene only. See README.md.
 
 | Rischio | Mitigazione |
 |---|---|

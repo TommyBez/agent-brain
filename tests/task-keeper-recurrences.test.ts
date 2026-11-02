@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { BrainError } from "../lib/brain/types";
-import { pendingOccurrences } from "../lib/maintenance/task-keeper/recurrences";
 import {
   type Agenda,
   type AgendaTask,
@@ -168,48 +167,6 @@ test("descriptions and dates for the app", () => {
   assert.equal(formatTaskDate("2026-10-27"), "Tue 27 Oct 2026");
   assert.equal(addDays("2026-12-31", 1), "2027-01-01");
   assert.equal(todayInTaskZone(new Date("2026-10-20T23:30:00Z")), "2026-10-21");
-});
-
-test("recurrence instances: one per occurrence from the watermark, latest seven", () => {
-  const daily = parseRecurrenceRule("FREQ=DAILY", { startsOn: "2026-10-01" });
-  assert.deepEqual(pendingOccurrences(daily, "2026-10-21", "2026-10-21", 0), {
-    dates: ["2026-10-21"],
-    skipped: 0,
-    next: "2026-10-22",
-  });
-  // Already instantiated today: the watermark is tomorrow, nothing is due.
-  assert.deepEqual(pendingOccurrences(daily, "2026-10-22", "2026-10-21", 0), {
-    dates: [],
-    skipped: 0,
-    next: "2026-10-22",
-  });
-  const missed = pendingOccurrences(daily, "2026-10-01", "2026-10-21", 0);
-  assert.equal(missed.dates.length, 7);
-  assert.equal(missed.dates[0], "2026-10-15");
-  assert.equal(missed.skipped, 14);
-  assert.equal(missed.next, "2026-10-22");
-  const weekly = parseRecurrenceRule("FREQ=WEEKLY;BYDAY=MO", {
-    startsOn: "2026-10-01",
-  });
-  // Two days of lead time create Monday's instance on Saturday.
-  assert.deepEqual(pendingOccurrences(weekly, "2026-10-26", "2026-10-24", 2), {
-    dates: ["2026-10-26"],
-    skipped: 0,
-    next: "2026-11-02",
-  });
-  assert.deepEqual(pendingOccurrences(weekly, null, "2026-10-21", 0), {
-    dates: [],
-    skipped: 0,
-    next: "2026-10-26",
-  });
-  const finished = parseRecurrenceRule("FREQ=DAILY;COUNT=1", {
-    startsOn: "2026-10-01",
-  });
-  assert.deepEqual(pendingOccurrences(finished, null, "2026-10-21", 0), {
-    dates: [],
-    skipped: 0,
-    next: null,
-  });
 });
 
 function agendaTask(

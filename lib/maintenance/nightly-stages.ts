@@ -3,7 +3,7 @@ import type { WorkflowJobKind } from "./jobs";
 import type { TaskPhaseScope } from "./task-phase";
 
 export type NightlyOptions = {
-  /** `tasks` runs only task_keeper and task_links (Operations "Run now"). */
+  /** Only the scheduled nightly scope exists. */
   scope?: TaskPhaseScope;
   /** Whether the nightly scope includes the task phases: the owner's task
    * manager setting when the run was started, kept for the whole run. */
@@ -13,10 +13,7 @@ export type NightlyOptions = {
 export type StageOutcome = { status: string; [key: string]: unknown };
 export type NightlyStages = Partial<Record<WorkflowJobKind, StageOutcome>>;
 
-/** Pages first, then `allSettled([embeddings → task_keeper → task_links, export])`
- * (§8.2). Every stage runs even when an earlier one failed. A failed task phase
- * is reported in Operations but never fails the night.
- */
+/** Consolidation, then embeddings → hygiene beside export. */
 export async function runNightlyStages(
   run: (kind: WorkflowJobKind) => Promise<StageOutcome>,
   options: NightlyOptions = {},
@@ -29,17 +26,11 @@ export async function runNightlyStages(
           ? "Consolidation bookkeeping failed."
           : "Maintenance bookkeeping failed.",
     }));
-  const taskPhases = async () => {
-    const taskKeeper = await settle("task_keeper");
-    return { task_keeper: taskKeeper, task_links: await settle("task_links") };
-  };
-  if (options.scope === "tasks")
-    return { failed: false, jobs: await taskPhases() };
   const consolidation = await settle("consolidation");
   const [indexing, exported] = await Promise.all([
     settle("embeddings").then(async (embeddings) => ({
       embeddings,
-      ...(options.tasks ? await taskPhases() : {}),
+      ...(options.tasks ? { task_keeper: await settle("task_keeper") } : {}),
     })),
     settle("export"),
   ]);

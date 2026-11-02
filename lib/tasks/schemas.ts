@@ -186,47 +186,6 @@ export const ownerCreateTaskSchema = z
   })
   .strict();
 
-/** The task keeper's transcriptions and recurrence instances. */
-export const keeperCreateTaskSchema = z
-  .object({
-    ...contentFields,
-    origin: z.enum(["extracted", "recurrence"]),
-    sourcePageRef: pageRefSchema.optional(),
-    sourceVersion: z.number().int().positive().optional(),
-    sourceExcerpt: z
-      .object({
-        startOffset: z.number().int().min(0),
-        endOffset: z.number().int().min(0),
-      })
-      .strict()
-      .optional(),
-    batchId: z.string().min(1).max(TASK_LIMITS.batchId).optional(),
-    extractionFingerprint: z
-      .string()
-      .regex(/^[a-f0-9]{64}$/)
-      .optional(),
-    recurrenceId: z.uuid().optional(),
-    occurrenceOn: z.iso.date().optional(),
-  })
-  .strict()
-  .superRefine((input, context) => {
-    if (input.origin === "extracted" && !input.extractionFingerprint)
-      context.addIssue({
-        code: "custom",
-        path: ["extractionFingerprint"],
-        message: "Extracted tasks carry their extraction fingerprint",
-      });
-    if (
-      input.origin === "recurrence" &&
-      !(input.recurrenceId && input.occurrenceOn)
-    )
-      context.addIssue({
-        code: "custom",
-        path: ["recurrenceId"],
-        message: "Recurrence instances name their series and occurrence date",
-      });
-  });
-
 const patchContent = {
   title: contentFields.title.optional(),
   description: contentFields.description,
@@ -590,3 +549,25 @@ export const eventsSinceSchema = z
     limit: z.number().int().min(1).max(200).default(100),
   })
   .strict();
+
+export const suggestTaskLinksSchema = z
+  .object({
+    ref: z.string().trim().min(1).optional(),
+    title: z.string().trim().min(1).max(TASK_LIMITS.title).optional(),
+    description: z.string().max(TASK_LIMITS.description).optional(),
+    projectRef: pageRefSchema.optional(),
+    limit: z.number().int().min(1).max(10).default(10),
+  })
+  .strict()
+  .refine(
+    (data) =>
+      data.ref
+        ? data.title === undefined &&
+          data.description === undefined &&
+          data.projectRef === undefined
+        : data.title !== undefined,
+    {
+      message:
+        "Provide ref only, or title with optional description and projectRef.",
+    },
+  );

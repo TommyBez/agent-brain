@@ -1,11 +1,10 @@
 // Contract between nightlyMaintenance and the task phases. Workflow-safe:
 // type-only imports, so the orchestrators can import it in the sandbox.
-import type { TaskJobKind } from "../tasks/types";
 
-export type TaskPhaseKind = TaskJobKind;
+export type TaskPhaseKind = "task_keeper";
 
-/** `nightly` is the 02:00 pass; `tasks` is Operations "Run now" (task phases only). */
-export const TASK_PHASE_SCOPES = ["nightly", "tasks"] as const;
+/** Scheduled hygiene runs only within nightly maintenance. */
+export const TASK_PHASE_SCOPES = ["nightly"] as const;
 export type TaskPhaseScope = (typeof TASK_PHASE_SCOPES)[number];
 
 /** Why a phase stopped early. It ends `partial` and resumes the next run. */

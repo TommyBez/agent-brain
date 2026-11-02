@@ -8,7 +8,6 @@ import {
   spendPurposeGroup,
   TASK_SPEND_PURPOSES,
 } from "../lib/maintenance/consolidator/budget";
-import { SPEND_PURPOSES, TASK_JOB_KINDS } from "../lib/tasks/types";
 
 test("with every account's task manager on pages keep 90% and the task phases share 10%", () => {
   assert.deepEqual(SPEND_SHARE_TENTHS, { pages: 9, tasks: 1 });
@@ -50,11 +49,10 @@ test("each account with the task manager on moves a tenth of its dollar to the t
 test("page sums exclude the task phases, which count together", () => {
   assert.deepEqual(spendPurposeGroup("pages"), ["pages"]);
   assert.deepEqual(spendPurposeGroup("task_keeper"), TASK_SPEND_PURPOSES);
-  assert.deepEqual(spendPurposeGroup("task_links"), TASK_SPEND_PURPOSES);
-  assert.deepEqual(TASK_SPEND_PURPOSES, TASK_JOB_KINDS);
+  assert.deepEqual(TASK_SPEND_PURPOSES, ["task_keeper"]);
   assert.deepEqual(
     [...new Set([...spendPurposeGroup("pages"), ...TASK_SPEND_PURPOSES])],
-    SPEND_PURPOSES,
+    ["pages", "task_keeper"],
   );
 });
 
@@ -64,6 +62,6 @@ test("budget errors name their purpose and keep the page message", () => {
     new BudgetExhaustedError().message,
     "Daily consolidation budget exhausted",
   );
-  assert.equal(new BudgetExhaustedError("task_links").purpose, "task_links");
+  assert.equal(new BudgetExhaustedError("task_keeper").purpose, "task_keeper");
   assert.match(new BudgetExhaustedError("task_keeper").message, /task/);
 });

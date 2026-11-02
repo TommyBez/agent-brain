@@ -5,7 +5,6 @@ import type { WorkflowJob, WorkflowJobKind } from "../lib/maintenance/jobs";
 import {
   type StartDeps,
   startNightlyMaintenance,
-  startTaskMaintenance,
 } from "../lib/maintenance/start";
 
 // "Run now" for the task phases and the nightly start, with the Workflow
@@ -66,10 +65,6 @@ function harness(
     queueWorkflowJobs: async (...args) => {
       calls.queued.push(args);
     },
-    requeueTaskWorkflowJobs: async (...args) => {
-      calls.requeued.push(args);
-      return [];
-    },
   };
   return { deps, calls };
 }
@@ -83,96 +78,13 @@ const tasksRun = {
   metadata: { runDate: TODAY, scope: "tasks" },
 };
 
-test("Run now without an active run requeues only the task phases and starts a tasks-scope run", async () => {
-  const { deps, calls } = harness();
-  const result = await startTaskMaintenance(OWNER, deps);
-  assert.deepEqual(result, {
-    runId: "wrun-1",
-    runDate: TODAY,
-    completed: false,
-    started: true,
-  });
-  assert.deepEqual(calls.requeued, [[OWNER, TODAY]]);
-  assert.deepEqual(calls.queued, []);
-  assert.deepEqual(calls.started, [
-    [OWNER, TODAY, undefined, { scope: "tasks", tasks: true }],
-  ]);
-});
-
-test("Run now reuses today's active run while a task phase is queued or running", async () => {
-  for (const status of ["queued", "running"] as const)
-    for (const hook of [nightly(), tasksRun]) {
-      const { deps, calls } = harness({
-        hook,
-        jobs: {
-          consolidation: "succeeded",
-          embeddings: "running",
-          task_keeper: status,
-          task_links: "queued",
-        },
-      });
-      const result = await startTaskMaintenance(OWNER, deps);
-      assert.deepEqual(result, {
-        runId: hook.runId,
-        runDate: TODAY,
-        completed: false,
-        started: false,
-      });
-      assert.deepEqual(calls.requeued, []);
-      assert.deepEqual(calls.started, []);
-    }
-});
-
-test("Run now starts a new tasks run when today's run finished its task phases or is another day's", async () => {
-  for (const options of [
-    {
-      hook: nightly(),
-      jobs: {
-        consolidation: "running",
-        task_keeper: "succeeded",
-        task_links: "partial",
-      } as const,
-    },
-    {
-      hook: tasksRun,
-      jobs: { task_keeper: "failed", task_links: "failed" } as const,
-    },
-    { hook: nightly("2026-10-20"), jobs: { task_keeper: "queued" } as const },
-  ]) {
-    const { deps, calls } = harness(options);
-    const result = await startTaskMaintenance(OWNER, deps);
-    assert.equal(result.started, true);
-    assert.equal(result.runId, "wrun-1");
-    assert.deepEqual(calls.requeued, [[OWNER, TODAY]]);
-    assert.deepEqual(calls.started[0][3], { scope: "tasks", tasks: true });
-  }
-});
-
-test("Run now is refused while the owner's task manager is off", async () => {
-  for (const hook of [null, nightly(), tasksRun]) {
-    const { deps, calls } = harness({
-      tasks: false,
-      hook,
-      jobs: { task_keeper: "failed", task_links: "queued" },
-    });
-    await assert.rejects(startTaskMaintenance(OWNER, deps), {
-      code: "TASKS_DISABLED",
-      status: 409,
-    });
-    // The owner's own setting is read first; nothing else is looked at.
-    assert.deepEqual(calls.settings, [OWNER]);
-    assert.equal(calls.lookups, 0);
-    assert.deepEqual([calls.requeued, calls.started], [[], []]);
-  }
-});
-
 test("a night reads the owner's setting once and keeps it for the whole run", async () => {
   for (const tasks of [true, false]) {
     const { deps, calls } = harness({ tasks });
     await startNightlyMaintenance(OWNER, "scheduled", deps);
     assert.deepEqual(calls.settings, [OWNER]);
     const kinds = tasks
-      ? ["consolidation", "embeddings", "export", "task_keeper", "task_links"]
+      ? ["consolidation", "embeddings", "export", "task_keeper"]
       : ["consolidation", "embeddings", "export"];
     assert.deepEqual(calls.queued, [[OWNER, TODAY, undefined, kinds]]);
     assert.deepEqual(calls.started, [
@@ -199,7 +111,7 @@ test("a night reuses today's nightly run but never defers to a tasks-scope run",
   // A task-only "Run now" holds the lock: the scheduled night queues its own run.
   const behind = harness({
     hook: tasksRun,
-    jobs: { task_keeper: "running", task_links: "queued" },
+    jobs: { task_keeper: "running" },
   });
   const result = await startNightlyMaintenance(OWNER, "scheduled", behind.deps);
   assert.deepEqual(result, {
@@ -218,7 +130,6 @@ test("a night reuses today's nightly run but never defers to a tasks-scope run",
     "embeddings",
     "export",
     "task_keeper",
-    "task_links",
   ]);
 });
 
@@ -229,7 +140,6 @@ test("a completed night is not started again; a manual night reruns consolidatio
       embeddings: "succeeded",
       export: "partial",
       task_keeper: "succeeded",
-      task_links: "partial",
     },
   });
   assert.deepEqual(

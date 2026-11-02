@@ -681,7 +681,7 @@ test("the tasks suite runs through prepare, start, tool, finish and report", asy
     const tools = JSON.parse(
       await readFile(join(session, "tools.json"), "utf8"),
     );
-    assert.equal(tools.length, 17);
+    assert.equal(tools.length, 18);
     const work = join(session, "work");
     assert(
       (await readFile(join(session, "prompt.md"), "utf8")).startsWith(

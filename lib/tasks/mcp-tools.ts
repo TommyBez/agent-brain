@@ -2,6 +2,7 @@ import type { Principal } from "../auth-principal";
 import type { Actor } from "./actors";
 import { resolveActor } from "./actors";
 import { claimTask, completeTask, releaseTask, reportTask } from "./claims";
+import { suggestTaskLinks } from "./link-candidates";
 import { createTask, listTasks, readTask, updateTask } from "./service";
 import {
   TASK_TOOL_DEFINITIONS,
@@ -12,6 +13,7 @@ import {
 type TaskOperation = (actor: Actor, input: unknown) => Promise<unknown>;
 
 const OPERATIONS: Record<TaskToolName, TaskOperation> = {
+  suggest_task_links: suggestTaskLinks,
   list_tasks: listTasks,
   read_task: readTask,
   create_task: createTask,

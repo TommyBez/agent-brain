@@ -12,7 +12,6 @@ import type { Agenda, AgendaTask } from "@/lib/tasks/agenda";
 import { formatTaskDate } from "@/lib/tasks/recurrences";
 import { pageHref } from "@/lib/workspace/urls";
 import { AgendaCopyButton } from "./agenda-copy-button";
-import { AgendaSeriesPause } from "./agenda-series-form";
 import { StatusBadge } from "./status";
 
 // The agenda of one meeting series (§9): what is due by the next meeting,
@@ -137,7 +136,6 @@ export function AgendaView({
           )}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <AgendaSeriesPause id={series.id} paused={series.paused} />
           <AgendaCopyButton markdown={markdown} />
         </div>
       </header>

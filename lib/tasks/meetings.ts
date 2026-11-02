@@ -1,7 +1,5 @@
 import { assertOwner } from "../brain/utils";
-import type { Actor } from "./actors";
 import {
-  createRecurrence,
   getRecurrence,
   listRecurrences,
   nextOccurrence,
@@ -70,18 +68,4 @@ export async function getMeetingSeries(
 ): Promise<MeetingSeriesView | null> {
   const series = await getRecurrence(ownerId, id);
   return series.kind === "meeting" ? meetingView(series, today) : null;
-}
-
-/** The owner creates a meeting series: title, project and the meeting RRULE. */
-export async function createMeetingSeries(
-  actor: Actor,
-  input: Record<string, unknown>,
-  today: string = todayInTaskZone(),
-): Promise<MeetingSeriesView> {
-  const series = await createRecurrence(
-    actor,
-    { ...input, kind: "meeting" },
-    today,
-  );
-  return meetingView(series, today);
 }

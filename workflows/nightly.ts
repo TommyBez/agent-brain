@@ -17,7 +17,6 @@ import {
   takeExportSnapshot,
 } from "@/lib/maintenance/steps";
 import { runTaskKeeperPhase } from "@/lib/maintenance/task-keeper";
-import { runTaskLinksPhase } from "@/lib/maintenance/task-links";
 import type {
   TaskPhaseContext,
   TaskPhaseScope,
@@ -89,7 +88,7 @@ async function runPhase(
         result,
       );
     }
-    if (kind === "task_keeper" || kind === "task_links") {
+    if (kind === "task_keeper") {
       const context: TaskPhaseContext = {
         ownerId,
         runId,
@@ -98,10 +97,7 @@ async function runPhase(
         attempts: job.attempts,
         scope,
       };
-      const result =
-        kind === "task_keeper"
-          ? await runTaskKeeperPhase(context)
-          : await runTaskLinksPhase(context);
+      const result = await runTaskKeeperPhase(context);
       return await completeJob(
         ownerId,
         job.id,

@@ -2,10 +2,8 @@ import { CalendarClock } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 import { requireTasksEnabled } from "@/app/(workspace)/tasks/enabled";
-import { AgendaSeriesForm } from "@/components/tasks/agenda-series-form";
 import { AgendaView } from "@/components/tasks/agenda-view";
 import { TasksNav } from "@/components/tasks/tasks-nav";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Empty, Loading, PageHeading } from "@/components/workspace/primitives";
 import { formatTaskDate } from "@/lib/tasks/recurrences";
 import { cn } from "@/lib/utils";
@@ -13,34 +11,11 @@ import {
   type RouteSearchParams,
   routeSearchParams,
 } from "@/lib/workspace/urls";
-import { getAgendaProjects, getAgendaView, getMeetingSeriesList } from "./data";
+import { getAgendaView, getMeetingSeriesList } from "./data";
 
 export const metadata = { title: "Agenda · a native brain" };
 
 type SearchParams = Promise<RouteSearchParams>;
-
-async function NewSeries() {
-  const projects = await getAgendaProjects();
-  return <AgendaSeriesForm projects={projects} />;
-}
-
-function NewSeriesSection({ open }: { open?: boolean }) {
-  return (
-    <details
-      open={open}
-      className="group rounded-2xl border bg-card px-5 py-4 sm:px-6"
-    >
-      <summary className="cursor-pointer text-sm font-medium">
-        New meeting series
-      </summary>
-      <div className="pt-5">
-        <Suspense fallback={<Skeleton className="h-40" />}>
-          <NewSeries />
-        </Suspense>
-      </div>
-    </details>
-  );
-}
 
 async function AgendaPanel({ id }: { id: string }) {
   const view = await getAgendaView(id);
@@ -65,9 +40,8 @@ async function AgendaContent({ searchParams }: { searchParams: SearchParams }) {
         <Empty
           icon={<CalendarClock size={27} />}
           title="No meeting series yet"
-          description="Add a recurring meeting for a project. Its agenda lists tasks due by the next meeting, overdue work and what closed since the last one."
+          description="Existing meeting agendas show tasks due, overdue work and recently closed tasks."
         />
-        <NewSeriesSection open />
       </div>
     );
   const selected =
@@ -102,7 +76,6 @@ async function AgendaContent({ searchParams }: { searchParams: SearchParams }) {
       >
         <AgendaPanel id={selected.id} />
       </Suspense>
-      <NewSeriesSection />
     </div>
   );
 }

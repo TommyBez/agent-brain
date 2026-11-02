@@ -39,6 +39,7 @@ import {
   EXPECTED_OUTPUT_LABELS,
   PRIORITY_LABELS,
 } from "./labels";
+import { SuggestPages } from "./suggest-pages";
 
 export interface TaskFormValues {
   ref: string;
@@ -107,6 +108,7 @@ export function TaskForm({
   );
   const [capability, setCapability] = useState(task?.requiredCapability ?? "");
   const [delegateId, setDelegateId] = useState(task?.delegateId ?? "");
+  const [contextPageRefs, setContextPageRefs] = useState<string[]>([]);
   const [problem, setProblem] = useState("");
   const { pending, error, run } = useTaskAction();
   const ownerReviewed = (OWNER_REVIEWED_OUTPUTS as readonly string[]).includes(
@@ -133,6 +135,7 @@ export function TaskForm({
     if ("error" in dueValue) return setProblem(dueValue.error);
     if (!task) {
       const input = {
+        contextPageRefs,
         title: title.trim(),
         ...(description.trim() ? { description } : {}),
         ...(criteriaLines.length ? { acceptanceCriteria: criteriaLines } : {}),
@@ -329,6 +332,31 @@ export function TaskForm({
           placeholder="Markdown. Mention pages as /pages/<slug> to link them as context."
         />
       </div>
+      <SuggestPages
+        taskRef={task?.ref}
+        draft={{
+          title,
+          description,
+          ...(project ? { projectRef: project.id } : {}),
+        }}
+        onConfirm={
+          task
+            ? undefined
+            : (candidates) =>
+                setContextPageRefs((current) => [
+                  ...new Set([
+                    ...current,
+                    ...candidates.map((candidate) => candidate.pageRef),
+                  ]),
+                ])
+        }
+      />
+      {contextPageRefs.length > 0 && (
+        <p className="text-sm text-muted-foreground">
+          {contextPageRefs.length} confirmed pages will be linked when you
+          create the task.
+        </p>
+      )}
       <div className="grid gap-6 sm:grid-cols-2">
         <div className={field}>
           <Label htmlFor={`${id}-output`}>Expected output</Label>

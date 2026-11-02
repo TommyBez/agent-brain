@@ -74,7 +74,7 @@ export const LINK_ORIGIN_LABELS: Record<TaskLinkOrigin, string> = {
   rule: "Rule",
   provenance: "Verified output",
   consolidator: "Nightly maintenance",
-  task_keeper: "Task keeper",
+  task_keeper: "System",
 };
 
 export const SUGGESTION_LABELS: Record<TaskSuggestionKind, string> = {

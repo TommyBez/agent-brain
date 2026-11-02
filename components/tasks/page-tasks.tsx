@@ -182,7 +182,7 @@ async function KeeperSetting({ pageId }: { pageId: string }) {
   const excluded = settings.keeperExcludedPageIds.includes(pageId);
   return (
     <>
-      <dt className="font-medium">Task keeper</dt>
+      <dt className="font-medium">Task hygiene</dt>
       <dd className="space-y-1 text-muted-foreground">
         <p>
           {excluded
@@ -195,7 +195,7 @@ async function KeeperSetting({ pageId }: { pageId: string }) {
           errorClassName="basis-full"
           action={excludeFromKeeperAction.bind(null, pageId, !excluded)}
         >
-          {excluded ? "Include again" : "Exclude from task keeper"}
+          {excluded ? "Include again" : "Exclude from task hygiene"}
         </ActionButton>
       </dd>
     </>

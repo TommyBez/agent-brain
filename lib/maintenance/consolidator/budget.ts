@@ -1,7 +1,7 @@
 import { allowedEmails } from "../../auth";
 import { getPool } from "../../db";
 import { tasksEnabledAccountCount } from "../../tasks/feature";
-import { SPEND_PURPOSES, type SpendPurpose } from "../../tasks/types";
+import type { SpendPurpose } from "../../tasks/types";
 import { type GatewayCall, gatewayRequest } from "../gateway";
 
 export const DAILY_BUDGET_NANO = 1_000_000_000;
@@ -14,10 +14,7 @@ export function dailyBudgetNano(accountCount: number) {
 /** Soft caps inside the pooled daily cap, in tenths (§8.4). */
 export const SPEND_SHARE_TENTHS = { pages: 9, tasks: 1 } as const;
 /** The nightly task phases share one quota. */
-export const TASK_SPEND_PURPOSES: readonly SpendPurpose[] = [
-  "task_keeper",
-  "task_links",
-];
+export const TASK_SPEND_PURPOSES: readonly SpendPurpose[] = ["task_keeper"];
 
 /** Purposes whose recorded spend counts against `purpose`'s soft cap. */
 export function spendPurposeGroup(
@@ -52,7 +49,7 @@ export async function presentAccountCount() {
 }
 export const EDITOR_MODEL = "deepseek/deepseek-v4.1-flash-1017";
 export class BudgetExhaustedError extends Error {
-  constructor(readonly purpose: SpendPurpose = "pages") {
+  constructor(readonly purpose: Exclude<SpendPurpose, "task_links"> = "pages") {
     super(
       purpose === "pages"
         ? "Daily consolidation budget exhausted"
@@ -104,9 +101,9 @@ export async function startSpend(
   ownerId: string,
   runId: string,
   model: string,
-  purpose: SpendPurpose = "pages",
+  purpose: Exclude<SpendPurpose, "task_links"> = "pages",
 ): Promise<string> {
-  if (!SPEND_PURPOSES.includes(purpose))
+  if (!(["pages", "task_keeper"] as readonly string[]).includes(purpose))
     throw new Error("Unknown spending purpose");
   const [accounts, taskAccounts] = await Promise.all([
     presentAccountCount(),
@@ -152,7 +149,7 @@ export async function recordedSpendNano(
 export function budgetedGateway(
   ownerId: string,
   runId: string,
-  purpose: SpendPurpose = "pages",
+  purpose: Exclude<SpendPurpose, "task_links"> = "pages",
 ): GatewayCall {
   return async <T>(
     path: Parameters<GatewayCall>[0],

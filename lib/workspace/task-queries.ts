@@ -316,7 +316,7 @@ export async function querySuggestions(ownerId: string, taskId?: string) {
      JOIN brain_agents creator ON creator.owner_id = t.owner_id AND creator.id = t.created_by_agent_id
      JOIN brain_agents author ON author.owner_id = s.owner_id AND author.id = s.created_by_agent_id
      LEFT JOIN brain_tasks related ON related.owner_id = s.owner_id AND related.id = s.related_task_id
-     WHERE s.owner_id = $1 AND s.status = 'open' AND t.archived_at IS NULL ${taskId ? "AND s.task_id = $2" : ""}
+     WHERE s.owner_id = $1 AND s.status = 'open' AND s.kind <> 'new_source' AND t.archived_at IS NULL ${taskId ? "AND s.task_id = $2" : ""}
      ORDER BY s.created_at DESC, s.id LIMIT 100`,
     params,
   );
@@ -464,7 +464,7 @@ export async function queryNeedsYou(ownerId: string) {
     db.query(
       `SELECT count(*)::int AS count FROM brain_task_suggestions s
        JOIN brain_tasks t ON t.owner_id = s.owner_id AND t.id = s.task_id
-       WHERE s.owner_id = $1 AND s.status = 'open' AND t.archived_at IS NULL`,
+       WHERE s.owner_id = $1 AND s.status = 'open' AND s.kind <> 'new_source' AND t.archived_at IS NULL`,
       [ownerId],
     ),
   ]);
@@ -610,7 +610,7 @@ export async function queryNeedsYouCount(ownerId: string): Promise<number> {
           OR (t.status = 'blocked' AND t.blocked_reason = 'human_step')))
        + (SELECT count(*) FROM brain_task_suggestions s
           JOIN brain_tasks t ON t.owner_id = s.owner_id AND t.id = s.task_id
-          WHERE s.owner_id = $1 AND s.status = 'open' AND t.archived_at IS NULL) AS count`,
+          WHERE s.owner_id = $1 AND s.status = 'open' AND s.kind <> 'new_source' AND t.archived_at IS NULL) AS count`,
     [ownerId],
   );
   return Number(rows[0].count);

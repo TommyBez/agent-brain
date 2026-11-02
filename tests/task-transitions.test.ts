@@ -101,7 +101,7 @@ test("accepted suggestions run only a recognised, prefilled transition", () => {
         { pageId: "note/verbale-20-10", version: 3 },
       ],
     }),
-    { op: "link", pageRef: "note/verbale-20-10", role: "source" },
+    null,
   );
   assert.deepEqual(
     suggestedTransition({
@@ -199,7 +199,7 @@ test("the task keeper's suggestion payloads map to the owner transitions", () =>
         title: "Inviare il report",
         actorNames: ["Damato"],
       },
-      { op: "link", pageRef: page.pageId, role: "source" },
+      null,
     ],
     [
       "overdue_no_outcome",

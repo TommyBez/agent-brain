@@ -1,0 +1,57 @@
+import { pathToFileURL } from "node:url";
+
+export const COUNT_SQL = `SELECT count(*)::text AS count FROM brain_task_links WHERE status = 'suggested' AND decided_at IS NULL AND decided_by_agent_id IS NULL`;
+export const RETRACT_SQL = `UPDATE brain_task_links SET status = 'retracted', updated_at = now() WHERE status = 'suggested' AND decided_at IS NULL AND decided_by_agent_id IS NULL`;
+
+export interface QueryClient {
+  query(sql: string): Promise<{
+    rows: { count?: string }[];
+    rowCount: number | null;
+  }>;
+}
+
+/** No human decision is fabricated: the paired decision columns remain null. */
+export async function retractSuggestedTaskLinks(
+  client: QueryClient,
+  apply = false,
+): Promise<{ count: number; changed: number }> {
+  const result = await client.query(COUNT_SQL);
+  const count = Number(result.rows[0]?.count ?? 0);
+  if (!apply) return { count, changed: 0 };
+  const updated = await client.query(RETRACT_SQL);
+  return { count, changed: updated.rowCount ?? 0 };
+}
+
+async function main() {
+  const flags = process.argv.slice(2);
+  if (flags.some((flag) => flag !== "--apply"))
+    throw new Error(
+      "Usage: tsx scripts/retract-suggested-task-links.ts [--apply]",
+    );
+  // Deliberately no dotenv loader. Connection configuration is supplied by the operator.
+  const { getPool } = await import("../lib/db");
+  const pool = getPool();
+  try {
+    const apply = flags.includes("--apply");
+    const result = await retractSuggestedTaskLinks(pool, apply);
+    console.log(
+      apply
+        ? `Changed ${result.changed} rows.`
+        : `Dry-run: would change ${result.count} rows.`,
+    );
+  } finally {
+    await pool.end();
+  }
+}
+
+if (
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(process.argv[1]).href
+) {
+  main().catch((error: unknown) => {
+    console.error(
+      error instanceof Error ? error.message : "Data operation failed.",
+    );
+    process.exitCode = 1;
+  });
+}

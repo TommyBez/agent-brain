@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import test from "node:test";
-import { HookNotFoundError } from "workflow/errors";
 import { BrainError } from "../lib/brain/types";
 import { getPool } from "../lib/db";
 import {
@@ -11,18 +10,11 @@ import {
   finishWorkflowJob,
   isTaskJobKind,
   queueWorkflowJobs,
-  requeueTaskWorkflowJobs,
   WORKFLOW_JOB_KINDS,
   type WorkflowJobKind,
   workflowExportAttemptKey,
   workflowJobsComplete,
 } from "../lib/maintenance/jobs";
-import {
-  type StartDeps,
-  startNightlyMaintenance,
-  startTaskMaintenance,
-} from "../lib/maintenance/start";
-import { tasksEnabledFor } from "../lib/tasks/feature";
 
 test("export receipt keys change only with the logical job attempt", () => {
   const jobId = randomUUID();
@@ -50,7 +42,6 @@ test("task phases are nightly kinds only for an owner with the task manager on",
     "embeddings",
     "export",
     "task_keeper",
-    "task_links",
   ]);
   assert.deepEqual(enabledWorkflowJobKinds(false), [
     "consolidation",
@@ -58,10 +49,7 @@ test("task phases are nightly kinds only for an owner with the task manager on",
     "export",
   ]);
   assert.deepEqual(enabledWorkflowJobKinds(true), WORKFLOW_JOB_KINDS);
-  assert.deepEqual(WORKFLOW_JOB_KINDS.filter(isTaskJobKind), [
-    "task_keeper",
-    "task_links",
-  ]);
+  assert.deepEqual(WORKFLOW_JOB_KINDS.filter(isTaskJobKind), ["task_keeper"]);
   const finished = (kinds: readonly WorkflowJobKind[]) =>
     kinds.map((kind) => ({ kind, status: "partial" as const }));
   const pages = enabledWorkflowJobKinds(false);
@@ -72,11 +60,7 @@ test("task phases are nightly kinds only for an owner with the task manager on",
   );
   assert.equal(
     workflowJobsComplete(
-      [
-        ...finished(pages),
-        { kind: "task_keeper", status: "succeeded" },
-        { kind: "task_links", status: "failed" },
-      ],
+      [...finished(pages), { kind: "task_keeper", status: "running" }],
       WORKFLOW_JOB_KINDS,
     ),
     false,
@@ -439,7 +423,7 @@ test(
           const date = "2035-01-23";
           const original = await initialFailedPass(date);
           const phases = [];
-          for (const kind of ["task_keeper", "task_links"] as const) {
+          for (const kind of ["task_keeper"] as const) {
             const job = await beginWorkflowJob(
               owner,
               kind,
@@ -479,7 +463,7 @@ test(
             assert.equal(queued.workflowRunId, null);
             assert.equal(queued.result, null);
           }
-          for (const kind of ["task_keeper", "task_links"] as const) {
+          for (const kind of ["task_keeper"] as const) {
             const refreshed = await beginWorkflowJob(
               owner,
               kind,
@@ -489,94 +473,6 @@ test(
             assert.equal(refreshed.skip, false);
             assert.equal(refreshed.attempts, 2);
           }
-        },
-      );
-
-      await t.test(
-        "Run now requeues only today's task phases and never a running pass",
-        async () => {
-          const date = "2035-01-27";
-          await queueWorkflowJobs(owner, date, undefined, WORKFLOW_JOB_KINDS);
-          const queued = await dailyWorkflowStatus(owner, date);
-          assert.deepEqual(
-            queued.map((job) => job.kind),
-            [...WORKFLOW_JOB_KINDS].sort(),
-          );
-          const completed = new Map<string, string>();
-          for (const kind of WORKFLOW_JOB_KINDS) {
-            const job = await beginWorkflowJob(owner, kind, date, "night-run");
-            await finishWorkflowJob(
-              owner,
-              job.id,
-              "night-run",
-              kind === "task_links" ? "failed" : "succeeded",
-              kind === "export"
-                ? { pushed: true, commit: "c".repeat(40) }
-                : kind === "consolidation"
-                  ? { writes: 0 }
-                  : { requests: 0 },
-              kind === "task_links" ? "Phase failed." : undefined,
-            );
-            completed.set(kind, job.id);
-          }
-          const requeued = await requeueTaskWorkflowJobs(owner, date);
-          assert.deepEqual(
-            requeued.map((job) => [job.kind, job.status, job.attempts]),
-            [
-              ["task_keeper", "queued", 1],
-              ["task_links", "queued", 1],
-            ],
-          );
-          assert.ok(
-            requeued.every(
-              (job) =>
-                job.id === completed.get(job.kind) &&
-                job.workflowRunId === null &&
-                job.result === null &&
-                job.error === null,
-            ),
-          );
-          const after = await dailyWorkflowStatus(owner, date);
-          for (const job of after.filter((entry) => !isTaskJobKind(entry.kind)))
-            assert.equal(job.status, "succeeded");
-          const keeper = await beginWorkflowJob(
-            owner,
-            "task_keeper",
-            date,
-            "run-now",
-          );
-          assert.equal(keeper.skip, false);
-          assert.equal(keeper.attempts, 2);
-          const again = await requeueTaskWorkflowJobs(owner, date);
-          assert.deepEqual(
-            again.map((job) => [job.kind, job.status, job.workflowRunId]),
-            [
-              ["task_keeper", "running", "run-now"],
-              ["task_links", "queued", null],
-            ],
-          );
-          assert.equal(
-            (await beginWorkflowJob(owner, "consolidation", date, "run-now"))
-              .skip,
-            true,
-          );
-          const fresh = await requeueTaskWorkflowJobs(owner, "2035-01-28");
-          assert.deepEqual(
-            fresh.map((job) => [job.kind, job.status, job.attempts]),
-            [
-              ["task_keeper", "queued", 0],
-              ["task_links", "queued", 0],
-            ],
-          );
-          assert.equal(
-            (await dailyWorkflowStatus(owner, "2035-01-28")).length,
-            2,
-          );
-          await assert.rejects(
-            requeueTaskWorkflowJobs(owner, "2035-02-30"),
-            (error) =>
-              error instanceof BrainError && error.code === "INVALID_RUN_DATE",
-          );
         },
       );
 
@@ -632,103 +528,6 @@ test(
             ),
             ["consolidation", "embeddings", "export"],
           );
-        },
-      );
-
-      await t.test(
-        "each owner's night and Run now follow that owner's own task manager setting",
-        async () => {
-          const date = "2035-03-01";
-          const pages = enabledWorkflowJobKinds(false);
-          const started: unknown[][] = [];
-          // The real ledger and setting; only the Workflow runtime is faked.
-          const deps: StartDeps = {
-            start: async (_workflow, args) => {
-              started.push(args);
-              return { runId: `wrun-${started.length}` };
-            },
-            getHookByToken: async (token) => {
-              throw new HookNotFoundError(token);
-            },
-            dailyWorkflowStatus,
-            queueWorkflowJobs,
-            requeueTaskWorkflowJobs,
-            tasksEnabled: (ownerId) => tasksEnabledFor(ownerId),
-            now: () => new Date(`${date}T20:00:00Z`),
-          };
-          const kinds = async (ownerId: string) =>
-            (await dailyWorkflowStatus(ownerId, date)).map((job) => job.kind);
-          const setTasks = (enabled: boolean) =>
-            getPool().query(
-              `INSERT INTO brain_task_settings (owner_id, enabled) VALUES ($1, $2)
-               ON CONFLICT (owner_id) DO UPDATE SET enabled = EXCLUDED.enabled`,
-              [owner, enabled],
-            );
-          const disabled = (error: unknown) =>
-            error instanceof BrainError &&
-            error.code === "TASKS_DISABLED" &&
-            error.status === 409;
-
-          // The owner turns the task manager on; the outsider never had a row.
-          await setTasks(true);
-          assert.equal(await tasksEnabledFor(owner), true);
-          assert.equal(await tasksEnabledFor(outsider), false);
-          await startNightlyMaintenance(owner, "scheduled", deps);
-          await startNightlyMaintenance(outsider, "scheduled", deps);
-          assert.deepEqual(await kinds(owner), [...WORKFLOW_JOB_KINDS].sort());
-          assert.deepEqual(await kinds(outsider), pages);
-          assert.deepEqual(started, [
-            [owner, date, undefined, { scope: "nightly", tasks: true }],
-            [outsider, date, undefined, { scope: "nightly", tasks: false }],
-          ]);
-
-          // Run now is refused for the outsider and touches nothing.
-          await assert.rejects(startTaskMaintenance(outsider, deps), disabled);
-          assert.deepEqual(await kinds(outsider), pages);
-          assert.equal(started.length, 2);
-
-          // Turning it off hides the task phases without deleting their rows:
-          // Run now is refused, and the night is complete with three stages.
-          await setTasks(false);
-          await assert.rejects(startTaskMaintenance(owner, deps), disabled);
-          for (const kind of pages) {
-            const job = await beginWorkflowJob(owner, kind, date, "night-run");
-            await finishWorkflowJob(
-              owner,
-              job.id,
-              "night-run",
-              "succeeded",
-              kind === "export"
-                ? { pushed: true, commit: "e".repeat(40) }
-                : { writes: 0 },
-            );
-          }
-          assert.deepEqual(
-            await startNightlyMaintenance(owner, "scheduled", deps),
-            { completed: true, runDate: date },
-          );
-          assert.deepEqual(await kinds(owner), [...WORKFLOW_JOB_KINDS].sort());
-          assert.equal(started.length, 2);
-
-          // Turned back on, the pending task phases make the night incomplete.
-          await setTasks(true);
-          const night = await startNightlyMaintenance(owner, "scheduled", deps);
-          assert.equal(night.completed, false);
-          assert.deepEqual(started.at(-1), [
-            owner,
-            date,
-            undefined,
-            { scope: "nightly", tasks: true },
-          ]);
-          const runNow = await startTaskMaintenance(owner, deps);
-          assert.equal(runNow.started, true);
-          assert.deepEqual(started.at(-1), [
-            owner,
-            date,
-            undefined,
-            { scope: "tasks", tasks: true },
-          ]);
-          assert.deepEqual(await kinds(outsider), pages);
         },
       );
       await t.test(

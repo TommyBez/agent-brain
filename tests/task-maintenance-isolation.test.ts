@@ -88,7 +88,7 @@ test("task maintenance reuses the evaluation cache without the steps.ts graph", 
     ...files("lib/maintenance/task-links"),
   ];
   assert.ok(entries.includes("lib/maintenance/task-keeper/index.ts"));
-  assert.ok(entries.includes("lib/maintenance/task-links/index.ts"));
+  assert.ok(!entries.includes("lib/maintenance/task-links/index.ts"));
   for (const entry of entries) {
     const graph = reachable(entry);
     for (const file of forbidden)

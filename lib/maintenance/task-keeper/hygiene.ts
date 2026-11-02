@@ -10,10 +10,10 @@ import {
 import { pageEvidenceFingerprint } from "../consolidator/snapshot";
 import { findConsolidationRecords } from "../consolidator/store";
 import type { Evaluate, Question } from "../consolidator/types";
-import { normalizeForFingerprint } from "./dedupe";
+import { askAll, probability } from "./evaluate";
+import { normalizeForFingerprint } from "./normalize";
 import { TASK_KEEPER_LIMITS, TASK_KEEPER_THRESHOLDS } from "./policy";
 import { keeperQuestion, TASK_KEEPER_POLICY } from "./prompts";
-import { askAll, probability } from "./screen";
 import {
   keeperKeys,
   openSuggestion,

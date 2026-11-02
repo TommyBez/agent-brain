@@ -18,7 +18,7 @@ export function evaluationCacheKey(request: EvaluationRequest) {
 }
 
 export type EvaluationCacheOptions = {
-  /** Log event for failures, e.g. `task_links.evaluation_error`. */
+  /** Log event for failures, e.g. `task_keeper.evaluation_error`. */
   logEvent?: string;
 };
 

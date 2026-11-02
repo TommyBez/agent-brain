@@ -11,7 +11,7 @@ import {
 import { getKeeperExclusions } from "@/lib/workspace/tasks-data";
 import { ActionButton } from "./action-state";
 
-/** Operations: pages the task keeper never reads, with "Include again". */
+/** Operations: pages the task hygiene never reads, with "Include again". */
 export async function KeeperExclusions() {
   const pages = await getKeeperExclusions();
   return (
@@ -19,11 +19,11 @@ export async function KeeperExclusions() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <EyeOff className="size-5 shrink-0" aria-hidden="true" />
-          Excluded from the task keeper
+          Excluded from the task hygiene
         </CardTitle>
         <CardDescription>
-          The task keeper never reads these pages for commitments. Exclude a
-          confidential page from its Connections panel.
+          The task hygiene never reads these pages for hygiene suggestions.
+          Exclude a confidential page from its Connections panel.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -56,7 +56,7 @@ export async function KeeperExclusions() {
           </ul>
         ) : (
           <p className="text-sm text-muted-foreground">
-            No pages are excluded. The task keeper reads every page.
+            No pages are excluded. The task hygiene reads every page.
           </p>
         )}
       </CardContent>
