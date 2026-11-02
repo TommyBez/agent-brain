@@ -63,8 +63,13 @@ For `.github/workflows/neon-preview-cleanup.yml`, configure:
 On 2026-09-16, `NEON_PROJECT_ID` was verified as
 `crimson-queen-75233553`, and the project-scoped key
 `agent-brain-preview-cleanup` was saved as `NEON_API_KEY` and its presence verified
-in the repository. Cleanup becomes active once the workflow is merged into
-`main`; an actual PR-close cleanup run has not yet been verified.
+in the repository. Cleanup was verified on 2026-11-02: closing PR #37 ran
+[the cleanup workflow](https://github.com/TommyBez/agent-brain/actions/runs/41199595745),
+which deleted `preview/codex/consolidation-capacity-recovery` (Neon branch
+`br-misty-breeze-b2frvplr`). All 29 same-repository PRs closed since the workflow
+landed (#9–#37) have successful cleanup runs, and no `preview/*` branch remains
+for them. Preview branches pushed without a pull request are not covered and
+must be removed manually.
 
 Cleanup runs on `pull_request_target` close events and only for pull requests
 whose head repository matches the current repository. It runs no checkout or PR
