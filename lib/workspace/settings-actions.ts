@@ -4,10 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createAgentToken, revokeAgentToken } from "@/lib/agent-tokens";
 import { AuthError } from "@/lib/auth-principal";
 import { BrainError } from "@/lib/brain/types";
-import {
-  startNightlyMaintenance,
-  startTaskMaintenance,
-} from "@/lib/maintenance/start";
+import { startNightlyMaintenance } from "@/lib/maintenance/start";
 import { type AgentPatch, ownerActor } from "@/lib/tasks/actors";
 import { setTasksEnabled } from "@/lib/tasks/feature";
 import {
@@ -68,27 +65,7 @@ export async function runMaintenanceAction() {
   }
 }
 
-/** Runs only today's task keeper and task links, without the other stages. */
-export async function runTaskMaintenanceAction() {
-  const user = await requireWorkspaceUser();
-  try {
-    const run = await startTaskMaintenance(user.id);
-    revalidatePath("/operations");
-    return { started: run.started };
-  } catch (error) {
-    return {
-      error:
-        error instanceof BrainError && error.code === "TASKS_DISABLED"
-          ? "Task maintenance is not enabled."
-          : "Unable to start task maintenance. Check Operations and try again.",
-    };
-  }
-}
-
-/**
- * The owner's task manager switch (/agents). Every task surface reads it, so
- * both caches are refreshed; turning it off hides tasks without deleting them.
- */
+/** Enable or hide task features for the signed-in owner. */
 export async function setTasksEnabledAction(enabled: boolean) {
   const user = await requireWorkspaceUser();
   try {

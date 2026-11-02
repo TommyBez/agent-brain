@@ -154,11 +154,11 @@ test(
         const error = t.mock.method(console, "error", () => {});
         await assert.rejects(
           evaluatePersisted(owner, "budget-run", input, (async () => {
-            throw new BudgetExhaustedError("task_links");
+            throw new BudgetExhaustedError("task_keeper");
           }) as GatewayCall),
           (thrown) =>
             thrown instanceof BudgetExhaustedError &&
-            thrown.purpose === "task_links",
+            thrown.purpose === "task_keeper",
         );
         assert.equal(error.mock.callCount(), 0);
         assert.equal(
@@ -185,13 +185,13 @@ test(
                 status: 503,
               });
             }) as GatewayCall,
-            { logEvent: "task_links.evaluation_error" },
+            { logEvent: "task_keeper.evaluation_error" },
           ),
           GatewayRequestError,
         );
         assert.equal(error.mock.callCount(), 1);
         const [event, details] = error.mock.calls[0].arguments;
-        assert.equal(event, "task_links.evaluation_error");
+        assert.equal(event, "task_keeper.evaluation_error");
         assert.equal(
           (details as { stage: string }).stage,
           "evaluation_provider",

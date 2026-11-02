@@ -1,5 +1,6 @@
 "use client";
 
+import { X } from "lucide-react";
 import Link from "next/link";
 import { useId, useState } from "react";
 import {
@@ -39,6 +40,15 @@ import {
   EXPECTED_OUTPUT_LABELS,
   PRIORITY_LABELS,
 } from "./labels";
+import {
+  addConfirmed,
+  CONFIRMED_PAGE_LIMIT,
+  type ConfirmedPage,
+  confirmedLinks,
+  fromOtherProject,
+  removeConfirmed,
+} from "./page-suggestions";
+import { SuggestPages } from "./suggest-pages";
 
 export interface TaskFormValues {
   ref: string;
@@ -107,6 +117,7 @@ export function TaskForm({
   );
   const [capability, setCapability] = useState(task?.requiredCapability ?? "");
   const [delegateId, setDelegateId] = useState(task?.delegateId ?? "");
+  const [confirmed, setConfirmed] = useState<ConfirmedPage[]>([]);
   const [problem, setProblem] = useState("");
   const { pending, error, run } = useTaskAction();
   const ownerReviewed = (OWNER_REVIEWED_OUTPUTS as readonly string[]).includes(
@@ -131,8 +142,14 @@ export function TaskForm({
       );
     const dueValue = dueInput(due);
     if ("error" in dueValue) return setProblem(dueValue.error);
+    const { contextPageRefs, decisionPageRefs } = confirmedLinks(confirmed);
+    if (confirmed.length > CONFIRMED_PAGE_LIMIT)
+      return setProblem(
+        `Link at most ${CONFIRMED_PAGE_LIMIT} suggested pages at once.`,
+      );
     if (!task) {
       const input = {
+        contextPageRefs,
         title: title.trim(),
         ...(description.trim() ? { description } : {}),
         ...(criteriaLines.length ? { acceptanceCriteria: criteriaLines } : {}),
@@ -146,7 +163,7 @@ export function TaskForm({
         ...(delegateId ? { delegateAgentId: delegateId } : {}),
         idempotencyKey,
       };
-      return run(() => createTaskAction(input));
+      return run(() => createTaskAction(input, decisionPageRefs));
     }
     const patch: Record<string, unknown> = {};
     if (title.trim() !== task.title) patch.title = title.trim();
@@ -166,13 +183,24 @@ export function TaskForm({
       patch.requiresHuman = requiresHuman;
     if ((capability || null) !== task.requiredCapability)
       patch.requiredCapability = capability || null;
+    // Confirmed suggestions are written only by Save; Cancel leaves no links.
+    if (contextPageRefs.length)
+      patch.contextPageRefs = { add: contextPageRefs };
     const delegate =
       (delegateId || null) !== task.delegateId
         ? { agentId: delegateId || null }
         : undefined;
-    if (!Object.keys(patch).length && !delegate)
+    if (!Object.keys(patch).length && !delegate && !decisionPageRefs.length)
       return setProblem("Nothing changed.");
-    run(() => updateTaskAction(task.ref, task.version, patch, delegate));
+    run(() =>
+      updateTaskAction(
+        task.ref,
+        task.version,
+        patch,
+        delegate,
+        decisionPageRefs,
+      ),
+    );
   }
 
   const field = "space-y-2";
@@ -329,6 +357,25 @@ export function TaskForm({
           placeholder="Markdown. Mention pages as /pages/<slug> to link them as context."
         />
       </div>
+      <SuggestPages
+        onProjectConfirm={setProject}
+        taskRef={task?.ref}
+        draft={{ title, description }}
+        projectRef={project?.id}
+        onConfirm={(candidates, projectRef) =>
+          setConfirmed((current) =>
+            addConfirmed(current, candidates, projectRef),
+          )
+        }
+      />
+      <ConfirmedPages
+        pages={confirmed}
+        projectRef={project?.id ?? null}
+        action={task ? "save" : "create"}
+        onRemove={(refs) =>
+          setConfirmed((current) => removeConfirmed(current, refs))
+        }
+      />
       <div className="grid gap-6 sm:grid-cols-2">
         <div className={field}>
           <Label htmlFor={`${id}-output`}>Expected output</Label>
@@ -447,5 +494,83 @@ export function TaskForm({
         <ActionError error={error} className="basis-full" />
       </div>
     </form>
+  );
+}
+
+/** Confirmed suggestions waiting for Save/Create; nothing is linked before. */
+function ConfirmedPages({
+  pages,
+  projectRef,
+  action,
+  onRemove,
+}: {
+  pages: ConfirmedPage[];
+  projectRef: string | null;
+  action: "save" | "create";
+  onRemove: (pageRefs: string[]) => void;
+}) {
+  const headingId = useId();
+  if (!pages.length) return null;
+  const other = fromOtherProject(pages, projectRef);
+  const otherRefs = new Set(other.map((page) => page.pageRef));
+  return (
+    <section aria-labelledby={headingId} className="space-y-2">
+      <h3 id={headingId} className="text-sm font-medium">
+        Pages to link when you {action === "save" ? "save" : "create the task"}
+      </h3>
+      <ul className="space-y-1">
+        {pages.map((page) => (
+          <li
+            key={page.pageRef}
+            className="flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm"
+          >
+            <span className="min-w-0 flex-1 wrap-anywhere">
+              <span className="font-medium">{page.title}</span>
+              <span className="text-muted-foreground">
+                {" "}
+                · {page.role === "decision" ? "Decision" : "Context"}
+              </span>
+              {otherRefs.has(page.pageRef) && (
+                <span className="block text-xs text-destructive">
+                  Suggested for a different project
+                </span>
+              )}
+            </span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              aria-label={`Remove ${page.title}`}
+              onClick={() => onRemove([page.pageRef])}
+            >
+              <X aria-hidden="true" />
+            </Button>
+          </li>
+        ))}
+      </ul>
+      {other.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+          <span>
+            The project changed. {other.length} of these{" "}
+            {other.length === 1 ? "page was" : "pages were"} suggested for
+            another project and will still be linked unless you remove{" "}
+            {other.length === 1 ? "it" : "them"}.
+          </span>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => onRemove(other.map((page) => page.pageRef))}
+          >
+            Remove {other.length === 1 ? "it" : "them"}
+          </Button>
+        </div>
+      )}
+      {pages.length > CONFIRMED_PAGE_LIMIT && (
+        <p className="text-xs text-destructive">
+          Link at most {CONFIRMED_PAGE_LIMIT} suggested pages at once.
+        </p>
+      )}
+    </section>
   );
 }

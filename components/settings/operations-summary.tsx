@@ -26,37 +26,19 @@ import {
 import { formatDate } from "@/lib/formatters";
 import type { TaskPhaseHalt } from "@/lib/maintenance/task-phase";
 import type { MaintenanceJob, OperationsData } from "@/lib/operations";
-import { TaskMaintenanceControl } from "./operations-controls";
 
 const JOB_LABELS: Record<MaintenanceJob["kind"], string> = {
   consolidation: "Consolidation",
   embeddings: "Embeddings",
   export: "Export",
-  task_keeper: "Task keeper",
-  task_links: "Task links",
+  task_keeper: "Task hygiene",
 };
 
 const TASK_COUNTERS = {
   task_keeper: [
-    ["pagesConsidered", "pages considered"],
-    ["created", "tasks added to triage"],
-    ["newSources", "new sources suggested"],
     ["suggestions", "suggestions opened"],
-    ["occurrences", "recurring tasks created"],
-    ["unitsReused", "analyses reused"],
     ["requests", "model requests"],
-    ["remainingPages", "pages awaiting the next run"],
-    ["oversizedPages", "pages too long to analyze"],
-    ["cappedPages", "pages waiting for a free suggestion slot"],
     ["cappedSuggestions", "suggestions waiting for a free slot"],
-  ],
-  task_links: [
-    ["tasksConsidered", "tasks considered"],
-    ["suggested", "links suggested"],
-    ["retracted", "links retracted"],
-    ["unitsReused", "analyses reused"],
-    ["requests", "Jev requests"],
-    ["remainingTasks", "tasks awaiting the next run"],
   ],
 } as const;
 
@@ -108,8 +90,7 @@ function OperationResult({ job }: { job: MaintenanceJob }) {
   const result = job.result;
   if (!result) return null;
   const values: Record<string, unknown> = result;
-  const taskPhase =
-    job.kind === "task_keeper" || job.kind === "task_links" ? job.kind : null;
+  const taskPhase = job.kind === "task_keeper" ? job.kind : null;
   const counts = (
     taskPhase
       ? TASK_COUNTERS[taskPhase].map(([key, label]) =>
@@ -207,14 +188,7 @@ function OperationResult({ job }: { job: MaintenanceJob }) {
   );
 }
 
-export function OperationsSummary({
-  data,
-  tasks,
-}: {
-  data: OperationsData;
-  // The owner's task manager switch: "Run now" for the task phases.
-  tasks: boolean;
-}) {
+export function OperationsSummary({ data }: { data: OperationsData }) {
   return (
     <>
       <section>
@@ -226,7 +200,6 @@ export function OperationsSummary({
             run is already active, it continues without starting another.
           </p>
         </div>
-        {tasks && <TaskMaintenanceControl />}
         {data.jobs.length ? (
           <ItemGroup className="border-t">
             {data.jobs.map((job, index) => (

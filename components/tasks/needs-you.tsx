@@ -149,7 +149,7 @@ export async function NeedsYou() {
       <Section
         id="needs-you-triage"
         title="Triage"
-        description="Tasks agents and the task keeper created. Approving one lets any suitable agent take it."
+        description="Tasks agents created. Approving one lets any suitable agent take it."
         count={totals.triage}
         shown={triageShown}
         more={taskListHref({ statuses: ["triage", "ready"] })}

@@ -8,21 +8,8 @@ import { TASK_KEEPER_POLICY } from "./prompts";
 // Records live in brain_consolidation_records with the `task-keeper:` prefix
 // (§5.1); Jev answers stay in the shared `evaluation:` cache.
 export const keeperKeys = {
-  /** The page as read in this run (exact passages and linked pages). */
-  snapshot: (unitId: string) => `task-keeper:snapshot:${unitId}` as const,
-  /** The page was fully processed under this policy and evidence. */
-  page: (unitId: string) => `task-keeper:page:${unitId}` as const,
-  extraction: (key: string) => `task-keeper:extraction:${key}` as const,
   hygiene: (unitId: string) => `task-keeper:hygiene:${unitId}` as const,
   duplicate: (unitId: string) => `task-keeper:duplicate:${unitId}` as const,
-  /** The page waits for a free suggestion slot on an existing task. */
-  capped: (unitId: string) => `task-keeper:capped:${unitId}` as const,
-  /** The page exceeds Jev's request limit `limit`: left pending and reported. */
-  oversized: (unitId: string, limit: number) =>
-    `task-keeper:oversized:${limit}:${unitId}` as const,
-  /** A passage cited by the extraction with this fingerprint (text-free). */
-  identity: (passage: string, extraction: string) =>
-    `task-keeper:identity:${passage}:${extraction}` as const,
 };
 
 /** Pages the owner excluded from the task keeper (confidential material). */

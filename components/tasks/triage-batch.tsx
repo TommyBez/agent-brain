@@ -19,11 +19,9 @@ import { AuthoredBy, PriorityLabel, StatusBadge } from "./status";
 function RejectButton({
   taskRef,
   version,
-  extracted,
 }: {
   taskRef: string;
   version: number;
-  extracted: boolean;
 }) {
   const [confirming, setConfirming] = useState(false);
   const { pending, error, run } = useTaskAction();
@@ -54,7 +52,7 @@ function RejectButton({
         }
       >
         {pending && <Spinner aria-hidden="true" />}
-        {extracted ? "Reject for good" : "Confirm reject"}
+        Confirm reject
       </Button>
       <Button
         type="button"
@@ -207,11 +205,7 @@ export function TriageBatch({ batch }: { batch: Batch }) {
                     <Pencil aria-hidden="true" /> Edit
                   </Link>
                 </Button>
-                <RejectButton
-                  taskRef={task.ref}
-                  version={task.version}
-                  extracted={extracted}
-                />
+                <RejectButton taskRef={task.ref} version={task.version} />
               </div>
             </li>
           );

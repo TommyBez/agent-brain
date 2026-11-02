@@ -69,7 +69,11 @@ test(
       await setup.query(`DROP SCHEMA ${schema} CASCADE`);
       await setup.end();
     });
-    async function spent(purpose: SpendPurpose, nano: number, who = other) {
+    async function spent(
+      purpose: Exclude<SpendPurpose, "task_links">,
+      nano: number,
+      who = other,
+    ) {
       const id = await startSpend(who, `prior-${purpose}`, JEV, purpose);
       await pool.query(
         "UPDATE brain_consolidation_spend SET actual_nano=$2 WHERE id=$1",
@@ -77,13 +81,14 @@ test(
       );
       return id;
     }
-    const blocked = (purpose: SpendPurpose) => (error: unknown) =>
-      error instanceof BudgetExhaustedError && error.purpose === purpose;
+    const blocked =
+      (purpose: Exclude<SpendPurpose, "task_links">) => (error: unknown) =>
+        error instanceof BudgetExhaustedError && error.purpose === purpose;
     const reset = () => pool.query("DELETE FROM brain_consolidation_spend");
 
     await t.test("rows record their purpose, pages by default", async () => {
       const pages = await startSpend(owner, "run", JEV);
-      const links = await startSpend(owner, "run", JEV, "task_links");
+      const links = await startSpend(owner, "run", JEV, "task_keeper");
       const { rows } = await pool.query<{ id: string; purpose: string }>(
         "SELECT id, purpose FROM brain_consolidation_spend",
       );
@@ -91,11 +96,11 @@ test(
         new Map(rows.map((row) => [row.id, row.purpose])),
         new Map([
           [pages, "pages"],
-          [links, "task_links"],
+          [links, "task_keeper"],
         ]),
       );
       await assert.rejects(
-        startSpend(owner, "run", JEV, "harvest" as SpendPurpose),
+        startSpend(owner, "run", JEV, "harvest" as "pages"),
         /Unknown spending purpose/,
       );
       await reset();
@@ -113,7 +118,7 @@ test(
           blocked("pages"),
         );
         // The task quota is still open although pages exhausted theirs.
-        assert.ok(await startSpend(owner, "links-run", JEV, "task_links"));
+        assert.ok(await startSpend(owner, "links-run", JEV, "task_keeper"));
         await reset();
       },
     );
@@ -123,10 +128,10 @@ test(
       async () => {
         await spent("pages", 899_999_999);
         await spent("task_keeper", 60_000_000);
-        await spent("task_links", 39_999_999);
+        await spent("task_keeper", 39_999_999);
         assert.ok(await startSpend(owner, "keeper-run", JEV, "task_keeper"));
-        await spent("task_links", 1);
-        for (const purpose of ["task_keeper", "task_links"] as const)
+        await spent("task_keeper", 1);
+        for (const purpose of ["task_keeper", "task_keeper"] as const)
           await assert.rejects(
             startSpend(owner, `${purpose}-run`, JEV, purpose),
             blocked(purpose),
@@ -196,8 +201,8 @@ test(
         await setTasks(other, false);
         try {
           await spent("task_keeper", 99_999_999);
-          assert.ok(await startSpend(owner, "links-run", JEV, "task_links"));
-          await spent("task_links", 1);
+          assert.ok(await startSpend(owner, "links-run", JEV, "task_keeper"));
+          await spent("task_keeper", 1);
           await assert.rejects(
             startSpend(owner, "keeper-run", JEV, "task_keeper"),
             blocked("task_keeper"),
@@ -216,8 +221,8 @@ test(
           await setTasks(other, true);
           await reset();
           await spent("task_keeper", 199_999_999);
-          assert.ok(await startSpend(owner, "links-run", JEV, "task_links"));
-          await spent("task_links", 1);
+          assert.ok(await startSpend(owner, "links-run", JEV, "task_keeper"));
+          await spent("task_keeper", 1);
           await assert.rejects(
             startSpend(owner, "keeper-run", JEV, "task_keeper"),
             blocked("task_keeper"),
@@ -257,7 +262,7 @@ test(
         const fetch = t.mock.method(globalThis, "fetch", async () =>
           Response.json({ providerMetadata: { gateway: { cost: "0.0003" } } }),
         );
-        const send = budgetedGateway(owner, "night", "task_links");
+        const send = budgetedGateway(owner, "night", "task_keeper");
         await send("evaluate", { model: JEV, state: "A task", questions: {} });
         await send("evaluate", { model: JEV, state: "A task", questions: {} });
         await budgetedGateway(owner, "night")("evaluate", {
@@ -267,7 +272,7 @@ test(
         });
         assert.equal(fetch.mock.callCount(), 3);
         assert.equal(
-          await recordedSpendNano(owner, "night", ["task_links"]),
+          await recordedSpendNano(owner, "night", ["task_keeper"]),
           600_000,
         );
         assert.equal(
@@ -279,13 +284,13 @@ test(
           0,
         );
         assert.equal(
-          await recordedSpendNano(other, "night", ["task_links"]),
+          await recordedSpendNano(other, "night", ["task_keeper"]),
           0,
         );
         await spent("task_keeper", 100_000_000);
         await assert.rejects(
           send("evaluate", { model: JEV, state: "A task", questions: {} }),
-          blocked("task_links"),
+          blocked("task_keeper"),
         );
         assert.equal(fetch.mock.callCount(), 3);
         await reset();

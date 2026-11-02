@@ -31,7 +31,11 @@ import {
   unblockTask,
 } from "@/lib/tasks/owner";
 import { iso } from "@/lib/tasks/records";
-import { delegateSchema, type OwnerFence } from "@/lib/tasks/schemas";
+import {
+  delegateSchema,
+  type OwnerFence,
+  ownerDecisionPageRefsSchema,
+} from "@/lib/tasks/schemas";
 import { updateTask } from "@/lib/tasks/service";
 import { addTaskLink, decideTaskSuggestion } from "@/lib/tasks/suggestions";
 import { TASK_STATUSES, type TaskStatus } from "@/lib/tasks/types";
@@ -385,7 +389,12 @@ export async function saveTaskEdits(
   expectedVersion: unknown,
   patch: Record<string, unknown>,
   delegate?: { agentId: string | null },
+  decisions?: unknown,
 ) {
+  const decisionRefs = parseTaskInput(
+    ownerDecisionPageRefsSchema,
+    decisions === undefined ? [] : decisions,
+  );
   let current = positiveVersion(expectedVersion);
   if (delegate) {
     const data = parseTaskInput(delegateSchema, {
@@ -398,9 +407,13 @@ export async function saveTaskEdits(
         "Choose an agent from the /agents registry.",
       );
   }
-  if (Object.keys(patch ?? {}).length)
+  if (Object.keys(patch ?? {}).length || decisionRefs.length)
     current = (
-      await updateTask(actor, { ref, expectedVersion: current, patch })
+      await updateTask(
+        actor,
+        { ref, expectedVersion: current, patch },
+        decisions,
+      )
     ).task.version;
   if (delegate)
     await delegateTask(actor, ref, {

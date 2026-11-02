@@ -6,7 +6,6 @@ import { fingerprint } from "../canonical-json";
 import { getPool, transaction } from "../db";
 import type { Actor } from "./actors";
 import { buildTaskBrief, type TaskBrief } from "./brief";
-import { syncDerivedTaskLinks } from "./derived-links";
 import { parseTaskInput, taskError, taskNotFound } from "./errors";
 import {
   briefEvents,
@@ -17,7 +16,9 @@ import {
   recentEvents,
   recordEvent,
 } from "./events";
+import { contextLinks, ownerDecisionLinks } from "./explicit-links";
 import {
+  assertOwnerActor,
   assertVersion,
   CLEARED_LEASE,
   isOwnerActor,
@@ -48,7 +49,6 @@ import {
 } from "./predicates";
 import {
   authored,
-  type LockedTask,
   loadTaskRow,
   lockTask,
   refCondition,
@@ -60,9 +60,10 @@ import {
 } from "./records";
 import {
   createTaskSchema,
-  keeperCreateTaskSchema,
   listTasksSchema,
   ownerCreateTaskSchema,
+  ownerDecisionPageRefsSchema,
+  ownerDecisionUpdateTaskSchema,
   ownerUpdateTaskSchema,
   readTaskSchema,
   type TaskDueInput,
@@ -75,17 +76,15 @@ import {
   OPEN_TASK_STATUSES,
   OWNER_REVIEWED_OUTPUTS,
   type TaskExpectedOutput,
-  type TaskLinkOrigin,
 } from "./types";
 
-/** Per-agent creation limits (the task keeper has its own per-run cap). */
+/** Limits for explicit agent creation requests. */
 export const AGENT_CREATION_LIMITS = { perDay: 50, openTriage: 20 } as const;
 const DUPLICATE_SIMILARITY = 0.55;
 
 type CreateInput =
   | ReturnType<typeof createTaskSchema.parse>
-  | ReturnType<typeof ownerCreateTaskSchema.parse>
-  | ReturnType<typeof keeperCreateTaskSchema.parse>;
+  | ReturnType<typeof ownerCreateTaskSchema.parse>;
 
 function dueColumns(due: TaskDueInput | undefined) {
   if (!due)
@@ -98,9 +97,8 @@ function dueColumns(due: TaskDueInput | undefined) {
   };
 }
 
-function linkOrigin(actor: Actor): TaskLinkOrigin {
+function linkOrigin(actor: Actor): "owner" | "agent" {
   if (actor.agent.kind === "owner") return "owner";
-  if (actor.agent.systemKey === "task_keeper") return "task_keeper";
   return "agent";
 }
 
@@ -172,40 +170,6 @@ async function agentExists(db: Database, ownerId: string, agentId: string) {
     );
 }
 
-function contextLinks(
-  pages: { id: string; version: number }[],
-  origin: TaskLinkOrigin,
-  mention = false,
-): LinkWrite[] {
-  return pages.map((page) => ({
-    pageId: page.id,
-    role: "context",
-    origin,
-    status: "active",
-    evidence: {
-      basis: "reference",
-      pageVersion: page.version,
-      ...(mention ? { mention: true } : {}),
-    },
-  }));
-}
-
-async function runDerivedLinks(
-  ownerId: string,
-  taskId: string,
-  actorAgentId: string,
-  trigger: "created" | "updated",
-) {
-  try {
-    await syncDerivedTaskLinks({ ownerId, taskId, actorAgentId, trigger });
-  } catch (error) {
-    console.error(
-      "Derived task links failed",
-      error instanceof Error ? error.name : "unknown error",
-    );
-  }
-}
-
 async function possibleDuplicates(
   ownerId: string,
   task: { id: string; title: string; projectId: string | null },
@@ -274,30 +238,37 @@ function creationNextActions(
  * Creates a task. Agents create only in the allowed cases (origin), land in
  * triage unless their policy says otherwise, and never approve for others.
  */
-export async function createTask(actor: Actor, input: unknown) {
+export async function createTask(
+  actor: Actor,
+  input: unknown,
+  decisions?: unknown,
+) {
   assertOwner(actor.ownerId);
   const ownerId = actor.ownerId;
   const kind = actor.agent.kind;
-  if (kind === "system" && actor.agent.systemKey !== "task_keeper")
+  if (kind === "system")
     throw taskError(
       "NOT_ALLOWED",
-      "The consolidator links knowledge to tasks; it never creates them.",
-      "Leave task creation to the owner, allowed agent requests and the task keeper.",
+      "System agents cannot create tasks.",
+      "Use an explicit owner or agent request.",
     );
   const data: CreateInput =
     kind === "owner"
       ? parseTaskInput(ownerCreateTaskSchema, input)
-      : kind === "agent"
-        ? parseTaskInput(createTaskSchema, input)
-        : parseTaskInput(keeperCreateTaskSchema, input);
+      : parseTaskInput(createTaskSchema, input);
+  if (decisions !== undefined) assertOwnerActor(actor);
+  const decisionRefs = [
+    ...new Set(
+      parseTaskInput(
+        ownerDecisionPageRefsSchema,
+        decisions === undefined ? [] : decisions,
+      ),
+    ),
+  ].sort();
   const expectedOutput: TaskExpectedOutput = data.expectedOutput ?? "none";
   const ownerFields =
     kind === "owner"
       ? (data as ReturnType<typeof ownerCreateTaskSchema.parse>)
-      : undefined;
-  const keeperFields =
-    kind === "system"
-      ? (data as ReturnType<typeof keeperCreateTaskSchema.parse>)
       : undefined;
   const reviewPolicy =
     ownerFields?.reviewPolicy ?? defaultReviewPolicy(expectedOutput);
@@ -313,7 +284,11 @@ export async function createTask(actor: Actor, input: unknown) {
   const idempotencyKey =
     "idempotencyKey" in data ? (data.idempotencyKey ?? null) : null;
   const idempotencyFingerprint = idempotencyKey
-    ? fingerprint({ ...data, idempotencyKey: undefined })
+    ? fingerprint({
+        ...data,
+        idempotencyKey: undefined,
+        ...(decisionRefs.length ? { ownerDecisionPageRefs: decisionRefs } : {}),
+      })
     : null;
 
   const outcome = await transaction(async (db) => {
@@ -338,43 +313,7 @@ export async function createTask(actor: Actor, input: unknown) {
         return { taskId: existing.rows[0].id as string, replayed: true };
       }
     }
-    if (keeperFields?.extractionFingerprint) {
-      const rejected = await db.query(
-        "SELECT 1 FROM brain_task_extraction_rejections WHERE owner_id = $1 AND fingerprint = $2",
-        [ownerId, keeperFields.extractionFingerprint],
-      );
-      if (rejected.rowCount)
-        throw taskError(
-          "EXTRACTION_REJECTED",
-          "The owner rejected this extraction before.",
-          "Skip it; rejected extractions never return.",
-        );
-      const existing = await db.query(
-        "SELECT id FROM brain_tasks WHERE owner_id = $1 AND extraction_fingerprint = $2",
-        [ownerId, keeperFields.extractionFingerprint],
-      );
-      if (existing.rows[0])
-        return { taskId: existing.rows[0].id as string, replayed: true };
-    }
-    let recurrenceApprover: string | null = null;
-    if (keeperFields?.origin === "recurrence") {
-      const series = await db.query(
-        `SELECT r.created_by_agent_id,
-           (SELECT id FROM brain_tasks WHERE owner_id = $1 AND recurrence_id = r.id AND occurrence_on = $3::date) AS existing
-         FROM brain_task_recurrences r WHERE r.owner_id = $1 AND r.id = $2`,
-        [ownerId, keeperFields.recurrenceId, keeperFields.occurrenceOn],
-      );
-      if (!series.rows[0])
-        throw taskError(
-          "INVALID_INPUT",
-          "The recurrence does not exist.",
-          "Create instances only for existing owner recurrences.",
-        );
-      if (series.rows[0].existing)
-        return { taskId: series.rows[0].existing as string, replayed: true };
-      recurrenceApprover = series.rows[0].created_by_agent_id;
-    }
-
+    const decisionPages = await resolvePages(db, ownerId, decisionRefs, true);
     let status: "triage" | "ready" = "triage";
     let approvedBy: string | null = null;
     if (kind === "owner") {
@@ -386,9 +325,6 @@ export async function createTask(actor: Actor, input: unknown) {
         approvedBy = actor.agentId;
       } else if (actor.agent.createPolicy === "direct") status = "ready";
       await rateLimit(db, actor, status === "triage");
-    } else if (keeperFields?.origin === "recurrence") {
-      status = "ready";
-      approvedBy = recurrenceApprover;
     }
 
     const project = data.projectRef
@@ -410,22 +346,18 @@ export async function createTask(actor: Actor, input: unknown) {
     );
     if (ownerFields?.delegateAgentId)
       await agentExists(db, ownerId, ownerFields.delegateAgentId);
-    const source = keeperFields?.sourcePageRef
-      ? (await resolvePages(db, ownerId, [keeperFields.sourcePageRef]))[0]
-      : null;
     const due = dueColumns(data.due);
     const { rows } = await db.query(
       `INSERT INTO brain_tasks (owner_id, number, title, description, acceptance_criteria, expected_output,
          status, priority, due_kind, due_on, due_at, due_text, requires_human, review_policy,
          delegate_agent_id, required_capability, project_page_id, parent_task_id, origin, owner_quote,
-         created_by_agent_id, approved_at, approved_by_agent_id, idempotency_key, idempotency_fingerprint,
-         batch_id, extraction_fingerprint, recurrence_id, occurrence_on)
+         created_by_agent_id, approved_at, approved_by_agent_id, idempotency_key, idempotency_fingerprint)
        VALUES ($1,
          (SELECT greatest(
             coalesce((SELECT max(number) FROM brain_tasks WHERE owner_id = $1), 0),
             coalesce((SELECT max((payload->>'number')::int) FROM brain_task_events WHERE owner_id = $1 AND action = 'purged'), 0)) + 1),
          $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
-         CASE WHEN $21::uuid IS NULL THEN NULL ELSE now() END, $21, $22, $23, $24, $25, $26, $27)
+         CASE WHEN $21::uuid IS NULL THEN NULL ELSE now() END, $21, $22, $23)
        RETURNING id, number`,
       [
         ownerId,
@@ -451,10 +383,6 @@ export async function createTask(actor: Actor, input: unknown) {
         approvedBy,
         idempotencyKey,
         idempotencyFingerprint,
-        keeperFields?.batchId ?? null,
-        keeperFields?.extractionFingerprint ?? null,
-        keeperFields?.recurrenceId ?? null,
-        keeperFields?.occurrenceOn ?? null,
       ],
     );
     const taskId = rows[0].id as string;
@@ -466,34 +394,38 @@ export async function createTask(actor: Actor, input: unknown) {
         (ref) => !contextPages.some((page) => page.ref === ref),
       ),
     );
-    // The keeper writes only its source link; context comes from the conciliator.
-    const links: LinkWrite[] =
-      origin === "task_keeper"
-        ? []
-        : [
-            ...contextLinks(contextPages, origin),
-            ...contextLinks(
-              mentioned.filter(
-                (page) =>
-                  !contextPages.some((context) => context.id === page.id),
-              ),
-              origin,
-              true,
-            ),
-          ];
-    if (source)
-      links.push({
-        pageId: source.id,
-        role: "source",
-        origin: "task_keeper",
-        status: "active",
-        evidence: {
-          basis: "extraction",
-          pageVersion: keeperFields?.sourceVersion ?? source.version,
-          ...(keeperFields?.sourceExcerpt ?? {}),
+    // Every link here comes from an explicit owner/agent input.
+    const links: LinkWrite[] = [
+      ...contextLinks(contextPages, origin),
+      ...contextLinks(
+        mentioned.filter(
+          (page) => !contextPages.some((context) => context.id === page.id),
+        ),
+        origin,
+        true,
+      ),
+    ];
+    await upsertTaskLinks(db, ownerId, taskId, actor.agentId, links);
+    if (decisionPages.length) {
+      await upsertTaskLinks(
+        db,
+        ownerId,
+        taskId,
+        actor.agentId,
+        ownerDecisionLinks(decisionPages),
+        true,
+      );
+      await recordEvent(db, {
+        ownerId,
+        taskId,
+        actorAgentId: actor.agentId,
+        action: "links_changed",
+        payload: {
+          added: decisionPages.map((page) => page.id),
+          role: "decision",
         },
       });
-    await upsertTaskLinks(db, ownerId, taskId, actor.agentId, links);
+    }
     await recordEvent(db, {
       ownerId,
       taskId,
@@ -506,14 +438,11 @@ export async function createTask(actor: Actor, input: unknown) {
         ...(data.due?.sourceExcerpt
           ? { dueSourceExcerpt: data.due.sourceExcerpt }
           : {}),
-        ...(keeperFields?.batchId ? { batchId: keeperFields.batchId } : {}),
       },
     });
     return { taskId, replayed: false };
   });
 
-  if (!outcome.replayed)
-    await runDerivedLinks(ownerId, outcome.taskId, actor.agentId, "created");
   const db = getPool();
   const task = taskView(await loadTaskRow(db, ownerId, outcome.taskId));
   const [linked, duplicates] = await Promise.all([
@@ -578,7 +507,11 @@ async function assertParentAcyclic(
  * Edits a task. The owner edits anything; a creator edits its own task until
  * the owner approves it; the holder may only add or remove context pages.
  */
-export async function updateTask(actor: Actor, input: unknown) {
+export async function updateTask(
+  actor: Actor,
+  input: unknown,
+  decisions?: unknown,
+) {
   assertOwner(actor.ownerId);
   const ownerId = actor.ownerId;
   const owner = isOwnerActor(actor);
@@ -588,8 +521,22 @@ export async function updateTask(actor: Actor, input: unknown) {
       "Nightly processes never edit tasks.",
       "Propose changes as suggestions for the owner.",
     );
+  if (decisions !== undefined) assertOwnerActor(actor);
+  const decisionRefs = [
+    ...new Set(
+      parseTaskInput(
+        ownerDecisionPageRefsSchema,
+        decisions === undefined ? [] : decisions,
+      ),
+    ),
+  ].sort();
   const data = owner
-    ? parseTaskInput(ownerUpdateTaskSchema, input)
+    ? parseTaskInput(
+        decisionRefs.length
+          ? ownerDecisionUpdateTaskSchema
+          : ownerUpdateTaskSchema,
+        input,
+      )
     : parseTaskInput(updateTaskSchema, input);
   const patch = data.patch as ReturnType<
     typeof ownerUpdateTaskSchema.parse
@@ -597,6 +544,13 @@ export async function updateTask(actor: Actor, input: unknown) {
   const result = await transaction(async (db) => {
     const task = await lockTask(db, ownerId, data.ref);
     assertVersion(task, data.expectedVersion);
+    if (decisionRefs.length && task.archived_at)
+      throw taskError(
+        "NOT_ALLOWED",
+        "Cannot add decisions to an archived task.",
+        "Unarchive the task before editing its links.",
+      );
+    const decisionPages = await resolvePages(db, ownerId, decisionRefs, true);
     const touched = CONTENT_FIELDS.filter((key) => patch[key] !== undefined);
     const isCreator = task.created_by_agent_id === actor.agentId;
     const isHolder =
@@ -721,7 +675,6 @@ export async function updateTask(actor: Actor, input: unknown) {
         fromStatus: task.status,
         toStatus: "canceled",
       });
-      if (owner) await rememberRejectedExtraction(db, ownerId, task);
     }
     const origin = owner ? "owner" : "agent";
     const linkChanges: Record<string, unknown> = {};
@@ -747,6 +700,17 @@ export async function updateTask(actor: Actor, input: unknown) {
     if (added.length) {
       await upsertTaskLinks(db, ownerId, task.id, actor.agentId, added, owner);
       linkChanges.added = added.map((link) => link.pageId);
+    }
+    if (decisionPages.length) {
+      await upsertTaskLinks(
+        db,
+        ownerId,
+        task.id,
+        actor.agentId,
+        ownerDecisionLinks(decisionPages),
+        true,
+      );
+      linkChanges.decisionsAdded = decisionPages.map((page) => page.id);
     }
     const remove = patch.contextPageRefs?.remove ?? [];
     if (remove.length) {
@@ -774,7 +738,10 @@ export async function updateTask(actor: Actor, input: unknown) {
       changedFields: [
         ...changed,
         ...(canceling ? ["status"] : []),
-        ...(Object.keys(linkChanges).length ? ["contextPageRefs"] : []),
+        ...(linkChanges.added || linkChanges.removed
+          ? ["contextPageRefs"]
+          : []),
+        ...(decisionPages.length ? ["decisionPageRefs"] : []),
       ],
       contentChanged: changed.some((field) =>
         ["title", "description", "acceptanceCriteria", "project"].includes(
@@ -783,28 +750,10 @@ export async function updateTask(actor: Actor, input: unknown) {
       ),
     };
   });
-  if (result.contentChanged)
-    await runDerivedLinks(ownerId, result.taskId, actor.agentId, "updated");
   return {
     task: taskView(await loadTaskRow(getPool(), ownerId, result.taskId)),
     changedFields: result.changedFields,
   };
-}
-
-/** A rejected or purged extraction never returns from the task keeper. */
-export async function rememberRejectedExtraction(
-  db: Database,
-  ownerId: string,
-  task: Pick<LockedTask, "extraction_fingerprint" | "id">,
-) {
-  if (!task.extraction_fingerprint) return;
-  await db.query(
-    `INSERT INTO brain_task_extraction_rejections (owner_id, fingerprint, source_page_id)
-     SELECT $1, $2, (SELECT page_id FROM brain_task_links
-                     WHERE owner_id = $1 AND task_id = $3 AND role = 'source' ORDER BY created_at LIMIT 1)
-     ON CONFLICT (owner_id, fingerprint) DO NOTHING`,
-    [ownerId, task.extraction_fingerprint, task.id],
-  );
 }
 
 function readNextActions(
@@ -925,7 +874,7 @@ export async function briefForTask(
     acceptanceCriteria: task.acceptanceCriteria.value,
     projectPageId: task.project?.isProject ? task.project.id : null,
     linkedPageIds: links
-      .filter((link) => link.role !== "produced" || link.status === "active")
+      .filter((link) => link.status === "active")
       .map((link) => link.page.id),
     links: links.map((link) => ({
       pageId: link.page.id,

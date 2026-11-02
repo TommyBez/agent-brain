@@ -2,9 +2,7 @@ import type { Database } from "../brain/pages";
 import { taskError } from "./errors";
 import type { TaskLinkOrigin, TaskLinkRole, TaskLinkStatus } from "./types";
 
-// Task → page links that the task service writes itself: context pages named
-// by the owner or an agent, the task keeper's source and verified produced
-// pages. Rules and retrieval suggestions belong to the conciliator.
+// Explicit context, mention, owner reference and completion links only.
 
 export interface ResolvedPage {
   ref: string;
@@ -20,12 +18,13 @@ export async function resolvePages(
   db: Database,
   ownerId: string,
   refs: string[],
+  lockForLink = false,
 ): Promise<ResolvedPage[]> {
   const unique = [...new Set(refs)];
   if (!unique.length) return [];
   const { rows } = await db.query(
     `SELECT id, slug, title, type, version FROM brain_pages
-     WHERE owner_id = $1 AND (id::text = ANY($2::text[]) OR slug = ANY($2::text[]))`,
+     WHERE owner_id = $1 AND (id::text = ANY($2::text[]) OR slug = ANY($2::text[]))${lockForLink ? " FOR SHARE" : ""}`,
     [ownerId, unique],
   );
   const missing: string[] = [];
@@ -97,8 +96,8 @@ export async function existingPageIds(
 export interface LinkWrite {
   pageId: string;
   role: TaskLinkRole;
-  origin: TaskLinkOrigin;
-  status: TaskLinkStatus;
+  origin: Extract<TaskLinkOrigin, "owner" | "agent">;
+  status: "active";
   evidence: Record<string, unknown>;
   confidence?: number | null;
 }

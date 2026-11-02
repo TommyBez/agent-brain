@@ -1,7 +1,6 @@
 import "server-only";
 
 import { cacheLife, cacheTag, io } from "next/cache";
-import * as brain from "@/lib/brain/service";
 import { agendaMarkdown, getMeetingAgenda } from "@/lib/tasks/agenda";
 import { listMeetingSeries } from "@/lib/tasks/meetings";
 import { todayInTaskZone } from "@/lib/tasks/recurrences";
@@ -30,17 +29,6 @@ async function agendaForOwner(ownerId: string, id: string, today: string) {
   return agenda ? { agenda, markdown: agendaMarkdown(agenda) } : null;
 }
 
-async function projectsForOwner(ownerId: string) {
-  "use cache";
-  tagged(ownerId);
-  const { pages } = await brain.listPages(ownerId, {
-    type: "project",
-    sort: "title",
-    limit: 100,
-  });
-  return pages.map((page) => ({ id: page.id, title: page.title }));
-}
-
 async function ownerDay() {
   const user = await getWorkspaceUser();
   await io();
@@ -55,9 +43,4 @@ export async function getMeetingSeriesList() {
 export async function getAgendaView(seriesId: string) {
   const { ownerId, today } = await ownerDay();
   return agendaForOwner(ownerId, seriesId, today);
-}
-
-export async function getAgendaProjects() {
-  const user = await getWorkspaceUser();
-  return projectsForOwner(user.id);
 }

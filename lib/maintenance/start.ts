@@ -1,15 +1,12 @@
 import { getHookByToken, start } from "workflow/api";
 import { HookNotFoundError } from "workflow/errors";
-import { BrainError } from "@/lib/brain/types";
 import { assertOwner } from "@/lib/brain/utils";
 import { tasksEnabledFor } from "@/lib/tasks/feature";
 import { nightlyMaintenance } from "@/workflows/nightly";
 import {
   dailyWorkflowStatus,
   enabledWorkflowJobKinds,
-  isTaskJobKind,
   queueWorkflowJobs,
-  requeueTaskWorkflowJobs,
   workflowJobsComplete,
 } from "./jobs";
 import type { TaskPhaseScope } from "./task-phase";
@@ -25,7 +22,6 @@ export interface StartDeps {
   ) => Promise<{ runId: string; metadata?: unknown }>;
   dailyWorkflowStatus: typeof dailyWorkflowStatus;
   queueWorkflowJobs: typeof queueWorkflowJobs;
-  requeueTaskWorkflowJobs: typeof requeueTaskWorkflowJobs;
   /** The owner's task manager setting, read when a run is started. */
   tasksEnabled: (ownerId: string) => Promise<boolean>;
   now?: () => Date;
@@ -36,7 +32,6 @@ const runtime: StartDeps = {
   getHookByToken,
   dailyWorkflowStatus,
   queueWorkflowJobs,
-  requeueTaskWorkflowJobs,
   tasksEnabled: (ownerId) => tasksEnabledFor(ownerId),
 };
 
@@ -95,43 +90,4 @@ export async function startNightlyMaintenance(
     { scope: "nightly", tasks },
   ]);
   return { runId: run.runId, runDate, completed: false };
-}
-
-/** Operations "Run now" for the task keeper and task links: requeues only
- * today's two task phases and starts a run that executes only them. A run
- * already holding today's lock with a pending task phase is reused. Refused
- * while the owner's task manager is off.
- */
-export async function startTaskMaintenance(
-  ownerId: string,
-  deps: StartDeps = runtime,
-) {
-  assertOwner(ownerId);
-  if (!(await deps.tasksEnabled(ownerId)))
-    throw new BrainError(
-      "TASKS_DISABLED",
-      "Task maintenance is not enabled.",
-      409,
-    );
-  const runDate = today(deps);
-  const active = await activeRun(ownerId, deps);
-  if (active?.runDate === runDate) {
-    const jobs = await deps.dailyWorkflowStatus(ownerId, runDate);
-    if (
-      jobs.some(
-        (job) =>
-          isTaskJobKind(job.kind) &&
-          (job.status === "queued" || job.status === "running"),
-      )
-    )
-      return { runId: active.runId, runDate, completed: false, started: false };
-  }
-  await deps.requeueTaskWorkflowJobs(ownerId, runDate);
-  const run = await deps.start(nightlyMaintenance, [
-    ownerId,
-    runDate,
-    undefined,
-    { scope: "tasks", tasks: true },
-  ]);
-  return { runId: run.runId, runDate, completed: false, started: true };
 }

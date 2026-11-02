@@ -23,7 +23,6 @@ import {
   ownerVersionSchema,
   reviewSchema,
 } from "./schemas";
-import { rememberRejectedExtraction } from "./service";
 import { LEASE_MINUTES, type TaskStatus } from "./types";
 
 // Owner powers. These are Server Action back ends (requireWorkspaceUser →
@@ -368,7 +367,6 @@ export async function cancelTask(
       note: data.note ?? null,
       payload: data.note ? { statusNote: true } : {},
     });
-    await rememberRejectedExtraction(db, actor.ownerId, task);
   });
 }
 
@@ -472,7 +470,6 @@ export async function purgeTask(actor: Actor, ref: string) {
   assertOwnerActor(actor);
   return transaction(async (db) => {
     const task = await lockTask(db, actor.ownerId, ref);
-    await rememberRejectedExtraction(db, actor.ownerId, task);
     // The delete cascades to its dependency edges; tasks it alone kept
     // blocked go back to ready, as when a dependency is removed.
     const dependents = await lockDependencyBlockedDependents(

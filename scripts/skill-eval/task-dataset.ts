@@ -316,7 +316,7 @@ export const taskScenarios: Scenario[] = [
     `${today}Salva nel Brain il verbale della riunione di oggi su Iris con Marta e Luca. Abbiamo discusso il piano di test. Azioni: FU.01 Marta prepara il piano di test entro il 15/10; FU.02 Luca verifica i costi del fornitore di hosting.`,
     { creates: [0, 0], allowed: [] },
     [
-      "Registra il verbale (nota o progetto) conservando FU.01 e FU.02 come testo attribuito con assegnatario e scadenza; non crea task, che trascriverà il gestore dei task, e non scrive riferimenti o stati di task nelle pagine.",
+      "Registra il verbale (nota o progetto) conservando FU.01 e FU.02 come testo attribuito con assegnatario e scadenza; crea task solo su esplicita richiesta del proprietario, assente in questo caso, e non scrive riferimenti o stati di task nelle pagine.",
     ],
     { tasks: [t3] },
   ),

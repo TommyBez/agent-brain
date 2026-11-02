@@ -39,6 +39,7 @@ export class GatewayRequestError extends Error {
 export async function gatewayRequest<T>(
   path: "chat/completions" | "embeddings" | "evaluate",
   body: unknown,
+  options: { signal?: AbortSignal } = {},
 ): Promise<T> {
   const key = process.env.AI_GATEWAY_API_KEY;
   if (!key) {
@@ -58,7 +59,12 @@ export async function gatewayRequest<T>(
       },
       body: JSON.stringify(body),
       cache: "no-store",
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      signal: options.signal
+        ? AbortSignal.any([
+            options.signal,
+            AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+          ])
+        : AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
   } catch (error) {
     throw new GatewayRequestError("AI Gateway request failed or timed out.", {

@@ -30,7 +30,7 @@ const kinds: Record<AgentKind, { label: string; icon: typeof Bot }> = {
 
 const systemPurpose: Record<string, string> = {
   consolidator: "Nightly consolidation of your pages",
-  task_keeper: "Nightly task keeper: extraction and hygiene suggestions",
+  task_keeper: "Nightly task hygiene suggestions",
 };
 
 const plural = (count: number, word: string) =>

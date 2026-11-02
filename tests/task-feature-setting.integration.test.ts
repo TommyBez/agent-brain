@@ -6,7 +6,6 @@ import {
   Client,
   StreamableHTTPClientTransport,
 } from "@modelcontextprotocol/client";
-import { HookNotFoundError } from "workflow/errors";
 import { GET as graphGET } from "../app/api/brain/graph/route";
 import { GET as changesGET } from "../app/api/tasks/changes/route";
 import { POST as mcpPOST } from "../app/mcp/route";
@@ -14,12 +13,6 @@ import { createAgentToken } from "../lib/agent-tokens";
 import * as brain from "../lib/brain/service";
 import { BrainError } from "../lib/brain/types";
 import { getPool } from "../lib/db";
-import { enabledWorkflowJobKinds } from "../lib/maintenance/jobs";
-import {
-  type StartDeps,
-  startNightlyMaintenance,
-  startTaskMaintenance,
-} from "../lib/maintenance/start";
 import {
   BRAIN_INSTRUCTIONS,
   BRAIN_INSTRUCTIONS_PRE_TASKS,
@@ -384,53 +377,6 @@ test(
           assert.equal(offGraph.status, 200);
           assert.equal("taskOverlay" in offGraph.body, false);
           assert.equal(offGraph.body.nodes.length, 1);
-        },
-      );
-
-      await t.test(
-        "maintenance reads each owner's setting when a run starts",
-        async () => {
-          const queued: unknown[][] = [];
-          const started: unknown[][] = [];
-          const deps: StartDeps = {
-            tasksEnabled: (ownerId) => tasksEnabledFor(ownerId),
-            now: () => new Date("2026-10-21T20:00:00Z"),
-            start: async (_workflow, args) => {
-              started.push(args);
-              return { runId: `wrun-${started.length}` };
-            },
-            getHookByToken: async (token) => {
-              throw new HookNotFoundError(token);
-            },
-            dailyWorkflowStatus: async () => [],
-            queueWorkflowJobs: async (...args) => {
-              queued.push(args);
-            },
-            requeueTaskWorkflowJobs: async () => {
-              throw new Error("Run now must be refused before requeueing");
-            },
-          };
-          for (const side of SIDES)
-            await startNightlyMaintenance(ids[side], "scheduled", deps);
-          assert.deepEqual(
-            queued.map((args) => [args[0], args[3]]),
-            [
-              [ids.on, enabledWorkflowJobKinds(true)],
-              [ids.off, enabledWorkflowJobKinds(false)],
-            ],
-          );
-          assert.deepEqual(
-            started.map((args) => args[3]),
-            [
-              { scope: "nightly", tasks: true },
-              { scope: "nightly", tasks: false },
-            ],
-          );
-          await assert.rejects(
-            startTaskMaintenance(ids.off, deps),
-            code("TASKS_DISABLED"),
-          );
-          assert.equal(started.length, 2, "a refused Run now starts nothing");
         },
       );
 

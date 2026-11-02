@@ -2,13 +2,12 @@ import type { PoolClient } from "pg";
 import { BrainError } from "../brain/types";
 import { assertOwner } from "../brain/utils";
 import { getPool, transaction } from "../db";
-import { TASK_JOB_KINDS, type TaskJobKind } from "../tasks/types";
 
 export const WORKFLOW_JOB_KINDS = [
   "consolidation",
   "embeddings",
   "export",
-  ...TASK_JOB_KINDS,
+  "task_keeper",
 ] as const;
 export type WorkflowJobKind = (typeof WORKFLOW_JOB_KINDS)[number];
 export type WorkflowJobCompletion = "succeeded" | "partial" | "failed";
@@ -29,10 +28,10 @@ const JOB_COLUMNS = `id, kind, run_date::text AS "runDate", status,
   workflow_run_id AS "workflowRunId", attempts, result, error`;
 
 /** Stages that consume pages written by consolidation. */
-const DOWNSTREAM_JOB_KINDS = ["embeddings", "export", ...TASK_JOB_KINDS];
+const DOWNSTREAM_JOB_KINDS = ["embeddings", "export", "task_keeper"];
 
-export function isTaskJobKind(kind: string): kind is TaskJobKind {
-  return (TASK_JOB_KINDS as readonly string[]).includes(kind);
+export function isTaskJobKind(kind: string): kind is "task_keeper" {
+  return kind === "task_keeper";
 }
 
 /** The stages of one owner's night. The task phases run only while the owner's
@@ -169,39 +168,6 @@ export async function queueWorkflowJobs(
            AND workflow_run_id=$3 AND status IN ('succeeded','partial')`,
         [ownerId, runDate, rerunFrom],
       );
-  });
-}
-
-/** Operations "Run now": queue today's task phases again, creating missing
- * rows, without touching the other stages or a pass that is still running.
- */
-export async function requeueTaskWorkflowJobs(
-  ownerId: string,
-  runDate: string,
-): Promise<WorkflowJob[]> {
-  assertOwner(ownerId);
-  validateRunDate(runDate);
-  return transaction(async (db) => {
-    await db.query(
-      `INSERT INTO brain_jobs (owner_id,kind,run_date)
-       SELECT $1,kind,$2::date FROM unnest($3::text[]) AS kind
-       ON CONFLICT (owner_id,kind,run_date) DO NOTHING`,
-      [ownerId, runDate, TASK_JOB_KINDS],
-    );
-    await db.query(
-      `UPDATE brain_jobs SET status='queued',workflow_run_id=NULL,started_at=NULL,
-         finished_at=NULL,result=NULL,error=NULL
-       WHERE owner_id=$1 AND run_date=$2::date AND kind=ANY($3::text[])
-         AND status IN ('succeeded','partial','failed')`,
-      [ownerId, runDate, TASK_JOB_KINDS],
-    );
-    const { rows } = await db.query<WorkflowJob>(
-      `SELECT ${JOB_COLUMNS} FROM brain_jobs
-       WHERE owner_id=$1 AND run_date=$2::date AND kind=ANY($3::text[])
-       ORDER BY kind`,
-      [ownerId, runDate, TASK_JOB_KINDS],
-    );
-    return rows;
   });
 }
 

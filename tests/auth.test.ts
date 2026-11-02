@@ -4,6 +4,7 @@ import {
   Client,
   StreamableHTTPClientTransport,
 } from "@modelcontextprotocol/client";
+import { z } from "zod";
 import { allowedEmails, isAllowedEmail, mcpResource } from "../lib/auth";
 import {
   AuthError,
@@ -20,7 +21,10 @@ import {
   mcpToolInvalidation,
   requiredMcpScope,
 } from "../lib/mcp/server";
-import { TASK_PROCEDURES } from "../lib/tasks/tool-definitions";
+import {
+  TASK_PROCEDURES,
+  TASK_TOOL_DEFINITIONS,
+} from "../lib/tasks/tool-definitions";
 
 const TASK_TOOL_NAMES = [
   "list_tasks",
@@ -261,6 +265,7 @@ test("every registered MCP tool agrees with the route scope check and rejects a 
     gap_analysis: {},
     list_pages: {},
     list_tasks: {},
+    suggest_task_links: { title: "Draft" },
     read_task: { ref: "T-1" },
     create_task: {
       title: "Private task",
@@ -298,7 +303,7 @@ test("every registered MCP tool agrees with the route scope check and rejects a 
       }),
     );
     const { tools } = await client.listTools();
-    assert.equal(tools.length, 19);
+    assert.equal(tools.length, 20);
     for (const name of TASK_TOOL_NAMES)
       assert.ok(
         tools.some((tool) => tool.name === name),
@@ -420,7 +425,7 @@ test("task tools and their protocol resource stay hidden while the owner's task 
       if (!enabled)
         assert.doesNotMatch(
           instructions,
-          /Brain tasks|report_task|brain:\/\/procedures\/tasks|task keeper|closes a task/,
+          /Brain tasks|report_task|brain:\/\/procedures\/tasks|closes a task|missing links|task[_ -]?keeper|extract|suggest_task_links|task\/page links/i,
         );
     } finally {
       await client.close();
@@ -431,6 +436,59 @@ test("task tools and their protocol resource stay hidden while the owner's task 
 test("brainInstructions follows the switch it is given, with no default", () => {
   assert.equal(brainInstructions(true), BRAIN_INSTRUCTIONS);
   assert.equal(brainInstructions(false), BRAIN_INSTRUCTIONS_PRE_TASKS);
+});
+
+test("agent instructions distinguish typed page links from explicit task links in both task modes", () => {
+  for (const instructions of [
+    BRAIN_INSTRUCTIONS,
+    BRAIN_INSTRUCTIONS_PRE_TASKS,
+  ]) {
+    assert.doesNotMatch(
+      instructions,
+      /missing links|task[_ -]?keeper|extract/i,
+    );
+    assert.match(instructions, /can add verified typed links between pages/);
+  }
+  assert.match(BRAIN_INSTRUCTIONS, /read-only suggest_task_links tool/);
+  assert.match(BRAIN_INSTRUCTIONS, /candidates only/);
+  assert.match(
+    BRAIN_INSTRUCTIONS,
+    /No nightly process creates tasks or task\/page links/,
+  );
+  assert.match(
+    BRAIN_INSTRUCTIONS,
+    /apply only confirmed pages through create_task\.contextPageRefs or update_task\.patch\.contextPageRefs\.add/,
+  );
+  assert.doesNotMatch(
+    BRAIN_INSTRUCTIONS_PRE_TASKS,
+    /missing links|task[_ -]?keeper|extract|suggest_task_links|task\/page links/i,
+  );
+});
+
+test("task tool descriptions and input schemas contain no obsolete automatic task guidance", () => {
+  function descriptions(value: unknown): string[] {
+    if (!value || typeof value !== "object") return [];
+    if (Array.isArray(value)) return value.flatMap(descriptions);
+    const record = value as Record<string, unknown>;
+    return [
+      ...(typeof record.description === "string" ? [record.description] : []),
+      ...Object.values(record).flatMap(descriptions),
+    ];
+  }
+  for (const description of [
+    TASK_PROCEDURES,
+    ...TASK_TOOL_DEFINITIONS.map((tool) => tool.description),
+  ])
+    assert.doesNotMatch(description, /missing links|task[_ -]?keeper|extract/i);
+  for (const tool of TASK_TOOL_DEFINITIONS)
+    for (const description of descriptions(
+      z.toJSONSchema(tool.inputSchema, { io: "input", unrepresentable: "any" }),
+    ))
+      assert.doesNotMatch(
+        description,
+        /missing links|task[_ -]?keeper|extract/i,
+        tool.name,
+      );
 });
 
 test("the task manager setting is read for the principal's owner on every MCP request", async () => {

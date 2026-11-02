@@ -94,6 +94,8 @@ const criteriaSchema = z
   .array(taskLine(TASK_LIMITS.acceptanceCriterion))
   .max(TASK_LIMITS.acceptanceCriteria);
 const contextPageRefsSchema = z.array(pageRefSchema).max(10);
+/** Separate owner UI argument; never part of MCP task inputs. */
+export const ownerDecisionPageRefsSchema = z.array(pageRefSchema).max(10);
 const idempotencyKeySchema = z
   .string()
   .trim()
@@ -186,47 +188,6 @@ export const ownerCreateTaskSchema = z
   })
   .strict();
 
-/** The task keeper's transcriptions and recurrence instances. */
-export const keeperCreateTaskSchema = z
-  .object({
-    ...contentFields,
-    origin: z.enum(["extracted", "recurrence"]),
-    sourcePageRef: pageRefSchema.optional(),
-    sourceVersion: z.number().int().positive().optional(),
-    sourceExcerpt: z
-      .object({
-        startOffset: z.number().int().min(0),
-        endOffset: z.number().int().min(0),
-      })
-      .strict()
-      .optional(),
-    batchId: z.string().min(1).max(TASK_LIMITS.batchId).optional(),
-    extractionFingerprint: z
-      .string()
-      .regex(/^[a-f0-9]{64}$/)
-      .optional(),
-    recurrenceId: z.uuid().optional(),
-    occurrenceOn: z.iso.date().optional(),
-  })
-  .strict()
-  .superRefine((input, context) => {
-    if (input.origin === "extracted" && !input.extractionFingerprint)
-      context.addIssue({
-        code: "custom",
-        path: ["extractionFingerprint"],
-        message: "Extracted tasks carry their extraction fingerprint",
-      });
-    if (
-      input.origin === "recurrence" &&
-      !(input.recurrenceId && input.occurrenceOn)
-    )
-      context.addIssue({
-        code: "custom",
-        path: ["recurrenceId"],
-        message: "Recurrence instances name their series and occurrence date",
-      });
-  });
-
 const patchContent = {
   title: contentFields.title.optional(),
   description: contentFields.description,
@@ -272,23 +233,30 @@ export const updateTaskSchema = z
   })
   .strict();
 
+const ownerPatchSchema = z
+  .object({
+    ...patchContent,
+    parentRef: taskRefSchema.nullable().optional(),
+    expectedOutput: z.enum(TASK_EXPECTED_OUTPUTS).optional(),
+    reviewPolicy: z.enum(TASK_REVIEW_POLICIES).optional(),
+    requiresHuman: z.boolean().optional(),
+    requiredCapability: capabilitySchema.nullable().optional(),
+  })
+  .strict();
+
 export const ownerUpdateTaskSchema = z
   .object({
     ref: taskRefSchema,
     expectedVersion: z.number().int().positive(),
-    patch: z
-      .object({
-        ...patchContent,
-        parentRef: taskRefSchema.nullable().optional(),
-        expectedOutput: z.enum(TASK_EXPECTED_OUTPUTS).optional(),
-        reviewPolicy: z.enum(TASK_REVIEW_POLICIES).optional(),
-        requiresHuman: z.boolean().optional(),
-        requiredCapability: capabilitySchema.nullable().optional(),
-      })
-      .strict()
-      .refine(nonEmptyPatch, { message: "Change at least one field" }),
+    patch: ownerPatchSchema.refine(nonEmptyPatch, {
+      message: "Change at least one field",
+    }),
   })
   .strict();
+/** Empty patch is valid only when service's separate owner decisions argument is nonempty. */
+export const ownerDecisionUpdateTaskSchema = ownerUpdateTaskSchema.extend({
+  patch: ownerPatchSchema,
+});
 
 export const listTasksSchema = z
   .object({
@@ -590,3 +558,23 @@ export const eventsSinceSchema = z
     limit: z.number().int().min(1).max(200).default(100),
   })
   .strict();
+
+export const suggestTaskLinksSchema = z
+  .object({
+    ref: z.string().trim().min(1).optional(),
+    title: z.string().trim().min(1).max(TASK_LIMITS.title).optional(),
+    description: z.string().max(TASK_LIMITS.description).optional(),
+    projectRef: pageRefSchema.optional(),
+    limit: z.number().int().min(1).max(10).default(10),
+  })
+  .strict()
+  .refine(
+    (data) =>
+      data.ref
+        ? data.title === undefined && data.description === undefined
+        : data.title !== undefined,
+    {
+      message:
+        "Provide ref (optionally projectRef for this suggestion), or title with optional description and projectRef.",
+    },
+  );

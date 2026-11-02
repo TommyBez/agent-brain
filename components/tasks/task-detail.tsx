@@ -41,6 +41,7 @@ import { PurgeForm } from "./purge-form";
 import { QuestionForm } from "./question-form";
 import { ReviewPanel } from "./review-panel";
 import { AuthoredBy, PriorityLabel, StatusBadge } from "./status";
+import { SuggestPages } from "./suggest-pages";
 import { SuggestionCard } from "./suggestion-card";
 import { TaskActions } from "./task-actions";
 import { TaskActivity } from "./task-activity";
@@ -334,6 +335,7 @@ export async function TaskKnowledge({ params }: { params: TaskParams }) {
         <h2 id="knowledge-title" className="font-medium">
           Linked knowledge
         </h2>
+        <SuggestPages taskRef={task.ref} projectRef={task.project?.id} />
         <LinkForm
           taskRef={task.ref}
           pages={{
@@ -370,7 +372,7 @@ export async function TaskKnowledge({ params }: { params: TaskParams }) {
                       {suggested && (
                         <span className="text-xs text-muted-foreground">
                           {link.origin === "consolidator"
-                            ? "Suggested by nightly maintenance"
+                            ? "Unconfirmed page suggestion"
                             : "Suggested"}
                           {link.confidence !== null &&
                             ` · ${link.confidence.toFixed(2)}`}
@@ -449,7 +451,7 @@ export async function TaskKnowledge({ params }: { params: TaskParams }) {
       ) : (
         <p className="text-sm text-muted-foreground">
           No linked pages yet. Context links appear when you or an agent name
-          pages; nightly maintenance suggests more.
+          pages. Use Suggest pages to request candidates.
         </p>
       )}
     </section>

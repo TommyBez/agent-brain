@@ -1,38 +1,27 @@
 import { z } from "zod";
 import type { Database } from "../brain/pages";
-import { BrainError } from "../brain/types";
+import type { BrainError } from "../brain/types";
 import { assertOwner } from "../brain/utils";
-import { getPool, transaction } from "../db";
-import type { Actor } from "./actors";
-import { parseTaskInput, taskError } from "./errors";
-import { assertOwnerActor } from "./mutations";
-import { resolveProject } from "./page-links";
+import { getPool } from "../db";
+import { taskError } from "./errors";
 import { iso } from "./records";
-import { sanitizeTaskText } from "./sanitize";
-import { pageRefSchema, taskLine } from "./schemas";
-import {
-  TASK_EXPECTED_OUTPUTS,
-  TASK_LIMITS,
-  TASK_RECURRENCE_KINDS,
-  type TaskRecurrenceKind,
-} from "./types";
+import { TASK_LIMITS, type TaskRecurrenceKind } from "./types";
 
-// Owner recurrences (§5.3): a `task` series yields one ready instance per
-// occurrence, created by the task keeper; a `meeting` series carries the
-// meeting's RRULE and project for the agenda. Supported RRULE subset:
+// Read-only legacy meeting schedules used to render existing agendas.
+// Supported RRULE subset:
 // FREQ=DAILY|WEEKLY|MONTHLY, INTERVAL, BYDAY (ordinals only with MONTHLY),
 // COUNT or UNTIL, with a DTSTART line. Occurrences are calendar dates; the
 // DTSTART time of day is informational (meeting time).
 
 export const WEEKDAYS = ["MO", "TU", "WE", "TH", "FR", "SA", "SU"] as const;
-export type Weekday = (typeof WEEKDAYS)[number];
-export const RECURRENCE_FREQUENCIES = ["DAILY", "WEEKLY", "MONTHLY"] as const;
-export type RecurrenceFrequency = (typeof RECURRENCE_FREQUENCIES)[number];
+type Weekday = (typeof WEEKDAYS)[number];
+const RECURRENCE_FREQUENCIES = ["DAILY", "WEEKLY", "MONTHLY"] as const;
+type RecurrenceFrequency = (typeof RECURRENCE_FREQUENCIES)[number];
 
 /** Owner-facing dates and "today" follow the claim queue's time zone. */
 export const TASK_TIME_ZONE = "Europe/Rome";
 
-export interface RecurrenceMoment {
+interface RecurrenceMoment {
   /** YYYY-MM-DD */
   date: string;
   /** HH:MM, or null for an all-day rule. */
@@ -51,7 +40,7 @@ export interface RecurrenceRule {
   start: RecurrenceMoment;
 }
 
-export const RECURRENCE_LIMITS = {
+const RECURRENCE_LIMITS = {
   interval: 366,
   count: 1000,
   /** Calendar days scanned before giving up (about 100 years). */
@@ -83,12 +72,12 @@ function validDate(value: string): boolean {
 }
 
 /** Days since 1970-01-01 for a YYYY-MM-DD calendar date. */
-export function dayNumber(date: string): number {
+function dayNumber(date: string): number {
   const [y, m, d] = date.split("-").map(Number);
   return Math.round(Date.UTC(y, m - 1, d) / 86_400_000);
 }
 
-export function dateFromDay(day: number): string {
+function dateFromDay(day: number): string {
   return new Date(day * 86_400_000).toISOString().slice(0, 10);
 }
 
@@ -479,84 +468,11 @@ export function todayInTaskZone(now: Date = new Date()): string {
 // ---------------------------------------------------------------------------
 // Owner service
 
-const hhmm = z
-  .string()
-  .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Use HH:MM (24 hours)");
-
-const templateFields = {
-  title: taskLine(TASK_LIMITS.title),
-  description: z
-    .string()
-    .overwrite(sanitizeTaskText)
-    .max(TASK_LIMITS.description)
-    .optional(),
-  acceptanceCriteria: z
-    .array(taskLine(TASK_LIMITS.acceptanceCriterion))
-    .max(TASK_LIMITS.acceptanceCriteria)
-    .optional(),
-  priority: z.number().int().min(0).max(3).optional(),
-  expectedOutput: z.enum(TASK_EXPECTED_OUTPUTS).optional(),
-  /** Days before the occurrence at which the instance is created. */
-  leadDays: z.number().int().min(0).max(60).optional(),
-  /** Whether instances are due on their occurrence date (default true). */
-  dueOnOccurrence: z.boolean().optional(),
-};
-
-/** Stored in brain_task_recurrences.template. */
-export const recurrenceTemplateSchema = z.object(templateFields).strict();
-export type RecurrenceTemplate = z.output<typeof recurrenceTemplateSchema>;
-
-export const createRecurrenceSchema = z
-  .object({
-    kind: z.enum(TASK_RECURRENCE_KINDS).default("task"),
-    ...templateFields,
-    projectRef: pageRefSchema.optional(),
-    rrule: z
-      .string()
-      .trim()
-      .min(1)
-      .max(TASK_LIMITS.rrule)
-      .describe('e.g. "FREQ=WEEKLY;BYDAY=TU" or a DTSTART line plus RRULE'),
-    startsOn: z.iso.date().optional(),
-    time: hhmm.optional(),
-  })
-  .strict()
-  .superRefine((input, context) => {
-    if (input.kind === "meeting" && !input.projectRef)
-      context.addIssue({
-        code: "custom",
-        path: ["projectRef"],
-        message: "A meeting series belongs to a project",
-      });
-  });
-
-export const updateRecurrenceSchema = z
-  .object({
-    title: templateFields.title.optional(),
-    description: templateFields.description,
-    acceptanceCriteria: templateFields.acceptanceCriteria,
-    priority: templateFields.priority,
-    expectedOutput: templateFields.expectedOutput,
-    leadDays: templateFields.leadDays,
-    dueOnOccurrence: templateFields.dueOnOccurrence,
-    projectRef: pageRefSchema.nullable().optional(),
-    rrule: z.string().trim().min(1).max(TASK_LIMITS.rrule).optional(),
-    startsOn: z.iso.date().optional(),
-    time: hhmm.nullable().optional(),
-  })
-  .strict()
-  .refine(
-    (patch) => Object.values(patch).some((value) => value !== undefined),
-    {
-      message: "Change at least one field",
-    },
-  );
-
 export interface RecurrenceView {
   id: string;
   kind: TaskRecurrenceKind;
   title: string;
-  template: RecurrenceTemplate;
+  template: Record<string, unknown>;
   rrule: string;
   rule: RecurrenceRule;
   description: string;
@@ -585,12 +501,12 @@ FROM brain_task_recurrences r
 LEFT JOIN brain_pages p ON p.owner_id = r.owner_id AND p.id = r.project_page_id`;
 
 function recurrenceView(row: Record<string, unknown>): RecurrenceView {
-  const template = row.template as RecurrenceTemplate;
+  const template = row.template as Record<string, unknown>;
   const rule = parseRecurrenceRule(row.rrule as string);
   return {
     id: row.id as string,
     kind: row.kind as TaskRecurrenceKind,
-    title: template.title,
+    title: String(template.title ?? ""),
     template,
     rrule: row.rrule as string,
     rule,
@@ -611,23 +527,12 @@ function recurrenceView(row: Record<string, unknown>): RecurrenceView {
   };
 }
 
-/** next_at holds the next occurrence date at 00:00 UTC (a date watermark). */
-export function nextAtValue(date: string | null): string | null {
-  return date ? `${date}T00:00:00Z` : null;
-}
-
 async function loadRecurrence(
   db: Database,
   ownerId: string,
   id: string,
-  lock = false,
 ): Promise<RecurrenceView> {
   if (!z.uuid().safeParse(id).success) throw recurrenceNotFound(id);
-  if (lock)
-    await db.query(
-      "SELECT 1 FROM brain_task_recurrences WHERE owner_id = $1 AND id = $2 FOR UPDATE",
-      [ownerId, id],
-    );
   const { rows } = await db.query(
     `${RECURRENCE_SELECT} WHERE r.owner_id = $1 AND r.id = $2`,
     [ownerId, id],
@@ -655,147 +560,4 @@ export async function getRecurrence(
 ): Promise<RecurrenceView> {
   assertOwner(ownerId);
   return loadRecurrence(getPool(), ownerId, id);
-}
-
-function templateOf(
-  input: Partial<Record<keyof typeof templateFields, unknown>>,
-): RecurrenceTemplate {
-  const template: Record<string, unknown> = {};
-  for (const key of Object.keys(templateFields))
-    if (input[key as keyof typeof templateFields] !== undefined)
-      template[key] = input[key as keyof typeof templateFields];
-  return recurrenceTemplateSchema.parse(template);
-}
-
-/** The owner creates a series; the first occurrence from today is its watermark. */
-export async function createRecurrence(
-  actor: Actor,
-  input: unknown,
-  today: string = todayInTaskZone(),
-): Promise<RecurrenceView> {
-  assertOwnerActor(actor);
-  const data = parseTaskInput(createRecurrenceSchema, input);
-  const rule = parseRecurrenceRule(data.rrule, {
-    startsOn: data.startsOn ?? today,
-    time: data.time ?? null,
-  });
-  const template = templateOf(data);
-  const next = nextOccurrence(rule, today);
-  return transaction(async (db) => {
-    const project = data.projectRef
-      ? await resolveProject(db, actor.ownerId, data.projectRef)
-      : null;
-    const { rows } = await db.query(
-      `INSERT INTO brain_task_recurrences (owner_id, kind, template, rrule, next_at, project_page_id, created_by_agent_id)
-       VALUES ($1, $2, $3::jsonb, $4, $5, $6, $7) RETURNING id`,
-      [
-        actor.ownerId,
-        data.kind,
-        JSON.stringify(template),
-        formatRecurrenceRule(rule),
-        nextAtValue(next),
-        project?.id ?? null,
-        actor.agentId,
-      ],
-    );
-    return loadRecurrence(db, actor.ownerId, rows[0].id);
-  });
-}
-
-/** Edits the template, rule or project; a changed rule restarts from today. */
-export async function updateRecurrence(
-  actor: Actor,
-  id: string,
-  input: unknown,
-  today: string = todayInTaskZone(),
-): Promise<RecurrenceView> {
-  assertOwnerActor(actor);
-  const patch = parseTaskInput(updateRecurrenceSchema, input);
-  return transaction(async (db) => {
-    const current = await loadRecurrence(db, actor.ownerId, id, true);
-    const template = templateOf({ ...current.template, ...patch });
-    const ruleChanged =
-      patch.rrule !== undefined ||
-      patch.startsOn !== undefined ||
-      patch.time !== undefined;
-    let rule = current.rule;
-    if (ruleChanged) {
-      const base = patch.rrule ?? current.rrule;
-      const hasStart = /(^|\n)\s*DTSTART/i.test(base);
-      rule = parseRecurrenceRule(
-        hasStart && (patch.startsOn !== undefined || patch.time !== undefined)
-          ? (base.split(/\r?\n/).find((line) => !/^\s*DTSTART/i.test(line)) ??
-              base)
-          : base,
-        {
-          startsOn: patch.startsOn ?? current.rule.start.date,
-          time: patch.time === undefined ? current.rule.start.time : patch.time,
-        },
-      );
-    }
-    if (current.kind === "meeting" && patch.projectRef === null)
-      throw new BrainError(
-        "INVALID_INPUT",
-        "A meeting series belongs to a project.",
-        400,
-        { remedy: "Choose another project instead of removing it." },
-      );
-    const project =
-      patch.projectRef === undefined
-        ? current.project
-        : patch.projectRef === null
-          ? null
-          : await resolveProject(db, actor.ownerId, patch.projectRef);
-    const next = ruleChanged ? nextOccurrence(rule, today) : current.nextOn;
-    await db.query(
-      `UPDATE brain_task_recurrences SET template = $3::jsonb, rrule = $4, next_at = $5,
-         project_page_id = $6, updated_at = now()
-       WHERE owner_id = $1 AND id = $2`,
-      [
-        actor.ownerId,
-        id,
-        JSON.stringify(template),
-        formatRecurrenceRule(rule),
-        nextAtValue(next),
-        project?.id ?? null,
-      ],
-    );
-    return loadRecurrence(db, actor.ownerId, id);
-  });
-}
-
-/**
- * Pausing stops instances; resuming skips the occurrences missed while paused
- * by moving the watermark to the next occurrence from today.
- */
-export async function setRecurrencePaused(
-  actor: Actor,
-  id: string,
-  paused: boolean,
-  today: string = todayInTaskZone(),
-): Promise<RecurrenceView> {
-  assertOwnerActor(actor);
-  return transaction(async (db) => {
-    const current = await loadRecurrence(db, actor.ownerId, id, true);
-    if (current.paused === paused) return current;
-    const next = paused ? current.nextOn : nextOccurrence(current.rule, today);
-    await db.query(
-      `UPDATE brain_task_recurrences SET paused_at = CASE WHEN $3 THEN now() END, next_at = $4, updated_at = now()
-       WHERE owner_id = $1 AND id = $2`,
-      [actor.ownerId, id, paused, nextAtValue(next)],
-    );
-    return loadRecurrence(db, actor.ownerId, id);
-  });
-}
-
-/** Deleting a series keeps its instances (recurrence_id becomes NULL). */
-export async function deleteRecurrence(actor: Actor, id: string) {
-  assertOwnerActor(actor);
-  if (!z.uuid().safeParse(id).success) throw recurrenceNotFound(id);
-  const { rowCount } = await getPool().query(
-    "DELETE FROM brain_task_recurrences WHERE owner_id = $1 AND id = $2",
-    [actor.ownerId, id],
-  );
-  if (!rowCount) throw recurrenceNotFound(id);
-  return { deleted: true };
 }

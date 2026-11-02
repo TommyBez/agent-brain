@@ -372,6 +372,7 @@ test("task tool definitions carry the protocol and convert to JSON Schema", () =
   assert.deepEqual(
     TASK_TOOL_DEFINITIONS.map((tool) => tool.name),
     [
+      "suggest_task_links",
       "list_tasks",
       "read_task",
       "create_task",
@@ -389,7 +390,9 @@ test("task tool definitions carry the protocol and convert to JSON Schema", () =
     );
     assert.equal(
       tool.scope,
-      tool.name === "list_tasks" || tool.name === "read_task"
+      tool.name === "list_tasks" ||
+        tool.name === "read_task" ||
+        tool.name === "suggest_task_links"
         ? "brain:read"
         : "brain:write",
     );

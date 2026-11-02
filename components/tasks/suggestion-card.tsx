@@ -18,7 +18,7 @@ const ACCEPT_LABEL = {
   link: "Accept and link the page",
 } as const;
 
-/** A task keeper suggestion: never applied until the owner accepts it. */
+/** A task hygiene suggestion: never applied until the owner accepts it. */
 export function SuggestionCard({
   suggestion,
   showTask = true,

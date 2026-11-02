@@ -126,7 +126,7 @@ export function isBlockedReason(value: unknown): value is TaskBlockedReason {
 }
 
 /**
- * A transition a task keeper suggestion prefills. Accepting runs it as the
+ * A transition a task hygiene suggestion prefills. Accepting runs it as the
  * owner; anything not listed here only records the decision.
  */
 export type SuggestedTransition =
@@ -159,7 +159,7 @@ const text = (value: unknown, max: number) =>
     ? value.trim().slice(0, max)
     : undefined;
 
-function citedPage(citations: unknown): string | undefined {
+function _citedPage(citations: unknown): string | undefined {
   if (!Array.isArray(citations)) return undefined;
   for (const citation of citations) {
     const item = record(citation);
@@ -172,13 +172,14 @@ function citedPage(citations: unknown): string | undefined {
 /**
  * Reads the prefilled transition of a suggestion: `payload.transition` (or the
  * payload itself) naming `op`/`action`/`to`. Stale claims default to a release
- * and new sources to a source link to the cited page.
+ * without applying obsolete extraction proposals.
  */
 export function suggestedTransition(suggestion: {
   kind: string;
   payload: unknown;
   citations?: unknown;
 }): SuggestedTransition | null {
+  if (suggestion.kind === "new_source") return null;
   const payload = record(suggestion.payload) ?? {};
   const raw = record(payload.transition) ?? payload;
   const name = text(raw.op ?? raw.action ?? raw.to ?? raw.status, 40);
@@ -201,10 +202,6 @@ export function suggestedTransition(suggestion: {
       role: role as "context" | "decision" | "stakeholder" | "source",
     };
   if (suggestion.kind === "stale_claim") return { op: "release" };
-  if (suggestion.kind === "new_source") {
-    const page = pageRef ?? citedPage(suggestion.citations);
-    if (page) return { op: "link", pageRef: page, role: "source" };
-  }
   return null;
 }
 

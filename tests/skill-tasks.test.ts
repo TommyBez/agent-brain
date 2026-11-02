@@ -121,6 +121,19 @@ test("task suites are frozen, distinct and complete", async () => {
   );
 });
 
+test("meeting-save evaluation guidance requires an explicit owner request for tasks", () => {
+  const guidance = scenario("T05").expected.content.join(" ");
+  assert.doesNotMatch(
+    guidance,
+    /missing links|task[_ -]?keeper|extract|trascriv|gestore dei task/i,
+  );
+  assert.match(
+    guidance,
+    /crea task solo su esplicita richiesta del proprietario/,
+  );
+  assert.deepEqual(scenario("T05").tasks?.expect.creates, [0, 0]);
+});
+
 test("task tools come from the server definitions and stay separate", () => {
   assert.deepEqual(
     taskToolDefinitions.map((t) => t.function.name),
@@ -623,7 +636,7 @@ test("BRAIN_INSTRUCTIONS stays one literal with tracked work inside the 2,048-ch
   for (const sentence of [
     "stay in the relevant project or note, or in the task that tracks the work.",
     "Adoption does not establish implementation or deployment, and knowledge alone never closes a task.",
-    "It may link knowledge to existing tasks; it never creates, edits or closes tasks. A separate task keeper may transcribe commitments explicitly written in sources into triage tasks with citations.",
+    "No nightly process creates tasks or task/page links; task hygiene only proposes changes for owner review.",
   ])
     assert(text.includes(sentence), sentence);
 });
@@ -681,7 +694,7 @@ test("the tasks suite runs through prepare, start, tool, finish and report", asy
     const tools = JSON.parse(
       await readFile(join(session, "tools.json"), "utf8"),
     );
-    assert.equal(tools.length, 17);
+    assert.equal(tools.length, 18);
     const work = join(session, "work");
     assert(
       (await readFile(join(session, "prompt.md"), "utf8")).startsWith(

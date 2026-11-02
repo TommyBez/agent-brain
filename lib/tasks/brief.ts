@@ -1,7 +1,7 @@
 import { context } from "../brain/context";
 
 // The claim-time brief (§8.1 "Alla presa"): context() with refs (the project,
-// then active and suggested links, ≤10), a query of title and criteria
+// then active links, ≤10), a query of title and criteria
 // (≤1000) and a 12,000-character budget. Never written back to any page.
 
 export const BRIEF_MAX_CHARACTERS = 12_000;
@@ -38,9 +38,9 @@ export interface TaskBriefInput {
   title: string;
   acceptanceCriteria: string[];
   projectPageId: string | null;
-  /** Active links first, then suggested ones; at most 10 pages are used. */
+  /** Confirmed active links only; at most 10 pages are used. */
   linkedPageIds: string[];
-  /** When given, orders refs (active by role, then suggested by confidence) and lists them. */
+  /** When given, orders refs (active by role) and lists them. */
   links?: TaskBriefLink[];
   /** Questions, answers, handoff and review notes, oldest first. */
   history: TaskBriefHistoryItem[];
@@ -103,21 +103,15 @@ export function historySection(items: TaskBriefHistoryItem[]): string {
 }
 
 const ROLE_ORDER = ["source", "decision", "context", "stakeholder", "produced"];
-const usable = (link: TaskBriefLink) =>
-  (link.status === "active" || link.status === "suggested") &&
-  !(link.role === "produced" && link.status !== "active");
+const usable = (link: TaskBriefLink) => link.status === "active";
 
-/** Active links by role, then suggestions by confidence; one entry per page. */
+/** Confirmed links by role; one entry per page. */
 export function orderBriefLinks(links: TaskBriefLink[]): TaskBriefLink[] {
   const rank = (link: TaskBriefLink) => {
     const role = ROLE_ORDER.indexOf(link.role);
     return role === -1 ? ROLE_ORDER.length : role;
   };
-  const sorted = links.filter(usable).sort((a, b) => {
-    if (a.status !== b.status) return a.status === "active" ? -1 : 1;
-    if (a.status === "active") return rank(a) - rank(b);
-    return (b.confidence ?? -1) - (a.confidence ?? -1) || rank(a) - rank(b);
-  });
+  const sorted = links.filter(usable).sort((a, b) => rank(a) - rank(b));
   const seen = new Set<string>();
   return sorted.filter((link) => {
     if (seen.has(link.pageId)) return false;
@@ -142,8 +136,7 @@ export function briefRefs(input: TaskBriefInput): string[] {
 function linksSection(links: TaskBriefLink[]): string {
   const ordered = orderBriefLinks(links);
   if (!ordered.length) return "";
-  let text =
-    "# Linked pages\n\nActive links are confirmed; suggested ones are unconfirmed proposals of the conciliator or of other agents: verify them before relying on them.\n";
+  let text = "# Linked pages\n\nConfirmed active links.\n";
   for (const link of ordered) {
     const why = [
       link.origin,
@@ -172,9 +165,6 @@ export async function buildTaskBrief(
   const query = [input.title, ...input.acceptanceCriteria]
     .join("\n")
     .slice(0, BRIEF_QUERY_CHARACTERS);
-  const suggested = (input.links ?? []).some(
-    (link) => link.status === "suggested" && usable(link),
-  );
   try {
     const bundle = await context(input.ownerId, {
       query,
@@ -191,14 +181,7 @@ export async function buildTaskBrief(
         version: citation.version,
         truncated: citation.truncated,
       })),
-      gaps: [
-        ...bundle.gaps,
-        ...(suggested
-          ? [
-              "Some linked pages are unconfirmed suggestions; check that they apply before relying on them.",
-            ]
-          : []),
-      ],
+      gaps: bundle.gaps,
     };
   } catch (error) {
     console.error(

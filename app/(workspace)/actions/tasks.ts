@@ -129,25 +129,35 @@ const ref = (value: unknown) => {
   return value;
 };
 
+/** Owner decision links commit atomically with the new task. */
 export async function createTaskAction(
   input: unknown,
+  decisions?: unknown,
 ): Promise<TaskActionError> {
   const result = await asOwner(
-    async (actor) => (await createTask(actor, input)).task.ref,
+    async (actor) => (await createTask(actor, input, decisions)).task.ref,
   );
   if (!result.ok) return result;
   redirect(taskHref(result.value));
 }
 
-/** Saves the changed fields, then the delegate (a separate owner power). */
+/** Task edits and decisions share a transaction; delegation retains its existing owner path. */
 export async function updateTaskAction(
   taskRef: string,
   expectedVersion: number,
   patch: Record<string, unknown>,
   delegate?: { agentId: string | null },
+  decisions?: unknown,
 ): Promise<TaskActionError> {
   const result = await asOwner((actor) =>
-    saveTaskEdits(actor, ref(taskRef), expectedVersion, patch, delegate),
+    saveTaskEdits(
+      actor,
+      ref(taskRef),
+      expectedVersion,
+      patch,
+      delegate,
+      decisions,
+    ),
   );
   if (!result.ok) return result;
   redirect(taskHref(result.value));

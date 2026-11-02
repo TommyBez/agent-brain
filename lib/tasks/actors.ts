@@ -313,6 +313,40 @@ export async function resolveActor(
   return actor(ownerId, agent, "oauth", { clientId });
 }
 
+/** Authorize an already authenticated suggestion reader without provisioning or touching agents. */
+export async function assertTaskReader(ownerId: string, principal: Principal) {
+  assertOwner(ownerId);
+  if (principal.ownerId !== ownerId)
+    throw new AuthError(
+      "forbidden",
+      "This identity does not own this brain.",
+      403,
+    );
+  if (principal.kind === "session") return null;
+  const key =
+    principal.kind === "token" ? principal.tokenId : principal.clientId;
+  if (
+    !key ||
+    (principal.kind === "oauth" && key.length > AGENT_LIMITS.clientId)
+  )
+    throw new AuthError(
+      principal.kind === "token" ? "invalid_token" : "invalid_client",
+      "The credential could not be identified.",
+      403,
+    );
+  const { rows } = await getPool().query(
+    `SELECT disabled_at, id FROM brain_agents WHERE owner_id = $1 AND ${SELECTORS[principal.kind]}`,
+    [ownerId, key],
+  );
+  if (rows[0]?.disabled_at)
+    throw new AuthError(
+      "agent_disabled",
+      "The owner has disabled this agent in Agent Brain.",
+      403,
+    );
+  return (rows[0]?.id as string | undefined) ?? null;
+}
+
 // Owner registry (/agents). Callers must authenticate the owner first.
 
 export async function listAgents(ownerId: string): Promise<AgentSummary[]> {

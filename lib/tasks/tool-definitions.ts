@@ -7,6 +7,7 @@ import {
   readTaskSchema,
   releaseTaskSchema,
   reportTaskSchema,
+  suggestTaskLinksSchema,
   updateTaskSchema,
 } from "./schemas";
 
@@ -20,6 +21,7 @@ export const CREATION_ALLOWLIST =
   "Create a task only when the owner asks to track work (origin owner_request, quote the request), from an owner-adopted plan (owner_plan), or as a subtask or handoff of a task you hold — never to fill missing facts, rationale or confirmations.";
 
 export type TaskToolName =
+  | "suggest_task_links"
   | "list_tasks"
   | "read_task"
   | "create_task"
@@ -56,6 +58,15 @@ const write = {
 const describe = (text: string) => `${text} ${UNTRUSTED_TASK_TEXT}`;
 
 export const TASK_TOOL_DEFINITIONS: TaskToolDefinition[] = [
+  {
+    name: "suggest_task_links",
+    scope: "brain:read",
+    description: describe(
+      "Suggest pages for an existing task or a draft; returns candidates only; apply the ones the owner/agent confirms with update_task (patch.contextPageRefs.add) or create_task (contextPageRefs). The additive kind discriminant is project (required projectProposal, candidates: []) or pages (page candidates, no projectProposal). Without a project, confirm a project and call again with projectRef (also supported alongside ref). A preselection is never applied automatically. Evaluates bounded project/page candidate pools with JEV; status is evaluated or deterministic, with fallbackReason when skipped for budget, deadline, context or gateway failure. No DB writes or events. On gateway failure returns deterministic candidates in the same phase. A deadline before a ref task loads conservatively returns kind project with an empty proposal; retry instead of interpreting it as no matching pages.",
+    ),
+    inputSchema: suggestTaskLinksSchema,
+    annotations: read,
+  },
   {
     name: "list_tasks",
     scope: "brain:read",
@@ -138,9 +149,10 @@ Pages hold knowledge; tasks hold work: who does what, by when, and where it stan
 ## When to create
 ${CREATION_ALLOWLIST}
 - Search list_tasks{query} first; possibleDuplicates never block, but check them.
-- Meeting action items and source commitments are transcribed by the task keeper; do not create them yourself unless the owner asks you to track one.
+- Create tasks for meeting action items or source commitments only when the owner asks you to track one.
 - Never invent due dates or people. Leave due.kind unset unless a source states it, and cite it in due.sourceExcerpt; "next meeting" is an event due date with its wording in due.text.
 - Agent-created tasks start in triage (or ready only for you, if the owner set your policy to direct). You may work your own; other agents need the owner's approval.
+- Page links are explicit. Request suggest_task_links for candidates only; kind project requires confirming a project and calling again with projectRef; kind pages contains page candidates; apply confirmed choices with create_task.contextPageRefs or update_task.patch.contextPageRefs.add.
 - create_task is idempotent: after an unknown outcome retry with the same idempotencyKey and payload (replayed:true), or read_task before retrying.
 
 ## Claiming

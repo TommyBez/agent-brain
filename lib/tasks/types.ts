@@ -258,9 +258,11 @@ export const TASK_RECURRENCE_KINDS = ["task", "meeting"] as const;
 export type TaskRecurrenceKind = (typeof TASK_RECURRENCE_KINDS)[number];
 
 /** brain_consolidation_spend.purpose; existing rows and old code mean `pages`. */
+/** Historical DB check values: write paths accept pages and hygiene only. */
 export const SPEND_PURPOSES = ["pages", "task_keeper", "task_links"] as const;
 export type SpendPurpose = (typeof SPEND_PURPOSES)[number];
 /** Nightly phases added to brain_jobs.kind by this release. */
+/** Historical DB check values; only task_keeper hygiene remains executable. */
 export const TASK_JOB_KINDS = ["task_keeper", "task_links"] as const;
 export type TaskJobKind = (typeof TASK_JOB_KINDS)[number];
 
