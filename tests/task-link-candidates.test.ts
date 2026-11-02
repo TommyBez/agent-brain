@@ -3,14 +3,28 @@ import test from "node:test";
 import { checkedCandidates } from "../lib/tasks/candidate-selection";
 import {
   type CandidateReads,
-  findTaskLinkCandidates,
+  findTaskLinkCandidates as findCandidates,
 } from "../lib/tasks/link-candidates";
 import { suggestTaskLinksSchema } from "../lib/tasks/schemas";
 
-const page = (id: string) => ({ id, slug: `note/${id}`, title: `Page ${id}` });
+const findTaskLinkCandidates = (
+  draft: Parameters<typeof findCandidates>[0],
+  reads: CandidateReads,
+  limit = 10,
+) =>
+  findCandidates(draft, reads, limit, async () => {
+    throw new Error("fake gateway unavailable");
+  });
+
+const page = (id: string) => ({
+  id,
+  slug: `note/${id}`,
+  title: `Page ${id}`,
+  markdown: `Evidence for ${id}`,
+});
 const reads: CandidateReads = {
   decisions: async () => [{ pageId: "decision" }],
-  pages: async () => [page("decision")],
+  pages: async (refs) => refs.map(page),
   search: async () => [
     page("decision"),
     page("a"),
