@@ -6,7 +6,7 @@ How a Brain task moves, seen from an agent. The server enforces every rule below
 
 | Status | Meaning for you |
 | --- | --- |
-| `triage` | Created by an agent or the task keeper, not approved. Only its creator may claim it, or you when the owner literally asks you to take it. |
+| `triage` | Created explicitly by an agent, not approved. Only its creator may claim it, or you when the owner literally asks you to take it. |
 | `ready` | Approved work anyone allowed may claim. An unapproved `ready` task (creator with policy direct) is claimable only by its creator, or on the owner's request. |
 | `in_progress` | Held by one agent with a lease, or worked by the owner or a person without one. |
 | `needs_input` | The holder asked the owner a question; the claim stays, the lease is suspended. |
@@ -15,7 +15,7 @@ How a Brain task moves, seen from an agent. The server enforces every rule below
 | `on_hold` | Paused by the owner; never claimed. |
 | `done`, `canceled` | Closed; only the owner reopens them. |
 
-Overdue, unanswered or expired states are derived for display; they are not statuses you set. Nightly processes never change status: the consolidator only links pages to tasks, and the task keeper only creates triage tasks and suggestions for the owner.
+Overdue, unanswered or expired states are derived for display; they are not statuses you set. Nightly task hygiene proposes changes for owner review; no routine creates tasks, instantiates recurrences, changes task status or writes task/page links. Project and page suggestions are requested through suggest_task_links and applied only after confirmation.
 
 ## Who may claim
 

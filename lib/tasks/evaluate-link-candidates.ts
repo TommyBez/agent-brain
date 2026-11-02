@@ -9,6 +9,7 @@ import type {
   CandidatePage,
   PageCandidate,
 } from "./link-candidates";
+import type { FallbackReason, SuggestionOptions } from "./suggestion-control";
 
 /** Bounded parallel evaluation using the consolidator's batching and capacity splits.
  * Never caches, persists spend, writes events, or applies a candidate.
@@ -18,12 +19,34 @@ export async function evaluateLinkCandidates(
   candidates: PageCandidate[],
   pages: CandidatePage[],
   send: GatewayCall = gatewayRequest,
-): Promise<PageCandidate[]> {
-  if (!candidates.length) return candidates;
+  options: SuggestionOptions = {},
+): Promise<{
+  candidates: PageCandidate[];
+  status: "evaluated" | "deterministic";
+  fallbackReason?: FallbackReason;
+  unevaluatedPageRefs?: string[];
+}> {
+  const resolved = candidates.filter((candidate) =>
+    pages.some((page) => page.id === candidate.pageRef),
+  );
+  const fallback = (fallbackReason?: FallbackReason) => ({
+    candidates: resolved,
+    status: "deterministic" as const,
+    ...(fallbackReason ? { fallbackReason } : {}),
+  });
+  options.onFallback?.(fallback("deadline"));
+  if (!resolved.length || options.skipReason || options.signal?.aborted)
+    return fallback(
+      options.skipReason ?? (options.signal?.aborted ? "deadline" : undefined),
+    );
+  const selected = resolved.slice(
+    0,
+    TASK_LINK_CANDIDATE_POLICY.maxEvaluatedUnits,
+  );
   const units: CandidateQuestion[] = [];
   const reason =
     "Does this page govern or provide useful context for the work in task?";
-  candidates.forEach((candidate, index) => {
+  selected.forEach((candidate, index) => {
     const page = pages.find((page) => page.id === candidate.pageRef);
     if (page)
       units.push({
@@ -40,24 +63,36 @@ export async function evaluateLinkCandidates(
       });
   });
   try {
-    if (units.length !== candidates.length) return candidates;
     const answers = await evaluateCandidatePool(
       { title: draft.title, description: draft.description },
       "pages",
       units,
       send,
+      options,
     );
-    return candidates
+    const judged = selected
       .flatMap((candidate, index) => {
         const answer = answers[`p${index}`];
         return answer?.type === "boolean" &&
           answer.probability >= TASK_LINK_CANDIDATE_POLICY.threshold
-          ? [{ ...candidate, score: answer.probability, reason }]
+          ? [{ ...candidate, score: answer.probability }]
           : [];
       })
       .sort((a, b) => b.score - a.score);
+    const unevaluatedPageRefs = resolved
+      .filter(
+        (candidate) =>
+          !selected.some(
+            (item, index) =>
+              item.pageRef === candidate.pageRef && answers[`p${index}`],
+          ),
+      )
+      .map((candidate) => candidate.pageRef);
+    if (!Object.keys(answers).length)
+      return { ...fallback("context"), unevaluatedPageRefs };
+    return { candidates: judged, status: "evaluated", unevaluatedPageRefs };
   } catch {
     // Failure of any batch discards all partial judgments, preserving fallback order.
-    return candidates;
+    return fallback(options.signal?.aborted ? "deadline" : "gateway");
   }
 }

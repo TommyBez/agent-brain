@@ -14,14 +14,14 @@ import { TASK_LIMITS, type TaskRecurrenceKind } from "./types";
 // DTSTART time of day is informational (meeting time).
 
 export const WEEKDAYS = ["MO", "TU", "WE", "TH", "FR", "SA", "SU"] as const;
-export type Weekday = (typeof WEEKDAYS)[number];
-export const RECURRENCE_FREQUENCIES = ["DAILY", "WEEKLY", "MONTHLY"] as const;
-export type RecurrenceFrequency = (typeof RECURRENCE_FREQUENCIES)[number];
+type Weekday = (typeof WEEKDAYS)[number];
+const RECURRENCE_FREQUENCIES = ["DAILY", "WEEKLY", "MONTHLY"] as const;
+type RecurrenceFrequency = (typeof RECURRENCE_FREQUENCIES)[number];
 
 /** Owner-facing dates and "today" follow the claim queue's time zone. */
 export const TASK_TIME_ZONE = "Europe/Rome";
 
-export interface RecurrenceMoment {
+interface RecurrenceMoment {
   /** YYYY-MM-DD */
   date: string;
   /** HH:MM, or null for an all-day rule. */
@@ -40,7 +40,7 @@ export interface RecurrenceRule {
   start: RecurrenceMoment;
 }
 
-export const RECURRENCE_LIMITS = {
+const RECURRENCE_LIMITS = {
   interval: 366,
   count: 1000,
   /** Calendar days scanned before giving up (about 100 years). */
@@ -72,12 +72,12 @@ function validDate(value: string): boolean {
 }
 
 /** Days since 1970-01-01 for a YYYY-MM-DD calendar date. */
-export function dayNumber(date: string): number {
+function dayNumber(date: string): number {
   const [y, m, d] = date.split("-").map(Number);
   return Math.round(Date.UTC(y, m - 1, d) / 86_400_000);
 }
 
-export function dateFromDay(day: number): string {
+function dateFromDay(day: number): string {
   return new Date(day * 86_400_000).toISOString().slice(0, 10);
 }
 

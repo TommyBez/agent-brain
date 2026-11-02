@@ -1,45 +1,22 @@
 import type { Database } from "../brain/pages";
+import { TASK_LINK_CANDIDATE_POLICY } from "./link-candidate-policy";
 
-const TASK_RULES_VERSION = "task-rules-v1";
-interface RuleCandidate {
-  pageId: string;
-  role: "decision";
-  origin: "rule";
-  status: "suggested";
-  confidence: null;
-  evidence: Record<string, unknown>;
-}
-/** Read-only project decision candidates, never persisted. */
-export async function desiredRuleLinks(
+/** Read bounded project decision ids; this module has no link-writing primitives. */
+export async function readProjectDecisionPageIds(
   db: Database,
   ownerId: string,
   task: { projectPageId: string | null },
-): Promise<RuleCandidate[]> {
-  const writes: RuleCandidate[] = [];
-  if (task.projectPageId) {
-    // Decisions decided_in the project are suggestions: a project can hold
-    // many decisions and not all of them govern this task.
-    const { rows } = await db.query(
-      `SELECT DISTINCT d.id, d.version FROM brain_links l
-       JOIN brain_pages d ON d.owner_id = l.owner_id AND d.id = l.source_id
-       WHERE l.owner_id = $1 AND l.target_id = $2 AND l.type = 'decided_in' AND d.type = 'decision'
-       ORDER BY d.id`,
-      [ownerId, task.projectPageId],
-    );
-    for (const row of rows)
-      writes.push({
-        pageId: row.id,
-        role: "decision",
-        origin: "rule",
-        status: "suggested",
-        confidence: null,
-        evidence: {
-          basis: "decided_in",
-          policyVersion: TASK_RULES_VERSION,
-          pageVersion: row.version,
-          projectId: task.projectPageId,
-        },
-      });
-  }
-  return writes;
+): Promise<string[]> {
+  if (!task.projectPageId) return [];
+  const { rows } = await db.query<{ id: string }>(
+    `SELECT DISTINCT d.id FROM brain_links l JOIN brain_pages d ON d.owner_id = l.owner_id AND d.id = l.source_id
+     WHERE l.owner_id = $1 AND l.target_id = $2 AND l.type = 'decided_in' AND d.type = 'decision'
+     ORDER BY d.id LIMIT $3`,
+    [
+      ownerId,
+      task.projectPageId,
+      TASK_LINK_CANDIDATE_POLICY.maxDecisionCandidates,
+    ],
+  );
+  return rows.map((row) => row.id);
 }

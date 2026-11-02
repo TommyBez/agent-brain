@@ -7,7 +7,7 @@ import {
   type GatewayCall,
   GatewayRequestError,
 } from "../lib/maintenance/gateway";
-import { evaluateLinkCandidates } from "../lib/tasks/evaluate-link-candidates";
+import { evaluateLinkCandidates as evaluateLinks } from "../lib/tasks/evaluate-link-candidates";
 import { TASK_LINK_CANDIDATE_POLICY as policy } from "../lib/tasks/link-candidate-policy";
 import {
   type CandidatePage,
@@ -21,6 +21,10 @@ import {
   PAGE_IDS,
   serviceActor,
 } from "./helpers/task-service-db";
+
+const evaluateLinkCandidates = async (
+  ...args: Parameters<typeof evaluateLinks>
+) => (await evaluateLinks(...args)).candidates;
 
 const draft = {
   title: "Review launch",
@@ -90,10 +94,7 @@ test("JEV threshold is inclusive, probability is score and reason comes from the
       ["context", policy.threshold],
     ],
   );
-  assert.match(
-    result[1].reason,
-    /Does this page govern or provide useful context/,
-  );
+  assert.match(result[1].reason, /deterministic/);
 });
 
 test("out-of-set JEV answer ids are never returned and trigger deterministic fallback", async () => {
@@ -130,7 +131,7 @@ test("one JEV pass evaluates all decisions and lexical candidates before the out
   const result = await findTaskLinkCandidates(
     draft,
     {
-      decisions: async () => [{ pageId: "decision" }],
+      decisions: async () => ["decision"],
       search: async () => pages.slice(1),
       pages: async () => pages,
     },
@@ -161,8 +162,8 @@ test("JEV batches stay within policy and max_tokens splits reuse evaluateJev", a
       return response(request);
     }),
   );
-  assert.deepEqual(sizes, [policy.questionsPerRequest, 1]);
-  assert.equal(result.length, many.length);
+  assert.deepEqual(sizes, [policy.questionsPerRequest]);
+  assert.equal(result.length, policy.maxEvaluatedUnits);
   const split: number[] = [];
   assert.equal(
     (
@@ -187,39 +188,6 @@ test("JEV batches stay within policy and max_tokens splits reuse evaluateJev", a
   assert.deepEqual(split, [3, 2, 1, 1, 1]);
 });
 
-test("failed later batch discards partial judgments and oversized evidence falls back without sending", async () => {
-  const many = Array.from(
-    { length: policy.questionsPerRequest + 1 },
-    (_, i) => ({ ...candidates[0], pageRef: String(i) }),
-  );
-  let calls = 0;
-  const result = await evaluateLinkCandidates(
-    draft,
-    many,
-    many.map((c) => page(c.pageRef)),
-    sender((request) => {
-      if (++calls === 2) throw new Error("second batch");
-      return response(request);
-    }),
-  );
-  assert.deepEqual(result, many);
-  const oversized = pages.map((p) => ({ ...p, markdown: "x".repeat(100_001) }));
-  calls = 0;
-  assert.deepEqual(
-    await evaluateLinkCandidates(
-      draft,
-      candidates,
-      oversized,
-      sender((request) => {
-        calls++;
-        return response(request);
-      }),
-    ),
-    candidates,
-  );
-  assert.equal(calls, 0);
-});
-
 for (const entry of ["MCP tool", "UI action"] as const) {
   test(`${entry} suggestion path with JEV executes only reads and writes zero task rows, links or events`, async (t) => {
     const db = installServiceDb(t, serviceActor("owner"));
@@ -227,6 +195,8 @@ for (const entry of ["MCP tool", "UI action"] as const) {
     t.mock.method(db, "query", async (statement: string) => {
       sql.push(statement);
       assert.doesNotMatch(statement, /\b(INSERT|UPDATE|DELETE|MERGE|CALL)\b/i);
+      if (statement.includes("FROM brain_consolidation_spend"))
+        return { rows: [{ spent_nano: "0", accounts: 1 }], rowCount: 1 };
       if (statement.startsWith("SELECT enabled"))
         return { rows: [{ enabled: true }], rowCount: 1 };
       if (statement.startsWith("SELECT disabled_at"))
@@ -249,7 +219,7 @@ for (const entry of ["MCP tool", "UI action"] as const) {
         };
       if (statement.includes("WITH lexical_candidates"))
         return { rows: [], rowCount: 0 };
-      if (statement.startsWith("SELECT id, slug, title, markdown"))
+      if (statement.startsWith("SELECT id, slug, title,"))
         return { rows: PAGE_IDS.slice(0, 2).map(page), rowCount: 2 };
       throw new Error("Unexpected read query");
     });

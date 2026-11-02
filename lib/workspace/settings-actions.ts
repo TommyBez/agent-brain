@@ -65,7 +65,7 @@ export async function runMaintenanceAction() {
   }
 }
 
-/** Runs only today's task keeper and task links, without the other stages. */
+/** Enable or hide task features for the signed-in owner. */
 export async function setTasksEnabledAction(enabled: boolean) {
   const user = await requireWorkspaceUser();
   try {

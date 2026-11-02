@@ -1,7 +1,9 @@
 import { pathToFileURL } from "node:url";
 
-export const COUNT_SQL = `SELECT count(*)::text AS count FROM brain_task_links WHERE status = 'suggested' AND decided_at IS NULL AND decided_by_agent_id IS NULL`;
-export const RETRACT_SQL = `UPDATE brain_task_links SET status = 'retracted', updated_at = now() WHERE status = 'suggested' AND decided_at IS NULL AND decided_by_agent_id IS NULL`;
+// Removed synchronous rules/retrieval and nightly task_links wrote rule/consolidator.
+// complete_task still writes produced/provenance suggestions; never retract them.
+export const COUNT_SQL = `SELECT count(*)::text AS count FROM brain_task_links WHERE status = 'suggested' AND origin IN ('rule', 'consolidator') AND role <> 'produced' AND decided_at IS NULL AND decided_by_agent_id IS NULL`;
+export const RETRACT_SQL = `UPDATE brain_task_links SET status = 'retracted', updated_at = now() WHERE status = 'suggested' AND origin IN ('rule', 'consolidator') AND role <> 'produced' AND decided_at IS NULL AND decided_by_agent_id IS NULL RETURNING page_id`;
 
 export interface QueryClient {
   query(sql: string): Promise<{
@@ -15,11 +17,14 @@ export async function retractSuggestedTaskLinks(
   client: QueryClient,
   apply = false,
 ): Promise<{ count: number; changed: number }> {
-  const result = await client.query(COUNT_SQL);
-  const count = Number(result.rows[0]?.count ?? 0);
-  if (!apply) return { count, changed: 0 };
+  if (!apply) {
+    const result = await client.query(COUNT_SQL);
+    return { count: Number(result.rows[0]?.count ?? 0), changed: 0 };
+  }
+  // UPDATE RETURNING is one atomic statement: no SELECT/update count race.
   const updated = await client.query(RETRACT_SQL);
-  return { count, changed: updated.rowCount ?? 0 };
+  const changed = updated.rowCount ?? 0;
+  return { count: changed, changed };
 }
 
 async function main() {

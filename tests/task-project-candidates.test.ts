@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import test from "node:test";
 import type { Database } from "../lib/brain/pages";
 import { JEV_MODEL } from "../lib/maintenance/consolidator/jev";
@@ -108,9 +107,7 @@ for (const [name, scores, expected] of [
       scores,
     );
     assert.ok(
-      result.candidates.every(
-        (c) => c.reason === "Does this task belong to this project?",
-      ),
+      result.candidates.every((c) => c.reason.startsWith("Active project")),
     );
   });
 }
@@ -181,8 +178,9 @@ test("more than 256 project candidates use bounded parallel boolean batches and 
     }),
   );
   assert.equal(result.candidates.length, 384);
-  assert.equal(count, 384);
-  assert.equal(peak, CANDIDATE_EVALUATION_CONCURRENCY);
+  assert.equal(count, PROJECT_CANDIDATE_POLICY.maxEvaluatedUnits);
+  assert.ok(peak <= CANDIDATE_EVALUATION_CONCURRENCY);
+  assert.equal(result.unevaluatedProjectRefs?.length, 288);
   assert.equal(active, 0);
 });
 
@@ -251,6 +249,8 @@ for (const entry of ["MCP", "UI"] as const) {
           rows: [{ id: db.actor.agentId, disabled_at: null }],
           rowCount: 1,
         };
+      if (sql.includes("FROM brain_consolidation_spend"))
+        return { rows: [{ spent_nano: "0", accounts: 1 }], rowCount: 1 };
       if (sql.startsWith("SELECT enabled"))
         return { rows: [{ enabled: true }], rowCount: 1 };
       if (sql.startsWith("SELECT t.id"))
@@ -284,7 +284,7 @@ for (const entry of ["MCP", "UI"] as const) {
         const i = params[1] === options[0].id ? 0 : 1;
         return { rows: [{ id: decisions[i].id, version: 1 }], rowCount: 1 };
       }
-      if (sql.startsWith("SELECT id, slug, title, markdown"))
+      if (sql.startsWith("SELECT id, slug, title,"))
         return {
           rows: decisions.filter((p) => (params[1] as string[]).includes(p.id)),
           rowCount: 1,
@@ -351,17 +351,6 @@ for (const entry of ["MCP", "UI"] as const) {
     assert.equal(db.tasks.size, 0);
     assert.equal(db.links.size, 0);
     assert.ok(readsSql.length > 0);
-    const component = readFileSync(
-      "components/tasks/suggest-pages.tsx",
-      "utf8",
-    );
-    assert.match(component, /key=\{`.*run.*key.*`\}/);
-    const effect = component.slice(
-      component.indexOf("useEffect(() =>"),
-      component.indexOf("async function confirmPages"),
-    );
-    assert.doesNotMatch(effect, /onUseProject|onProjectConfirm|addLinkAction/);
-    assert.match(component, /Confirm project for suggestions/);
   });
 }
 

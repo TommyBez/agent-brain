@@ -623,7 +623,7 @@ test("BRAIN_INSTRUCTIONS stays one literal with tracked work inside the 2,048-ch
   for (const sentence of [
     "stay in the relevant project or note, or in the task that tracks the work.",
     "Adoption does not establish implementation or deployment, and knowledge alone never closes a task.",
-    "It may link knowledge to existing tasks; it never creates, edits or closes tasks. A separate task keeper may transcribe commitments explicitly written in sources into triage tasks with citations.",
+    "No nightly process creates tasks or task/page links; task hygiene only proposes changes for owner review.",
   ])
     assert(text.includes(sentence), sentence);
 });

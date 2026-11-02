@@ -23,7 +23,7 @@ const page = (id: string) => ({
   markdown: `Evidence for ${id}`,
 });
 const reads: CandidateReads = {
-  decisions: async () => [{ pageId: "decision" }],
+  decisions: async () => ["decision"],
   pages: async (refs) => refs.map(page),
   search: async () => [
     page("decision"),
