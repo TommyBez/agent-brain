@@ -4,6 +4,7 @@ import {
   Client,
   StreamableHTTPClientTransport,
 } from "@modelcontextprotocol/client";
+import { z } from "zod";
 import { allowedEmails, isAllowedEmail, mcpResource } from "../lib/auth";
 import {
   AuthError,
@@ -424,7 +425,7 @@ test("task tools and their protocol resource stay hidden while the owner's task 
       if (!enabled)
         assert.doesNotMatch(
           instructions,
-          /Brain tasks|report_task|brain:\/\/procedures\/tasks|task keeper|closes a task/,
+          /Brain tasks|report_task|brain:\/\/procedures\/tasks|closes a task|missing links|task[_ -]?keeper|extract|suggest_task_links|task\/page links/i,
         );
     } finally {
       await client.close();
@@ -447,26 +448,47 @@ test("agent instructions distinguish typed page links from explicit task links i
       /missing links|task[_ -]?keeper|extract/i,
     );
     assert.match(instructions, /can add verified typed links between pages/);
-    assert.match(instructions, /read-only suggest_task_links tool/);
-    assert.match(instructions, /candidates only/);
-    assert.match(
-      instructions,
-      /(?:No nightly process creates|Scheduled maintenance creates no) tasks or task\/page links/,
-    );
   }
+  assert.match(BRAIN_INSTRUCTIONS, /read-only suggest_task_links tool/);
+  assert.match(BRAIN_INSTRUCTIONS, /candidates only/);
+  assert.match(
+    BRAIN_INSTRUCTIONS,
+    /No nightly process creates tasks or task\/page links/,
+  );
   assert.match(
     BRAIN_INSTRUCTIONS,
     /apply only confirmed pages through create_task\.contextPageRefs or update_task\.patch\.contextPageRefs\.add/,
   );
-  assert.match(
+  assert.doesNotMatch(
     BRAIN_INSTRUCTIONS_PRE_TASKS,
-    /unavailable while task management is disabled/,
+    /missing links|task[_ -]?keeper|extract|suggest_task_links|task\/page links/i,
   );
+});
+
+test("task tool descriptions and input schemas contain no obsolete automatic task guidance", () => {
+  function descriptions(value: unknown): string[] {
+    if (!value || typeof value !== "object") return [];
+    if (Array.isArray(value)) return value.flatMap(descriptions);
+    const record = value as Record<string, unknown>;
+    return [
+      ...(typeof record.description === "string" ? [record.description] : []),
+      ...Object.values(record).flatMap(descriptions),
+    ];
+  }
   for (const description of [
     TASK_PROCEDURES,
     ...TASK_TOOL_DEFINITIONS.map((tool) => tool.description),
   ])
     assert.doesNotMatch(description, /missing links|task[_ -]?keeper|extract/i);
+  for (const tool of TASK_TOOL_DEFINITIONS)
+    for (const description of descriptions(
+      z.toJSONSchema(tool.inputSchema, { io: "input", unrepresentable: "any" }),
+    ))
+      assert.doesNotMatch(
+        description,
+        /missing links|task[_ -]?keeper|extract/i,
+        tool.name,
+      );
 });
 
 test("the task manager setting is read for the principal's owner on every MCP request", async () => {
