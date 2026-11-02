@@ -55,7 +55,7 @@ export async function findTaskLinkCandidates(
   limit = 10,
   send: GatewayCall = gatewayRequest,
   options: SuggestionOptions = {},
-): Promise<TaskLinkSuggestion> {
+): Promise<TaskLinkSuggestionResult> {
   const rules = (await reads.decisions(draft)).slice(
     0,
     TASK_LINK_CANDIDATE_POLICY.maxDecisionCandidates,
@@ -127,8 +127,8 @@ export async function suggestTaskLinks(
   actor: Pick<Actor, "ownerId"> & { agentId?: string | null },
   input: unknown,
   send: GatewayCall = gatewayRequest,
-): Promise<TaskLinkSuggestion> {
-  return withinSuggestionDeadline<TaskLinkSuggestion>(
+): Promise<TaskLinkSuggestionResult> {
+  return withinSuggestionDeadline<TaskLinkSuggestionResult>(
     { candidates: [], status: "deterministic", fallbackReason: "deadline" },
     async (signal, fallback) => {
       const data = parseTaskInput(suggestTaskLinksSchema, input);
@@ -169,7 +169,7 @@ export async function suggestTaskLinks(
       const options: SuggestionOptions = {
         signal,
         skipReason,
-        onFallback: (value) => fallback(value as TaskLinkSuggestion),
+        onFallback: (value) => fallback(value as TaskLinkSuggestionResult),
       };
       const reads: CandidateReads = {
         decisions: (task) => {
@@ -239,9 +239,15 @@ export async function suggestTaskLinks(
 }
 
 export interface TaskLinkSuggestion {
-  status: "evaluated" | "deterministic";
+  /** Additive field: legacy client snapshots may omit it; current endpoint never does. */
+  status?: "evaluated" | "deterministic";
   fallbackReason?: FallbackReason;
   unevaluatedPageRefs?: string[];
   candidates: PageCandidate[];
   projectProposal?: ProjectProposal;
 }
+
+/** Server responses always carry the new status while old client snapshots remain valid. */
+export type TaskLinkSuggestionResult = TaskLinkSuggestion & {
+  status: "evaluated" | "deterministic";
+};
