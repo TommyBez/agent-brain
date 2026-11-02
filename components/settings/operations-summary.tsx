@@ -188,14 +188,7 @@ function OperationResult({ job }: { job: MaintenanceJob }) {
   );
 }
 
-export function OperationsSummary({
-  data,
-  tasks,
-}: {
-  data: OperationsData;
-  // The owner's task manager switch: "Run now" for the task phases.
-  tasks: boolean;
-}) {
+export function OperationsSummary({ data }: { data: OperationsData }) {
   return (
     <>
       <section>

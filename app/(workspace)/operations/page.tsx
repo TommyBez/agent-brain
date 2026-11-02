@@ -29,10 +29,7 @@ export default function OperationsPage() {
 
 async function LiveOperations() {
   const user = await getWorkspaceUser();
-  const [data, tasks] = await Promise.all([
-    operationsStatus(user.id),
-    getTasksEnabled(),
-  ]);
+  const data = await operationsStatus(user.id);
   return (
     <>
       <OperationsControls
@@ -40,7 +37,7 @@ async function LiveOperations() {
           ["queued", "running"].includes(job.status),
         )}
       />
-      <OperationsSummary data={data} tasks={tasks} />
+      <OperationsSummary data={data} />
     </>
   );
 }
