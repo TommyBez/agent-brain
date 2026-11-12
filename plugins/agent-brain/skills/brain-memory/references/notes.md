@@ -6,7 +6,7 @@ Use `note` for a knowledge subject that is useful to retrieve in its own right: 
 
 A note is warranted when its reasoning, synthesis or source context remains useful beyond individual facts already stored on entity pages. Reuse an existing topic note when the new information extends the same subject.
 
-- A meeting may justify a note when its agenda, attributed discussion or reasoning matters independently. A routine status meeting that adds only a project deadline usually needs a project update, not another page.
+- A meeting may justify a note when its agenda, attributed discussion or reasoning matters independently. A routine status meeting that adds only a project deadline usually calls for rewriting the project's current state in place with `write`, instead of another page or a dated status entry.
 - A comparison or proposal may remain a note while no choice has been adopted. When a choice that guides future work is confirmed, create or update its [decision page](decisions.md) and retain the note's distinct analysis if useful.
 - A cross-project method can be a note when its applicability is supported. A lesson observed on one project should retain that scope rather than being promoted to a universal rule.
 - An explicit request to preserve a particular meeting or analysis can warrant a note. Follow that requested scope without manufacturing unrelated entity pages.
@@ -23,7 +23,7 @@ Notes containing procedures, preferences or lessons remain stored knowledge. The
 
 ## Updates and links
 
-Reconcile changes to the same topic and date conclusions that depend on a particular context. Keep conflicting source views attributed unless evidence supports a correction. Preserve a historical meeting record as such; put a later adopted choice or changed project state in its own canonical home instead of silently rewriting what the meeting established.
+Reconcile changes to the same topic and date conclusions that depend on a particular context. Keep conflicting source views attributed unless evidence supports a correction. A dated meeting or source note is a record, not a status log: preserve it as such; put a later adopted choice or changed project state in its own canonical home instead of silently rewriting what the meeting established.
 
 Use `note → references → article` for a publication used as a source. Use labeled `relates_to` links to people, companies, projects or decisions discussed. Keep detailed entity facts in those pages; the note can retain the short attributed account needed to make its discussion understandable. Do not create links or pages merely to cover every name in the source.
 

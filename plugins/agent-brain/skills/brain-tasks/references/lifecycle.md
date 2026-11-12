@@ -62,7 +62,7 @@ A dropped connection or timeout leaves the result unknown. Before any retry, fin
 
 ## Completing
 
-- Pages first: write or append the knowledge, then list every page and the version the write returned in `pagesChanged`. Pages you wrote while holding the task become verified `produced` links; pages written by others stay suggested; unknown versions are ignored.
+- Pages first: rewrite existing current state in place with `write`; `append` only new knowledge, never a status entry. Then list every page and the version the write returned in `pagesChanged`. Pages you wrote while holding the task become verified `produced` links; pages written by others stay suggested; unknown versions are ignored.
 - Tasks expecting a page or decision fail with `OUTPUT_REQUIRED` without such a page.
 - Criteria: one entry per acceptance criterion, by zero-based index, with `status` (`met`, `partial`, `not_met`), `evidence`, and `verification` (`observed` if you checked it, `self_reported` otherwise).
 - `artifacts` lists pull requests, branches, commits, URLs or files; `remaining` says what is left.

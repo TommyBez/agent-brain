@@ -16,7 +16,7 @@ Use the page's current `version` as `expectedVersion`. Do not build a replacemen
 | Change content, title, summary, relationships, aliases, tags or outgoing links | `write` with the page `id`, current positive `expectedVersion` and the full intended state. |
 | Create an entity after resolving possible duplicates | `write` with `expectedVersion: 0` and **no `id`**. |
 
-For every page type, keep one current-state section and rewrite it in place with `write`; preserve useful history as condensed facts, not dated status sections or one entry per sync. See the good and bad examples in `SKILL.md`.
+When a page has current state, keep it in a single section and rewrite it in place with `write`; preserve useful history as condensed facts, not dated status entries. A sync, review or check is not a historical event; a dated meeting or source note is a record, not a log. See the good and bad examples in `SKILL.md`.
 
 `write` replaces `markdown`, `summary`, `relationships`, `aliases`, `tags` and all outgoing `links`. Omitted summary becomes empty; omitted arrays become empty. Explicitly preserve values you intend to keep. Pass the existing `slug` unless renaming it deliberately. Do not spread a read result into a write: the input schema is strict and rejects read-only fields such as `version`, timestamps and `backlinks`.
 

@@ -20,7 +20,7 @@ A proposed choice normally belongs in a note or the relevant project. If the use
 
 Keep the choice, its applicable project or domain, date when known, motivations, material alternatives actually considered, constraints, accepted tradeoffs and consequences. Preserve exceptions, conditions and any revisit trigger actually agreed. Do not reconstruct a full alternatives analysis from hindsight or add review dates that nobody committed to.
 
-Use a title that identifies the choice and subject, such as "Managed hosting for Portal". Useful Markdown sections can cover choice and status, context and rationale, tradeoffs and consequences, and later changes. Include only supported material; a valid decision need not have every section.
+Use a title that identifies the choice and subject, such as "Managed hosting for Portal". Useful Markdown sections can cover choice and status, context and rationale, tradeoffs and consequences, and condensed later changes, not dated entries for each sync, review or check. Include only supported material; a valid decision need not have every section.
 
 An unexplained choice may still be useful. Retain it with honest attribution instead of inventing its rationale or turning the absent rationale into a new human task.
 
