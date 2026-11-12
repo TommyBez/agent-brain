@@ -13,7 +13,7 @@ Put organization-wide policies in the company and initiative-specific scope or m
 - Distinguish namesakes using known organization, role, relationship or other evidence. A matching first name, email domain or similar spelling is not enough.
 - Use the known preferred name as the title and supported name variants as aliases. Do not add generic roles such as "the CTO" as identity aliases.
 - Distinguish a job title, actual responsibilities and decision authority. Do not infer hiring, purchasing or approval powers from seniority alone.
-- If useful, organize the Markdown around relationship, current roles, relevant context and dated changes. These are optional sections; do not create empty biography fields or seek personal details just to fill a profile.
+- If useful, organize the Markdown around relationship, current roles, relevant context and condensed history of meaningful dated changes, never one entry per sync. Rewrite current roles and state in place with `write`. These are optional sections; do not create empty biography fields or seek personal details just to fill a profile.
 - Keep contact details and personal information proportionate to the task. Do not infer personality, health, beliefs or other sensitive traits from conversational fragments.
 
 ## Changes and links
