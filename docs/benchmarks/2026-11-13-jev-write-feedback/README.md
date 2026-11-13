@@ -73,13 +73,36 @@ typecheck and `pnpm db:check` pass. The latter is static schema/migration
 alignment, not a migration or database execution. Lint reports two existing
 unused-suppression warnings and an existing large-JSON informational message.
 
-The existing `decisions` skill-eval is running against main
-`5346853e84ed71b3639ae42ce6e43ba72c9214ab`, full comparison, loaded mode,
-20 cases × 1 repeat × 2 arms = 40 trials. Fresh synthetic sessions and blind
-semantic review use the repository's DeepSeek editor configuration. Results are
-not interchangeable with prior native Codex runs. No reruns or tuning against
-holdout results. This comparison tests the existing skill/server instructions;
-the production write-feedback helper is exercised separately in (a)/(b).
+After #41 was squash-merged, `origin/main` is
+`2c81932562b520a184a1230e0461144b7924c7cf`. The branch was updated with a clean
+merge (no rebase or force push), producing `b503d780a8f52d4f101c14110baa599c1234a286`.
+The merge changes no tracked content relative to the pre-merge PR2 tree.
+PR #42 now targets main and its remote diff contains only the seven PR2 files.
+
+A fresh prepare against this main on the new HEAD was attempted:
+
+```sh
+node --import tsx scripts/evaluate-brain-skill.ts prepare \
+  --out .evals/pr2-skill-main-fresh --baseline-ref origin/main \
+  --comparison full --mode loaded \
+  --model deepseek/deepseek-v4.1-flash-1017 --repeats 1
+```
+
+It exits 1 before registering any trials: **“The two arms are identical; select a
+baseline before the change.”** (`scripts/evaluate-brain-skill.ts:338–343`).
+The existing full comparison extracts only skill files and `BRAIN_INSTRUCTIONS`;
+these are identical after #41's squash. It uses its own tool descriptions and
+FakeBrain, so it does not observe PR2's MCP descriptions or runtime feedback.
+**New comparison: 0 trials, 0 reviews; behavioral non-regression not demonstrated.**
+The interrupted comparison against pre-#41 main is excluded and not reused.
+
+Per the brief's conflict rule, implementation is paused pending an owner decision:
+extend the harness to exercise runtime feedback, or explicitly accept static
+identity plus the separate JEV eval. No harness bypass or substituted old baseline
+was applied. Identical inputs are evidence of unchanged skill/instruction text,
+not empirical evidence that a stochastic agent will perform identically. Even an
+A/A repetition would show variance and could not prove equivalence from a small
+sample. CI on merge HEAD was still running when this report was updated.
 
 ## Cost, latency and limitations
 
