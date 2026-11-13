@@ -67,6 +67,7 @@ async function main() {
     JSON.stringify({ examples, judgments }, null, 2),
   );
 
+  const exampleJudgments = judgments.length;
   const history = "kick off del progetto il 20/02/2025";
   const initial: Page = {
     id: "00000000-0000-4000-8000-000000000001",
@@ -257,7 +258,7 @@ async function main() {
         stateSections,
         historyPreserved: true,
         finalPage,
-        judgments,
+        judgments: judgments.slice(exampleJudgments),
         turns,
       },
       null,
