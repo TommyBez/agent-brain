@@ -18,8 +18,8 @@ Prefer an existing page when the information extends the same subject. Create a 
 For closely related types:
 
 - **Company or project:** the continuing relationship with an organization belongs to the company; the objective, deliverables and constraints of a particular initiative belong to its project.
-- **Project or decision:** create or update a decision for an adopted choice that guides future work on approach, scope, technology, priorities or operating rules. Keep routine implementation details and progress in the project. The decision owns the choice and supported rationale; the project keeps a short implication, connected through `decision → decided_in → project`. A brief choice or missing rationale does not disqualify it.
-- **Project or note:** a note is useful when the subject is a synthesis, method or meeting record worth retrieving as such. An ordinary progress update belongs to the project.
+- **Project or decision:** create or update a decision for an adopted choice that guides future work on approach, scope, technology, priorities or operating rules. Keep useful routine implementation details in the project; rewrite its current state in place rather than adding dated progress entries. The decision owns the choice and supported rationale; the project keeps a short implication, connected through `decision → decided_in → project`. A brief choice or missing rationale does not disqualify it.
+- **Project or note:** a note is useful when the subject is a synthesis, method or meeting record worth retrieving as such. An ordinary progress update belongs to the project's current state, rewritten in place with `write`, not a new dated section.
 - **Article or note:** an article represents a particular external publication. A note represents the owner's or agent's synthesis; attribute and reference the publications it uses. A URL alone does not make a page an article.
 - **Decision or note:** an adopted choice is a decision; a comparison, hypothesis or proposal is usually a note or part of the relevant project. A requested decision register may include a proposed choice, but its status must remain explicit.
 
@@ -39,7 +39,7 @@ The following examples are fictional routing cases, not instructions to save the
 | Portal will use managed hosting because the team cannot staff operations; the owner adopts this tradeoff. | A decision page linked to Portal with `decided_in`; a short implication in Portal. |
 | The owner confirms that Portal will serve only regulatory affairs, excluding quality assurance and environmental health and safety. | A decision page for the adopted scope; the project's scope reflects its consequence. |
 | The owner asks to compare managed hosting and self-hosting before choosing. | A topic note if the analysis is worth retaining, or part of Portal; no adopted decision yet. |
-| An agent fixes a display bug in Portal. | A project update only if the resulting state is useful to retain; no decision page. |
+| An agent fixes a display bug in Portal. | Rewrite the project's state in place with `write` only if useful to retain; no dated progress entry or decision page. |
 | A published essay argues for managed hosting. | An article page when the publication itself is worth retaining; attributed claims stay there. |
 | The owner develops a hosting-selection method from several sources. | A note referencing those sources, linked to projects where it applies. |
 | A meeting only repeats Portal's known deadline. | No new page or duplicate update. |

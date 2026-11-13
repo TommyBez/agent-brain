@@ -25,7 +25,7 @@ Do not manufacture values such as `partner`, `supplier`, `employer` or `former_c
 
 ## Presentation and links
 
-Useful sections can cover relationship, relevant business context, engagements and dated history. Preserve actual conditions, budgets and commitments with their scope; do not turn a tentative budget into an agreed contract. Attribute an individual's statement unless there is evidence they speak for the organization.
+Useful sections can cover relationship, relevant business context, engagements and condensed history of meaningful dated events, never one entry per sync. Rewrite current relationships and state in place with `write`. Preserve actual conditions, budgets and commitments with their scope; do not turn a tentative budget into an agreed contract. Attribute an individual's statement unless there is evidence they speak for the organization.
 
 Employment links originate from people: `person → works_at → company`. A project may `part_of` a company if it is genuinely an organizational initiative, while a commission or collaboration may be better represented by labeled `relates_to`. Use `company → owns → project` only for established ownership; being the client is not sufficient. Keep missing or uncertain ownership in the attributed text rather than encoding it as fact.
 

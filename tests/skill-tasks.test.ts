@@ -632,7 +632,11 @@ test("BRAIN_INSTRUCTIONS stays one literal with tracked work inside the 2,048-ch
       "Do not invent open issues, confirmation requests, checklists or human tasks to fill missing evidence.",
     ),
   );
-  assert(text.indexOf("Knowledge quality:") <= 1_509);
+  assert(
+    window.includes(
+      "Knowledge quality: compare proposed information with full relevant pages before writing.",
+    ),
+  );
   for (const sentence of [
     "stay in the relevant project or note, or in the task that tracks the work.",
     "Adoption does not establish implementation or deployment, and knowledge alone never closes a task.",

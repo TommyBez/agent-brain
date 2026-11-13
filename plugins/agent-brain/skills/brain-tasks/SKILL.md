@@ -60,7 +60,7 @@ The claim returns a cited `brief`, links and `reportBy`. Read the pages you will
 
 ## Finish with knowledge in pages
 
-1. Write durable outcomes to the relevant pages with `write` or `append`, following brain-memory. Pages hold the knowledge itself, not task status: never copy task references, task status or checklists of tracked work into page Markdown.
+1. Save durable outcomes following brain-memory: rewrite existing current state in place with `write`; use `append` only for new knowledge, never a status entry. Pages hold the knowledge itself, not task status: never copy task references, task status or checklists of tracked work into page Markdown.
 2. Call `complete_task` with a `summary`, every acceptance criterion by index with evidence and `verification` (`observed` only when you checked it), `pagesChanged` with each page and the version returned by your write, `artifacts`, and `remaining` when a criterion is not fully met.
 3. Distinguish what you proposed, implemented and verified; do not report planned or unverified work as done.
 
