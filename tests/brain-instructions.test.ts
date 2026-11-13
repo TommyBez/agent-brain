@@ -51,14 +51,22 @@ for (const name of ["BRAIN_INSTRUCTIONS", "BRAIN_INSTRUCTIONS_PRE_TASKS"]) {
       assert(shortWindow.includes(passage), `${name}: missing ${passage}`);
     }
 
-    assert(!text.includes("Knowledge quality: After a conversation:"));
-    assert(!text.includes("Before writing:"));
     assert(
       shortWindow.includes(
         "Knowledge quality: compare proposed information with full relevant pages before writing.",
       ),
       `${name}: truncated actionable quality rule`,
     );
+
+    for (const rule of [
+      "Preserve useful facts, rationale, source associations, dates, conditions, exceptions, negations, quantities and certainty.",
+      "Do not introduce incompatible claims for the same subject/scope/period.",
+    ]) {
+      assert(
+        shortWindow.includes(rule),
+        `${name}: truncated quality rule: ${rule}`,
+      );
+    }
 
     const clientWindow = text.slice(0, 4_096);
     for (const prefix of [
@@ -74,6 +82,11 @@ for (const name of ["BRAIN_INSTRUCTIONS", "BRAIN_INSTRUCTIONS_PRE_TASKS"]) {
       assert(clientWindow.includes(paragraph), `${name}: truncated ${prefix}`);
     }
     for (const sentence of [
+      "Correct only evidence-established errors.",
+      "Reconcile different times/scopes by keeping both facts with dates/scope; otherwise preserve attributed conflicts without choosing a winner.",
+      "Skip unchanged duplicates and unsupported/cosmetic rewrites; explicitly requested presentation changes are allowed.",
+      "create/update a page of type decision within the authorized save.",
+      "genuine uncertainty already present in the conversation, sources or pages.",
       "decision → decided_in → project",
       "Adoption does not establish implementation or deployment",
       "Write with expectedVersion=0 only when creating.",
@@ -90,3 +103,37 @@ for (const name of ["BRAIN_INSTRUCTIONS", "BRAIN_INSTRUCTIONS_PRE_TASKS"]) {
     }
   });
 }
+
+test("conversation and nightly prompts apply history/log rules to dated facts", async () => {
+  const source = await readFile("lib/mcp/server.ts", "utf8");
+  const file = ts.createSourceFile("server.ts", source, ts.ScriptTarget.Latest);
+  const prompts = new Map<string, string>();
+  function visit(node: ts.Node) {
+    if (ts.isArrayLiteralExpression(node)) {
+      const [name, , , body] = node.elements;
+      if (name && ts.isStringLiteral(name) && body && ts.isStringLiteral(body))
+        prompts.set(name.text, body.text);
+    }
+    ts.forEachChild(node, visit);
+  }
+  visit(file);
+  for (const name of ["after_conversation", "nightly_consolidation"]) {
+    const prompt = prompts.get(name);
+    assert(prompt, name);
+    assert(
+      prompt.includes("knowledge-quality and history-yes/logs-no rules"),
+      name,
+    );
+    assert(
+      /preserve dated facts; rewrite current state in place, never add status logs/i.test(
+        prompt,
+      ),
+      name,
+    );
+  }
+  assert(
+    prompts
+      .get("after_conversation")
+      ?.includes("date time-sensitive facts, not update entries"),
+  );
+});
