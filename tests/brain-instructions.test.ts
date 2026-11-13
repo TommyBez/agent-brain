@@ -83,7 +83,7 @@ for (const name of ["BRAIN_INSTRUCTIONS", "BRAIN_INSTRUCTIONS_PRE_TASKS"]) {
     }
     for (const sentence of [
       "Correct only evidence-established errors.",
-      "Reconcile different times/scopes by keeping both facts with dates/scope; otherwise preserve attributed conflicts without choosing a winner.",
+      "Keep both dated durable facts across time/scope; rewrite current state in place; keep other attributed conflicts without choosing a winner.",
       "Skip unchanged duplicates and unsupported/cosmetic rewrites; explicitly requested presentation changes are allowed.",
       "create/update a page of type decision within the authorized save.",
       "genuine uncertainty already present in the conversation, sources or pages.",
