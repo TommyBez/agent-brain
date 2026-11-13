@@ -121,7 +121,9 @@ After #41 was squash-merged, `origin/main` is
 `2c81932562b520a184a1230e0461144b7924c7cf`. The branch was updated with a clean
 merge (no rebase or force push), producing `b503d780a8f52d4f101c14110baa599c1234a286`.
 The merge changes no tracked content relative to the pre-merge PR2 tree.
-PR #42 now targets main and its remote diff contains only the seven PR2 files.
+PR #42 targets main. The merged baseline produced a seven-file PR2 diff;
+after this M1/M2 follow-up the diff contains nine PR2 files, including the
+instructions test and the new unprompted-run artifact.
 
 A fresh prepare against this main on the new HEAD was attempted:
 
