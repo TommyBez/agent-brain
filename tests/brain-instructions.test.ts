@@ -3,6 +3,49 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import ts from "typescript";
 
+test("write/append tool descriptions preserve history/log rules and advisory JEV feedback", async () => {
+  const source = await readFile("lib/mcp/server.ts", "utf8");
+  const file = ts.createSourceFile("server.ts", source, ts.ScriptTarget.Latest);
+  const descriptions = new Map<string, string>();
+  function property(node: ts.ObjectLiteralExpression, name: string) {
+    return node.properties.find(
+      (p): p is ts.PropertyAssignment =>
+        ts.isPropertyAssignment(p) && p.name.getText(file) === name,
+    )?.initializer;
+  }
+  function visit(node: ts.Node) {
+    if (ts.isObjectLiteralExpression(node)) {
+      const name = property(node, "name");
+      const config = property(node, "config");
+      if (
+        name &&
+        ts.isStringLiteral(name) &&
+        config &&
+        ts.isObjectLiteralExpression(config)
+      ) {
+        const description = property(config, "description");
+        if (description && ts.isStringLiteral(description))
+          descriptions.set(name.text, description.text);
+      }
+    }
+    ts.forEachChild(node, visit);
+  }
+  visit(file);
+  for (const name of ["write", "append"]) {
+    const description = descriptions.get(name);
+    assert(description, `${name}: missing literal tool description`);
+    for (const passage of [
+      "History yes, logs no",
+      "preserve dated durable facts",
+      "single current-state section in place with write",
+      "advisory JEV writeEvaluation",
+      "log probability score and corrective feedback",
+      "reread before correcting",
+    ])
+      assert(description.includes(passage), `${name}: missing ${passage}`);
+  }
+});
+
 for (const name of ["BRAIN_INSTRUCTIONS", "BRAIN_INSTRUCTIONS_PRE_TASKS"]) {
   test(`${name} preserves page-writing rules at 2,048 and mutation safety at 4,096 characters`, async () => {
     const source = await readFile("lib/mcp/server.ts", "utf8");

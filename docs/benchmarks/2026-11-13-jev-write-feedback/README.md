@@ -20,8 +20,20 @@ not state or sync logs; use write to replace the single current-state section.
 
 `tests/write-feedback.test.ts`: 4 passing tests, covering 6 page types × 5
 controlled judgments, append context and save-before-evaluation order, provider
-error, invalid response, gateway timeout, and propagation of save failures.
+error, invalid response, simulated gateway timeout, and propagation of save failures.
+The timeout test injects an already-aborted signal and a thrown TimeoutError;
+it does not measure expiration of the configured eight-second deadline.
 Controlled judgments test transport/policy rather than semantic accuracy.
+
+M1 is now covered by the static test **`write/append tool descriptions preserve
+history/log rules and advisory JEV feedback`** in `tests/brain-instructions.test.ts`.
+It parses the actual `lib/mcp/server.ts` descriptions and requires history/log,
+durable-fact and single-state guidance plus advisory JEV score/feedback wording
+for both tools. It first failed because write lacked the history/log rule; after
+clarifying the descriptions, it passes. This is static content coverage, not
+behavioral evidence that an agent follows F7. Neither the helper tests in (a) nor
+the agent eval in (b) exercise those production descriptions: (b) advertises the
+separate descriptions from `scripts/skill-eval/brain.ts` (FakeBrain).
 
 The live synthetic eval separately sends all five acceptance examples to actual
 JEV on each of the six page types: **30/30 pass**, no missing judgments.
@@ -32,25 +44,45 @@ No real Brain, database, exports or agent-brain-memory repository is used.
 
 ## (b) Three syncs, one synthetic project
 
+### New run: senza istruzione di correggersi
+
 Agent: repository editor model `deepseek/deepseek-v4.1-flash-1017`, temperature 0.
-The same in-memory `project/iris` moves from Prototipo to Beta interna, Pilota con
-tre clienti, Rilascio pubblico. It retains `kick off del progetto il 20/02/2025`.
+One fresh run, no retries: the same in-memory `project/iris` moves from Prototipo
+to Beta interna, Pilota con tre clienti, Rilascio pubblico. Every sync preserves
+`kick off del progetto il 20/02/2025` without feedback on the valid rewritten page.
 
-The first append is a **seeded fault injection**, not a naturally observed model
-error: `## Aggiornamento 12/11\nBeta interna.`. This guarantees a feedback response
-even if #41's instructions would prevent the agent from writing a log by itself.
-JEV returns score **0.97** and the corrective feedback. In the next agent response
-it calls `read`; in the following response it calls `write` at the fresh version
-and replaces both old state and dated update with `## Stato\nBeta interna.`.
-The corrected write scores **0.03**, without feedback. Sync 2 scores **0.02**;
-sync 3 **0.03**, both without feedback. Every corrected write keeps the historical
-fact. No fixed corrective text is applied by the harness: the model chooses the
-replacement Markdown. Raw JEV responses, tool inputs/outputs, agent responses
-and the final page are in `syncs.json`.
+M2: the eval-specific prompt no longer says to correct after feedback, reread or
+conclude. Its complete form is `Sync N: Iris ora ha questo stato: STATE Aggiorna
+la pagina conservando i fatti storici. Non è una nuova decisione.` The ordinary
+production `BRAIN_INSTRUCTIONS` remain present, including #41's history/log rules;
+there is no added instruction in the prompt or setup to react to JEV or repair a
+page. The corrective advice reaches the agent only inside the JEV-enriched tool
+result. Setup, actual prompts, tool definitions, JEV requests/responses, tool
+inputs/outputs, agent responses and page snapshots are archived in
+`syncs-without-correction-instruction.json`.
 
-The runner deterministically asserts current state and history preservation after
-every sync and at most one state/update heading. Final page: **1 state section**,
-no `Stato precedente` or dated update. Archived trace also passes these checks.
+The initial `## Aggiornamento 12/11\nBeta interna.` append is still a **seeded
+fault injection**, not a naturally observed agent mistake. No harness edit repairs
+the page. Non-recovery would be saved as an outcome: the runner records all three
+syncs before asserting the final state-section limit, without a repair prompt,
+forced write or selective rerun.
+
+- **Sync 1:** seeded append score **0.97**, with the exact feedback below. The next
+  agent response calls `read` (v2), then the following response calls `write` (v3)
+  to replace both old state and dated update with `## Stato\nBeta interna.`.
+  This write scores **0.03**, no feedback; the next response concludes.
+- **Sync 2:** after reading v3, writes v4 with `Pilota con tre clienti.`; score
+  **0.03**, **no feedback**. The next response concludes with the saved state.
+- **Sync 3:** after reading v4, writes v5 with `Rilascio pubblico.`; score
+  **0.02**, **no feedback**. The next response concludes with the saved state.
+
+Exact feedback on sync 1 (all subsequent writes have no feedback text):
+
+> Stai facendo un log: riscrivi lo stato nella sua unica sezione al suo posto con write, preservando fatti storici, fonti, metadati e link. Non declassare lo stato vecchio a ‘Stato precedente’. Rileggi la pagina e usa la versione corrente prima di correggerla. La scrittura è già riuscita; questo è solo feedback.
+
+**3/3 syncs completed**, each snapshot has **1 state section** and retains the
+historical fact. The deterministic final assertion `stateSections <= 1` **passes**;
+no dated update or `Stato precedente` remains. Final page (v5):
 
 ```markdown
 # Iris
@@ -62,13 +94,25 @@ Rilascio pubblico.
 ```
 
 This is an in-memory tool-result eval using the production feedback helper and
-existing FakeBrain, not a deployed MCP/DB or native Codex client verification.
-It demonstrates recovery after injected feedback, not that feedback alone caused
-recovery compared with a no-feedback control.
+FakeBrain, not a deployed MCP/DB or native Codex client verification. There is no
+no-feedback control; baseline production writing guidance is still present. The
+observed recovery is not proof that feedback alone caused it, nor evidence of
+behavioral coverage for the production write/append descriptions.
+
+### Previous run: con istruzione di correggersi
+
+`syncs.json` is retained only as the **con istruzione di correggersi** comparison.
+Its user prompt explicitly said: `Dopo eventuale feedback correggi al turno
+successivo, rileggi e poi concludi.` Thus recovery in that run depended on both
+the feedback and an explicit evaluation instruction; it cannot establish an
+autonomous response to feedback. Scores: sync 1 **0.97** on the seeded log, then
+**0.03** after read/write recovery; sync 2 **0.02**; sync 3 **0.03**. It also ends
+with one state section and the same historical fact. The old run is not reused
+as the new run's evidence.
 
 ## (c) Local checks and skill comparison
 
-Local full suite: **468 passed, 34 skipped, 0 failed (502 total)**. Lint,
+Local full suite: **469 passed, 34 skipped, 0 failed (503 total)**. Lint,
 typecheck and `pnpm db:check` pass. The latter is static schema/migration
 alignment, not a migration or database execution. Lint reports two existing
 unused-suppression warnings and an existing large-JSON informational message.
@@ -96,15 +140,32 @@ FakeBrain, so it does not observe PR2's MCP descriptions or runtime feedback.
 **New comparison: 0 trials, 0 reviews; behavioral non-regression not demonstrated.**
 The interrupted comparison against pre-#41 main is excluded and not reused.
 
-Per the brief's conflict rule, implementation is paused pending an owner decision:
-extend the harness to exercise runtime feedback, or explicitly accept static
-identity plus the separate JEV eval. No harness bypass or substituted old baseline
-was applied. Identical inputs are evidence of unchanged skill/instruction text,
-not empirical evidence that a stochastic agent will perform identically. Even an
-A/A repetition would show variance and could not prove equivalence from a small
-sample. CI on merge HEAD was still running when this report was updated.
+**PE proposal, pending the PM's decision:** use static identity of skill and
+`BRAIN_INSTRUCTIONS` plus the separate JEV eval for (c), without extending the
+harness in PR2. This is not a decision attributed to Tommy or the owner. No harness
+bypass or substituted baseline was applied. With identical measured inputs and
+simulator, no regression attributable to PR2 is possible within what this harness
+measures; this is not empirical equivalence of stochastic agent outcomes.
+
+The only changes to static agent-facing prompts are the write/append descriptions
+(F7). Their text now has the M1 static test above; their behavioral effect and
+runtime-feedback coverage in skill-eval remain a follow-up. The 30 historical
+semantic examples and the two labeled sync runs are separate evidence, not proof
+of F7 behavior. Even an A/A repetition would show variance and could not prove
+equivalence from a small sample.
+
+Validation CI on code/report SHA `1d8ad9cc422aeead137345e1586baf28179a6e8d` passed
+all three checks. CI for this follow-up's new HEAD is recorded separately in the
+PR body once verified; that older green SHA is not proof of the new HEAD.
 
 ## Cost, latency and limitations
+
+The original semantic examples plus the run **con istruzione di correggersi**
+produced the 34 JEV calls below. The new run **senza istruzione di correggersi**
+adds **4 JEV calls**, with median **264 ms**, minimum **233 ms**, maximum **772 ms**
+and total JEV cost **$0.000113904**. These are separate samples; they exclude agent
+chat inference cost and do not establish production latency or realistic-page cost.
+
 
 One additional JEV call with one boolean question per successful MCP write/append;
 no added DB query, spend insert, job, migration, cache or retry. With the small
@@ -127,13 +188,26 @@ MCP write/append, including clients with the task manager off. Rollback is code
 only. No blocking is enabled; reassess blocking after the two-week observation
 period. Merge remains with Tommy via Chief after PM confirmation.
 
+## Non-blocking follow-ups (PM decides)
+
+- **M3:** content-free fail-open diagnostics and measurements on realistic pages
+  to inform the two-week reassessment; no page content in diagnostic logs.
+- Behavioral F7 coverage and skill-eval support for production tool descriptions
+  and runtime feedback. M1's static wording coverage is now implemented.
+- **m1:** a timeout test that verifies actual deadline expiration.
+- **m3:** duplicated write payload and behavior with preexisting logs.
+- **m4:** response latency up to eight seconds.
+- **m5:** integration coverage for the `server.ts` wiring.
+- **Nits:** inline 0.5 threshold, dead answer-type guard, and tautological six-type
+  loop with fixed mocked judgments (not semantic/type-specific coverage).
+
 ## Reproduction
 
 With the repository's existing AI Gateway environment configured:
 
 ```sh
-node --import tsx --test tests/write-feedback.test.ts
-node --import tsx scripts/evaluate-write-feedback.ts .evals/write-feedback
+node --import tsx --test tests/brain-instructions.test.ts tests/write-feedback.test.ts
+node --import tsx scripts/evaluate-write-feedback.ts .evals/write-feedback --syncs-only
 pnpm test
 pnpm lint
 pnpm typecheck

@@ -100,7 +100,7 @@ const tools = [
     scope: "brain:write",
     config: {
       description:
-        "Create or replace one entity page and outgoing links atomically. Requires expectedVersion=0 for create or matching current version and id for updates. Resolve before creating; preserve metadata when replacing. Company pages carry relationships (client, prospect, former_employer). Successful writes may include advisory writeEvaluation (log probability score and corrective feedback); reread before correcting.",
+        "Create or replace one entity page and outgoing links atomically. Requires expectedVersion=0 for create or matching current version and id for updates. Resolve before creating; preserve metadata when replacing. Company pages carry relationships (client, prospect, former_employer). History yes, logs no: preserve dated durable facts; rewrite the single current-state section in place with write, never archive successive states. Successful writes may include advisory JEV writeEvaluation (log probability score and corrective feedback); reread before correcting.",
       inputSchema: schemas.writeSchema,
       annotations: { ...write, destructiveHint: true },
     },
@@ -120,7 +120,7 @@ const tools = [
     scope: "brain:write",
     config: {
       description:
-        "Append only new sourced knowledge without replacing the rest of an entity page. History yes, logs no: preserve dated durable facts; never append sync logs or current-state updates. Rewrite the single current-state section in place with write instead. Requires the current expectedVersion; conflicts never overwrite concurrent work. Successful writes may include advisory writeEvaluation (log probability score and corrective feedback); reread before correcting.",
+        "Append only new sourced knowledge without replacing the rest of an entity page. History yes, logs no: preserve dated durable facts; never append sync logs or current-state updates. Rewrite the single current-state section in place with write instead. Requires the current expectedVersion; conflicts never overwrite concurrent work. Successful writes may include advisory JEV writeEvaluation (log probability score and corrective feedback); reread before correcting.",
       inputSchema: schemas.appendSchema,
       annotations: write,
     },

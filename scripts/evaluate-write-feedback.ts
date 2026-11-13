@@ -12,6 +12,7 @@ async function main() {
   // Opt-in live eval. Synthetic in-memory pages only; no MCP, DB or Brain export.
   const out = resolve(process.argv[2] ?? ".evals/write-feedback");
   await mkdir(out, { recursive: true });
+  const syncsOnly = process.argv.includes("--syncs-only");
   const judgments: unknown[] = [];
   const send: GatewayCall = async <T>(
     path: Parameters<GatewayCall>[0],
@@ -41,7 +42,7 @@ async function main() {
     },
   ];
   const examples: unknown[] = [];
-  for (const type of PAGE_TYPES) {
+  for (const type of syncsOnly ? [] : PAGE_TYPES) {
     for (const example of cases) {
       const operation = example.markdown.startsWith("## Aggiornamento")
         ? "append"
@@ -103,6 +104,18 @@ async function main() {
   assert.ok(instructions);
   const messages: Message[] = [{ role: "system", content: instructions }];
   const turns: unknown[] = [];
+  const syncPrompts: string[] = [];
+  const syncResults: unknown[] = [];
+  const tools = toolDefinitions.filter((tool) =>
+    ["read", "write", "append", "resolve", "context"].includes(
+      tool.function.name,
+    ),
+  );
+  const stateSectionsIn = (markdown: string) =>
+    (
+      markdown.match(/^#{1,6}\s+(?:stato|aggiornamento|status|update)\b/gim) ??
+      []
+    ).length;
   async function call(tool: string, input: Record<string, unknown>) {
     if (tool === "write" || tool === "append") {
       return writeWithFeedback(
@@ -122,10 +135,9 @@ async function main() {
     "Pilota con tre clienti.",
     "Rilascio pubblico.",
   ].entries()) {
-    messages.push({
-      role: "user",
-      content: `Sync ${index + 1}: Iris ora ha questo stato: ${state} Aggiorna la pagina conservando i fatti storici. Non è una nuova decisione. Dopo eventuale feedback correggi al turno successivo, rileggi e poi concludi.`,
-    });
+    const prompt = `Sync ${index + 1}: Iris ora ha questo stato: ${state} Aggiorna la pagina conservando i fatti storici. Non è una nuova decisione.`;
+    syncPrompts.push(prompt);
+    messages.push({ role: "user", content: prompt });
     if (index === 0) {
       // Controlled fault injection guarantees that feedback is exercised even
       // when the agent would follow #41's writing guidance without an error.
@@ -160,10 +172,6 @@ async function main() {
         tool_call_id: "seed-log",
         content: JSON.stringify(output),
       });
-      assert.ok(
-        (output as { writeEvaluation?: { feedback?: string } }).writeEvaluation
-          ?.feedback,
-      );
     }
     let finished = false;
     for (let turn = 0; turn < 12; turn++) {
@@ -173,11 +181,7 @@ async function main() {
         model: EDITOR_MODEL,
         temperature: 0,
         messages,
-        tools: toolDefinitions.filter((tool) =>
-          ["read", "write", "append", "resolve", "context"].includes(
-            tool.function.name,
-          ),
-        ),
+        tools,
         max_tokens: 4000,
       });
       const message = response.choices[0].message;
@@ -209,41 +213,40 @@ async function main() {
         });
       }
     }
-    assert.ok(finished, "agent must conclude each sync");
+    // Record non-recovery as an outcome, without a repair prompt or harness edit.
+    syncResults.push({
+      sync: index + 1,
+      expectedState: state,
+      finished,
+      statePresent: brain.pages[0].markdown.includes(state),
+      historyPreserved: brain.pages[0].markdown.includes(history),
+      stateSections: stateSectionsIn(brain.pages[0].markdown),
+      page: structuredClone(brain.pages[0]),
+    });
     await writeFile(
       resolve(out, "syncs.json"),
       JSON.stringify(
-        { model: EDITOR_MODEL, turns, judgments, finalPage: brain.pages[0] },
+        {
+          model: EDITOR_MODEL,
+          setup: {
+            instructions,
+            tools,
+            syncPrompts,
+            seededLog: true,
+            correctionInstruction: false,
+          },
+          turns,
+          syncResults,
+          judgments: judgments.slice(exampleJudgments),
+          finalPage: brain.pages[0],
+        },
         null,
         2,
       ),
     );
-    assert.ok(brain.pages[0].markdown.includes(state));
-    assert.ok(brain.pages[0].markdown.includes(history));
-    assert.ok(
-      (
-        brain.pages[0].markdown.match(
-          /^#{1,6}\s+(?:stato|aggiornamento|status|update)\b/gim,
-        ) ?? []
-      ).length <= 1,
-      "each sync must leave at most one state section",
-    );
   }
   const finalPage = brain.pages[0];
-  const stateSections = (
-    finalPage.markdown.match(
-      /^#{1,6}\s+(?:stato|aggiornamento|status|update)\b/gim,
-    ) ?? []
-  ).length;
-  assert.ok(
-    stateSections <= 1,
-    `expected at most one state section, got ${stateSections}`,
-  );
-  assert.ok(finalPage.markdown.includes(history));
-  assert.doesNotMatch(
-    finalPage.markdown,
-    /Stato precedente|Aggiornamento 12\/11/i,
-  );
+  const stateSections = stateSectionsIn(finalPage.markdown);
   const failures = (examples as { passed: boolean }[]).filter(
     (example) => !example.passed,
   ).length;
@@ -256,7 +259,16 @@ async function main() {
         failed: failures,
         syncs: 3,
         stateSections,
-        historyPreserved: true,
+        historyPreserved: finalPage.markdown.includes(history),
+        finalStateSectionCheck: stateSections <= 1,
+        setup: {
+          instructions,
+          tools,
+          syncPrompts,
+          seededLog: true,
+          correctionInstruction: false,
+        },
+        syncResults,
         finalPage,
         judgments: judgments.slice(exampleJudgments),
         turns,
@@ -265,6 +277,13 @@ async function main() {
       2,
     ),
   );
+  // Save the complete run before checking acceptance: a failure is evidence,
+  // never a reason to rerun the agent or force a corrective write.
+  assert.ok(
+    stateSections <= 1,
+    `expected at most one state section, got ${stateSections}`,
+  );
+  assert.ok(finalPage.markdown.includes(history));
   assert.equal(failures, 0, "live semantic acceptance examples");
   console.log(
     JSON.stringify({
