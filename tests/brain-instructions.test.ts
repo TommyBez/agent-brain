@@ -51,8 +51,31 @@ for (const name of ["BRAIN_INSTRUCTIONS", "BRAIN_INSTRUCTIONS_PRE_TASKS"]) {
       assert(shortWindow.includes(passage), `${name}: missing ${passage}`);
     }
 
+    assert(!text.includes("Knowledge quality: After a conversation:"));
+    assert(!text.includes("Before writing:"));
+    assert(
+      shortWindow.includes(
+        "Knowledge quality: compare proposed information with full relevant pages before writing.",
+      ),
+      `${name}: truncated actionable quality rule`,
+    );
+
     const clientWindow = text.slice(0, 4_096);
+    for (const prefix of [
+      "Before work:",
+      "After a conversation:",
+      "Knowledge quality:",
+      "Decision pages:",
+    ]) {
+      const paragraph = text
+        .split("\n")
+        .find((line) => line.startsWith(prefix));
+      assert(paragraph, `${name}: missing ${prefix}`);
+      assert(clientWindow.includes(paragraph), `${name}: truncated ${prefix}`);
+    }
     for (const sentence of [
+      "decision → decided_in → project",
+      "Adoption does not establish implementation or deployment",
       "Write with expectedVersion=0 only when creating.",
       "Updates require the page id and the exact version from read.",
       "Write replaces the page, including aliases, tags, and outgoing typed links: preserve those unless intentionally changing them.",
