@@ -15,6 +15,7 @@ import { TASK_TOOL_NAMES, TASK_TOOLS } from "@/lib/tasks/mcp-tools";
 import { contextWithOpenTasks, withOpenTasks } from "@/lib/tasks/open-tasks";
 import { TASK_PROCEDURES } from "@/lib/tasks/tool-definitions";
 import type { CacheInvalidation } from "@/lib/workspace/cache";
+import { writeWithFeedback } from "./write-feedback";
 
 export const BRAIN_INSTRUCTIONS = `a native brain is the owner's private page-based second brain. Database is authoritative. Server embeds queries; agents reason; Vercel Workflow consolidates on schedule.
 Before work: call context; resolve each person, company, project, article or decision before creating pages. Company pages' relationships field records the owner's ties: client, prospect, former_employer, combinations, or none for plain contacts. Read full pages before edits. Slugs/aliases identify canonical entities; similarity cannot prove identity.
@@ -99,31 +100,39 @@ const tools = [
     scope: "brain:write",
     config: {
       description:
-        "Create or replace one entity page and outgoing links atomically. Requires expectedVersion=0 for create or matching current version and id for updates. Resolve before creating; preserve metadata when replacing. Company pages carry relationships (client, prospect, former_employer).",
+        "Create or replace one entity page and outgoing links atomically. Requires expectedVersion=0 for create or matching current version and id for updates. Resolve before creating; preserve metadata when replacing. Company pages carry relationships (client, prospect, former_employer). History yes, logs no: preserve dated durable facts; rewrite the single current-state section in place with write, never archive successive states. Successful writes may include advisory JEV writeEvaluation (log probability score and corrective feedback); reread before correcting.",
       inputSchema: schemas.writeSchema,
       annotations: { ...write, destructiveHint: true },
     },
     invalidates: "workspace",
     // The revision is signed by the agent behind the credential.
-    handler: async (ownerId: string, input: unknown, principal: Principal) =>
-      brain.write(ownerId, input, {
-        actorAgentId: (await resolveActor(ownerId, principal)).agentId,
-      }),
+    handler: async (ownerId: string, input: unknown, principal: Principal) => {
+      const data = schemas.writeSchema.parse(input);
+      const actorAgentId = (await resolveActor(ownerId, principal)).agentId;
+      return writeWithFeedback(
+        () => brain.write(ownerId, data, { actorAgentId }),
+        { operation: "write", markdown: data.markdown },
+      );
+    },
   },
   {
     name: "append",
     scope: "brain:write",
     config: {
       description:
-        "Append sourced markdown without replacing the rest of an entity page. Requires the current expectedVersion; conflicts never overwrite concurrent work.",
+        "Append only new sourced knowledge without replacing the rest of an entity page. History yes, logs no: preserve dated durable facts; never append sync logs or current-state updates. Rewrite the single current-state section in place with write instead. Requires the current expectedVersion; conflicts never overwrite concurrent work. Successful writes may include advisory JEV writeEvaluation (log probability score and corrective feedback); reread before correcting.",
       inputSchema: schemas.appendSchema,
       annotations: write,
     },
     invalidates: "workspace",
-    handler: async (ownerId: string, input: unknown, principal: Principal) =>
-      brain.append(ownerId, input, {
-        actorAgentId: (await resolveActor(ownerId, principal)).agentId,
-      }),
+    handler: async (ownerId: string, input: unknown, principal: Principal) => {
+      const data = schemas.appendSchema.parse(input);
+      const actorAgentId = (await resolveActor(ownerId, principal)).agentId;
+      return writeWithFeedback(
+        () => brain.append(ownerId, data, { actorAgentId }),
+        { operation: "append", markdown: data.markdown },
+      );
+    },
   },
   {
     name: "resolve",
