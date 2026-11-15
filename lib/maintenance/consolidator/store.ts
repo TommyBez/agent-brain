@@ -5,6 +5,7 @@ import { BrainError, LINK_TYPES, MAX_PAGE_CHARACTERS } from "../../brain/types";
 import { assertOwner } from "../../brain/utils";
 import { canonicalJson, fingerprint } from "../../canonical-json";
 import { getPool, transaction } from "../../db";
+import { compactRecord } from "./compact-record";
 import { recordKeys } from "./keys";
 import { explicitReferences } from "./references";
 import type { ApplyResult, ChangeSet, Snapshot } from "./types";
@@ -141,7 +142,9 @@ export async function saveConsolidationRecord(
   assertOwner(ownerId);
   identifier.parse(runId);
   identifier.parse(key);
-  const value = serialized(record);
+  const compact =
+    /^(analysis:|incomplete-analysis:|verification:|decision:)/.test(key);
+  const value = serialized(compact ? compactRecord(record) : record);
   const result = await getPool().query(
     `INSERT INTO brain_consolidation_records (owner_id,run_id,kind,record_key,payload)
      VALUES ($1,$2,'record',$3,$4::jsonb)
@@ -149,6 +152,19 @@ export async function saveConsolidationRecord(
      WHERE brain_consolidation_records.payload=EXCLUDED.payload RETURNING record_key`,
     [ownerId, runId, key, value],
   );
+  if (!result.rowCount && compact) {
+    // A Workflow retry may meet a full judgment saved before this deployment.
+    // Accept identical compact diagnostics without rewriting that legacy row.
+    const previous = await readConsolidationRecord(ownerId, runId, key);
+    if (
+      previous &&
+      isDeepStrictEqual(
+        JSON.parse(serialized(compactRecord(previous))),
+        JSON.parse(value),
+      )
+    )
+      return;
+  }
   if (!result.rowCount)
     throw new BrainError(
       "RECORD_CONFLICT",

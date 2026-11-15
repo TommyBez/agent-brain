@@ -1,8 +1,9 @@
 import { createHook, getWorkflowMetadata, sleep } from "workflow";
+import { retainConsolidationRecords } from "@/lib/maintenance/consolidator/retention";
 import { EMBEDDING_LIMITS } from "@/lib/maintenance/embedding-batch";
-import type { WorkflowJobKind } from "@/lib/maintenance/jobs";
 import {
   type NightlyOptions,
+  type NightlyStageKind,
   runNightlyStages,
 } from "@/lib/maintenance/nightly-stages";
 import {
@@ -65,12 +66,16 @@ async function indexPages(ownerId: string) {
 
 async function runPhase(
   ownerId: string,
-  kind: WorkflowJobKind,
+  kind: NightlyStageKind,
   runDate: string,
   runId: string,
   rerunFrom?: string,
   scope: TaskPhaseScope = "nightly",
 ) {
+  if (kind === "retention") {
+    const result = await retainConsolidationRecords(ownerId);
+    return { status: "succeeded", ...result };
+  }
   const job = await beginJob(ownerId, kind, runDate, runId, rerunFrom);
   if (job.skip) return { id: job.id, status: job.status, skipped: true };
   try {

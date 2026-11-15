@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import test from "node:test";
 import * as brain from "../lib/brain/service";
 import { getPool } from "../lib/db";
+import { compactRecord } from "../lib/maintenance/consolidator/compact-record";
 import { planOperations } from "../lib/maintenance/consolidator/planner";
 import {
   buildSnapshot,
@@ -149,7 +150,7 @@ test(
               runId,
               `analysis:${tasks[0].id}`,
             ),
-            original,
+            JSON.parse(JSON.stringify(compactRecord(original))),
           );
           // Plain tsx compiles this .ts test to CJS; workflow's require export is
           // its TypeScript plugin. Exercise the error branch with the package's
