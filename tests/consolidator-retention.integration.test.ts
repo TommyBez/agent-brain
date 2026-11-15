@@ -6,7 +6,6 @@ import {
   evaluationCacheKey,
 } from "../lib/maintenance/consolidator/evaluation-cache";
 import { JEV_MODEL } from "../lib/maintenance/consolidator/jev";
-import { retainConsolidationRecords } from "../lib/maintenance/consolidator/retention";
 import {
   buildSnapshot,
   createAnalysisTasks,
@@ -16,6 +15,8 @@ import {
   readConsolidationRecord,
   saveConsolidationRecord,
 } from "../lib/maintenance/consolidator/store";
+import { operationsStatus } from "../lib/operations";
+import { runPhase } from "../workflows/nightly";
 import { storeFixture } from "./helpers/consolidator-store";
 
 test(
@@ -26,6 +27,18 @@ test(
   async (t) => {
     const { owner, otherOwner, create, cleanup } = storeFixture();
     const pool = getPool();
+    let invocation = 0;
+    const retainConsolidationRecords = async (who: string) => {
+      const result = await runPhase(
+        who,
+        "retention",
+        "2026-11-15",
+        `retention-test-${invocation++}`,
+      );
+      assert.ok("deleted" in result);
+      assert.equal(result.status, "succeeded", JSON.stringify(result));
+      return result;
+    };
     try {
       const page = await create();
       const snapshot = buildSnapshot([page]);
@@ -149,7 +162,7 @@ test(
       const count = async () =>
         (
           await pool.query(
-            `SELECT count(*)::int AS n FROM brain_consolidation_records WHERE owner_id=$1`,
+            `SELECT count(*)::int AS n FROM brain_consolidation_records WHERE owner_id=$1 AND record_key NOT LIKE 'retention:%'`,
             [owner],
           )
         ).rows[0].n as number;
@@ -225,6 +238,97 @@ test(
       console.log(
         `Synthetic retention: before=${recordsBefore}, after=${recordsAfter}, deleted=${result.deleted}, batches=${result.batches}; receipts=2; stable-page provider calls=0; all other tables unchanged`,
       );
+      // A retained legacy analysis protects even unrelated old evaluation keys.
+      await pool.query(
+        `INSERT INTO brain_consolidation_records VALUES
+        ($1,'legacy-protection','record','analysis:legacy-kept',$2::jsonb,now()-interval '20 days'),
+        ($1,'legacy-evaluation','record','evaluation:unrelated','{}',now()-interval '90 days')`,
+        [owner, JSON.stringify(analysis)],
+      );
+      for (const prefix of ["snapshot:", "verification:", "run"])
+        await pool.query(
+          `INSERT INTO brain_consolidation_records VALUES ($1,'old-run','record',$2,'{}',now()-interval '15 days')`,
+          [owner, prefix],
+        );
+      await pool.query(
+        `INSERT INTO brain_consolidation_records VALUES
+        ($1,'tie-a','record','analysis:tie','{}',now()-interval '20 days'),
+        ($1,'tie-z','record','analysis:tie','{}',now()-interval '20 days')`,
+        [owner],
+      );
+      const legacy = await retainConsolidationRecords(owner);
+      assert.equal(legacy.deleted, 4);
+      assert.ok(
+        await readConsolidationRecord(
+          owner,
+          "legacy-evaluation",
+          "evaluation:unrelated",
+        ),
+      );
+      assert.equal(
+        await readConsolidationRecord(owner, "tie-a", "analysis:tie"),
+        null,
+      );
+      assert.ok(await readConsolidationRecord(owner, "tie-z", "analysis:tie"));
+      for (const key of ["snapshot:", "verification:", "run"])
+        assert.equal(
+          await readConsolidationRecord(owner, "old-run", key),
+          null,
+        );
+      // Replay the same Workflow invocation, including completed batch steps.
+      const replay = await runPhase(
+        owner,
+        "retention",
+        "2026-11-15",
+        `retention-test-${invocation - 1}`,
+      );
+      assert.ok("deleted" in replay);
+      assert.equal(replay.deleted, legacy.deleted);
+      await pool.query(
+        `UPDATE brain_consolidation_records SET created_at=now()-interval '61 days' WHERE owner_id=$1 AND run_id='legacy-protection'`,
+        [owner],
+      );
+      assert.equal((await retainConsolidationRecords(owner)).deleted, 2);
+      assert.equal(
+        await readConsolidationRecord(
+          owner,
+          "legacy-evaluation",
+          "evaluation:unrelated",
+        ),
+        null,
+      );
+      // Exercise a real runPhase failure with a successful outcome write, then
+      // read the same Operations backend used by the existing error display.
+      const log = t.mock.method(console, "error", () => {});
+      await pool.query(
+        `INSERT INTO brain_consolidation_records VALUES ($1,'bad-legacy','record','analysis:bad-shape','{"judgments":{}}',now())`,
+        [owner],
+      );
+      const failure = await runPhase(
+        owner,
+        "retention",
+        "2026-11-15",
+        "retention-failed",
+      );
+      assert.equal(failure.status, "failed");
+      assert.ok("error" in failure);
+      assert.equal(failure.error, "cannot extract elements from an object");
+      assert.ok(
+        log.mock.calls.some(
+          (call) => call.arguments[0] === "nightly.retention_failed",
+        ),
+      );
+      const operations = await operationsStatus(owner);
+      const failedStage = operations.jobs.find(
+        (job) => job.workflowRunId === "retention-failed",
+      );
+      assert.equal(failedStage?.kind, "retention");
+      assert.equal(failedStage?.status, "failed");
+      assert.equal(
+        failedStage?.error,
+        "cannot extract elements from an object",
+      );
+      log.mock.restore();
     } finally {
       await cleanup();
     }

@@ -4,15 +4,13 @@ import { queryEmbeddingsConfigured } from "@/lib/brain/embeddings";
 import { assertOwner, embeddingModel } from "@/lib/brain/utils";
 import { getPool, transaction } from "@/lib/db";
 import { exportRepositoryForEmail } from "@/lib/maintenance/export-repositories";
-import type {
-  WorkflowJobKind,
-  WorkflowJobStatus,
-} from "@/lib/maintenance/jobs";
+import type { WorkflowJobStatus } from "@/lib/maintenance/jobs";
+import type { NightlyStageKind } from "@/lib/maintenance/nightly-stages";
 import { tasksEnabledFor } from "@/lib/tasks/feature";
 
 export type MaintenanceJob = {
   id: string;
-  kind: WorkflowJobKind;
+  kind: NightlyStageKind;
   status: WorkflowJobStatus;
   runDate: string;
   workflowRunId: string | null;
@@ -53,9 +51,17 @@ export function isCronRequest(request: Request) {
 export async function operationsStatus(ownerId: string) {
   assertOwner(ownerId);
   const { rows: jobs } = await getPool().query<MaintenanceJob>(
-    `SELECT id, kind, status, started_at AS "startedAt", finished_at AS "finishedAt", error,
-      run_date::text AS "runDate", workflow_run_id AS "workflowRunId", attempts, result FROM brain_jobs WHERE owner_id = $1
-     ORDER BY created_at DESC LIMIT 20`,
+    `SELECT * FROM (
+      SELECT id::text AS id,kind,status,started_at AS "startedAt",finished_at AS "finishedAt",error,
+        run_date::text AS "runDate",workflow_run_id AS "workflowRunId",attempts,result,created_at
+      FROM brain_jobs WHERE owner_id=$1
+      UNION ALL
+      SELECT 'retention:'||run_id,'retention',payload->>'status',
+        (payload->>'startedAt')::timestamptz,(payload->>'finishedAt')::timestamptz,payload->>'error',
+        payload->>'runDate',run_id,1,payload,created_at
+      FROM brain_consolidation_records
+      WHERE owner_id=$1 AND kind='record' AND record_key='retention:outcome'
+    ) jobs ORDER BY created_at DESC,id DESC LIMIT 20`,
     [ownerId],
   );
   const runIds = [

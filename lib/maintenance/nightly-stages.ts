@@ -20,13 +20,13 @@ export async function runNightlyStages(
   options: NightlyOptions = {},
 ): Promise<{ failed: boolean; jobs: NightlyStages }> {
   const settle = (kind: NightlyStageKind): Promise<StageOutcome> =>
-    run(kind).catch(() => ({
-      status: "failed",
-      error:
-        kind === "consolidation"
-          ? "Consolidation bookkeeping failed."
-          : "Maintenance bookkeeping failed.",
-    }));
+    run(kind).catch((error) => {
+      console.error("nightly.stage_failed", { kind, error });
+      return {
+        status: "failed",
+        error: error instanceof Error ? error.message : String(error),
+      };
+    });
   const retention = await settle("retention");
   const consolidation = await settle("consolidation");
   const [indexing, exported] = await Promise.all([

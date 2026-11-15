@@ -1,5 +1,9 @@
 import { createHook, getWorkflowMetadata, sleep } from "workflow";
-import { retainConsolidationRecords } from "@/lib/maintenance/consolidator/retention";
+import {
+  prepareConsolidationRetention,
+  pruneConsolidationBatch,
+  recordRetentionOutcome,
+} from "@/lib/maintenance/consolidator/retention";
 import { EMBEDDING_LIMITS } from "@/lib/maintenance/embedding-batch";
 import {
   type NightlyOptions,
@@ -64,7 +68,7 @@ async function indexPages(ownerId: string) {
   };
 }
 
-async function runPhase(
+export async function runPhase(
   ownerId: string,
   kind: NightlyStageKind,
   runDate: string,
@@ -73,8 +77,52 @@ async function runPhase(
   scope: TaskPhaseScope = "nightly",
 ) {
   if (kind === "retention") {
-    const result = await retainConsolidationRecords(ownerId);
-    return { status: "succeeded", ...result };
+    const startedAt = new Date().toISOString();
+    let deleted = 0;
+    let batches = 0;
+    let outcome: {
+      status: string;
+      deleted: number;
+      batches: number;
+      error?: string;
+    };
+    try {
+      const plan = await prepareConsolidationRetention(ownerId, runId);
+      for (let batch = 0; batch < plan.batches; batch++) {
+        deleted += await pruneConsolidationBatch(ownerId, runId, batch);
+        batches++;
+      }
+      outcome = { status: "succeeded", deleted, batches };
+    } catch (error) {
+      console.error("nightly.retention_failed", error);
+      outcome = {
+        status: "failed",
+        deleted,
+        batches,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+    try {
+      await recordRetentionOutcome(ownerId, runId, {
+        ...outcome,
+        runDate,
+        startedAt,
+        finishedAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error("nightly.retention_outcome_failed", error);
+      outcome = {
+        ...outcome,
+        status: "failed",
+        error: [
+          outcome.error,
+          error instanceof Error ? error.message : String(error),
+        ]
+          .filter(Boolean)
+          .join("; "),
+      };
+    }
+    return outcome;
   }
   const job = await beginJob(ownerId, kind, runDate, runId, rerunFrom);
   if (job.skip) return { id: job.id, status: job.status, skipped: true };
@@ -175,7 +223,10 @@ export async function nightlyMaintenance(
     );
     if (failed)
       throw new Error(
-        "Nightly maintenance finished with failed stages. See Operations for results and retry.",
+        `Nightly maintenance failed: ${Object.entries(jobs)
+          .filter(([, job]) => job?.status === "failed")
+          .map(([kind, job]) => `${kind}: ${job?.error ?? "failed"}`)
+          .join("; ")}. See Operations for results and retry.`,
       );
     return { runId, runDate, status: "completed", jobs };
   }

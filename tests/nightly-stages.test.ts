@@ -81,7 +81,8 @@ test("Operations offers no manual task phase start", () => {
     );
 });
 
-test("retention failure is reported but cannot block consolidation", async () => {
+test("retention failure is reported but cannot block consolidation", async (t) => {
+  const log = t.mock.method(console, "error", () => {});
   const calls: string[] = [];
   const result = await runNightlyStages(async (kind) => {
     calls.push(kind);
@@ -90,6 +91,8 @@ test("retention failure is reported but cannot block consolidation", async () =>
   });
   assert.equal(result.failed, true);
   assert.equal(result.jobs.retention?.status, "failed");
+  assert.equal(result.jobs.retention?.error, "database unavailable");
+  assert.equal(log.mock.callCount(), 1);
   assert.equal(result.jobs.consolidation?.status, "succeeded");
   assert.deepEqual(calls, [
     "retention",
