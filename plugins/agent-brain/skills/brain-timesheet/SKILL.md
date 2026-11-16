@@ -31,6 +31,8 @@ An idempotent replay returns the current existing entry, which may have been edi
 
 Use `list_time_entries` with inclusive `from` and `to` dates when a period is requested. A named project uses its id or canonical slug; omit `projectRef` for all entries, and use `projectRef: null` for only unassigned time.
 
+If a linked project page changes type, its existing entries keep that association and remain filterable by the page id or current slug. Preserve that historical link when correcting hours or notes; only a current project page can receive a new association.
+
 `total` and `totalMinutes` cover the entire filtered selection, including entries outside the returned page. Use that total directly; do not sum page totals or describe a first page as the whole timesheet. To inspect every entry or derive a breakdown, follow `nextOffset` until it is `null`, retaining the same filters. State the period and project selection with the result. Deleted entries are excluded from lists and totals.
 
 ## Correct or delete an entry

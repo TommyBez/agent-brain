@@ -46,7 +46,7 @@ async function TimesheetContent({
       </div>
     );
   const filters = parsed.data;
-  const { entries, total, totalMinutes, nextOffset, projects } =
+  const { entries, total, totalMinutes, nextOffset, projects, filterProjects } =
     await getTimesheet(filters);
   return (
     <div className="grid gap-10 xl:grid-cols-[minmax(0,1fr)_340px]">
@@ -81,9 +81,10 @@ async function TimesheetContent({
             >
               <NativeSelectOption value="">All projects</NativeSelectOption>
               <NativeSelectOption value="none">No project</NativeSelectOption>
-              {projects.map((project) => (
+              {filterProjects.map((project) => (
                 <NativeSelectOption value={project.id} key={project.id}>
                   {project.title}
+                  {project.type !== "project" ? " (reclassified)" : ""}
                 </NativeSelectOption>
               ))}
             </NativeSelect>

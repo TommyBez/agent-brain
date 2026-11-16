@@ -26,7 +26,6 @@ export const brainTimeEntries = pgTable(
     minutes: integer().notNull(),
     note: text().notNull().default(""),
     projectId: uuid("project_id"),
-    projectType: text("project_type").notNull().default("project"),
     version: integer().notNull().default(1),
     idempotencyKey: uuid("idempotency_key").notNull(),
     inputHash: text("input_hash").notNull(),
@@ -46,8 +45,9 @@ export const brainTimeEntries = pgTable(
       table.idempotencyKey,
     ),
     foreignKey({
-      columns: [table.ownerId, table.projectId, table.projectType],
-      foreignColumns: [brainPages.ownerId, brainPages.id, brainPages.type],
+      // Page types may change; validate the type when assigning a new project.
+      columns: [table.ownerId, table.projectId],
+      foreignColumns: [brainPages.ownerId, brainPages.id],
       name: "brain_time_entries_project_fk",
     }),
     foreignKey({
@@ -69,9 +69,5 @@ export const brainTimeEntries = pgTable(
     check("brain_time_entries_minutes_check", sql`minutes BETWEEN 1 AND 1440`),
     check("brain_time_entries_note_check", sql`char_length(note) <= 2000`),
     check("brain_time_entries_version_check", sql`version > 0`),
-    check(
-      "brain_time_entries_project_type_check",
-      sql`project_type = 'project'`,
-    ),
   ],
 );

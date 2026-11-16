@@ -75,7 +75,10 @@ inclusive `from`/`to` dates, optional `projectRef` (`null` selects unassigned),
 `limit` and `offset`; it returns `totalMinutes` across all matches and
 `nextOffset`. Never infer hours from task status, page changes or agent runtime.
 
-Apply migration `0011_timesheet.sql` before using the feature.
+Apply migrations `0011_timesheet.sql` and `0012_timesheet_project_reclassification.sql`
+before using the feature. Reclassifying a project page preserves its historical
+time entries, which remain filterable and editable. Only pages currently typed
+as projects can receive new associations.
 Writes invalidate the owner's dedicated timesheet cache; project page changes
 also invalidate the displayed titles. As elsewhere in the workspace, refresh
 an already open tab to see external MCP changes immediately.
@@ -180,7 +183,7 @@ npx skills add TommyBez/agent-brain --skill brain-memory
 
 The [`brain-tasks` skill](plugins/agent-brain/skills/brain-tasks/SKILL.md) covers tracked work: when to create a task, claiming before working, reports and questions to the owner, and completion with the pages written. Its [lifecycle](plugins/agent-brain/skills/brain-tasks/references/lifecycle.md) and [meetings](plugins/agent-brain/skills/brain-tasks/references/meetings.md) references explain leases, errors and tasks transcribed from sources. Install it the same way with `--skill brain-tasks`; it works only for an owner who has turned on the task manager in **Agents & access**, because otherwise the server exposes no task tools.
 
-The [`brain-timesheet` skill](plugins/agent-brain/skills/brain-timesheet/SKILL.md) guides logging, reviewing, correcting and deleting actual hours through MCP, with optional projects and totals by period. Install it with `--skill brain-timesheet`; it works independently of the task manager switch. The server must expose the timesheet tools and have migration `0011_timesheet.sql` applied; updating the plugin alone does not deploy those changes.
+The [`brain-timesheet` skill](plugins/agent-brain/skills/brain-timesheet/SKILL.md) guides logging, reviewing, correcting and deleting actual hours through MCP, with optional projects and totals by period. Install it with `--skill brain-timesheet`; it works independently of the task manager switch. The server must expose the timesheet tools and have migrations through `0012_timesheet_project_reclassification.sql` applied; updating the plugin alone does not deploy those changes.
 
 From a local checkout, use `npx skills add ./plugins/agent-brain --skill brain-memory`. Alternatively, copy the complete `plugins/agent-brain/skills/brain-memory` folder into your client's supported skill directory. Repository access is required if the repository is private. Installing only the skill does not connect or authorize MCP; complete [the connection steps](#connect-an-agent) separately.
 

@@ -127,6 +127,12 @@ export function EntryForm({
             defaultValue={entry?.projectId ?? ""}
           >
             <NativeSelectOption value="">No project</NativeSelectOption>
+            {entry?.projectId &&
+              !projects.some((project) => project.id === entry.projectId) && (
+                <NativeSelectOption value={entry.projectId}>
+                  {entry.projectTitle} (reclassified)
+                </NativeSelectOption>
+              )}
             {projects.map((project) => (
               <NativeSelectOption key={project.id} value={project.id}>
                 {project.title}

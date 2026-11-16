@@ -5,6 +5,7 @@ import {
   Client,
   StreamableHTTPClientTransport,
 } from "@modelcontextprotocol/client";
+import { write } from "../lib/brain/pages";
 import { getPool } from "../lib/db";
 import { createBrainHandler } from "../lib/mcp/server";
 import { ownerActor } from "../lib/tasks/actors";
@@ -146,11 +147,12 @@ test(
             { code: "23503" },
           );
           await assert.rejects(
-            db.query(
-              "UPDATE brain_time_entries SET project_id = $1 WHERE id = $2",
-              [note, entry.id],
-            ),
-            { code: "23503" },
+            updateTimeEntry(actor, {
+              id: entry.id,
+              expectedVersion: 1,
+              patch: { projectRef: note },
+            }),
+            { code: "PROJECT_NOT_FOUND" },
           );
           await assert.rejects(
             db.query(
@@ -304,6 +306,84 @@ test(
             "timesheet",
             "timesheet",
           ]);
+        },
+      );
+      await t.test(
+        "page reclassification preserves active entries and tombstones",
+        async () => {
+          const active = await createTimeEntry(actor, {
+            ...input,
+            idempotencyKey: randomUUID(),
+          });
+          const removed = await createTimeEntry(actor, {
+            ...input,
+            idempotencyKey: randomUUID(),
+          });
+          await deleteTimeEntry(actor, {
+            id: removed.entry.id,
+            expectedVersion: 1,
+          });
+          await write(owner, {
+            id: project,
+            expectedVersion: 1,
+            type: "note",
+            title: "Reclassified project",
+            markdown: "Now a note.",
+          });
+          assert.equal(
+            (await readTimeEntry(owner, { id: active.entry.id })).projectId,
+            project,
+          );
+          assert.ok(
+            (await readTimeEntry(owner, { id: removed.entry.id })).deletedAt,
+          );
+          assert.equal(
+            (await listTimeEntries(owner, { projectRef: project }))
+              .totalMinutes,
+            90,
+          );
+          assert.equal(
+            (await listTimeEntries(owner, { projectRef: input.projectRef }))
+              .totalMinutes,
+            90,
+          );
+          const edited = await updateTimeEntry(actor, {
+            id: active.entry.id,
+            expectedVersion: 1,
+            patch: { projectRef: project, note: "Corrected note" },
+          });
+          assert.equal(edited.projectId, project);
+          assert.equal(edited.note, "Corrected note");
+          await assert.rejects(
+            createTimeEntry(actor, { ...input, idempotencyKey: randomUUID() }),
+            { code: "PROJECT_NOT_FOUND" },
+          );
+          await assert.rejects(
+            updateTimeEntry(actor, {
+              id: unassigned.entry.id,
+              expectedVersion: 1,
+              patch: { projectRef: project },
+            }),
+            { code: "PROJECT_NOT_FOUND" },
+          );
+          await updateTimeEntry(actor, {
+            id: active.entry.id,
+            expectedVersion: 2,
+            patch: { projectRef: null },
+          });
+          // The remaining associations are all tombstones; reclassification must still work.
+          await write(owner, {
+            id: project,
+            expectedVersion: 2,
+            type: "company",
+            title: "Reclassified again",
+            markdown: "Now a company.",
+          });
+          assert.equal(
+            (await listTimeEntries(owner, { projectRef: project }))
+              .totalMinutes,
+            0,
+          );
         },
       );
     } finally {

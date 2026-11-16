@@ -56,9 +56,20 @@ export async function listTimeEntries(ownerId: string, input: unknown) {
   assertOwner(ownerId);
   const filters = parse(listTimeEntriesSchema, input);
   const db = getPool();
-  const projectId = filters.projectRef
-    ? (await resolveProject(db, ownerId, filters.projectRef)).id
-    : null;
+  let projectId: string | null = null;
+  if (filters.projectRef) {
+    // Historical associations remain filterable after a page changes type.
+    const { rows } = await db.query<{ id: string }>(
+      `SELECT p.id FROM brain_pages p WHERE p.owner_id = $1
+       AND (p.id::text = $2 OR p.slug = $2)
+       AND (p.type = 'project' OR EXISTS (
+         SELECT 1 FROM brain_time_entries e WHERE e.owner_id = p.owner_id AND e.project_id = p.id
+       ))`,
+      [ownerId, filters.projectRef],
+    );
+    projectId =
+      rows[0]?.id ?? (await resolveProject(db, ownerId, filters.projectRef)).id;
+  }
   // One snapshot: totals cover the entire filtered set, including off-screen entries.
   const { rows } = await db.query<{
     entries: TimeEntry[];
@@ -131,7 +142,7 @@ export async function createTimeEntry(actor: Actor, input: unknown) {
       };
     }
     const projectId = data.projectRef
-      ? (await resolveProject(db, actor.ownerId, data.projectRef)).id
+      ? (await resolveProject(db, actor.ownerId, data.projectRef, true)).id
       : null;
     const { rows } = await db.query(
       `INSERT INTO brain_time_entries (owner_id, worked_on, minutes, note, project_id, idempotency_key, input_hash, created_by, updated_by)
@@ -184,9 +195,16 @@ export async function updateTimeEntry(actor: Actor, input: unknown) {
   const { id, expectedVersion, patch } = parse(updateTimeEntrySchema, input);
   return transaction(async (db) => {
     await lockEntry(db, actor.ownerId, id, expectedVersion);
-    const projectId = patch.projectRef
-      ? (await resolveProject(db, actor.ownerId, patch.projectRef)).id
-      : null;
+    let projectId: string | null = null;
+    if (patch.projectRef) {
+      const current = await readEntry(db, actor.ownerId, id);
+      projectId =
+        patch.projectRef === current.projectId ||
+        patch.projectRef === current.projectSlug
+          ? current.projectId
+          : (await resolveProject(db, actor.ownerId, patch.projectRef, true))
+              .id;
+    }
     await db.query(
       `UPDATE brain_time_entries SET worked_on = COALESCE($3::date, worked_on), minutes = COALESCE($4::int, minutes), note = COALESCE($5::text, note),
       project_id = CASE WHEN $6::boolean THEN $7::uuid ELSE project_id END, version = version + 1, updated_by = $8, updated_at = now()

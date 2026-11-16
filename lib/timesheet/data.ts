@@ -17,12 +17,19 @@ async function dataForOwner(
   cacheLife({ stale: 30, revalidate: 30, expire: 60 });
   const [result, projects] = await Promise.all([
     listTimeEntries(ownerId, filters),
-    getPool().query<{ id: string; title: string }>(
-      "SELECT id, title FROM brain_pages WHERE owner_id = $1 AND type = 'project' ORDER BY title, id",
+    getPool().query<{ id: string; title: string; type: string }>(
+      `SELECT p.id, p.title, p.type FROM brain_pages p WHERE p.owner_id = $1
+       AND (p.type = 'project' OR EXISTS (
+         SELECT 1 FROM brain_time_entries e WHERE e.owner_id = p.owner_id AND e.project_id = p.id
+       )) ORDER BY p.title, p.id`,
       [ownerId],
     ),
   ]);
-  return { ...result, projects: projects.rows };
+  return {
+    ...result,
+    projects: projects.rows.filter((page) => page.type === "project"),
+    filterProjects: projects.rows,
+  };
 }
 
 export async function getTimesheet(
