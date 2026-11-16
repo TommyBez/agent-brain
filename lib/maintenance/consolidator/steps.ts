@@ -255,8 +255,7 @@ export async function analyzeConsolidationTask(
         recordKeys.incompleteAnalysis(task.id, snapshot.id),
         result,
       );
-    // Full judgments remain in immutable audit storage. Replaying Workflow only
-    // needs findings/status, not copies of every model input for every task.
+    // Storage keeps compact diagnostics; Workflow only needs findings/status.
     return { ...result, judgments: [] };
   } catch (error) {
     return haltFor(error) ?? failProvider(error);

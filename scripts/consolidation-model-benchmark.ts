@@ -97,6 +97,20 @@ async function prepare() {
       `SELECT r.run_id,r.record_key,r.payload->'judgments' AS judgments FROM brain_consolidation_records r JOIN brain_jobs j ON j.owner_id=r.owner_id AND j.workflow_run_id=r.run_id WHERE ${window} AND r.record_key LIKE 'verification:%' AND jsonb_array_length(coalesce(r.payload->'judgments','[]'))>0 ORDER BY r.record_key`,
       [values.owner],
     );
+    if (
+      traces.rows.some((trace) =>
+        trace.judgments.some(
+          (judgment: { evaluationKey?: string }) => judgment.evaluationKey,
+        ),
+      )
+    )
+      throw new Error(
+        "Real-data preparation requires legacy full judgments. Compact diagnostics contain evaluation keys and answers, not replayable requests. Use a previously prepared private dataset or --synthetic-only.",
+      );
+    if (traces.rows.length < 4)
+      throw new Error(
+        "Insufficient legacy verification traces in the selected window.",
+      );
     const cases = await synthetic();
     // Deterministic evenly spaced selection, fixed before either live result.
     for (let i = 0; i < 4; i++) {

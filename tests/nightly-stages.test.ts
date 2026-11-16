@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 import { runNightlyStages } from "../lib/maintenance/nightly-stages";
 
-test("nightly runs only consolidation, embeddings, hygiene and export", async () => {
+test("nightly runs retention before consolidation, embeddings, hygiene and export", async () => {
   const calls: string[] = [];
   const result = await runNightlyStages(
     async (kind) => {
@@ -13,6 +13,7 @@ test("nightly runs only consolidation, embeddings, hygiene and export", async ()
     { tasks: true },
   );
   assert.deepEqual(calls, [
+    "retention",
     "consolidation",
     "embeddings",
     "export",
@@ -27,7 +28,12 @@ test("nightly without tasks preserves page stages", async () => {
     calls.push(kind);
     return { status: "succeeded" };
   });
-  assert.deepEqual(calls, ["consolidation", "embeddings", "export"]);
+  assert.deepEqual(calls, [
+    "retention",
+    "consolidation",
+    "embeddings",
+    "export",
+  ]);
 });
 
 test("stage failure does not prevent the remaining stages", async () => {
@@ -41,7 +47,7 @@ test("stage failure does not prevent the remaining stages", async () => {
     { tasks: true },
   );
   assert.equal(result.failed, true);
-  assert.equal(calls.length, 4);
+  assert.equal(calls.length, 5);
 });
 
 test("nightly cannot extract tasks, instantiate occurrences or write task links", () => {
@@ -73,4 +79,25 @@ test("Operations offers no manual task phase start", () => {
       readFileSync(path, "utf8"),
       /startTaskMaintenance|requeueTaskWorkflowJobs|TaskMaintenanceControl|scope: "tasks"/,
     );
+});
+
+test("retention failure is reported but cannot block consolidation", async (t) => {
+  const log = t.mock.method(console, "error", () => {});
+  const calls: string[] = [];
+  const result = await runNightlyStages(async (kind) => {
+    calls.push(kind);
+    if (kind === "retention") throw new Error("database unavailable");
+    return { status: "succeeded" };
+  });
+  assert.equal(result.failed, true);
+  assert.equal(result.jobs.retention?.status, "failed");
+  assert.equal(result.jobs.retention?.error, "database unavailable");
+  assert.equal(log.mock.callCount(), 1);
+  assert.equal(result.jobs.consolidation?.status, "succeeded");
+  assert.deepEqual(calls, [
+    "retention",
+    "consolidation",
+    "embeddings",
+    "export",
+  ]);
 });

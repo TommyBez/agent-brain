@@ -28,6 +28,7 @@ import type { TaskPhaseHalt } from "@/lib/maintenance/task-phase";
 import type { MaintenanceJob, OperationsData } from "@/lib/operations";
 
 const JOB_LABELS: Record<MaintenanceJob["kind"], string> = {
+  retention: "Retention",
   consolidation: "Consolidation",
   embeddings: "Embeddings",
   export: "Export",

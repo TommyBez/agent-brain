@@ -11,21 +11,23 @@ export type NightlyOptions = {
 };
 
 export type StageOutcome = { status: string; [key: string]: unknown };
-export type NightlyStages = Partial<Record<WorkflowJobKind, StageOutcome>>;
+export type NightlyStageKind = WorkflowJobKind | "retention";
+export type NightlyStages = Partial<Record<NightlyStageKind, StageOutcome>>;
 
-/** Consolidation, then embeddings → hygiene beside export. */
+/** Retention, consolidation, then embeddings → hygiene beside export. */
 export async function runNightlyStages(
-  run: (kind: WorkflowJobKind) => Promise<StageOutcome>,
+  run: (kind: NightlyStageKind) => Promise<StageOutcome>,
   options: NightlyOptions = {},
 ): Promise<{ failed: boolean; jobs: NightlyStages }> {
-  const settle = (kind: WorkflowJobKind): Promise<StageOutcome> =>
-    run(kind).catch(() => ({
-      status: "failed",
-      error:
-        kind === "consolidation"
-          ? "Consolidation bookkeeping failed."
-          : "Maintenance bookkeeping failed.",
-    }));
+  const settle = (kind: NightlyStageKind): Promise<StageOutcome> =>
+    run(kind).catch((error) => {
+      console.error("nightly.stage_failed", { kind, error });
+      return {
+        status: "failed",
+        error: error instanceof Error ? error.message : String(error),
+      };
+    });
+  const retention = await settle("retention");
   const consolidation = await settle("consolidation");
   const [indexing, exported] = await Promise.all([
     settle("embeddings").then(async (embeddings) => ({
@@ -35,9 +37,9 @@ export async function runNightlyStages(
     settle("export"),
   ]);
   return {
-    failed: [consolidation, indexing.embeddings, exported].some(
+    failed: [retention, consolidation, indexing.embeddings, exported].some(
       (job) => job.status === "failed",
     ),
-    jobs: { consolidation, ...indexing, export: exported },
+    jobs: { retention, consolidation, ...indexing, export: exported },
   };
 }
