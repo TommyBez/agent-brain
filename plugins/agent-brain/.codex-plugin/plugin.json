@@ -1,7 +1,7 @@
 {
   "name": "agent-brain",
-  "version": "0.2.0",
-  "description": "Retrieve and preserve private knowledge and coordinate tracked tasks with a native brain through MCP.",
+  "version": "0.3.0",
+  "description": "Retrieve private knowledge, coordinate tracked tasks and manage hours worked with a native brain through MCP.",
   "author": {
     "name": "Tommaso"
   },
@@ -10,14 +10,15 @@
   "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "Agent Brain",
-    "shortDescription": "Private memory for agents",
-    "longDescription": "Retrieve context about people, companies, projects and decisions from your private a native brain. Save authorized updates with sources and version checks, and create, claim and complete tracked Brain tasks. Requires an authenticated Brain MCP connection.",
+    "shortDescription": "Memory, tasks and timesheets",
+    "longDescription": "Retrieve context about people, companies, projects and decisions from your private a native brain. Save authorized updates with sources and version checks, coordinate tracked Brain tasks, and log or review hours worked with an optional project. Requires an authenticated Brain MCP connection.",
     "developerName": "Tommaso",
     "category": "Productivity",
     "capabilities": ["Read", "Write"],
     "defaultPrompt": [
       "Use Agent Brain to recover the context and decisions for this project.",
-      "Use Agent Brain to list my open tasks for this project."
+      "Use Agent Brain to list my open tasks for this project.",
+      "Use Agent Brain to show my hours worked this week, including entries without a project."
     ],
     "composerIcon": "./assets/icon.svg",
     "logo": "./assets/icon.svg"

@@ -6,6 +6,7 @@ import {
   BookOpen,
   Bot,
   CalendarDays,
+  Clock3,
   Columns3,
   Hash,
   ListTodo,
@@ -138,6 +139,14 @@ const destinations: Destination[] = [
     group: "Go to",
     icon: icon(Activity),
     keywords: ["recent", "changes", "history"],
+    suggested: true,
+  },
+  {
+    href: "/timesheet",
+    label: "Timesheet",
+    group: "Go to",
+    icon: icon(Clock3),
+    keywords: ["hours", "time", "ore"],
     suggested: true,
   },
   ...entityTypes.map(

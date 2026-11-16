@@ -4,6 +4,7 @@ import {
   Activity,
   BookOpen,
   Bot,
+  Clock3,
   ListTodo,
   Network,
   Plus,
@@ -191,6 +192,11 @@ export function WorkspaceNavigation({
           </SidebarGroupAction>
         }
         entries={[
+          {
+            href: "/timesheet",
+            label: "Timesheet",
+            icon: <Clock3 strokeWidth={1.6} />,
+          },
           {
             href: "/",
             label: "All pages",

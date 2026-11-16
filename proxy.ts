@@ -23,6 +23,7 @@ export const config = {
     "/pages/:path*",
     "/graph",
     "/activity",
+    "/timesheet",
     "/tasks",
     "/tasks/:path*",
     "/agents",

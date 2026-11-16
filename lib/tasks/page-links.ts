@@ -50,10 +50,11 @@ export async function resolveProject(
   db: Database,
   ownerId: string,
   ref: string,
+  lockForLink = false,
 ): Promise<ResolvedPage> {
   const { rows } = await db.query(
     `SELECT id, slug, title, type, version FROM brain_pages
-     WHERE owner_id = $1 AND (id::text = $2 OR slug = $2)`,
+     WHERE owner_id = $1 AND (id::text = $2 OR slug = $2)${lockForLink ? " FOR SHARE" : ""}`,
     [ownerId, ref],
   );
   if (!rows[0] || rows[0].type !== "project")

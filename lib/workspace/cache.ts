@@ -27,13 +27,21 @@ export function revalidateTasksCache(ownerId: string) {
   revalidateTag(tasksCacheTag(ownerId), { expire: 0 });
 }
 
-export type CacheInvalidation = "workspace" | "tasks" | "both";
+export function timesheetCacheTag(ownerId: string) {
+  return `timesheet:${ownerId}`;
+}
+
+export type CacheInvalidation = "workspace" | "tasks" | "both" | "timesheet";
 
 /** The MCP route's onMutation: expire only what the tool changed. */
 export function revalidateAfterMutation(
   ownerId: string,
   kind: CacheInvalidation,
 ) {
+  if (kind === "timesheet") {
+    revalidateTag(timesheetCacheTag(ownerId), { expire: 0 });
+    return;
+  }
   if (kind !== "tasks") revalidateWorkspaceCache(ownerId);
   if (kind !== "workspace") revalidateTasksCache(ownerId);
 }

@@ -17,6 +17,8 @@ Use this skill even when the user does not mention Brain or ask to remember. It 
 
 Use these triggers throughout the task as new information or context needs emerge. Reuse context already retrieved when sufficient; refresh it when the task needs missing details or a newer state. General knowledge questions and routine implementation work without relevant user-specific context do not require a Brain lookup.
 
+For requests to log, review or correct hours worked, use `brain-timesheet`. Time entries belong in the timesheet, with an optional project, rather than in page Markdown or task reports. Saving knowledge does not itself authorize recording hours.
+
 ## Connect and load the current procedure
 
 - Load `brain-memory` by name through the client's skill mechanism (e.g. `/agent-brain:brain-memory`, `$brain-memory`, or a load-by-name tool); never store or reuse absolute file paths, because installers use commit-keyed directories that change every release; bundled references use relative links (`references/...`).
