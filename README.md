@@ -4,7 +4,7 @@ A private, agent-native second brain. The “a” also stands for “agent”. O
 
 The MCP request path exposes validated storage and retrieval primitives, with automatic query embeddings. Vercel Cron starts a durable Vercel Workflow for consolidation, page embeddings and Git export. Remote MCP is the primary interface. The browser provides a knowledge desk for reading, editing, graph navigation, revisions, credentials and operational status.
 
-Using a native brain from an agent? Install the [Agent Brain plugin](#agent-plugin), which bundles the MCP connection, the memory skill and the tasks skill. You can also [connect MCP](#connect-an-agent) and [install the skill](#agent-skill) separately.
+Using a native brain from an agent? Install the [Agent Brain plugin](#agent-plugin), which bundles the MCP connection, the memory, tasks and timesheet skills. You can also [connect MCP](#connect-an-agent) and [install the skill](#agent-skill) separately.
 
 ## Local setup
 
@@ -41,6 +41,44 @@ Cache Components and Partial Prefetching are enabled. Shared navigation and rout
 The server data layer rechecks the owner session before reading owner-keyed caches. Knowledge caches use explicit 30-second client freshness, 30-second background revalidation and 60-second expiry. Server Actions invalidate the owner tag with `updateTag` after a committed save. HTTP/MCP writes and Workflow steps expire the same tag immediately. Navigation follows the client cache freshness window; Back/Forward can restore an existing view. Refresh requests current server state. External agent writes are not pushed into already open tabs. Sessions, token metadata and live operations are not persisted in these caches.
 
 See [the rendering and verification guide](docs/next-app-router.md) for route boundaries, invalidation, navigation checks, and the gated HTTP acceptance command (`RUN_NEXT_TESTS=1` with isolated `BRAIN_TEST_*` fixture settings).
+
+## Timesheet
+
+`/timesheet` records actual time worked by the owner: a local calendar date,
+whole minutes (1–1440 per entry), an optional note, and an optional existing
+project. The workspace supports creating, editing and deleting entries, date
+and project filters (including unassigned entries), pagination and totals over
+the entire filtered set. Timesheet is independent of the task manager switch;
+entries never become knowledge pages or task activity.
+
+MCP exposes `list_time_entries` and `read_time_entry` with `brain:read`, and
+`create_time_entry`, `update_time_entry` and `delete_time_entry` with
+`brain:write`. For example, call `create_time_entry` with:
+
+```json
+{
+  "workedOn": "2026-11-16",
+  "minutes": 90,
+  "note": "Project planning",
+  "projectRef": "project/example",
+  "idempotencyKey": "cdb72198-0b5f-4b0b-9e91-0b8e414f5a51"
+}
+```
+
+Omit `projectRef` or pass `null` to log time without a project. Generate a fresh
+UUID for each intended entry; reuse it with identical input after an uncertain
+creation response. Read before editing or deleting and pass `expectedVersion`.
+Updates use a `patch`; `projectRef: null` removes the association. Deleted
+entries are excluded from lists and totals but remain readable as tombstones,
+so a retried creation cannot resurrect them. `list_time_entries` accepts
+inclusive `from`/`to` dates, optional `projectRef` (`null` selects unassigned),
+`limit` and `offset`; it returns `totalMinutes` across all matches and
+`nextOffset`. Never infer hours from task status, page changes or agent runtime.
+
+Apply migration `0011_timesheet.sql` before using the feature.
+Writes invalidate the owner's dedicated timesheet cache; project page changes
+also invalidate the displayed titles. As elsewhere in the workspace, refresh
+an already open tab to see external MCP changes immediately.
 
 ## UI components
 
@@ -112,7 +150,7 @@ Tasks are created only by an explicit owner action in the UI or an agent's `crea
 
 ## Agent plugin
 
-[`plugins/agent-brain`](plugins/agent-brain/README.md) is a self-contained [Agent Plugins 1.0.0](https://agent-plugins.org/) package (version 0.2.0): root `plugin.json`, `mcp.json` with Streamable HTTP, `skills/brain-memory/` and `skills/brain-tasks/`. It includes compatibility manifests for Claude Code, Codex and Cursor, and this repository provides their marketplace catalogs. The plugin connects to `https://agent-brain.vercel.app/mcp`; sign in through the client's OAuth flow after installation.
+[`plugins/agent-brain`](plugins/agent-brain/README.md) is a self-contained [Agent Plugins 1.0.0](https://agent-plugins.org/) package (version 0.3.0): root `plugin.json`, `mcp.json` with Streamable HTTP, `skills/brain-memory/`, `skills/brain-tasks/` and `skills/brain-timesheet/`. It includes compatibility manifests for Claude Code, Codex and Cursor, and this repository provides their marketplace catalogs. The plugin connects to `https://agent-brain.vercel.app/mcp`; sign in through the client's OAuth flow after installation.
 
 From this checkout:
 
@@ -142,6 +180,8 @@ npx skills add TommyBez/agent-brain --skill brain-memory
 
 The [`brain-tasks` skill](plugins/agent-brain/skills/brain-tasks/SKILL.md) covers tracked work: when to create a task, claiming before working, reports and questions to the owner, and completion with the pages written. Its [lifecycle](plugins/agent-brain/skills/brain-tasks/references/lifecycle.md) and [meetings](plugins/agent-brain/skills/brain-tasks/references/meetings.md) references explain leases, errors and tasks transcribed from sources. Install it the same way with `--skill brain-tasks`; it works only for an owner who has turned on the task manager in **Agents & access**, because otherwise the server exposes no task tools.
 
+The [`brain-timesheet` skill](plugins/agent-brain/skills/brain-timesheet/SKILL.md) guides logging, reviewing, correcting and deleting actual hours through MCP, with optional projects and totals by period. Install it with `--skill brain-timesheet`; it works independently of the task manager switch. The server must expose the timesheet tools and have migration `0011_timesheet.sql` applied; updating the plugin alone does not deploy those changes.
+
 From a local checkout, use `npx skills add ./plugins/agent-brain --skill brain-memory`. Alternatively, copy the complete `plugins/agent-brain/skills/brain-memory` folder into your client's supported skill directory. Repository access is required if the repository is private. Installing only the skill does not connect or authorize MCP; complete [the connection steps](#connect-an-agent) separately.
 
 Example requests after connecting:
@@ -151,7 +191,7 @@ Example requests after connecting:
 - “Review possible duplicates in a native brain and show me the uncertain cases.”
 - “Track the draft maintenance contract for this project as a task.” or “Work on T-12.”
 
-Explicit invocation depends on the client: Codex supports `$brain-memory` and `$brain-tasks`; the Claude Code plugin exposes `/agent-brain:brain-memory` and `/agent-brain:brain-tasks`. No database credentials, Git export access or model provider key is needed for ordinary agent use.
+Explicit invocation depends on the client: Codex supports `$brain-memory`, `$brain-tasks` and `$brain-timesheet`; the Claude Code plugin exposes `/agent-brain:brain-memory`, `/agent-brain:brain-tasks` and `/agent-brain:brain-timesheet`. No database credentials, Git export access or model provider key is needed for ordinary agent use.
 
 ## Retrieval
 

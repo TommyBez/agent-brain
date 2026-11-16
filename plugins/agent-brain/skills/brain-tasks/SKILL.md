@@ -5,7 +5,9 @@ description: Use when asked to create, track, claim, work on, hand off or finish
 
 # Agent Brain tasks
 
-Agent Brain keeps two separate stores. **Pages** describe the world: people, companies, projects, decisions and notes. **Tasks** describe work: who does what, by when, and where it stands. A task never edits a page and no page closes a task. Use this skill for tracked work in the task store; use the brain-memory skill for the knowledge you read or write while doing it.
+**Pages** describe the world: people, companies, projects, decisions and notes. **Tasks** describe work: who does what, by when, and where it stands. A task never edits a page and no page closes a task. Use this skill for tracked work in the task store; use the brain-memory skill for the knowledge you read or write while doing it.
+
+The **timesheet** stores actual hours separately, with an optional project. Use `brain-timesheet` when the owner asks to log, review or correct hours. Completing a task does not record time or authorize estimating it from the task's duration. Timesheet tools remain available when the task manager is off.
 
 This skill describes behavior. The server's tool descriptions, results (`nextActions`, `reportBy`, error `remedy`) and the `brain://procedures/tasks` resource are authoritative for values and limits. If the task tools (`list_tasks`, `read_task`, `create_task`, `update_task`, `claim_task`, `report_task`, `release_task`, `complete_task`) are not available on the connection, say so and follow brain-memory: a future action the owner asks you to keep stays in its project or note as plain knowledge, and you never emulate tasks with page checklists, status sections or invented task references.
 

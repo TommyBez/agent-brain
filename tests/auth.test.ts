@@ -290,6 +290,22 @@ test("every registered MCP tool agrees with the route scope check and rejects a 
       reason: "handoff",
       note: "Private handoff",
     },
+    list_time_entries: {},
+    read_time_entry: { id: "6f1c1a4e-2b3d-4e5f-8a9b-0c1d2e3f4a5b" },
+    create_time_entry: {
+      workedOn: "2026-11-16",
+      minutes: 60,
+      idempotencyKey: "6f1c1a4e-2b3d-4e5f-8a9b-0c1d2e3f4a5b",
+    },
+    update_time_entry: {
+      id: "6f1c1a4e-2b3d-4e5f-8a9b-0c1d2e3f4a5b",
+      expectedVersion: 1,
+      patch: { minutes: 30 },
+    },
+    delete_time_entry: {
+      id: "6f1c1a4e-2b3d-4e5f-8a9b-0c1d2e3f4a5b",
+      expectedVersion: 1,
+    },
     complete_task: {
       ref: "T-1",
       leaseId: "6f1c1a4e-2b3d-4e5f-8a9b-0c1d2e3f4a5b",
@@ -303,7 +319,7 @@ test("every registered MCP tool agrees with the route scope check and rejects a 
       }),
     );
     const { tools } = await client.listTools();
-    assert.equal(tools.length, 20);
+    assert.equal(tools.length, 25);
     for (const name of TASK_TOOL_NAMES)
       assert.ok(
         tools.some((tool) => tool.name === name),

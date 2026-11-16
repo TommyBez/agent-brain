@@ -1,6 +1,6 @@
 # Agent Brain plugin
 
-Retrieve context about people, clients and projects, preserve durable knowledge in the owner's private a native brain, and coordinate tracked tasks. This package (version 0.2.0) bundles the portable `brain-memory` and `brain-tasks` skills and a remote MCP connection. It contains no application runtime or database credentials.
+Retrieve context about people, clients and projects, preserve durable knowledge in the owner's private a native brain, coordinate tracked tasks, and manage hours worked with an optional project. This package (version 0.3.0) bundles the portable `brain-memory`, `brain-tasks` and `brain-timesheet` skills and a remote MCP connection. It contains no application runtime or database credentials.
 
 ## Package
 
@@ -21,13 +21,15 @@ agent-brain/
 │   └── references/
 │       ├── lifecycle.md
 │       └── meetings.md
+├── skills/brain-timesheet/
+│   └── SKILL.md
 ├── .mcp.json
 ├── .claude-plugin/plugin.json
 ├── .codex-plugin/plugin.json
 └── .cursor-plugin/plugin.json
 ```
 
-`plugin.json` and `mcp.json` follow [Agent Plugins 1.0.0](https://agent-plugins.org/plugin-authors/build-an-agent-plugin). Both skills follow [Agent Skills](https://agentskills.io/specification) and have one canonical copy each. brain-memory keeps its trigger description unchanged; brain-tasks loads only for tracked work in Agent Brain or a task reference such as `T-42`. The live server's instructions and tool schemas remain authoritative for its behavior.
+`plugin.json` and `mcp.json` follow [Agent Plugins 1.0.0](https://agent-plugins.org/plugin-authors/build-an-agent-plugin). All three skills follow [Agent Skills](https://agentskills.io/specification) and have one canonical copy each. brain-memory keeps its trigger description unchanged; brain-tasks loads only for tracked work in Agent Brain or a task reference such as `T-42`. brain-timesheet handles logging, reviewing, correcting and deleting actual hours independently of the task manager. The live server's instructions and tool schemas remain authoritative for its behavior.
 
 Codex and Cursor support the portable format. Compatibility manifests also support their native plugin formats. Claude Code uses `.claude-plugin/plugin.json` and discovers `.mcp.json`. The compatibility MCP configuration uses `type: "http"`, while the standard requires `type: "streamable-http"`. Keep server names and URLs in both files aligned; keep names, versions and descriptions aligned across manifests when releasing.
 
@@ -66,6 +68,10 @@ For a self-hosted Brain, copy the package and replace the URL in both `mcp.json`
 Use natural-language requests such as “Recover the context and decisions for this project” or “Save the decisions from this conversation, preserving sources and rationale.” Claude Code also supports `/agent-brain:brain-memory`; Codex supports explicit skill invocation with `$brain-memory`. The skill assesses useful memories proactively and saves only when authorized.
 
 For tracked work, ask for example “Track the maintenance contract draft as a task” or “Work on T-12”. The task tools exist only for an owner who has turned on the task manager in that Brain's **Agents & access** screen (off by default); they use the same `brain:read` and `brain:write` scopes, so no new consent is needed. A change applies from the agent's next MCP request; a client that cached its tool list may need to reconnect to see it. Claude Code supports `/agent-brain:brain-tasks`; Codex supports `$brain-tasks`.
+
+For time tracking, ask “Segna 90 minuti il 16 novembre 2026 sul progetto Agent Brain”, “Registra 45 minuti oggi senza progetto”, or “Quante ore ho segnato questa settimana?”. The `brain-timesheet` skill uses `list_time_entries`, `read_time_entry`, `create_time_entry`, `update_time_entry` and `delete_time_entry`, with the existing `brain:read` and `brain:write` scopes. It supports optional projects, period totals, versioned corrections and duplicate-safe creation retries. Claude Code supports `/agent-brain:brain-timesheet`; Codex supports `$brain-timesheet`.
+
+Version 0.3.0 requires a Brain server exposing the timesheet tools and its timesheet database migration. Updating the plugin alone does not deploy the server or migrate its database. After the server and plugin are updated, refresh the MCP tool list or reconnect if the client still caches the earlier tools.
 
 ## Validate and distribute
 

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import test from "node:test";
@@ -27,6 +27,7 @@ import {
 } from "../scripts/skill-eval/task-dataset";
 import {
   scoreTasks,
+  skillCatalog,
   taskSubjectPrompt,
 } from "../scripts/skill-eval/task-score";
 
@@ -757,7 +758,7 @@ test("the tasks suite runs through prepare, start, tool, finish and report", asy
   }
 });
 
-test("plugin 0.2.0 ships brain-tasks beside an unchanged brain-memory trigger", async () => {
+test("plugin 0.3.0 ships task and timesheet skills beside an unchanged brain-memory trigger", async () => {
   const json = async (path: string) =>
     JSON.parse(await readFile(join(root, path), "utf8"));
   const manifests = await Promise.all(
@@ -769,7 +770,7 @@ test("plugin 0.2.0 ships brain-tasks beside an unchanged brain-memory trigger", 
     ].map(json),
   );
   for (const manifest of manifests) {
-    assert.equal(manifest.version, "0.2.0");
+    assert.equal(manifest.version, "0.3.0");
     assert.equal(manifest.description, manifests[0].description);
   }
   for (const catalog of [
@@ -782,6 +783,23 @@ test("plugin 0.2.0 ships brain-tasks beside an unchanged brain-memory trigger", 
     );
   const skill = (name: string, path = "SKILL.md") =>
     readFile(join(root, "plugins/agent-brain/skills", name, path), "utf8");
+  const directories = await readdir(join(root, "plugins/agent-brain/skills"), {
+    withFileTypes: true,
+  });
+  const files = Object.fromEntries(
+    await Promise.all(
+      directories
+        .filter((entry) => entry.isDirectory())
+        .map(async (entry) => [
+          `${entry.name}/SKILL.md`,
+          await skill(entry.name),
+        ]),
+    ),
+  );
+  assert.deepEqual(
+    skillCatalog({ files, instructions: "" }).map((entry) => entry.name),
+    ["brain-memory", "brain-tasks", "brain-timesheet"],
+  );
   assert.match(
     await skill("brain-memory"),
     /^---\nname: brain-memory\ndescription: Always read this skill before replying when lasting facts about the user or their work emerge\.\n---/,
