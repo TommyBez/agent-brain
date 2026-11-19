@@ -52,10 +52,13 @@ export async function readTimeEntry(ownerId: string, input: unknown) {
   return readEntry(getPool(), ownerId, parse(readTimeEntrySchema, input).id);
 }
 
-export async function listTimeEntries(ownerId: string, input: unknown) {
-  assertOwner(ownerId);
-  const filters = parse(listTimeEntriesSchema, input);
-  const db = getPool();
+type TimeEntryFilters = z.output<typeof listTimeEntriesSchema>;
+
+async function entryFilterParams(
+  db: Database,
+  ownerId: string,
+  filters: Pick<TimeEntryFilters, "from" | "to" | "projectRef">,
+) {
   let projectId: string | null = null;
   if (filters.projectRef) {
     // Historical associations remain filterable after a page changes type.
@@ -70,6 +73,24 @@ export async function listTimeEntries(ownerId: string, input: unknown) {
     projectId =
       rows[0]?.id ?? (await resolveProject(db, ownerId, filters.projectRef)).id;
   }
+  return [
+    ownerId,
+    filters.from ?? null,
+    filters.to ?? null,
+    filters.projectRef === undefined,
+    projectId,
+  ];
+}
+
+const entryFilter = `e.owner_id = $1 AND e.deleted_at IS NULL
+  AND ($2::date IS NULL OR e.worked_on >= $2::date)
+  AND ($3::date IS NULL OR e.worked_on <= $3::date)
+  AND ($4::boolean OR e.project_id IS NOT DISTINCT FROM $5::uuid)`;
+
+export async function listTimeEntries(ownerId: string, input: unknown) {
+  assertOwner(ownerId);
+  const filters = parse(listTimeEntriesSchema, input);
+  const db = getPool();
   // One snapshot: totals cover the entire filtered set, including off-screen entries.
   const { rows } = await db.query<{
     entries: TimeEntry[];
@@ -79,20 +100,13 @@ export async function listTimeEntries(ownerId: string, input: unknown) {
     `
     WITH filtered AS (
       SELECT ${columns} FROM brain_time_entries e ${join}
-      WHERE e.owner_id = $1 AND e.deleted_at IS NULL
-        AND ($2::date IS NULL OR e.worked_on >= $2::date)
-        AND ($3::date IS NULL OR e.worked_on <= $3::date)
-        AND ($4::boolean OR e.project_id IS NOT DISTINCT FROM $5::uuid)
+      WHERE ${entryFilter}
     ), page AS (SELECT * FROM filtered ORDER BY "workedOn" DESC, id DESC LIMIT $6 OFFSET $7)
     SELECT COALESCE((SELECT jsonb_agg(page ORDER BY "workedOn" DESC, id DESC) FROM page), '[]'::jsonb) AS entries,
       count(*)::int AS total, COALESCE(sum(minutes), 0)::float8 AS "totalMinutes" FROM filtered
   `,
     [
-      ownerId,
-      filters.from ?? null,
-      filters.to ?? null,
-      filters.projectRef === undefined,
-      projectId,
+      ...(await entryFilterParams(db, ownerId, filters)),
       filters.limit,
       filters.offset,
     ],
@@ -105,6 +119,51 @@ export async function listTimeEntries(ownerId: string, input: unknown) {
         ? filters.offset + filters.limit
         : null,
   };
+}
+
+export type TimesheetDay = {
+  workedOn: string;
+  total: number;
+  totalMinutes: number;
+};
+
+export async function listTimesheetMonth(
+  ownerId: string,
+  filters: TimeEntryFilters & { from: string; to: string; day: string },
+) {
+  assertOwner(ownerId);
+  const db = getPool();
+  // The grid and the selected day's entries read from the same snapshot.
+  const { rows } = await db.query<{
+    days: TimesheetDay[];
+    entries: TimeEntry[];
+  }>(
+    `
+    WITH filtered AS (
+      SELECT e.id, e.worked_on, e.minutes
+      FROM brain_time_entries e WHERE ${entryFilter}
+    ), daily AS (
+      SELECT worked_on::text AS "workedOn", count(*)::int AS total,
+        sum(minutes)::float8 AS "totalMinutes"
+      FROM filtered GROUP BY worked_on
+    ), selected AS (
+      SELECT id FROM filtered WHERE worked_on = $6::date ORDER BY id DESC LIMIT $7 OFFSET $8
+    ), page AS (
+      SELECT ${columns} FROM selected
+      JOIN brain_time_entries e ON e.owner_id = $1 AND e.id = selected.id ${join}
+    )
+    SELECT
+      COALESCE((SELECT jsonb_agg(daily ORDER BY "workedOn") FROM daily), '[]'::jsonb) AS days,
+      COALESCE((SELECT jsonb_agg(page ORDER BY id DESC) FROM page), '[]'::jsonb) AS entries
+    `,
+    [
+      ...(await entryFilterParams(db, ownerId, filters)),
+      filters.day,
+      filters.limit,
+      filters.offset,
+    ],
+  );
+  return rows[0];
 }
 
 export async function createTimeEntry(actor: Actor, input: unknown) {

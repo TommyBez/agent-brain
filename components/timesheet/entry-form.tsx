@@ -1,8 +1,28 @@
 "use client";
 
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useId, useRef, useState, useTransition } from "react";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -14,51 +34,121 @@ import {
   deleteTimeEntryAction,
   saveTimeEntryAction,
 } from "@/lib/timesheet/actions";
-import type { TimeEntry } from "@/lib/timesheet/schemas";
+import { timesheetDayLabel } from "@/lib/timesheet/calendar";
+import { formatDuration, type TimeEntry } from "@/lib/timesheet/schemas";
 
 export type ProjectChoice = { id: string; title: string };
 
-function today() {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+type EntryFormProps = {
+  projects: ProjectChoice[];
+  date: string;
+  projectId?: string;
+  entry?: TimeEntry;
+};
+
+export function EntryDialog({
+  projects,
+  date,
+  projectId,
+  entry,
+  compact = false,
+}: EntryFormProps & { compact?: boolean }) {
+  const [open, setOpen] = useState(false);
+  const [pending, startTransition] = useTransition();
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!pending) setOpen(next);
+      }}
+    >
+      <DialogTrigger asChild>
+        <Button
+          variant={entry || compact ? "ghost" : "default"}
+          size={entry || compact ? "icon" : "default"}
+          aria-label={
+            entry
+              ? "Edit entry"
+              : compact
+                ? `Log time for ${timesheetDayLabel(date)}`
+                : undefined
+          }
+          title={
+            entry ? "Edit entry" : compact ? "Log time for this day" : undefined
+          }
+        >
+          {entry ? <Pencil /> : <Plus />}
+          {!entry && !compact && "Log time"}
+        </Button>
+      </DialogTrigger>
+      <DialogContent
+        className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[460px]"
+        showCloseButton={!pending}
+      >
+        <DialogHeader>
+          <DialogTitle className="font-serif text-2xl">
+            {entry ? "Edit time entry" : "Log time"}
+          </DialogTitle>
+          <DialogDescription>{timesheetDayLabel(date)}</DialogDescription>
+        </DialogHeader>
+        <EntryForm
+          key={entry?.version}
+          projects={projects}
+          date={date}
+          projectId={projectId}
+          entry={entry}
+          pending={pending}
+          startTransition={startTransition}
+          onClose={() => setOpen(false)}
+        />
+      </DialogContent>
+    </Dialog>
+  );
 }
 
-export function EntryForm({
+function EntryForm({
   projects,
+  date,
+  projectId,
   entry,
-  onDone,
-}: {
-  projects: ProjectChoice[];
-  entry?: TimeEntry;
-  onDone?: () => void;
+  pending,
+  startTransition,
+  onClose,
+}: EntryFormProps & {
+  pending: boolean;
+  startTransition: React.TransitionStartFunction;
+  onClose: () => void;
 }) {
   const prefix = useId();
   const router = useRouter();
-  const [pending, startTransition] = useTransition();
   const [error, setError] = useState("");
-  const [saved, setSaved] = useState(false);
-  // Retain the key after transport failures; reset only after confirmed success.
+  // Retain the key after transport failures so the same submission can be retried.
   const key = useRef<string | null>(null);
-  const formRef = useRef<HTMLFormElement>(null);
+
   return (
     <form
-      ref={formRef}
-      className="space-y-4"
       onSubmit={(event) => {
         event.preventDefault();
+        if (pending) return;
         const form = new FormData(event.currentTarget);
+        const minutes =
+          Number(form.get("hours")) * 60 + Number(form.get("minutes"));
+        if (minutes < 1 || minutes > 1440) {
+          setError("Enter a duration between 1 minute and 24 hours.");
+          return;
+        }
         const patch = {
           workedOn: form.get("workedOn"),
-          minutes: Number(form.get("hours")) * 60 + Number(form.get("minutes")),
+          minutes,
           note: form.get("note"),
           projectRef: form.get("projectRef") || null,
         };
-        key.current ??= crypto.randomUUID();
+        if (!entry) key.current ??= crypto.randomUUID();
         const input = entry
           ? { id: entry.id, expectedVersion: entry.version, patch }
           : { ...patch, idempotencyKey: key.current };
         setError("");
-        setSaved(false);
         startTransition(async () => {
           try {
             const result = await saveTimeEntryAction(input, Boolean(entry));
@@ -67,64 +157,78 @@ export function EntryForm({
               return;
             }
             key.current = null;
-            formRef.current?.reset();
-            setSaved(true);
+            onClose();
+            toast.success(entry ? "Time entry updated" : "Time logged");
             router.refresh();
-            onDone?.();
           } catch {
             setError("Unable to confirm the save. Retry with the same values.");
           }
         });
       }}
     >
-      <fieldset disabled={pending} className="space-y-4">
-        <div className="grid gap-4 sm:grid-cols-3">
-          <div className="space-y-2">
-            <Label htmlFor={`${prefix}-date`}>Date</Label>
+      <fieldset disabled={pending} className="min-w-0 space-y-5">
+        <div className="space-y-2">
+          <Label htmlFor={`${prefix}-date`}>Date</Label>
+          <Input
+            id={`${prefix}-date`}
+            name="workedOn"
+            type="date"
+            required
+            defaultValue={date}
+          />
+        </div>
+        <fieldset className="grid min-w-0 grid-cols-2 gap-3">
+          <legend className="mb-2 text-sm font-medium">Duration</legend>
+          <div className="relative">
             <Input
-              id={`${prefix}-date`}
-              name="workedOn"
-              type="date"
-              required
-              defaultValue={entry?.workedOn}
-              ref={(node) => {
-                if (node && !node.defaultValue) node.defaultValue = today();
-              }}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor={`${prefix}-hours`}>Hours</Label>
-            <Input
-              id={`${prefix}-hours`}
+              aria-label="Hours"
               name="hours"
               type="number"
               min="0"
               max="24"
               step="1"
               required
+              className="pr-16 tabular-nums"
               defaultValue={entry ? Math.floor(entry.minutes / 60) : 1}
             />
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-xs text-muted-foreground"
+            >
+              hours
+            </span>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor={`${prefix}-minutes`}>Minutes</Label>
+          <div className="relative">
             <Input
-              id={`${prefix}-minutes`}
+              aria-label="Minutes"
               name="minutes"
               type="number"
               min="0"
               max="59"
               step="1"
               required
+              className="pr-16 tabular-nums"
               defaultValue={entry ? entry.minutes % 60 : 0}
             />
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-xs text-muted-foreground"
+            >
+              min
+            </span>
           </div>
-        </div>
+        </fieldset>
         <div className="space-y-2">
-          <Label htmlFor={`${prefix}-project`}>Project (optional)</Label>
+          <Label htmlFor={`${prefix}-project`}>
+            Project{" "}
+            <span className="font-normal text-muted-foreground">
+              (optional)
+            </span>
+          </Label>
           <NativeSelect
             id={`${prefix}-project`}
             name="projectRef"
-            defaultValue={entry?.projectId ?? ""}
+            defaultValue={(entry ? entry.projectId : projectId) ?? ""}
           >
             <NativeSelectOption value="">No project</NativeSelectOption>
             {entry?.projectId &&
@@ -141,10 +245,16 @@ export function EntryForm({
           </NativeSelect>
         </div>
         <div className="space-y-2">
-          <Label htmlFor={`${prefix}-note`}>Note (optional)</Label>
+          <Label htmlFor={`${prefix}-note`}>
+            Note{" "}
+            <span className="font-normal text-muted-foreground">
+              (optional)
+            </span>
+          </Label>
           <Textarea
             id={`${prefix}-note`}
             name="note"
+            rows={3}
             maxLength={2000}
             placeholder="What did you work on?"
             defaultValue={entry?.note ?? ""}
@@ -155,111 +265,90 @@ export function EntryForm({
             {error}
           </p>
         )}
-        {saved && (
-          <output className="text-sm text-muted-foreground">Time saved.</output>
-        )}
-        <div className="flex gap-2">
-          <Button type="submit" disabled={pending}>
+        <div className="flex justify-end gap-2 border-t pt-4">
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit">
             {pending ? "Saving…" : entry ? "Save changes" : "Log time"}
           </Button>
-          {onDone && (
-            <Button type="button" variant="ghost" onClick={onDone}>
-              Cancel
-            </Button>
-          )}
         </div>
       </fieldset>
     </form>
   );
 }
 
-export function EntryActions({
-  entry,
-  projects,
-}: {
-  entry: TimeEntry;
-  projects: ProjectChoice[];
-}) {
+export function DeleteEntry({ entry }: { entry: TimeEntry }) {
   const router = useRouter();
-  const [editing, setEditing] = useState(false);
-  const [confirming, setConfirming] = useState(false);
+  const [open, setOpen] = useState(false);
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
-  if (editing)
-    return (
-      <div className="mt-4">
-        <EntryForm
-          key={entry.version}
-          entry={entry}
-          projects={projects}
-          onDone={() => setEditing(false)}
-        />
-      </div>
-    );
+
   return (
-    <div className="mt-3 flex flex-wrap items-center gap-2">
-      <Button
-        size="sm"
-        variant="ghost"
-        disabled={pending}
-        onClick={() => {
-          setEditing(true);
-          setConfirming(false);
-        }}
-      >
-        Edit
-      </Button>
-      {confirming ? (
-        <>
-          <span className="text-sm text-muted-foreground">
-            Delete this entry?
-          </span>
+    <AlertDialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!pending) {
+          setError("");
+          setOpen(next);
+        }
+      }}
+    >
+      <AlertDialogTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Delete entry"
+          title="Delete entry"
+        >
+          <Trash2 />
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete time entry?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Remove {formatDuration(entry.minutes)} logged on{" "}
+            {timesheetDayLabel(entry.workedOn)}.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        {error && (
+          <p role="alert" className="text-sm text-destructive">
+            {error}
+          </p>
+        )}
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={pending}>Cancel</AlertDialogCancel>
           <Button
-            size="sm"
             variant="destructive"
             disabled={pending}
-            onClick={() =>
+            onClick={() => {
+              setError("");
               startTransition(async () => {
-                setError("");
                 try {
                   const result = await deleteTimeEntryAction({
                     id: entry.id,
                     expectedVersion: entry.version,
                   });
-                  if (result.error) setError(result.error);
-                  else {
-                    setConfirming(false);
-                    router.refresh();
+                  if (result.error) {
+                    setError(result.error);
+                    return;
                   }
+                  setOpen(false);
+                  toast.success("Time entry deleted");
+                  router.refresh();
                 } catch {
                   setError(
                     "Unable to confirm deletion. Refresh to check the entry before retrying.",
                   );
                 }
-              })
-            }
+              });
+            }}
           >
-            {pending ? "Deleting…" : "Confirm delete"}
+            {pending ? "Deleting…" : "Delete entry"}
           </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            disabled={pending}
-            onClick={() => setConfirming(false)}
-          >
-            Cancel
-          </Button>
-        </>
-      ) : (
-        <Button size="sm" variant="ghost" onClick={() => setConfirming(true)}>
-          Delete
-        </Button>
-      )}
-      {error && (
-        <p role="alert" className="w-full text-sm text-destructive">
-          {error}
-        </p>
-      )}
-    </div>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
