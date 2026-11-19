@@ -13,6 +13,7 @@ import {
   createTimeEntry,
   deleteTimeEntry,
   listTimeEntries,
+  listTimesheetMonth,
   readTimeEntry,
   updateTimeEntry,
 } from "../lib/timesheet/service";
@@ -67,6 +68,46 @@ test(
         minutes: 45,
         idempotencyKey: randomUUID(),
       });
+
+      await t.test(
+        "calendar totals include the whole month with a paginated day agenda",
+        async () => {
+          const range = {
+            from: "2026-11-01",
+            to: "2026-11-30",
+            day: "2026-11-16",
+            limit: 1,
+            offset: 0,
+          };
+          const month = await listTimesheetMonth(owner, range);
+          assert.deepEqual(month.days, [
+            { workedOn: "2026-11-15", total: 1, totalMinutes: 45 },
+            { workedOn: "2026-11-16", total: 1, totalMinutes: 90 },
+          ]);
+          assert.deepEqual(
+            month.entries.map((item) => item.id),
+            [entry.id],
+          );
+          assert.deepEqual(
+            await listTimesheetMonth(owner, { ...range, offset: 1 }),
+            {
+              days: month.days,
+              entries: [],
+            },
+          );
+          assert.deepEqual(
+            await listTimesheetMonth(owner, { ...range, projectRef: null }),
+            {
+              days: [month.days[0]],
+              entries: [],
+            },
+          );
+          assert.deepEqual(await listTimesheetMonth(other, range), {
+            days: [],
+            entries: [],
+          });
+        },
+      );
 
       await t.test(
         "filters, inclusive dates and totals span all pages",
@@ -346,6 +387,21 @@ test(
             (await listTimeEntries(owner, { projectRef: input.projectRef }))
               .totalMinutes,
             90,
+          );
+          const month = await listTimesheetMonth(owner, {
+            from: "2026-11-01",
+            to: "2026-11-30",
+            day: input.workedOn,
+            projectRef: input.projectRef,
+            limit: 30,
+            offset: 0,
+          });
+          assert.deepEqual(month.days, [
+            { workedOn: input.workedOn, total: 1, totalMinutes: 90 },
+          ]);
+          assert.deepEqual(
+            month.entries.map((item) => item.id),
+            [active.entry.id],
           );
           const edited = await updateTimeEntry(actor, {
             id: active.entry.id,
